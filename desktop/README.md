@@ -444,10 +444,11 @@ for s in $sizes; do magick app-icon.png -filter Lanczos -resize ${s}x${s} -strip
 magick $(for s in $sizes; do echo /tmp/doop-$s.png; done) src-tauri/icons/icon.ico
 ```
 
-## Diagramly Desktop — Mac App Store profile
+## ZenUML upgrade — Mac App Store profile
 
 `src-tauri/tauri.app-store.conf.json` and Cargo's `app-store` feature define a
-separate product: **Diagramly Desktop**, bundle ID `ai.diagramly.desktop`,
+the upgrade of the existing paid **ZenUML** app, bundle ID `com.zenuml.app`,
+App Store ID `1602636196`, version `1.1.0` build `41` (previously `1.0.7` build `40`),
 macOS 13.5+, system WebKit. Build with both `--no-default-features` and
 `--features app-store`; the build rejects the self-updater or Chromium profile.
 This profile runs only its packaged loopback server. A missing or failed server
@@ -478,7 +479,7 @@ runtime depends on Homebrew libraries. No runtime is downloaded by this script.
 `--sign` additionally requires `MAS_APPLICATION_IDENTITY` (Apple Distribution or
 3rd Party Mac Developer Application), `MAS_INSTALLER_IDENTITY` (3rd Party Mac
 Developer Installer), and `MAS_PROVISIONING_PROFILE` (the explicit profile for
-`ai.diagramly.desktop`). It embeds that profile, derives identity entitlements
+`com.zenuml.app`). It embeds that profile, derives identity entitlements
 from it, verifies nested signatures and creates a signed installer package.
 It never uploads, publishes, changes commerce agreements, or configures products.
 A successful unsigned build is not App Store signing or App Review approval.
@@ -486,15 +487,42 @@ Current canvas HTML, local MCP, exports, and packaged native-module behavior sti
 need review in the signed sandboxed app. The inventory also exposes executable
 npm dependencies for that review.
 
-The new identity keeps its data in its own container. It does **not** automatically
-read or copy DoopSpike/Doop databases, uploads, cookies, credentials, or bookmarks.
-Keep the old app/container while migrating. Rebuild the old spike with the
-explicit library backup feature, choose **Export library**, then select that
-backup with **Restore library** in Diagramly Desktop. Confirm the imported
-designs before removing the old installation. This file flow transfers design
-data and excludes authentication and provider credentials; raw container/database
-copying is not supported. Diagramly cloud login and Apple purchases do not
-transfer ownership of local designs or bind an existing web subscription.
+The app keeps the existing `com.zenuml.app` sandbox identity. Core local editing
+and exports do not depend on a cloud account or Apple subscription. Reusing the
+identity alone does not make Electron IndexedDB readable by WebKit.
+
+Before the bundled server starts, native code preserves the old container's
+`Library/Application Support/ZenUML/IndexedDB` and `Local Storage` in a private
+`legacy-library-backups/legacy-*` directory beside the new server data. It opens
+originals read-only, holds LevelDB writer-excluding locks, rejects links, checks
+before/after file inventory, and records SHA-256 hashes. Backups are private
+(0700 directories, 0600 files). A running old app or partial copy does not produce
+a successful snapshot. Original browser databases are never opened by a database
+engine or upgraded in place.
+
+Native writes `legacy-library.json` and supplies its absolute path to Node through
+`DOOP_LEGACY_LIBRARY_MANIFEST`. A raw copy has status `preserved_needs_export`:
+**preserved is not imported or migrated**. The server must validate a complete,
+current-record export before offering import, and retain the snapshot for recovery.
+The manifest carries snapshot paths, file sizes/hashes and an optional validated
+`exportFile`; exported JSON must remain inside its snapshot. It never includes
+cloud credentials or document contents inline.
+
+If the old app used an unsandboxed folder, choose the original **ZenUML** folder
+using the native folder picker. The native bridge advertises
+`window.__DOOP_LEGACY_LIBRARY__` only in the main local page, and
+`legacy_library_choose` accepts no path supplied by JavaScript. The chooser is
+restricted to the main window's exact launch origin and the runtime permission.
+Keep the old app and backup until imported diagrams have been checked. The
+separate library JSON export/restore flow remains available for newer spike data.
+
+The local snapshot utility is for private recovery QA, never app publication:
+`cargo run --manifest-path desktop/src-tauri/Cargo.toml --no-default-features --features app-store --example legacy_snapshot -- OLD_ZENUML_FOLDER PRIVATE_DESTINATION`.
+It prints counts/status only. Do not put user databases or exports in this repo.
+Run the native Cargo tests for lock, traversal, private-file and startup checks.
+Run `node --test scripts/desktop-frame-snapshot.test.mjs` for actual WebKit image
+alpha and opaque-shape checks. Transparent captures use two deterministic public
+WebKit snapshots over black/white paper; no private WebKit API or color-key removal.
 
 ### Native Apple purchases
 

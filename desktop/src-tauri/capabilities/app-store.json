@@ -13,6 +13,7 @@
     "allow-fonts-read-local",
     "allow-view-menu-state",
     "allow-app-menu-set",
-    "allow-app-menu-state"
+    "allow-app-menu-state",
+    "allow-legacy-library-choose"
   ]
 }
