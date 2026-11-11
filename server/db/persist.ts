@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import path from 'node:path'
+import { dataDir } from '../dataDir.ts'
 import { nanoid } from 'nanoid'
 import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { db } from './index.ts'
@@ -1240,7 +1240,7 @@ export async function hydrate(): Promise<Hydrated> {
 
 /** One-time import of the pre-DB data/store.json so existing canvases survive. */
 export async function importLegacyJson(): Promise<Canvas[] | null> {
-  const file = path.join(process.cwd(), 'data', 'store.json')
+  const file = dataDir('store.json')
   let parsed: Canvas[]
   try {
     parsed = JSON.parse(fs.readFileSync(file, 'utf8'))

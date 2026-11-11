@@ -1,4 +1,5 @@
 import { env } from '../env.ts'
+import { dataDir } from '../dataDir.ts'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -34,7 +35,7 @@ export async function initDb(): Promise<void> {
   } else {
     const { PGlite } = await import('@electric-sql/pglite')
     const { drizzle } = await import('drizzle-orm/pglite')
-    const dir = path.join(process.cwd(), 'data', 'pg')
+    const dir = dataDir('pg')
     fs.mkdirSync(dir, { recursive: true }) // PGlite's own mkdir isn't recursive
     const client = new PGlite(dir)
     const pgliteDb = drizzle(client, { schema })

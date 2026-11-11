@@ -109,6 +109,11 @@ const schema = {
   DEFAULT_LOCALE: str({ choices: LOCALES, default: FALLBACK_LOCALE }),
   /* unset = embedded Postgres (PGlite) under ./data/pg */
   DATABASE_URL: str({ default: undefined }),
+  /* where the embedded database and uploaded assets live; unset = ./data under the
+     working directory. A packaged desktop app runs from a read-only bundle and sets it (spike) */
+  DOOP_DATA_DIR: str({ default: undefined }),
+  /* the interface to listen on; unset = all of them. A desktop app sets 127.0.0.1 (spike) */
+  HOST: str({ default: undefined }),
 
   /* ---------------------------------------------------------- auth */
   BETTER_AUTH_SECRET: str({

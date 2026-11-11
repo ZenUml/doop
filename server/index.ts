@@ -15,6 +15,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import express from 'express'
 import { diagramVendorRouter } from './diagramVendor'
+import { appRoot } from './dataDir'
 import { DIAGRAM_VENDOR_PATH } from '../shared/diagramFrame'
 import { eq, inArray } from 'drizzle-orm'
 import { toNodeHandler, fromNodeHeaders } from 'better-auth/node'
@@ -116,7 +117,7 @@ const PORT = env.PORT
 const BUILD_ID = (() => {
   try {
     return createHash('sha1')
-      .update(readFileSync(path.join(process.cwd(), 'dist', 'index.html')))
+      .update(readFileSync(path.join(appRoot(), 'dist', 'index.html')))
       .digest('hex')
       .slice(0, 12)
   } catch {
@@ -2739,7 +2740,7 @@ app.get('/sitemap.xml', (_req, res) => {
 
 /* production: serve the built client */
 if (env.isProduction) {
-  const dist = path.join(process.cwd(), 'dist')
+  const dist = path.join(appRoot(), 'dist')
   app.use(express.static(dist))
   /* a missing bundle or source map is a 404, not the app shell: HTML served
      as a .js or .map breaks module loads and source map resolution */
@@ -2942,7 +2943,7 @@ wss.on('connection', (ws, upgradeReq) => {
   })
 })
 
-server.listen(PORT, () => {
+server.listen(PORT, env.HOST, () => {
   console.log(`⟡ doop server     http://localhost:${PORT}`)
   /* frame HTML is loaded per canvas; a canvas nobody has used for
      CANVAS_IDLE_MS gives it back, unless a room, agent or stream is on it.
