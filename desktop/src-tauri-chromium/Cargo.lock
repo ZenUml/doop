@@ -1214,6 +1214,7 @@ version = "0.13.0"
 dependencies = [
  "block2",
  "cef",
+ "libc",
  "objc2",
  "objc2-app-kit",
  "objc2-foundation",
@@ -1223,6 +1224,7 @@ dependencies = [
  "rustls",
  "serde",
  "serde_json",
+ "sha2",
  "tauri",
  "tauri-build",
  "tauri-plugin-deep-link",

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-legacy-library-choose"
+description = "Enables the legacy_library_choose command without any pre-configured scope."
+commands.allow = ["legacy_library_choose"]
+
+[[permission]]
+identifier = "deny-legacy-library-choose"
+description = "Denies the legacy_library_choose command without any pre-configured scope."
+commands.deny = ["legacy_library_choose"]

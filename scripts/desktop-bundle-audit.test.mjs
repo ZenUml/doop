@@ -9,11 +9,11 @@ import { auditBundle } from './desktop-bundle-audit.mjs'
 async function fixture(run) {
   const temporary = await mkdtemp(path.join(os.tmpdir(), 'diagramly-bundle-audit-'))
   try {
-    const app = path.join(temporary, 'Diagramly Desktop.app')
+    const app = path.join(temporary, 'ZenUML.app')
     await mkdir(path.join(app, 'Contents', 'Resources'), { recursive: true })
     await writeFile(
       path.join(app, 'Contents/Info.plist'),
-      '<plist version="1.0"><dict><key>LSMinimumSystemVersion</key><string>13.5</string></dict></plist>',
+      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.zenuml.app</string><key>CFBundleShortVersionString</key><string>1.1.0</string><key>CFBundleVersion</key><string>41</string><key>LSMinimumSystemVersion</key><string>13.5</string></dict></plist>',
     )
     await run(app, temporary)
   } finally {
@@ -129,4 +129,26 @@ test('rejects native code requiring an OS newer than the app declares', () =>
       input: 'int fixture(void) { return 1; }',
     })
     await assert.rejects(auditBundle(app), /requires macOS 15.*declares 13.5/)
+  }))
+
+test('requires the existing paid app identity and records upgrade version', () =>
+  fixture(async (app) => {
+    const result = await auditBundle(app)
+    assert.equal(result.bundleIdentifier, 'com.zenuml.app')
+    assert.equal(result.version, '1.1.0')
+    assert.equal(result.buildVersion, '41')
+    await writeFile(
+      path.join(app, 'Contents/Info.plist'),
+      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>ai.diagramly.desktop</string></dict></plist>',
+    )
+    await assert.rejects(auditBundle(app), /existing paid app identity/)
+  }))
+
+test('rejects the old app version instead of producing a non-upgrade package', () =>
+  fixture(async (app) => {
+    await writeFile(
+      path.join(app, 'Contents/Info.plist'),
+      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.zenuml.app</string><key>CFBundleShortVersionString</key><string>1.0.7</string><key>CFBundleVersion</key><string>40</string></dict></plist>',
+    )
+    await assert.rejects(auditBundle(app), /must exceed version 1.0.7 build 40/)
   }))

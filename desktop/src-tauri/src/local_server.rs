@@ -48,6 +48,17 @@ pub fn start(app: &AppHandle) -> Option<String> {
     let shutdown = Url::from_file_path(shutdown).ok()?;
     let log = File::create(data.join("server.log")).ok()?;
     let mut command = Command::new(&node);
+    #[cfg(feature = "app-store")]
+    let legacy_manifest =
+        match crate::legacy_library::prepare(&data, &PathBuf::from(std::env::var_os("HOME")?)) {
+            Ok(path) => path,
+            Err(error) => {
+                // Keep the original manifest for recovery. The authenticated status
+                // route can report its error without disabling the independent new library.
+                let _ = writeln!(&log, "Legacy preservation needs recovery: {error}");
+                crate::legacy_library::manifest_path(&data)
+            }
+        };
     if cfg!(feature = "app-store") {
         // Do not inherit API keys, NODE_OPTIONS, loaders, provider routing or
         // arbitrary executable search paths from the launching environment.
@@ -66,6 +77,8 @@ pub fn start(app: &AppHandle) -> Option<String> {
             command.env("TMPDIR", value);
         }
     }
+    #[cfg(feature = "app-store")]
+    command.env("DOOP_LEGACY_LIBRARY_MANIFEST", legacy_manifest);
     let snapshot_helper = resources.parent()?.join("Helpers/DoopFrameSnapshot");
     if snapshot_helper.is_file() {
         command.env("DOOP_FRAME_SNAPSHOT_HELPER", snapshot_helper);
@@ -105,7 +118,7 @@ fn resources() -> Option<PathBuf> {
 
 /// `~/Library/Application Support/<identifier>/local-server`. In the App
 /// Sandbox `HOME` is the app's container, so this lands inside it.
-fn data_dir(app: &AppHandle) -> Option<PathBuf> {
+pub(crate) fn data_dir(app: &AppHandle) -> Option<PathBuf> {
     let home = PathBuf::from(std::env::var_os("HOME")?);
     Some(
         home.join("Library/Application Support")

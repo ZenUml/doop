@@ -8,11 +8,23 @@ import assert from 'node:assert/strict'
 // execution is needed. The manifest is an inventory, not a legal licence audit.
 export async function auditBundle(app) {
   const root = await realpath(app)
-  const minimumSystemVersion = execFileSync(
-    '/usr/libexec/PlistBuddy',
-    ['-c', 'Print :LSMinimumSystemVersion', path.join(root, 'Contents/Info.plist')],
-    { encoding: 'utf8' },
-  ).trim()
+  const plist = (key) =>
+    execFileSync('/usr/libexec/PlistBuddy', ['-c', `Print :${key}`, path.join(root, 'Contents/Info.plist')], {
+      encoding: 'utf8',
+    }).trim()
+  const bundleIdentifier = plist('CFBundleIdentifier')
+  if (bundleIdentifier !== 'com.zenuml.app')
+    throw new Error('Bundle must retain the existing paid app identity com.zenuml.app')
+  const version = plist('CFBundleShortVersionString')
+  const buildVersion = plist('CFBundleVersion')
+  if (!/^\d+\.\d+\.\d+$/.test(version) || !/^\d+$/.test(buildVersion))
+    throw new Error('Missing numeric app version or build')
+  const older = version.split('.').map(Number)
+  const previous = [1, 0, 7]
+  const firstChange = older.findIndex((part, index) => part !== previous[index])
+  if (firstChange < 0 || older[firstChange] < previous[firstChange] || Number(buildVersion) <= 40)
+    throw new Error('The Mac App Store upgrade must exceed version 1.0.7 build 40')
+  const minimumSystemVersion = plist('LSMinimumSystemVersion')
   if (!/^\d+\.\d+(?:\.\d+)?$/.test(minimumSystemVersion))
     throw new Error('Missing numeric macOS minimum in app Info.plist')
   const newerThanMinimum = (version) => {
@@ -88,7 +100,7 @@ export async function auditBundle(app) {
     }
   }
   await visit(root)
-  return { format: 1, bundleIdentifier: 'ai.diagramly.desktop', minimumSystemVersion, files, packages, native }
+  return { format: 1, bundleIdentifier, version, buildVersion, minimumSystemVersion, files, packages, native }
 }
 
 if (process.argv[1] === new URL(import.meta.url).pathname) {

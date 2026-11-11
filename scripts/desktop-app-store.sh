@@ -14,7 +14,7 @@ trap 'rm -rf "$STAGE"' EXIT
 if [[ "$MODE" == --sign ]]; then
   : "${MAS_APPLICATION_IDENTITY:?Set an Apple Distribution or 3rd Party Mac Developer Application identity}"
   : "${MAS_INSTALLER_IDENTITY:?Set a 3rd Party Mac Developer Installer identity}"
-  : "${MAS_PROVISIONING_PROFILE:?Set the explicit ai.diagramly.desktop provisioning profile path}"
+  : "${MAS_PROVISIONING_PROFILE:?Set the explicit com.zenuml.app provisioning profile path}"
   [[ "$MAS_APPLICATION_IDENTITY" == 'Apple Distribution:'* || "$MAS_APPLICATION_IDENTITY" == '3rd Party Mac Developer Application:'* ]] || { echo 'Mac App Store application identity required' >&2; exit 1; }
   [[ "$MAS_INSTALLER_IDENTITY" == '3rd Party Mac Developer Installer:'* ]] || { echo 'Mac App Store installer identity required' >&2; exit 1; }
 fi
@@ -26,9 +26,9 @@ cd "$ROOT/desktop"
 bun install --frozen-lockfile
 # Sign only after all server resources and helpers are assembled.
 bunx tauri build --ci --no-sign --features app-store --bundles app --config src-tauri/tauri.app-store.conf.json -- --no-default-features
-APP="$OUTPUT/Diagramly Desktop.app"
+APP="$OUTPUT/ZenUML.app"
 [[ ! -e "$APP" ]] || { echo "Output already exists; choose another DIAGRAMLY_BUILD_OUTPUT: $APP" >&2; exit 1; }
-ditto "$ROOT/desktop/src-tauri/target/release/bundle/macos/Diagramly Desktop.app" "$APP"
+ditto "$ROOT/desktop/src-tauri/target/release/bundle/macos/ZenUML.app" "$APP"
 LOCAL="$APP/Contents/Resources/local-server"
 mkdir -p "$LOCAL/app" "$APP/Contents/Helpers"
 cp "$NODE_BINARY" "$LOCAL/node"
@@ -50,7 +50,7 @@ if [[ "$MODE" == --sign ]]; then
   IDENTITY="$MAS_APPLICATION_IDENTITY"
   security cms -D -i "$MAS_PROVISIONING_PROFILE" > "$STAGE/profile.plist"
   APP_ID="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.application-identifier' "$STAGE/profile.plist")"
-  [[ "$APP_ID" == *.ai.diagramly.desktop ]] || { echo 'Provisioning profile does not match ai.diagramly.desktop' >&2; exit 1; }
+  [[ "$APP_ID" == *.com.zenuml.app ]] || { echo 'Provisioning profile does not match com.zenuml.app' >&2; exit 1; }
   cp "$MAS_PROVISIONING_PROFILE" "$APP/Contents/embedded.provisionprofile"
 fi
 # Sign every nested Mach-O, including npm native modules, before the outer app.
@@ -77,7 +77,7 @@ codesign --force --sign "$IDENTITY" --entitlements "$STAGE/shell.entitlements" "
 codesign --verify --deep --strict --verbose=2 "$APP"
 "$NODE_BINARY" "$ROOT/scripts/desktop-bundle-audit.mjs" "$APP" "$OUTPUT/provenance.json"
 if [[ "$MODE" == --sign ]]; then
-  productbuild --component "$APP" /Applications --sign "$MAS_INSTALLER_IDENTITY" "$OUTPUT/Diagramly-Desktop.pkg"
-  pkgutil --check-signature "$OUTPUT/Diagramly-Desktop.pkg"
+  productbuild --component "$APP" /Applications --sign "$MAS_INSTALLER_IDENTITY" "$OUTPUT/ZenUML-1.1.0.pkg"
+  pkgutil --check-signature "$OUTPUT/ZenUML-1.1.0.pkg"
 fi
 echo "Built $APP ($MODE). No upload was performed."

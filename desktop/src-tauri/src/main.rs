@@ -53,6 +53,10 @@ mod claude_extension;
 mod codex;
 mod commerce;
 mod fonts;
+#[cfg(feature = "app-store")]
+mod legacy_library;
+#[cfg(feature = "app-store")]
+mod legacy_library_bridge;
 mod local_server;
 mod server;
 #[cfg(feature = "self-updater")]
@@ -185,7 +189,7 @@ fn app_submenu(app: &AppHandle) -> tauri::Result<Submenu<ShellRuntime>> {
     let pkg = app.package_info();
     let about = AboutMetadata {
         name: Some(if cfg!(feature = "app-store") {
-            "Diagramly Desktop".into()
+            "ZenUML".into()
         } else {
             pkg.name.clone()
         }),
@@ -221,7 +225,7 @@ fn app_submenu(app: &AppHandle) -> tauri::Result<Submenu<ShellRuntime>> {
     Submenu::with_items(
         app,
         if cfg!(feature = "app-store") {
-            "Diagramly Desktop".into()
+            "ZenUML".into()
         } else {
             pkg.name.clone()
         },
@@ -338,6 +342,7 @@ fn main() {
     // the deep-link plugin through the `deep-link` feature.
     #[cfg(feature = "app-store")]
     let builder = builder.invoke_handler(tauri::generate_handler![
+        legacy_library_bridge::legacy_library_choose,
         fonts::fonts_choose_local,
         fonts::fonts_read_local,
         view_menu::view_menu_state,
@@ -411,8 +416,8 @@ fn main() {
             let _ = (window, event);
         })
         .setup(|app| {
-            if cfg!(feature = "app-store") && app.config().identifier != "ai.diagramly.desktop" {
-                return Err("The App Store build requires the ai.diagramly.desktop configuration.".into());
+            if cfg!(feature = "app-store") && app.config().identifier != "com.zenuml.app" {
+                return Err("The App Store build requires the com.zenuml.app configuration.".into());
             }
             // macOS registers doop:// from the bundle's Info.plist, so it
             // only works installed; Windows and Linux can register at
@@ -458,6 +463,7 @@ fn main() {
             // tab strip; the version lets the app adapt to shell capabilities
             // (traffic-light inset arrived with the overlay title bar, 0.1.2)
             // and the platform tells it which window framing it lives under.
+            #[cfg(not(feature = "app-store"))]
             let desktop_marker = format!(
                 "window.__DOOP_DESKTOP__ = '{}'; window.__DOOP_DESKTOP_PLATFORM__ = '{}'; window.__DOOP_CLAUDE_CLI__ = true; window.__DOOP_CLAUDE_INSTALL__ = true; window.__DOOP_CLAUDE_CHOOSE__ = true; window.__DOOP_CLAUDE_EXTENSION__ = {}; window.__DOOP_CODEX_SETUP__ = true; window.__DOOP_VIEW_MENU__ = true; window.__DOOP_APP_MENU__ = {}; window.__DOOP_LOCAL_FONTS__ = true; window.__DOOP_UPDATE_CARD__ = true; window.__DOOP_SERVER_CHOOSE__ = true;",
                 app.package_info().version,
@@ -466,9 +472,12 @@ fn main() {
                 // only macOS has a menu bar for the page to build (app_menu.rs)
                 cfg!(target_os = "macos")
             );
-            let desktop_marker = if cfg!(feature = "app-store") {
-                commerce::desktop_marker(&app.package_info().version.to_string())
-            } else { desktop_marker };
+            #[cfg(feature = "app-store")]
+            let desktop_marker = format!(
+                "{}{}",
+                commerce::desktop_marker(&app.package_info().version.to_string()),
+                legacy_library_bridge::marker(server::active(app.handle())),
+            );
             // macOS never reports the saved path on `Finished`, so remember
             // the destinations chosen on `Requested`, keyed by URL. The same
             // URL can be in flight more than once (double-clicking Download),
@@ -546,7 +555,7 @@ fn main() {
                             }
                         }
                     })
-                    .title(if cfg!(feature = "app-store") { "Diagramly Desktop" } else { "doop" })
+                    .title(if cfg!(feature = "app-store") { "ZenUML" } else { "doop" })
                     .visible(!migrating)
                     .inner_size(1440.0, 900.0)
                     .min_inner_size(900.0, 600.0)
