@@ -9,7 +9,6 @@
     "core:window:allow-close",
     "deep-link:default",
     { "identifier": "opener:allow-open-url", "allow": [{ "url": "https://**" }] },
-    "allow-codex-add-mcp",
     "allow-fonts-choose-local",
     "allow-fonts-read-local",
     "allow-view-menu-state",

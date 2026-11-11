@@ -456,6 +456,10 @@ The Claude installer, local CLI runner, extension installer, server switcher and
 updater IPC commands are omitted from this profile. The child receives a clean
 environment, `DOOP_PRODUCT=diagramly`, and the fixed cloud origin
 `https://diagramly.ai`; inherited API keys and Node loader options are excluded.
+The frontend build also sets `VITE_PRODUCT_MODE=diagramly`. The native Codex
+configuration installer is disabled: the App Sandbox cannot write the real
+Codex configuration in the user's home directory. Use the displayed MCP config
+or CLI instructions in the external client; external MCP access remains available.
 
 Build a review app with `bash scripts/desktop-app-store.sh --unsigned` from the
 repository root. This builds the frontend and release shell, installs only locked

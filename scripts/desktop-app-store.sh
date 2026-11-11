@@ -21,7 +21,7 @@ fi
 cd "$ROOT"
 bun install --frozen-lockfile
 # Build the product frontend without packaging the upstream Claude extension.
-bunx vite build
+VITE_PRODUCT_MODE=diagramly bunx vite build
 cd "$ROOT/desktop"
 bun install --frozen-lockfile
 # Sign only after all server resources and helpers are assembled.

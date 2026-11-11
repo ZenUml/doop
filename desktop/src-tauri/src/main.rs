@@ -338,7 +338,6 @@ fn main() {
     // the deep-link plugin through the `deep-link` feature.
     #[cfg(feature = "app-store")]
     let builder = builder.invoke_handler(tauri::generate_handler![
-        codex::codex_add_mcp,
         fonts::fonts_choose_local,
         fonts::fonts_read_local,
         view_menu::view_menu_state,
@@ -468,7 +467,7 @@ fn main() {
                 cfg!(target_os = "macos")
             );
             let desktop_marker = if cfg!(feature = "app-store") {
-                format!("if(window===window.top){{window.__DOOP_DESKTOP__='{}';window.__DOOP_DESKTOP_PLATFORM__='macos';window.__DOOP_CODEX_SETUP__=true;window.__DOOP_VIEW_MENU__=true;window.__DOOP_APP_MENU__=true;window.__DOOP_LOCAL_FONTS__=true;window.__DIAGRAMLY_APP_STORE__=true;}}", app.package_info().version)
+                commerce::desktop_marker(&app.package_info().version.to_string())
             } else { desktop_marker };
             // macOS never reports the saved path on `Finished`, so remember
             // the destinations chosen on `Requested`, keyed by URL. The same

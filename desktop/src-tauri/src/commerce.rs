@@ -3,6 +3,25 @@
 //! the call came from the main frame and exposes the actual security origin.
 use tauri::WebviewWindow;
 
+pub fn desktop_marker(version: &str) -> String {
+    format!("if(window===window.top){{window.__DOOP_DESKTOP__='{version}';window.__DOOP_DESKTOP_PLATFORM__='macos';window.__DOOP_CODEX_SETUP__=false;window.__DOOP_VIEW_MENU__=true;window.__DOOP_APP_MENU__=true;window.__DOOP_LOCAL_FONTS__=true;window.__DIAGRAMLY_APP_STORE__=true;}}")
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn app_store_does_not_advertise_external_codex_configuration_access() {
+        let capability: serde_json::Value =
+            serde_json::from_str(include_str!("../capabilities/app-store.json")).unwrap();
+        assert!(!capability["permissions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|permission| permission == "allow-codex-add-mcp"));
+        assert!(super::desktop_marker("1.0.0").contains("__DOOP_CODEX_SETUP__=false"));
+    }
+}
+
 pub fn attach(window: &WebviewWindow, origin: &str) -> tauri::Result<()> {
     #[cfg(all(target_os = "macos", feature = "app-store", not(chromium)))]
     {
