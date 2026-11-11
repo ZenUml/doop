@@ -19,6 +19,10 @@ function zenumlDist(): string {
   return path.dirname(require.resolve('@zenuml/core'))
 }
 
+function mermaidDist(): string {
+  return path.join(path.dirname(require.resolve('mermaid/package.json')), 'dist')
+}
+
 export function diagramVendorRouter(): express.Router {
   const router = express.Router()
   const dist = zenumlDist()
@@ -31,7 +35,9 @@ export function diagramVendorRouter(): express.Router {
     res.type('text/javascript')
     res.sendFile(path.join(dist, 'zenuml.esm.mjs'))
   })
-  /* the bundle loads its icon chunk by a relative address */
+  /* Mermaid's browser build is one entry plus the chunks it loads by relative address */
+  router.use('/mermaid', express.static(mermaidDist(), { index: false, fallthrough: false, setHeaders: open }))
+  /* the ZenUML bundle loads its icon chunk by a relative address */
   router.use(express.static(dist, { index: false, fallthrough: false, setHeaders: open }))
   return router
 }

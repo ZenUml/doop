@@ -251,7 +251,19 @@ export const ACTIONS: readonly CanvasAction[] = [
     enabled: () => !h()?.guest,
     run: () => {
       const canvasId = h()?.canvasId
-      if (canvasId) void newDiagramFrame(canvasId)
+      if (canvasId) void newDiagramFrame(canvasId, 'zenuml')
+    },
+  },
+  {
+    id: 'new-mermaid-diagram',
+    label: 'actions.newMermaidDiagram',
+    menu: 'file',
+    section: 1,
+    edit: true,
+    enabled: () => !h()?.guest,
+    run: () => {
+      const canvasId = h()?.canvasId
+      if (canvasId) void newDiagramFrame(canvasId, 'mermaid')
     },
   },
   {

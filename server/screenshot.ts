@@ -5,6 +5,7 @@ import puppeteer, { type Browser, type Page } from 'puppeteer-core'
 import type { Frame } from '../shared/types.ts'
 import { guardPublicPageRequests } from './publicUrl.ts'
 import { isDiagramVendorUrl } from './diagramVendor.ts'
+import { DIAGRAM_STATE_ATTR, readDiagramFrame } from '../shared/diagramFrame.ts'
 
 /**
  * Render a frame's HTML in headless Chrome so agents can *see* their work.
@@ -151,6 +152,13 @@ export async function loadFramePage(frame: Frame): Promise<IsolatedPage> {
       /* Slow external resources: inspect whatever has rendered. */
     }
     await new Promise((resolve) => setTimeout(resolve, 120))
+    /* a diagram frame draws after load (its renderer is async, and Mermaid
+       fetches the diagram type's chunk first): wait until it reports (spike) */
+    if (readDiagramFrame(html)) {
+      await page
+        .waitForFunction((attr) => document.documentElement.hasAttribute(attr), { timeout: 8000 }, DIAGRAM_STATE_ATTR)
+        .catch(() => {})
+    }
     return loaded
   } catch (error) {
     await loaded.close()
