@@ -61,9 +61,9 @@ const appStoreProfile = JSON.parse(fs.readFileSync(path.join(root, appStoreProfi
 const appStoreBuildScript = fs.readFileSync(path.join(root, 'scripts/desktop-app-store.sh'), 'utf8')
 const profile = {
   source: appStoreProfilePath,
-  productNameStatus: 'Candidate only; owner has not chosen between Diagramly and ZenUML.',
+  productNameStatus: 'Owner approved gradual Diagramly branding while retaining the existing ZenUML app identity.',
   appStoreIdentifierStatus:
-    'ai.diagramly.desktop is registered in the Developer Portal; no App Store app record exists.',
+    'Reuse existing App Store app 1602636196 and bundle com.zenuml.app; the separate candidate ID is unused.',
   templateName: tauriBase.productName,
   templateId: tauriBase.identifier,
   productName: appStoreProfile.productName,
@@ -81,8 +81,8 @@ const profile = {
   profileIsSelectedByLocalBuild: appStoreBuildScript.includes('--config src-tauri/tauri.app-store.conf.json'),
 }
 const profileConfigured =
-  profile.productName === 'Diagramly Desktop' &&
-  profile.identifier === 'ai.diagramly.desktop' &&
+  profile.productName === 'ZenUML' &&
+  profile.identifier === 'com.zenuml.app' &&
   profile.upstreamUpdaterDisabled &&
   profile.bundleTargets?.includes('app') &&
   profile.entitlements &&
@@ -94,7 +94,7 @@ add(
   'release-profile',
   profileConfigured ? 'review' : 'blocked',
   profile,
-  'The candidate profile and build command are static configuration evidence only. Do not finalize the name or create listing metadata before the owner decision. Build the signed candidate afterwards, inspect its effective identity, capabilities and update path, then verify it on a clean Mac.',
+  'The profile and build command are static configuration evidence only. Build the signed update, inspect its effective identity, capabilities and update path, then verify old-data migration and paid primary functionality before distribution.',
 )
 const appleEvidenceFiles = [
   'desktop/commerce/CommercePolicy.swift',
@@ -153,7 +153,7 @@ if (bundle) {
         expectedIdentifier: profile.identifier,
         matchesAppStoreProfile,
       },
-      'The bundle identity should match the current candidate profile, but that does not settle the pending product-name choice. Verify explicit migration from the separate preview container and older legacy library before distribution.',
+      'Identity retains the owner-selected existing app. Verify old-library migration, paid primary functionality and the signed update path before distribution.',
     )
     const verification = spawnSync('/usr/bin/codesign', ['--verify', '--strict', bundle], {
       encoding: 'utf8',

@@ -22,7 +22,7 @@
       "url": "https://github.com/ZenUml/doop/issues/17",
       "title": "[Launch P0] Build a production Mac App Store package and safe data migration",
       "status": "in-progress",
-      "progress": "Dedicated App Store profile and bundler are present; the selected existing record uses com.zenuml.app but the current candidate profile still declares ai.diagramly.desktop. Align identity and verify legacy-data migration before building the final candidate."
+      "progress": "The App Store profile now retains com.zenuml.app, ZenUML 1.1.0 build 41. Strict read-only legacy decoding and local paid-primary-functionality tests are implemented. Complete final native upgrade acceptance and fresh Apple signing before distribution."
     },
     {
       "key": "COM-03",

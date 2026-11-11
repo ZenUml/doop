@@ -175,3 +175,22 @@ live in `cursor-plugin/README.md`.
 - `.github/workflows/desktop.yml` - desktop app CI (build/check) outside of the release path.
 - `.github/workflows/cla.yml` - CLA sign-off check on PRs (AGPL-3.0 project, CLA-based
   contribution per `CLA.md` / `CONTRIBUTING.md`).
+
+## Diagramly update to the existing ZenUML Mac app
+
+The separate `app-store` profile keeps `com.zenuml.app`, ZenUML 1.1.0 build 41,
+minimum macOS 13.5, and disables the upstream self-updater. It does not change
+the upstream release path above. `scripts/desktop-app-store.sh --unsigned`
+requires a clean checkout and complete official Node distribution; it builds
+from an exact Git archive and writes provenance outside the checkout. Ad-hoc
+QA is not an App Store signing or purchase verification result.
+
+The native shell preserves old Chromium files before starting its local
+server. `server/legacyLibrary.ts` validates recovery copies;
+`legacyChromiumProcess.ts` isolates strict V8 decoding in a bounded Node child.
+Import is reviewed and profile-owned. Local editing, styles, backups and raster
+exports do not require a cloud subscription. Source drafts are saved locally
+per user/frame before the debounce and cleared only after acknowledgement;
+source and stylesheet writes reject stale revisions. See
+[`docs/launch/legacy-upgrade.md`](../docs/launch/legacy-upgrade.md) for supported
+formats, unsupported style conversions and release acceptance limits.
