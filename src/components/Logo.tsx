@@ -44,6 +44,17 @@ export function DoopMark({
   animated?: boolean
   className?: string
 }) {
+  if (isDiagramly()) {
+    return (
+      <img
+        src="/diagramly-brand/icon.svg"
+        className={className}
+        style={size === 'fill' ? { width: '100%', height: '100%' } : { width: size, height: size }}
+        alt=""
+        aria-hidden
+      />
+    )
+  }
   const top = animated ? MARK_BOX.y - HOP_HEADROOM : MARK_BOX.y
   const height = animated ? MARK_BOX.h + HOP_HEADROOM : MARK_BOX.h
   return (

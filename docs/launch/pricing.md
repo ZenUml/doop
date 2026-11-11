@@ -12,6 +12,8 @@ Status: proposed desktop offer, no live price changes. Payment decision: Apple I
 
 Use one subscription group with monthly and annual alternatives; avoid multiple overlapping new desktop tiers at launch. These are working USD targets, not registered products or verified available Apple price points. StoreKit's localized product data must supply the actual price shown to customers. No free trial or lifetime/unlimited AI promise is included in this proposal.
 
+The owner approved reuse of the existing paid Mac App Store app record. Preserve the primary functionality existing purchasers paid for before enabling subscription gates. Apple App Review Guideline 3.1.2(a) says changing an existing app to a subscription model must not take away those paid-for primary features. Define and test how prior purchasers retain access before configuring a new paid offer; new recurring cloud services can be considered separately after entitlement and policy review.
+
 ## Product catalogue decision checklist
 
 Keep the catalogue to one auto-renewable Pro subscription group with monthly and annual durations. Before the App Store Connect owner creates products, record the final bundle ID, seller, subscription-group display name, immutable product identifiers, exact benefits, renewal wording, localization set, tax category and support/refund destinations. Treat product IDs and group membership as durable public billing contracts. Do not create placeholder live products to test copy.

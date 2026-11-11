@@ -22,7 +22,7 @@
       "url": "https://github.com/ZenUml/doop/issues/17",
       "title": "[Launch P0] Build a production Mac App Store package and safe data migration",
       "status": "in-progress",
-      "progress": "Dedicated App Store profile and bundler are present; the final candidate has not been built."
+      "progress": "Dedicated App Store profile and bundler are present; the selected existing record uses com.zenuml.app but the current candidate profile still declares ai.diagramly.desktop. Align identity and verify legacy-data migration before building the final candidate."
     },
     {
       "key": "COM-03",
@@ -30,7 +30,7 @@
       "url": "https://github.com/ZenUml/doop/issues/18",
       "title": "[Launch P0] Add native StoreKit purchase, restore and subscription management",
       "status": "in-progress",
-      "progress": "Native purchase UI and bridge are implemented; live products and StoreKit verification remain unavailable."
+      "progress": "Native purchase UI and bridge are implemented; live products and StoreKit verification remain unavailable. Define and verify continued primary-feature access for existing paid purchasers before adding subscription gates."
     },
     {
       "key": "COM-04",
@@ -54,7 +54,7 @@
       "url": "https://github.com/ZenUml/doop/issues/21",
       "title": "[Launch P1] Establish Diagramly Desktop name, icon and consistent product identity",
       "status": "in-progress",
-      "progress": "Name choice between Diagramly and ZenUML remains open. Current identity, profile and assets are candidates only; no App Store app record or final bundle exists."
+      "progress": "Owner approved a gradual move from ZenUML to the Diagramly brand and reuse of the existing app record (1602636196, com.zenuml.app). Store metadata is unchanged; icon approval, profile identity alignment and final bundle remain open."
     },
     {
       "key": "COM-07",
