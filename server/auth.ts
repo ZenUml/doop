@@ -478,8 +478,8 @@ function buildAuth() {
         },
       },
     },
-    /* onboarding: every new user gets a canvas, and the demo agent performs
-       on it the first time they arrive (see server/demo.ts) */
+    /* The design demo belongs to the upstream product. Desktop diagram
+       libraries start empty so an upgrade/import never runs an HTML agent. */
     databaseHooks: {
       user: {
         create: {
@@ -487,9 +487,11 @@ function buildAuth() {
             assertSignupDomainAllowed(user.email)
           },
           after: async (user) => {
-            const first = (user.name || 'Your').split(/\s+/)[0]
-            const canvas = store.createCanvas(`${first}'s first canvas`, user.id)
-            demo.markPending(canvas.id)
+            if (env.DOOP_PRODUCT !== 'diagramly') {
+              const first = (user.name || 'Your').split(/\s+/)[0]
+              const canvas = store.createCanvas(`${first}'s first canvas`, user.id)
+              demo.markPending(canvas.id)
+            }
             /* the other half of the ADMIN_EMAILS reconcile: syncAdmins covers
                people who already existed at boot, this covers signups after.
                With SMTP on, a fresh signup is never verified yet, so the

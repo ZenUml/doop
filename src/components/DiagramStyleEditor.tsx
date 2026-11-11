@@ -3,7 +3,7 @@ import type { Frame } from '../../shared/types'
 import type { DiagramFrame } from '../../shared/diagramFrame'
 import { useStore } from '../lib/store'
 import { recordUpdate } from '../lib/history'
-import { useFrameSaves } from '../lib/frameSaves'
+import { beginFrameSave, useFrameSaves } from '../lib/frameSaves'
 import { Button } from './ui/button'
 import { Callout } from './ui/callout'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
@@ -55,6 +55,7 @@ export function DiagramStyleEditor({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const observedIncoming = useRef({ source: styleSource(diagram), mode: diagram.styleMode ?? 'css' })
+  const draftRevision = useRef(frame.updatedAt)
 
   const incomingSource = styleSource(diagram)
   const incomingMode = diagram.styleMode ?? 'css'
@@ -62,26 +63,28 @@ export function DiagramStyleEditor({
 
   useEffect(() => {
     const changed = observedIncoming.current.source !== incomingSource || observedIncoming.current.mode !== incomingMode
-    observedIncoming.current = { source: incomingSource, mode: incomingMode }
     if (!changed || focused || dirty || busy) return
+    observedIncoming.current = { source: incomingSource, mode: incomingMode }
+    draftRevision.current = frame.updatedAt
     setDraft(incomingSource)
     setMode(incomingMode)
-  }, [busy, dirty, focused, incomingMode, incomingSource])
+  }, [busy, dirty, focused, incomingMode, incomingSource, frame.updatedAt])
 
   useEffect(() => {
-    onBusyChange?.(busy)
     return () => onBusyChange?.(false)
-  }, [busy, onBusyChange])
+  }, [onBusyChange])
 
   async function applyStyles() {
     if (busy || pendingSave || !supportedMode) return
     setBusy(true)
+    onBusyChange?.(true)
+    const finish = beginFrameSave(frame.id)
     setError(null)
     try {
       const response = await fetch(`/api/frames/${encodeURIComponent(frame.id)}/diagram-style`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: draft, mode, expectedUpdatedAt: frame.updatedAt }),
+        body: JSON.stringify({ source: draft, mode, expectedUpdatedAt: draftRevision.current }),
       })
       if (!response.ok) {
         const text = await response.text().catch(() => '')
@@ -94,11 +97,14 @@ export function DiagramStyleEditor({
       setDraft(draft)
       setMode(mode)
       setDirty(false)
+      draftRevision.current = saved.updatedAt
       setFocused(false)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not save diagram styles. Your draft is still here.')
     } finally {
+      finish()
       setBusy(false)
+      onBusyChange?.(false)
     }
   }
 
@@ -110,6 +116,7 @@ export function DiagramStyleEditor({
       <Select
         value={mode}
         onValueChange={(value) => {
+          if (!dirty) draftRevision.current = frame.updatedAt
           setMode(value)
           setDirty(true)
           setError(null)
@@ -144,9 +151,11 @@ export function DiagramStyleEditor({
         aria-label="Diagram styles"
         spellCheck={false}
         value={draft}
+        disabled={busy}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onChange={(event) => {
+          if (!dirty) draftRevision.current = frame.updatedAt
           setDraft(event.target.value)
           setDirty(true)
           setError(null)
@@ -156,6 +165,21 @@ export function DiagramStyleEditor({
         <Callout role="alert" tone="error">
           {error}
         </Callout>
+      )}
+      {dirty && !busy && (
+        <Button
+          variant="ghost"
+          className="w-full"
+          onClick={() => {
+            setDraft(incomingSource)
+            setMode(incomingMode)
+            draftRevision.current = frame.updatedAt
+            setDirty(false)
+            setError(null)
+          }}
+        >
+          Load saved styles
+        </Button>
       )}
       <Button
         variant="primary"

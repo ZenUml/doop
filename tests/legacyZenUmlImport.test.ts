@@ -44,9 +44,11 @@ it('imports a private editable library, preserves pages and LESS, and safely ret
   const diagram = readDiagramFrame(frame.html)!
   expect(diagram.source).toBe('User->Order: create')
   expect(diagram.css).toContain('color: red')
+  expect(diagram.styleMode).toBe('less')
+  expect(diagram.styleSource).toBe(items[0]!.pages[0]!.css)
   const html = buildDiagramHtml({ ...diagram, source: 'User->Order: edited' })
   expect((await owner.patch(`/api/frames/${frame.id}`, { html })).status).toBe(200)
-  await new Promise((resolve) => setTimeout(resolve, 600))
+  // Quit immediately after acknowledgement: shutdown must flush its debounce.
   server.stop({ keepData: true })
   await server.stopped
   server = await startServer({}, server.dataDir)
@@ -85,4 +87,33 @@ it('retains ordinary CSS including font imports, while denying preprocessor file
   expect(result.warnings).toHaveLength(1)
   const canvas = await (await owner.get(`/api/canvases/${result.canvases[0].id}`)).json()
   expect(readDiagramFrame(canvas.frames[0].html)?.css).toBe(css)
+})
+
+it('preserves unsupported AtomicCSS inputs for recovery without claiming converted appearance', async () => {
+  const source = 'A->B: original'
+  const config = '{"custom":{"D(b)":"display:block"}}'
+  const html = '<div class="D(b)">Original</div>'
+  const response = await owner.post('/api/import/zenuml', {
+    items: [
+      {
+        id: 'atomic-recovery',
+        js: source,
+        html,
+        css: '/* original CSS */',
+        cssMode: 'acss',
+        cssSettings: { acssConfig: config },
+      },
+    ],
+  })
+  expect(response.status).toBe(200)
+  const result = await response.json()
+  expect(result.warnings).toHaveLength(1)
+  const document = await (await owner.get(`/api/canvases/${result.canvases[0].id}`)).json()
+  expect(readDiagramFrame(document.frames[0].html)).toMatchObject({
+    source,
+    styleMode: 'acss',
+    styleSource: '/* original CSS */',
+    styleConfig: config,
+    styleHtml: html,
+  })
 })

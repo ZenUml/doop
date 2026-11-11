@@ -117,6 +117,8 @@ const schema = {
   /* the interface to listen on; unset = all of them. A desktop app sets 127.0.0.1 (spike) */
   HOST: str({ default: undefined }),
   DOOP_FRAME_SNAPSHOT_HELPER: str({ default: undefined }),
+  /* Written by the native upgrade snapshotter, never supplied over HTTP. */
+  DOOP_LEGACY_LIBRARY_MANIFEST: str({ default: undefined }),
 
   /* ---------------------------------------------------------- auth */
   BETTER_AUTH_SECRET: str({

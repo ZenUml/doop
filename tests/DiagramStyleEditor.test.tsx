@@ -128,6 +128,35 @@ it('disables Apply while another save for the diagram is pending', () => {
   expect(applyButton().disabled).toBe(true)
 })
 
+it('keeps the original edit revision when a newer frame arrives while the draft is dirty', async () => {
+  typeStyles('.draft {color:red}')
+  act(() =>
+    root.render(
+      <DiagramStyleEditor frame={{ ...frame, updatedAt: 99 }} diagram={{ kind: 'mermaid', source: 'flowchart LR' }} />,
+    ),
+  )
+  vi.mocked(fetch).mockResolvedValue(new Response('Conflict', { status: 409 }))
+  await act(async () => applyButton().click())
+  expect(JSON.parse(vi.mocked(fetch).mock.calls[0]![1]!.body as string).expectedUpdatedAt).toBe(17)
+  expect(textarea().value).toBe('.draft {color:red}')
+})
+
+it('protects the pending style draft from edits until its save settles', async () => {
+  typeStyles('.draft {color:red}')
+  let finish!: (response: Response) => void
+  vi.mocked(fetch).mockImplementation(
+    () =>
+      new Promise<Response>((resolve) => {
+        finish = resolve
+      }),
+  )
+  act(() => applyButton().click())
+  expect(textarea().disabled).toBe(true)
+  await act(async () => finish(new Response('Rejected', { status: 400 })))
+  expect(textarea().disabled).toBe(false)
+  expect(textarea().value).toBe('.draft {color:red}')
+})
+
 it('keeps unsupported legacy style syntax readable until the user selects a supported conversion target', () => {
   render({ kind: 'mermaid', source: 'flowchart LR', styleSource: '.legacy { color: red; }', styleMode: 'stylus' })
   expect(textarea().value).toBe('.legacy { color: red; }')

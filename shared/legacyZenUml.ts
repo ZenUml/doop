@@ -5,6 +5,8 @@ export interface LegacyZenUmlPage {
   source: string
   css: string
   cssMode: string
+  styleConfig?: string
+  styleHtml?: string
 }
 
 export interface LegacyZenUmlDocument {
@@ -48,6 +50,12 @@ export function parseLegacyZenUml(value: unknown): LegacyZenUmlDocument[] {
     if (entries.length > 100) throw new Error(`${label}: a canvas supports at most 100 pages.`)
     const pages = entries.map((entry: unknown, pageIndex) => {
       const page = record(entry, `${label}, page ${pageIndex + 1}`)
+      const mode = text(page.cssMode, `${label} page style format`, 20) || cssMode
+      const settingsValue = page.cssSettings ?? item.cssSettings
+      const settings = settingsValue == null ? undefined : record(settingsValue, `${label} style settings`)
+      const styleConfig =
+        mode === 'acss' ? text(settings?.acssConfig, `${label} Atomic CSS configuration`, 200_000) : ''
+      const styleHtml = mode === 'acss' ? text(page.html, `${label} original style HTML`, 1_000_000) : ''
       return {
         legacyId: text(page.id, `${label} page ID`, 1000) || `page-${pageIndex + 1}`,
         title:
@@ -56,7 +64,9 @@ export function parseLegacyZenUml(value: unknown): LegacyZenUmlDocument[] {
             : text(page.title, `${label} page title`, 1000).trim() || `Page ${pageIndex + 1}`,
         source: text(page.js, `${label} source`, 200_000),
         css: text(page.css, `${label} styles`, 200_000),
-        cssMode,
+        cssMode: mode,
+        ...(styleConfig ? { styleConfig } : {}),
+        ...(styleHtml ? { styleHtml } : {}),
       }
     })
     const activePageId = typeof item.currentPageId === 'string' ? item.currentPageId : undefined

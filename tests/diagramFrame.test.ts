@@ -97,3 +97,11 @@ it('keeps imported styles through source edits without letting styles inject mar
   expect(readDiagramFrame(edited)).toEqual({ kind: 'zenuml', source: 'A->B: edited', css })
   expect(edited).not.toContain('<script>bad()</script>')
 })
+
+it('retains editable preprocessor text and mode independently of the compiled stylesheet', () => {
+  const style = { styleSource: '@ink: red; .message { color: @ink; }', styleMode: 'less' }
+  const original = buildDiagramHtml({ kind: 'zenuml', source: 'A->B', css: '.message {color:red}', ...style })
+  expect(readDiagramFrame(original)).toMatchObject(style)
+  const edited = buildDiagramHtml({ ...readDiagramFrame(original)!, source: 'A->B.next()' })
+  expect(readDiagramFrame(edited)).toMatchObject({ ...style, css: '.message {color:red}', source: 'A->B.next()' })
+})

@@ -9,6 +9,10 @@ const diagramSchema = z.object({
   kind: z.enum(['zenuml', 'mermaid']),
   source: z.string().max(5_000_000),
   css: z.string().max(1_000_000).optional(),
+  styleSource: z.string().max(1_000_000).optional(),
+  styleMode: z.string().max(100).optional(),
+  styleConfig: z.string().max(1_000_000).optional(),
+  styleHtml: z.string().max(1_000_000).optional(),
 })
 const frameSchema = z
   .object({

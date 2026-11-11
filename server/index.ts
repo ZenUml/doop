@@ -4,6 +4,9 @@ import { diagramlyRouter, deliverApplePurchase } from './diagramlyRouter.ts'
 import { DIAGRAMLY_DECISIONS, diagramlyApiAvailable } from '../shared/product.ts'
 import { parseLegacyZenUml } from '../shared/legacyZenUml.ts'
 import { legacyCanvases } from './legacyZenUml.ts'
+import { LegacyLibrary, LegacyLibraryError } from './legacyLibrary.ts'
+import { compileDiagramStyle } from './diagramStyles.ts'
+import { buildDiagramHtml, readDiagramFrame } from '../shared/diagramFrame.ts'
 import { env } from './env.ts'
 import { canvasPages, framePageId, samePages } from '../shared/pages.ts'
 import { normalizePageBackground } from '../shared/pageBackground.ts'
@@ -468,6 +471,7 @@ app.get('/i/:id.:ext', async (req, res) => {
       ext,
       scale,
       quality: Math.min(100, Math.max(1, Number(req.query.quality) || 90)),
+      transparent: ext === 'png' && req.query.transparent === '1',
       /* ?preview — the dashboard-card variant; see previews.ts */
       preview: req.query.preview !== undefined,
       ip: req.ip ?? 'unknown',
@@ -1457,11 +1461,26 @@ app.post('/api/desktop/document-backup', async (req, res) => {
     userEvents.notifyUsers([req.user!.id], { type: 'canvases' })
     res.json({ ...result, documents: library.map(({ id, name }) => ({ id, name })) })
   } catch {
-    res
-      .status(400)
-      .json({
-        error: 'This backup could not be restored. Check the format and size. Existing documents were not replaced.',
-      })
+    res.status(400).json({
+      error: 'This backup could not be restored. Check the format and size. Existing documents were not replaced.',
+    })
+  }
+})
+
+const legacyLibrary = new LegacyLibrary(env.DOOP_LEGACY_LIBRARY_MANIFEST)
+app.get('/api/desktop/legacy-library', async (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  res.json(await legacyLibrary.status())
+})
+
+app.get('/api/desktop/legacy-library/:snapshotId', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  try {
+    res.json({ items: await legacyLibrary.read(req.params.snapshotId) })
+  } catch (error) {
+    res.status(error instanceof LegacyLibraryError ? error.status : 503).json({
+      error: error instanceof LegacyLibraryError ? error.message : 'The saved library could not be opened.',
+    })
   }
 })
 
@@ -2316,6 +2335,38 @@ app.put('/api/canvases/:id/stack', (req, res) => {
   )
   if (!frames) return res.status(404).json({ error: 'frame not found' })
   res.json(frames)
+})
+
+app.post('/api/frames/:id/diagram-style', async (req, res) => {
+  if (env.DOOP_PRODUCT !== 'diagramly') return res.status(404).json({ error: 'Not available.' })
+  if (req.get('origin') !== new URL(env.BETTER_AUTH_URL).origin)
+    return res.status(403).json({ error: 'Apply diagram styles from the application.' })
+  const { source, mode, expectedUpdatedAt } = req.body ?? {}
+  if (typeof source !== 'string' || typeof mode !== 'string' || mode.length > 20 || !Number.isFinite(expectedUpdatedAt))
+    return res.status(400).json({ error: 'A stylesheet, language and current diagram revision are required.' })
+  const frame = requireFrame(req, res, req.params.id, 'edit', expectedUpdatedAt)
+  if (!frame) return
+  if (frame.locked) return res.status(409).json({ error: 'Unlock this diagram before editing its styles.' })
+  const diagram = readDiagramFrame(frame.html)
+  if (!diagram) return res.status(400).json({ error: 'This item has no editable diagram source.' })
+  let css: string
+  try {
+    css = await compileDiagramStyle(source, mode)
+  } catch (error) {
+    return res.status(400).json({
+      error: error instanceof Error ? error.message : 'Styles could not be compiled. Your saved diagram is unchanged.',
+    })
+  }
+  const current = requireFrame(req, res, req.params.id, 'edit', expectedUpdatedAt)
+  if (!current) return
+  if (current.locked) return res.status(409).json({ error: 'Unlock this diagram before editing its styles.' })
+  res.json(
+    actions.updateFrame(
+      frame.id,
+      { html: buildDiagramHtml({ ...diagram, css, styleSource: source, styleMode: mode }) },
+      userActor(req),
+    ),
+  )
 })
 
 app.patch('/api/frames/:id', (req, res) => {

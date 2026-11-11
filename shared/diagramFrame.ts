@@ -17,6 +17,12 @@ export interface DiagramFrame {
   source: string
   /** Compiled legacy styles, retained when the source is edited. */
   css?: string
+  /** Editable original stylesheet; compiled CSS alone loses LESS/SCSS variables. */
+  styleSource?: string
+  styleMode?: string
+  /** Recovery inputs for legacy Atomic CSS; retained as text, never executed. */
+  styleConfig?: string
+  styleHtml?: string
 }
 
 /** Where the server serves the renderers from, same origin as the app. */
@@ -170,7 +176,15 @@ function isDiagramKind(kind: string): kind is DiagramKind {
   return (DIAGRAM_KINDS as readonly string[]).includes(kind)
 }
 
-export function buildDiagramHtml({ kind, source, css }: DiagramFrame): string {
+export function buildDiagramHtml({
+  kind,
+  source,
+  css,
+  styleSource,
+  styleMode,
+  styleConfig,
+  styleHtml,
+}: DiagramFrame): string {
   /* the HTML parser drops one newline right after <pre>, so one is always
      written there and the source's own leading newlines survive */
   return [
@@ -180,6 +194,14 @@ export function buildDiagramHtml({ kind, source, css }: DiagramFrame): string {
     `<body data-doop-diagram="${kind}">`,
     `<pre hidden data-doop-diagram-source>\n${escapeHtml(source)}</pre>`,
     ...(css ? [`<pre hidden data-doop-diagram-css>\n${escapeHtml(css)}</pre>`] : []),
+    ...(styleSource !== undefined
+      ? [`<pre hidden data-doop-diagram-style-source>\n${escapeHtml(styleSource)}</pre>`]
+      : []),
+    ...(styleMode !== undefined ? [`<pre hidden data-doop-diagram-style-mode>\n${escapeHtml(styleMode)}</pre>`] : []),
+    ...(styleConfig !== undefined
+      ? [`<pre hidden data-doop-diagram-style-config>\n${escapeHtml(styleConfig)}</pre>`]
+      : []),
+    ...(styleHtml !== undefined ? [`<pre hidden data-doop-diagram-style-html>\n${escapeHtml(styleHtml)}</pre>`] : []),
     `<script type="module">${RENDERER_PRELUDE[kind]}\n${RENDERER_LOOP}</script>`,
     '</body>',
     '</html>',
@@ -192,5 +214,17 @@ export function readDiagramFrame(html: string): DiagramFrame | null {
   const source = /<pre\b[^>]*\bdata-doop-diagram-source\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
   if (source === undefined) return null
   const css = /<pre\b[^>]*\bdata-doop-diagram-css\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
-  return { kind, source: unescapeHtml(source), ...(css !== undefined ? { css: unescapeHtml(css) } : {}) }
+  const styleSource = /<pre\b[^>]*\bdata-doop-diagram-style-source\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
+  const styleMode = /<pre\b[^>]*\bdata-doop-diagram-style-mode\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
+  const styleConfig = /<pre\b[^>]*\bdata-doop-diagram-style-config\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
+  const styleHtml = /<pre\b[^>]*\bdata-doop-diagram-style-html\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
+  return {
+    kind,
+    source: unescapeHtml(source),
+    ...(css !== undefined ? { css: unescapeHtml(css) } : {}),
+    ...(styleSource !== undefined ? { styleSource: unescapeHtml(styleSource) } : {}),
+    ...(styleMode !== undefined ? { styleMode: unescapeHtml(styleMode) } : {}),
+    ...(styleConfig !== undefined ? { styleConfig: unescapeHtml(styleConfig) } : {}),
+    ...(styleHtml !== undefined ? { styleHtml: unescapeHtml(styleHtml) } : {}),
+  }
 }

@@ -1,13 +1,14 @@
 import { useState, type CSSProperties } from 'react'
 import type { Frame } from '../../shared/types'
 import { readDiagramFrame } from '../../shared/diagramFrame'
-import { copyFramePng, downloadFrameExport } from '../lib/frameExport'
+import { copyFramePng, downloadFrameExport, downloadTransparentFramePng } from '../lib/frameExport'
 import { renameFrame } from '../lib/layerEdits'
 import { setFramesLocked } from '../lib/layerEdits'
 import { useStore } from '../lib/store'
 import { useT } from '../lib/i18n'
 import { cn } from '@/lib/utils'
 import { DiagramSource } from './DiagramSource'
+import { DiagramStyleEditor } from './DiagramStyleEditor'
 import { FrameHistoryModal } from './FrameHistoryModal'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -27,6 +28,8 @@ export function DiagramlyInspector({
 }) {
   const t = useT()
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [stylesOpen, setStylesOpen] = useState(false)
+  const [stylesBusy, setStylesBusy] = useState(false)
   const diagram = readDiagramFrame(frame.html)
   const canEdit = !frame.locked
 
@@ -70,7 +73,7 @@ export function DiagramlyInspector({
           </h3>
           {diagram ? (
             canEdit ? (
-              <DiagramSource key={frame.id} frame={frame} diagram={diagram} />
+              <DiagramSource key={frame.id} frame={frame} diagram={diagram} disabled={stylesBusy} />
             ) : (
               <p className="text-label leading-5 text-ink-faint">{t('inspector.unlockToEditDiagram')}</p>
             )
@@ -99,6 +102,22 @@ export function DiagramlyInspector({
             </div>
           )}
         </section>
+        {diagram && canEdit && (
+          <section className="border-b border-line-soft px-3 py-2">
+            <Button
+              variant="bare"
+              className="h-8 w-full justify-start text-label"
+              aria-expanded={stylesOpen}
+              disabled={stylesBusy}
+              onClick={() => setStylesOpen(!stylesOpen)}
+            >
+              Diagram styles
+            </Button>
+            {stylesOpen && (
+              <DiagramStyleEditor key={frame.id} frame={frame} diagram={diagram} onBusyChange={setStylesBusy} />
+            )}
+          </section>
+        )}
         {diagram && (
           <section className="border-b border-line-soft px-3 py-2">
             <h3 className="mb-1.5 flex h-5 items-center text-label font-normal text-ink-soft">
@@ -113,6 +132,24 @@ export function DiagramlyInspector({
               >
                 <DownloadIcon className="size-3.5" />
                 {t('inspector.downloadPng')}
+              </Button>
+              <Button
+                variant="bare"
+                className="h-8 gap-1.5 rounded-control bg-sub px-2 text-label font-normal text-ink hover:bg-paper-deep max-md:min-h-10"
+                title="Download JPG"
+                onClick={() => void downloadFrameExport(frame, 'jpg')}
+              >
+                <DownloadIcon className="size-3.5" />
+                JPG
+              </Button>
+              <Button
+                variant="bare"
+                className="col-span-2 h-8 gap-1.5 rounded-control bg-sub px-2 text-label font-normal text-ink hover:bg-paper-deep max-md:min-h-10"
+                title="Download transparent PNG"
+                onClick={() => void downloadTransparentFramePng(frame)}
+              >
+                <DownloadIcon className="size-3.5" />
+                PNG (transparent)
               </Button>
               <Button
                 variant="bare"

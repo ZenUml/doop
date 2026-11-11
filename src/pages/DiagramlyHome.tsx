@@ -1,4 +1,5 @@
 import { DiagramlyGenerate } from '../components/DiagramlyGenerate'
+import { LegacyLibraryMigration } from '../components/LegacyLibraryMigration'
 import { useCallback, useEffect, useState } from 'react'
 import type { CanvasMeta } from '../../shared/types'
 import { buildDiagramHtml, DEFAULT_DIAGRAM_SOURCE, type DiagramKind } from '../../shared/diagramFrame'
@@ -147,6 +148,7 @@ export function DiagramlyHome() {
           {restoreNotice}
         </Callout>
       )}
+      <LegacyLibraryMigration onImported={() => void refresh().catch(() => {})} />
       <section className="mb-8 rounded-panel border border-line-soft bg-surface p-6">
         <h2 className="font-display text-title font-semibold">Diagrams you can keep editing.</h2>
         <p className="mt-3 max-w-2xl text-copy text-ink-soft">
@@ -231,7 +233,7 @@ export function DiagramlyHome() {
             onBack={() => setLegacyImport(false)}
             onBusyChange={setBusy}
             onImported={() => void refresh().catch(() => {})}
-            onOpen={(id) => navigate(`/c/${id}`)}
+            onOpen={(id, _name, pageId) => navigate(`/c/${id}${pageId ? `?page=${encodeURIComponent(pageId)}` : ''}`)}
           />
         </Modal>
       )}
