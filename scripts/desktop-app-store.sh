@@ -43,7 +43,7 @@ cp "$ROOT/package.json" "$ROOT/bun.lock" "$STAGE/"
 (cd "$STAGE" && bun install --production --omit peer --frozen-lockfile --ignore-scripts)
 ditto "$STAGE/node_modules" "$LOCAL/app/node_modules"
 rm -rf "$LOCAL/app/dist/claude-extension"
-xcrun swiftc -O -parse-as-library "$ROOT/desktop/scripts/FrameSnapshot.swift" -o "$APP/Contents/Helpers/DoopFrameSnapshot"
+xcrun swiftc -O -parse-as-library -target "$(uname -m)-apple-macosx13.5" "$ROOT/desktop/scripts/FrameSnapshot.swift" -o "$APP/Contents/Helpers/DoopFrameSnapshot"
 "$NODE_BINARY" "$ROOT/scripts/desktop-bundle-audit.mjs" "$APP" "$OUTPUT/provenance-before-signing.json"
 IDENTITY=-
 if [[ "$MODE" == --sign ]]; then

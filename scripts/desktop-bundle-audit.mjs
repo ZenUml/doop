@@ -8,6 +8,21 @@ import assert from 'node:assert/strict'
 // execution is needed. The manifest is an inventory, not a legal licence audit.
 export async function auditBundle(app) {
   const root = await realpath(app)
+  const minimumSystemVersion = execFileSync(
+    '/usr/libexec/PlistBuddy',
+    ['-c', 'Print :LSMinimumSystemVersion', path.join(root, 'Contents/Info.plist')],
+    { encoding: 'utf8' },
+  ).trim()
+  if (!/^\d+\.\d+(?:\.\d+)?$/.test(minimumSystemVersion))
+    throw new Error('Missing numeric macOS minimum in app Info.plist')
+  const newerThanMinimum = (version) => {
+    const actual = version.split('.').map(Number)
+    const declared = minimumSystemVersion.split('.').map(Number)
+    for (let index = 0; index < 3; index++) {
+      if ((actual[index] ?? 0) !== (declared[index] ?? 0)) return (actual[index] ?? 0) > (declared[index] ?? 0)
+    }
+    return false
+  }
   const files = []
   const packages = []
   const native = []
@@ -44,6 +59,14 @@ export async function auditBundle(app) {
       }
       const magic = data.length >= 4 ? data.readUInt32BE(0) : 0
       if ([0xfeedface, 0xcefaedfe, 0xfeedfacf, 0xcffaedfe, 0xcafebabe, 0xbebafeca].includes(magic)) {
+        const loadCommands = execFileSync('/usr/bin/otool', ['-l', file], { encoding: 'utf8' })
+        const targets = [...loadCommands.matchAll(/\bminos ([0-9.]+)/g)].map((match) => match[1])
+        for (const match of loadCommands.matchAll(/cmd LC_VERSION_MIN_MACOSX[\s\S]*?\n\s*version ([0-9.]+)/g))
+          targets.push(match[1])
+        for (const target of targets) {
+          if (newerThanMinimum(target))
+            throw new Error(`${relative} requires macOS ${target}; app declares ${minimumSystemVersion}`)
+        }
         const dependencies = execFileSync('/usr/bin/otool', ['-L', file], { encoding: 'utf8' })
         // otool -L includes LC_ID_DYLIB itself. Its original build path is
         // metadata; only LC_LOAD_* entries are runtime dependencies.
@@ -65,7 +88,7 @@ export async function auditBundle(app) {
     }
   }
   await visit(root)
-  return { format: 1, bundleIdentifier: 'ai.diagramly.desktop', files, packages, native }
+  return { format: 1, bundleIdentifier: 'ai.diagramly.desktop', minimumSystemVersion, files, packages, native }
 }
 
 if (process.argv[1] === new URL(import.meta.url).pathname) {

@@ -8,7 +8,7 @@
     "targets": ["app"],
     "createUpdaterArtifacts": false,
     "macOS": {
-      "minimumSystemVersion": "13.0",
+      "minimumSystemVersion": "13.5",
       "entitlements": "app-store/shell.entitlements",
       "infoPlist": "app-store/Info.plist"
     }

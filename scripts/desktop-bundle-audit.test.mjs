@@ -11,6 +11,10 @@ async function fixture(run) {
   try {
     const app = path.join(temporary, 'Diagramly Desktop.app')
     await mkdir(path.join(app, 'Contents', 'Resources'), { recursive: true })
+    await writeFile(
+      path.join(app, 'Contents/Info.plist'),
+      '<plist version="1.0"><dict><key>LSMinimumSystemVersion</key><string>13.5</string></dict></plist>',
+    )
     await run(app, temporary)
   } finally {
     await rm(temporary, { recursive: true, force: true })
@@ -56,7 +60,7 @@ test('permits internal package symlinks without escaping the app', () =>
     await writeFile(path.join(root, 'module.mjs'), 'export default 1')
     await symlink('module.mjs', path.join(root, 'entry.mjs'))
     const result = await auditBundle(app)
-    assert.equal(result.files.length, 1)
+    assert.equal(result.files.length, 2)
   }))
 
 test('universal library headers and build-machine install IDs are not runtime dependencies', () =>
@@ -66,6 +70,7 @@ test('universal library headers and build-machine install IDs are not runtime de
       '/usr/bin/xcrun',
       [
         'clang',
+        '-mmacosx-version-min=13.5',
         '-arch',
         'arm64',
         '-arch',
@@ -93,6 +98,7 @@ test('rejects a real dependency on a build-machine library', () =>
       '/usr/bin/xcrun',
       [
         'clang',
+        '-mmacosx-version-min=13.5',
         '-dynamiclib',
         '-x',
         'c',
@@ -108,10 +114,19 @@ test('rejects a real dependency on a build-machine library', () =>
     const file = path.join(app, 'Contents/Resources/module.node')
     execFileSync(
       '/usr/bin/xcrun',
-      ['clang', '-dynamiclib', '-x', 'c', '-', '-L', temporary, '-lexternal', '-o', file],
+      ['clang', '-mmacosx-version-min=13.5', '-dynamiclib', '-x', 'c', '-', '-L', temporary, '-lexternal', '-o', file],
       {
         input: 'extern int dependency(void); int fixture(void) { return dependency(); }',
       },
     )
     await assert.rejects(auditBundle(app), /Non-system absolute library.*libexternal/)
+  }))
+
+test('rejects native code requiring an OS newer than the app declares', () =>
+  fixture(async (app) => {
+    const file = path.join(app, 'Contents/Resources/newer.node')
+    execFileSync('/usr/bin/xcrun', ['clang', '-mmacosx-version-min=15.0', '-dynamiclib', '-x', 'c', '-', '-o', file], {
+      input: 'int fixture(void) { return 1; }',
+    })
+    await assert.rejects(auditBundle(app), /requires macOS 15.*declares 13.5/)
   }))

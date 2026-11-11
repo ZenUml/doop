@@ -448,7 +448,7 @@ magick $(for s in $sizes; do echo /tmp/doop-$s.png; done) src-tauri/icons/icon.i
 
 `src-tauri/tauri.app-store.conf.json` and Cargo's `app-store` feature define a
 separate product: **Diagramly Desktop**, bundle ID `ai.diagramly.desktop`,
-macOS 13+, system WebKit. Build with both `--no-default-features` and
+macOS 13.5+, system WebKit. Build with both `--no-default-features` and
 `--features app-store`; the build rejects the self-updater or Chromium profile.
 This profile runs only its packaged loopback server. A missing or failed server
 stops launch; it never falls back to doop.design. Apple delivers app updates.
@@ -469,6 +469,8 @@ It rejects dependencies on non-system absolute libraries, external symlinks,
 private configuration files, and known development packages. The two provenance
 JSON files contain SHA-256 file inventories and available package licence metadata
 before and after signing. They are build evidence, not a completed licence audit.
+The audit also rejects any native component whose deployment target exceeds the
+app's declared macOS minimum; Swift helpers use an explicit deployment target.
 Set `DIAGRAMLY_BUILD_OUTPUT` to an empty destination for another build. Set
 `DIAGRAMLY_NODE_BINARY` to an official self-contained Node >=22.19 when the local
 runtime depends on Homebrew libraries. No runtime is downloaded by this script.
