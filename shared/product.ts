@@ -36,3 +36,32 @@ export function diagramlyApiAvailable(path: string): boolean {
     /^\/canvases\/[^/]+\/pages\/[^/]+\/flow-start$/.test(path)
   )
 }
+
+const WEB_DESIGN_TOOLS = new Set([
+  'search_inspiration',
+  'list_guidelines',
+  'get_guidelines',
+  'set_guidelines',
+  'get_tokens',
+  'create_tokens',
+  'set_tokens',
+  'set_token_themes',
+  'get_reference',
+  'save_decision',
+  'get_prototype',
+  'set_prototype_start',
+  'upload_asset',
+  'generate_image',
+  'search_images',
+  'list_backgrounds',
+  'search_icons',
+  'search_logos',
+  'view_website',
+  'import_webpage',
+])
+
+/** Existing frame/source protocol names remain compatible. Unsupported product
+ * tools are unavailable even if a client calls an old cached tool directly. */
+export function diagramlyMcpAvailable(name: string): boolean {
+  return !WEB_DESIGN_TOOLS.has(name)
+}

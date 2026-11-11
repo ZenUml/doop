@@ -1,4 +1,5 @@
 import { env } from './env.ts'
+import { diagramlyMcpAvailable } from '../shared/product.ts'
 import { buildDiagramHtml, DIAGRAM_KINDS, readDiagramFrame } from '../shared/diagramFrame.ts'
 import { MAX_DECISION_CHARS } from '../shared/designDecisions.ts'
 import packageJson from '../package.json' with { type: 'json' }
@@ -414,7 +415,7 @@ export function buildMcpServer(
     { name: diagramly ? 'diagramly-canvas' : 'doop-canvas', version: packageJson.version },
     { instructions: diagramly ? DIAGRAMLY_INSTRUCTIONS : INSTRUCTIONS },
   )
-  loadToolTargets(server)
+  loadToolTargets(server, diagramly ? diagramlyMcpAvailable : undefined)
   registerFramePreview(server)
 
   server.registerTool(
@@ -1597,7 +1598,10 @@ export function buildMcpServer(
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       inputSchema: {
         frame_id: z.string(),
-        format: z.enum(['png', 'jpg', 'pdf']).optional().describe('default png'),
+        format: z
+          .enum(diagramly ? ['png', 'jpg'] : ['png', 'jpg', 'pdf'])
+          .optional()
+          .describe('default png'),
         quality: z.number().min(1).max(100).optional().describe('jpg only, default 90'),
         scale: z
           .number()

@@ -84,6 +84,17 @@ function body(result: Awaited<ReturnType<Client['callTool']>>) {
 }
 
 describe('source-first MCP diagrams', () => {
+  it('hides unsupported web-design tools and rejects direct calls while retaining compatible diagram tools', async () => {
+    const { client, call } = await connect()
+    const names = (await client.listTools()).tools.map((tool) => tool.name)
+    expect(names).toContain('create_diagram')
+    expect(names).toContain('create_frame')
+    expect(names).not.toContain('import_webpage')
+    expect(names).not.toContain('generate_image')
+    expect(names).not.toContain('set_prototype_start')
+    const result = await call('import_webpage', { url: 'https://example.test' })
+    expect(result.isError).toBe(true)
+  })
   it.each(['zenuml', 'mermaid'])('creates and reads %s source without exposing generated HTML', async (kind) => {
     const { id, canvas, call } = await connect()
     const source = kind === 'mermaid' ? 'flowchart LR\nA[<b>Client</b>] --> B[Server]' : 'Client->Server: Read < & >'
