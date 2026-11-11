@@ -8,6 +8,8 @@ export const inspector = {
   locked: 'Locked',
   unlock: 'Unlock',
   groupDevelopment: 'Development',
+  groupDiagram: 'Diagram',
+  diagramSource: 'Diagram source',
   groupExport: 'Export',
   groupMemory: 'Memory',
   exportImageTitle: 'Download the frame at the scale and format picked above',

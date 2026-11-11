@@ -8,6 +8,7 @@ import { useStore } from '../store'
 import { currentPageCanvas } from '../pages'
 import { readingOrder } from '../../../shared/frameOrder'
 import { redo, undo } from '../history'
+import { newDiagramFrame } from '../diagramFrames'
 import { runViewCommand } from '../viewMenu'
 import { downloadFramesPdf } from '../frameExport'
 import { duplicateFrames, hasFrameClip, pasteFramesOver, replaceFramesWithClip } from '../frameClipboard'
@@ -240,6 +241,18 @@ export const ACTIONS: readonly CanvasAction[] = [
     edit: true,
     enabled: () => !h()?.guest,
     run: () => h()?.openImport(),
+  },
+  {
+    id: 'new-diagram',
+    label: 'actions.newDiagram',
+    menu: 'file',
+    section: 1,
+    edit: true,
+    enabled: () => !h()?.guest,
+    run: () => {
+      const canvasId = h()?.canvasId
+      if (canvasId) void newDiagramFrame(canvasId)
+    },
   },
   {
     id: 'version-history',

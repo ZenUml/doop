@@ -67,6 +67,8 @@ export default defineConfig({
       /* frame images only — a bare '/i' prefix would swallow /integrations */
       '/i/': { target: api },
       '/a/': { target: api },
+      /* diagram renderers (spike): server/diagramVendor.ts */
+      '/vendor/diagram': { target: api },
       '/u/': { target: api },
       '/ingest': { target: api },
       '/relay': { target: api },

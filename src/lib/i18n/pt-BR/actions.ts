@@ -24,6 +24,7 @@ export const actions: Catalog['actions'] = {
   duplicateCanvas: 'Duplicar canvas',
   placeImage: 'Inserir imagem…',
   import: 'Importar…',
+  newDiagram: 'Novo diagrama ZenUML',
   versionHistory: 'Mostrar histórico de versões',
   export: 'Exportar…',
   exportPdf: 'Exportar frames para PDF…',

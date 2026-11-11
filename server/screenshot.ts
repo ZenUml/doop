@@ -4,6 +4,7 @@ import path from 'node:path'
 import puppeteer, { type Browser, type Page } from 'puppeteer-core'
 import type { Frame } from '../shared/types.ts'
 import { guardPublicPageRequests } from './publicUrl.ts'
+import { isDiagramVendorUrl } from './diagramVendor.ts'
 
 /**
  * Render a frame's HTML in headless Chrome so agents can *see* their work.
@@ -118,6 +119,8 @@ export async function loadFramePage(frame: Frame): Promise<IsolatedPage> {
     await guardPublicPageRequests(page, {
       allowUrl: (url) =>
         (url.origin === assetOrigin && url.pathname.startsWith('/a/')) ||
+        /* diagram frames load their renderer from this server (spike) */
+        isDiagramVendorUrl(url, assetOrigin) ||
         /* webfonts referenced by imported frames (imports request the
            source design's families from Google Fonts) */
         url.origin === 'https://fonts.googleapis.com' ||

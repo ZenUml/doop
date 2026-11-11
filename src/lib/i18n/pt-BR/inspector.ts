@@ -7,6 +7,8 @@ export const inspector: Catalog['inspector'] = {
   locked: 'Bloqueado',
   unlock: 'Desbloquear',
   groupDevelopment: 'Desenvolvimento',
+  groupDiagram: 'Diagrama',
+  diagramSource: 'Código do diagrama',
   groupExport: 'Exportar',
   groupMemory: 'Memória',
   exportImageTitle: 'Baixar o frame na escala e no formato escolhidos acima',

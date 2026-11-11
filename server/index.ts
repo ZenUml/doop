@@ -14,6 +14,8 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import express from 'express'
+import { diagramVendorRouter } from './diagramVendor'
+import { DIAGRAM_VENDOR_PATH } from '../shared/diagramFrame'
 import { eq, inArray } from 'drizzle-orm'
 import { toNodeHandler, fromNodeHeaders } from 'better-auth/node'
 import { oAuthDiscoveryMetadata } from 'better-auth/plugins'
@@ -493,6 +495,9 @@ app.get('/i/:id.:ext', async (req, res) => {
 /* by the same unguessable-id logic as /i/ (frame HTML embedding these    */
 /* URLs renders for anyone who can see the canvas).                       */
 /* ------------------------------------------------------------------ */
+
+/* diagram renderers for diagram frames (spike): see server/diagramVendor.ts */
+app.use(DIAGRAM_VENDOR_PATH, diagramVendorRouter())
 
 app.get('/a/:id.:ext', async (req, res) => {
   const { id, ext } = req.params as { id: string; ext: string }
