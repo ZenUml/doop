@@ -56,7 +56,12 @@ pub fn default_url() -> String {
 /// The server this launch opens, without a trailing slash. Read from disk on
 /// the first call (the menu or setup, both before any page loads).
 pub fn active(app: &AppHandle) -> &'static str {
-    ACTIVE.get_or_init(|| chosen(app).unwrap_or_else(default_url))
+    // a bundle that carries its own server runs on it (spike: local_server.rs)
+    ACTIVE.get_or_init(|| {
+        crate::local_server::start(app)
+            .or_else(|| chosen(app))
+            .unwrap_or_else(default_url)
+    })
 }
 
 /// The server this launch opens, for code with no app handle; only valid

@@ -52,6 +52,7 @@ mod claude;
 mod claude_extension;
 mod codex;
 mod fonts;
+mod local_server;
 mod server;
 mod updates;
 mod view_menu;
@@ -538,6 +539,9 @@ fn main() {
             if matches!(event, tauri::RunEvent::ExitRequested { .. }) {
                 claude::shutdown(&app.state::<claude::ClaudeState>());
                 updates::install_on_quit(app);
+            }
+            if matches!(event, tauri::RunEvent::Exit) {
+                local_server::stop();
             }
         });
 }

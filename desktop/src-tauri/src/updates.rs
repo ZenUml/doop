@@ -54,7 +54,9 @@ enum Trigger {
 /// replaced by a release. On macOS the feed names the Chromium build, so the
 /// WebKit app updates into it and the Chromium app keeps updating from it.
 fn updates_enabled() -> bool {
+    // an app on its own bundled server is not the official one (spike)
     !cfg!(debug_assertions)
+        && !crate::local_server::running()
         && matches!(
             crate::APP_URL.trim_end_matches('/'),
             "https://doop.design" | "https://www.doop.design"
