@@ -62,8 +62,9 @@ while IFS= read -r -d '' executable; do
     else
       codesign --force --sign "$IDENTITY" "$executable"
     fi
+    codesign --verify --strict "$executable"
   fi
-done < <(find "$APP/Contents" -type f -print0)
+done < <("$NODE_BINARY" -e 'const fs=require("node:fs"),path=require("node:path");for(const file of JSON.parse(fs.readFileSync(process.argv[2],"utf8")).native)process.stdout.write(path.join(process.argv[1],file)+"\0")' "$APP" "$OUTPUT/provenance-before-signing.json")
 cp "$ROOT/desktop/src-tauri/app-store/shell.entitlements" "$STAGE/shell.entitlements"
 if [[ "$MODE" == --sign ]]; then
   # Provisioning-controlled identity entitlements are merged only from the
