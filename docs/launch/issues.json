@@ -1,0 +1,71 @@
+{
+  "updated": "2026-11-11",
+  "channel": "mac-app-store",
+  "payment": "apple-in-app-purchase",
+  "epic": {
+    "number": 26,
+    "url": "https://github.com/ZenUml/doop/issues/26"
+  },
+  "issues": [
+    {
+      "key": "COM-01",
+      "number": 16,
+      "url": "https://github.com/ZenUml/doop/issues/16",
+      "title": "[Launch P0] Resolve AGPL compliance and Mac App Store distribution compatibility"
+    },
+    {
+      "key": "COM-02",
+      "number": 17,
+      "url": "https://github.com/ZenUml/doop/issues/17",
+      "title": "[Launch P0] Build a production Mac App Store package and safe data migration"
+    },
+    {
+      "key": "COM-03",
+      "number": 18,
+      "url": "https://github.com/ZenUml/doop/issues/18",
+      "title": "[Launch P0] Add native StoreKit purchase, restore and subscription management"
+    },
+    {
+      "key": "COM-04",
+      "number": 19,
+      "url": "https://github.com/ZenUml/doop/issues/19",
+      "title": "[Launch P0] Verify Apple transactions and reconcile Diagramly entitlements"
+    },
+    {
+      "key": "COM-05",
+      "number": 20,
+      "url": "https://github.com/ZenUml/doop/issues/20",
+      "title": "[Launch P0] Finalize Apple subscription offer, allowance costs and product catalogue"
+    },
+    {
+      "key": "COM-06",
+      "number": 21,
+      "url": "https://github.com/ZenUml/doop/issues/21",
+      "title": "[Launch P1] Establish Diagramly Desktop name, icon and consistent product identity"
+    },
+    {
+      "key": "COM-07",
+      "number": 22,
+      "url": "https://github.com/ZenUml/doop/issues/22",
+      "title": "[Launch P1] Prepare truthful App Store listing, screenshots, demo and support pages"
+    },
+    {
+      "key": "COM-08",
+      "number": 23,
+      "url": "https://github.com/ZenUml/doop/issues/23",
+      "title": "[Launch P0] Audit desktop data flows, privacy disclosures and local security boundaries"
+    },
+    {
+      "key": "COM-09",
+      "number": 24,
+      "url": "https://github.com/ZenUml/doop/issues/24",
+      "title": "[Launch P0] Prove clean-machine beta, data recovery and Apple purchase lifecycle"
+    },
+    {
+      "key": "COM-10",
+      "number": 25,
+      "url": "https://github.com/ZenUml/doop/issues/25",
+      "title": "[Launch P1] Establish support, incident response and measurable go-to-market operations"
+    }
+  ]
+}

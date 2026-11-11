@@ -1,3 +1,4 @@
+import { LegacyZenUmlImport } from '../components/LegacyZenUmlImport'
 import { CAPTURE_PREFIX, pasteWebCapture } from '../lib/webCapture'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { canEditOpenCanvas, pickedSelectors, roleOf, useStore } from '../lib/store'
@@ -1034,7 +1035,9 @@ export function CanvasPage({
           {/* the presence pill in the bar already carries each agent's status
               line; this per-agent stack is only for windows too narrow for it */}
           <WorkingNow style={{ left: chrome.left }} className="min-[1180px]:hidden" />
-          {!readOnly && <Onboarding canvasId={canvasId} />}
+          {!readOnly && session?.user && (
+            <Onboarding key={`${session.user.id}:${canvasId}`} canvasId={canvasId} user={session.user} />
+          )}
           <AccessBanner guest={guest} onSignUp={onSignUp} onSignIn={onSignIn} />
           {!isMobile &&
             (layersOpen ? (
@@ -1693,6 +1696,15 @@ function ImportModal({
           <>
             {source === null ? (
               <SourcePicker onPick={setSource} sources={importSources()} />
+            ) : source === 'legacy-zenuml' ? (
+              <LegacyZenUmlImport
+                onBack={() => setSource(null)}
+                onBusyChange={(value) => setBusy(value ? 'importing' : null)}
+                onOpen={(id) => {
+                  onClose()
+                  navigate(`/c/${id}`)
+                }}
+              />
             ) : source === 'website' ? (
               <>
                 <ImportStepHeader

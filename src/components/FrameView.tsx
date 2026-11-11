@@ -1,3 +1,4 @@
+import { buildDiagramHtml, readDiagramFrame } from '../../shared/diagramFrame'
 import { memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { ElementComment, Frame } from '../../shared/types'
@@ -779,7 +780,10 @@ export const FrameView = memo(function FrameView({
     const request = ++htmlRequest.current
     noteFrameDocument(frame.id, null)
     let cancelled = false
-    void requestFrame(frame.id, 'doop:html', { html }).then((reply) => {
+    const diagram = readDiagramFrame(html)
+    /* Saved source survives renderer upgrades; execute this build's renderer. */
+    const runtimeHtml = diagram ? buildDiagramHtml(diagram) : html
+    void requestFrame(frame.id, 'doop:html', { html: runtimeHtml }).then((reply) => {
       if (!reply || request !== htmlRequest.current) return
       /* the runtime shows it whether or not this effect is still current */
       noteFrameDocument(frame.id, html)
@@ -1398,6 +1402,27 @@ export const FrameView = memo(function FrameView({
   useEffect(() => {
     function onMsg(ev: MessageEvent) {
       if (ev.source !== iframeRef.current?.contentWindow) return
+      if (ev.data?.type === 'doop:diagram-size') {
+        const state = useStore.getState()
+        const live = state.canvas?.frames.find((item) => item.id === frame.id)
+        if (!live || live.locked || !canEditOpenCanvas(state)) return
+        const diagram = readDiagramFrame(live.html)
+        if (!diagram || diagram.source !== ev.data.source) return
+        const { width, height } = ev.data as { width: unknown; height: unknown }
+        if (typeof width !== 'number' || typeof height !== 'number' || !Number.isFinite(width + height)) return
+        /* Grow to keep the source visible. A larger hand-sized artboard stays larger. */
+        const size = {
+          width: Math.max(live.width, Math.min(16_384, Math.ceil(width))),
+          height: Math.max(live.height, Math.min(16_384, Math.ceil(height))),
+        }
+        if (size.width === live.width && size.height === live.height) return
+        state.patchFrameLocal(frame.id, size)
+        trackSave(
+          api.updateFrame(frame.id, size).catch((error: unknown) => {
+            useStore.getState().pushNotice(error instanceof Error ? error.message : 'Could not save diagram size.')
+          }),
+        )
+      }
       if (ev.data?.type === 'doop:edited' && typeof ev.data.html === 'string') {
         // The runtime already has this document. Echoing it through the HTML
         // throttle can overwrite a newer style edit still waiting to save.

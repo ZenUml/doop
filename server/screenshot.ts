@@ -6,6 +6,7 @@ import type { Frame } from '../shared/types.ts'
 import { guardPublicPageRequests } from './publicUrl.ts'
 import { isDiagramVendorUrl } from './diagramVendor.ts'
 import { DIAGRAM_STATE_ATTR, readDiagramFrame } from '../shared/diagramFrame.ts'
+import { renderDesktopFrame } from './desktopScreenshot.ts'
 
 /**
  * Render a frame's HTML in headless Chrome so agents can *see* their work.
@@ -396,6 +397,9 @@ export async function renderFrame(
   scale: number = 1,
   opts: { type?: 'png' | 'jpeg'; quality?: number; maxHeight?: number } = {},
 ): Promise<Buffer> {
+  if (env.DOOP_FRAME_SNAPSHOT_HELPER) {
+    return renderDesktopFrame(env.DOOP_FRAME_SNAPSHOT_HELPER, frame, scale, opts)
+  }
   const loaded = await loadFramePage(frame)
   const { page } = loaded
   try {

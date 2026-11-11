@@ -1,3 +1,4 @@
+import { UploadIcon } from './ui/icons'
 import { clientIntegrations } from '@/integrations'
 import { AppIcon } from './ui/brand-mark'
 import type { ImportSource } from './ImportSources'
@@ -7,6 +8,12 @@ import { t as translate, type Translate } from '@/lib/i18n'
  *  and Home's Import button show the same list, so it lives once. */
 export function importSources(t: Translate = translate): ImportSource[] {
   return [
+    {
+      id: 'legacy-zenuml',
+      title: 'ZenUML desktop export',
+      blurb: 'Import your old JSON library as editable diagrams, keeping document pages.',
+      icon: <UploadIcon size={32} />,
+    },
     {
       id: 'website',
       title: t('panels.importWebsite'),

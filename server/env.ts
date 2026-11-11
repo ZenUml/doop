@@ -114,6 +114,7 @@ const schema = {
   DOOP_DATA_DIR: str({ default: undefined }),
   /* the interface to listen on; unset = all of them. A desktop app sets 127.0.0.1 (spike) */
   HOST: str({ default: undefined }),
+  DOOP_FRAME_SNAPSHOT_HELPER: str({ default: undefined }),
 
   /* ---------------------------------------------------------- auth */
   BETTER_AUTH_SECRET: str({

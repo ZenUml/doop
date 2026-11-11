@@ -293,7 +293,7 @@ describe('get_comments MCP tool', () => {
     }
   })
 
-  it('heartbeats for agent_name without delivering feedback', async () => {
+  it('heartbeats with a provided or default agent name without delivering feedback', async () => {
     vi.spyOn(actions, 'getComments').mockReturnValue([])
     const heartbeat = vi.spyOn(actions, 'heartbeatAgent').mockImplementation(() => {})
     const takeFeedback = vi.spyOn(actions, 'takeFeedbackFor')
@@ -306,7 +306,8 @@ describe('get_comments MCP tool', () => {
 
       heartbeat.mockClear()
       await callComments(client, { canvas_id: CANVAS.id })
-      expect(heartbeat).not.toHaveBeenCalled()
+      expect(heartbeat).toHaveBeenCalledWith(CANVAS.id, expect.objectContaining({ name: 'AI Agent', kind: 'agent' }))
+      expect(takeFeedback).not.toHaveBeenCalled()
     } finally {
       await close()
     }

@@ -1,0 +1,33 @@
+{
+  "status": "draft-not-submitted",
+  "productName": "Diagramly Desktop",
+  "name": "Diagramly – AI Diagrams",
+  "subtitle": "Mermaid & ZenUML on your Mac",
+  "primaryCategory": "Productivity",
+  "secondaryCategory": "Developer Tools",
+  "keywords": "mermaid,zenuml,sequence,flowchart,architecture,uml,diagram,ai,mcp",
+  "promotionalText": "Create editable Mermaid and ZenUML diagrams on your Mac. Keep your work locally, connect your AI agent, and update the source as your design changes.",
+  "description": "Diagramly Desktop brings source-based diagrams and your AI tools into one Mac workspace.\n\nCREATE AND KEEP EDITING\nWrite Mermaid or ZenUML source and see your diagram update. Keep diagrams across document pages and return to them later.\n\nWORK WITH YOUR AI AGENT\nConnect a compatible MCP client, such as Claude Code or Codex, to work on a local document. Your external AI client may require its own account or subscription.\n\nBRING YOUR OLD ZENUML LIBRARY\nImport the JSON library exported by the older ZenUML desktop app. Keep document pages and editable source. Import reports identify styles that need review.\n\nKEEP LOCAL WORK LOCAL\nDocuments are stored by the app on your Mac. Connecting cloud services or external agents is a separate action. Export and cloud features will be described separately once verified.\n\nDiagramly account integration, cloud AI and commercial entitlements are under development. This text is a release draft and must be reconciled with the exact shipping build before publication.",
+  "supportUrl": "https://diagramly.ai/desktop/support",
+  "marketingUrl": "https://diagramly.ai/desktop",
+  "privacyPolicyUrl": "https://diagramly.ai/legal/privacy-policy",
+  "termsUrl": "https://diagramly.ai/legal/terms",
+  "refundPolicyUrl": "https://diagramly.ai/legal/refund-policy",
+  "urlStatus": "Existing legal pages resolve; desktop coverage, AGPL/EULA compatibility and Apple refund wording require review. Candidate desktop marketing/support URLs are not deployed.",
+  "bundleId": null,
+  "sku": null,
+  "copyright": "Verify legal seller identity and third-party attribution before submission.",
+  "releaseNotes": "Initial release. Replace with the tested release contents before submission.",
+  "reviewNotes": "Not submission-ready. Supply a synthetic demo account or demo mode, precise local server/MCP explanation, account and billing flows, source-compliance materials, and exact supported formats. Do not provide personal accounts or customer diagrams.",
+  "claimLimits": [
+    "Do not claim that Diagramly login, subscriptions or cloud AI are connected until verified.",
+    "Do not advertise PlantUML, Draw.io or other web-only formats in this desktop release.",
+    "Do not promise PDF/SVG/native source-file export until each is verified in the signed release build.",
+    "Do not describe the current ad-hoc debug app as an approved, notarized or published release.",
+    "No screenshot may contain a personal email address, private legacy diagram, test credential or another customer's work.",
+    "Apple In-App Purchase is the chosen payment channel, not a verified live integration. Show actual localized StoreKit prices only after products are configured."
+  ],
+  "paymentChannel": "apple-in-app-purchase",
+  "distributionChannel": "mac-app-store",
+  "commerceStatus": "User selected Apple payments; StoreKit, products and backend verification are not implemented."
+}

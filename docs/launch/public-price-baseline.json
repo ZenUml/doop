@@ -1,0 +1,42 @@
+{
+  "checkedDate": "2026-11-11",
+  "currency": "USD",
+  "source": "https://diagramly.ai/api/billing.plans",
+  "plans": [
+    {
+      "name": "Basic Plan",
+      "prices": [
+        {
+          "amountMinor": 9900,
+          "currency": "USD",
+          "interval": "year",
+          "intervalCount": 1
+        },
+        {
+          "amountMinor": 999,
+          "currency": "USD",
+          "interval": "month",
+          "intervalCount": 1
+        }
+      ]
+    },
+    {
+      "name": "Plus Plan",
+      "prices": [
+        {
+          "amountMinor": 17900,
+          "currency": "USD",
+          "interval": "year",
+          "intervalCount": 1
+        },
+        {
+          "amountMinor": 1999,
+          "currency": "USD",
+          "interval": "month",
+          "intervalCount": 1
+        }
+      ]
+    }
+  ],
+  "note": "Public catalogue only; no checkout, taxes, promotions or existing customer subscriptions were changed."
+}

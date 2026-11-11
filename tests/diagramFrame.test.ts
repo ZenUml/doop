@@ -87,3 +87,13 @@ describe('diagram frames', () => {
     expect(readDiagramFrame(unknown)).toBeNull()
   })
 })
+
+it('keeps imported styles through source edits without letting styles inject markup', () => {
+  const css = '#diagram .message {color:red} /* </style><script>bad()</script> */'
+  const original = buildDiagramHtml({ kind: 'zenuml', source: 'A->B: old', css })
+  const diagram = readDiagramFrame(original)!
+  expect(diagram.css).toBe(css)
+  const edited = buildDiagramHtml({ ...diagram, source: 'A->B: edited' })
+  expect(readDiagramFrame(edited)).toEqual({ kind: 'zenuml', source: 'A->B: edited', css })
+  expect(edited).not.toContain('<script>bad()</script>')
+})

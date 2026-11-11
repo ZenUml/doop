@@ -396,7 +396,7 @@ export function buildMcpServer(
      connected" confirmation in the UI) must appear on an agent's FIRST
      canvas-scoped call, not only once it mutates something. */
   const arrive = (canvasId: string, agent_name?: string) => {
-    if (agent_name) actions.heartbeatAgent(canvasId, actorFrom(agent_name))
+    actions.heartbeatAgent(canvasId, actorFrom(agent_name))
   }
   const server = new McpServer({ name: 'doop-canvas', version: packageJson.version }, { instructions: INSTRUCTIONS })
   loadToolTargets(server)

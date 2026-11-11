@@ -1,0 +1,114 @@
+[
+  {
+    "key": "DSK-01",
+    "title": "[Desktop] 复用 Diagramly 登录并保留本地文档归属",
+    "priority": "P1",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P1\n\n现状：DoopSpike 使用本地 better-auth 账户，与 Diagramly 账户独立；账户切换后容易误认为文档丢失。Diagramly 代码已有 `/api/device-auth/create`、`/api/device-auth/poll` 和浏览器授权页。\n\n候选方案：复用 Diagramly 的设备授权流程，显示已验证的云端账户，用云端用户 ID 绑定本地身份；不按相同邮箱自动移动其他账户的文档。\n\n验收：登录、取消、拒绝、过期、退出和换号状态明确；已有本地画布仍可访问；令牌留在服务端/系统凭据存储，前端和日志不泄漏；离线仍可打开本地文档。\n\n参考：Diagramly `docs/device-authorization-flow.md`、`packages/api/modules/device-auth/device-auth-service.ts`；Doop `server/auth.ts`、`src/pages/AuthPage.tsx`。",
+    "issue_number": 1,
+    "url": "https://github.com/ZenUml/doop/issues/1"
+  },
+  {
+    "key": "DSK-02",
+    "title": "[Desktop] 为桌面端提供 Diagramly 套餐和额度查询",
+    "priority": "P1",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P1\n\n现状：Diagramly 的设备 token 可解析为用户，但不会生成网站 session；现有套餐/额度的 `protectedProcedure` 要求 user 和 session。不能只把 Doop 的按钮改成 Diagramly 链接就视为接通。\n\n候选方案：新增或复用范围明确的 bearer 授权只读接口，返回账户、可访问团队、套餐和可用额度，并检查团队归属与权限。\n\n验收：网站和桌面显示一致；无权限团队不能读取；token 失效时显示重新登录而非免费套餐；不放宽全部 protectedProcedure；不新增购买或自动扣费。\n\n参考：`packages/api/trpc/context.ts`、`packages/api/trpc/base.ts`、`packages/api/modules/billing/procedures/plans.ts`。",
+    "issue_number": 2,
+    "url": "https://github.com/ZenUml/doop/issues/2"
+  },
+  {
+    "key": "DSK-03",
+    "title": "[Desktop] 将内置 AI 和 Connect a plan 改为 Diagramly 后台流程",
+    "priority": "P1",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P1\n\n现状：Doop 的 Connect a plan 实际连接 ChatGPT/Claude 订阅或模型凭据，供 Doop 自带 Agent 执行任务；这不是 Diagramly 套餐。外部 MCP Agent 是另一条已经可独立使用的路径。\n\n候选方案：内置 AI 复用 Diagramly 的生成任务、状态轮询与额度规则。外部 Claude Code/Codex/Cursor 保持独立，文案明确区分。\n\n验收：明确模型执行和计费渠道后才发起生成；额度不足、失败、重试、取消状态准确；不偷偷使用用户的另一家 API 或订阅作为回退；不能只登录成功就显示 AI 已可用。\n\n依赖：DSK-01、DSK-02。\n参考：Doop `src/components/PromptBar.tsx`、`TeamAllowance.tsx`、`ModelAccount.tsx`；Diagramly 的生成/job/allowance 流程。",
+    "issue_number": 3,
+    "url": "https://github.com/ZenUml/doop/issues/3"
+  },
+  {
+    "key": "DSK-04",
+    "title": "[Desktop] 用 Diagramly 权益替换 Doop workspace 升级与计费入口",
+    "priority": "P1",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P1\n\n现状：Doop 自带个人/workspace 套餐、升级弹窗和增长限制。这些规则与 Diagramly 的团队、套餐和额度不是同一套。\n\n待统一决策：哪些本地功能应免费离线可用，哪些云端功能受 Diagramly 权益约束。决定后统一移除 Doop 购买/升级入口，账户管理复用 Diagramly。\n\n验收：本地导入、编辑和保存不误触 Doop 付费墙；云端能力按 Diagramly 后台校验；没有两套套餐状态或第二套 checkout。\n\n依赖：DSK-02。\n参考：Doop `server/workspaces.ts`、`src/components/WorkspaceModals.tsx`、Home/Settings 的升级入口。",
+    "issue_number": 4,
+    "url": "https://github.com/ZenUml/doop/issues/4"
+  },
+  {
+    "key": "DSK-05",
+    "title": "[Desktop] 审核并统一移除图编辑中的 HTML 元素设计控件",
+    "priority": "P1",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P1\n\n现状：图框可展开隐藏的源码/样式块作为 HTML 图层，右侧可出现 div 的宽高、位置、CSS、原始 HTML 等网页设计控件。直接改这些派生 HTML 不等于修改图的源码。\n\n候选删除范围：图中的 DOM 子树、逐元素几何/CSS 面板、原始 HTML 编辑和导出。保留图源码、整张图在画布上的移动、必要导出与历史；整张图的尺寸策略单独确认。\n\n验收：单击/双击图进入源码编辑；不会误选隐藏的 pre/style 节点；编辑后显示、保存、重新打开一致；ZenUML/Mermaid 的源码和导入样式不丢失。\n\n参考：Doop `src/components/ElementPanel.tsx`、`Inspector.tsx`、`FrameView.tsx`、`LayersPanel.tsx`、`src/lib/layers.ts`。",
+    "issue_number": 5,
+    "url": "https://github.com/ZenUml/doop/issues/5"
+  },
+  {
+    "key": "DSK-06",
+    "title": "[Desktop] 审核开发交付审批和原型交互功能是否应移除",
+    "priority": "P2",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P2\n\n现状：Doop 图框有 Mark as approved、开发交付状态、网页原型模式和热点跳转，面向页面设计交付。\n\n待决策：Diagramly 是否需要图的人工审批或跨图导航；若无明确用途，在最后一轮统一移除这些入口及相关状态文案。不要将普通图编辑误标成网页开发交付。\n\n验收：留下的导航/审阅功能有明确用户场景；删除后的菜单、快捷键、移动端和权限行为一致；已有画布数据不被删除。\n\n参考：Doop `FrameApproval.tsx`、`InteractionsPanel.tsx`、`PresentMode.tsx` 和 Inspector/CanvasPage。",
+    "issue_number": 6,
+    "url": "https://github.com/ZenUml/doop/issues/6"
+  },
+  {
+    "key": "DSK-07",
+    "title": "[Desktop] 精简导入来源，优先图文件和旧 ZenUML 数据",
+    "priority": "P2",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P2\n\n现状：导入选择器同时提供旧 ZenUML JSON、Website、Live app、GitHub repo screens。后三者主要生成网页 HTML 和设计系统，不直接服务于图编辑。\n\n候选方案：保留旧库导入，补齐需要的 ZenUML/Mermaid 图文件入口；网页/登录态页面/仓库屏幕导入放入待删除清单，统一决策后移除。\n\n验收：从 Home 和画布进入的来源一致；导入前有文档/页数预览；重复导入保留已有编辑；多页和样式兼容有真实旧图验证。\n\n参考：Doop `ImportSources.tsx`、`importSourceList.tsx`、Home/CanvasPage、`LegacyZenUmlImport.tsx`。",
+    "issue_number": 7,
+    "url": "https://github.com/ZenUml/doop/issues/7"
+  },
+  {
+    "key": "DSK-08",
+    "title": "[Desktop] 审核设计 tokens、字体库和图片生成设置",
+    "priority": "P2",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P2\n\n现状：Doop 提供设计 tokens、字体库、图片生成/描述模型和 UI 设计相关设置。\n\n待决策：只保留图主题、图中文字、图标等有实际用途的功能；通用网页设计配置、重复模型设置和未接通的图片功能列入最后统一删除范围。\n\n验收：旧图样式继续可显示；必要的主题/字体能力有清楚入口；没有不可用或误导的生成按钮；删除不会损坏已有图的源码和 CSS。\n\n参考：Doop Settings、`FontLibrary.tsx`、`ImageModelCard.tsx`、`ImageDescriptionsCard.tsx`、TokensPanel。",
+    "issue_number": 8,
+    "url": "https://github.com/ZenUml/doop/issues/8"
+  },
+  {
+    "key": "DSK-09",
+    "title": "[Desktop] 明确本地分享与 Diagramly 云端发布的区别",
+    "priority": "P1",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P1\n\n现状：DoopSpike 画布和图片链接指向回环本地服务器；复制这些链接不代表其他电脑可访问，Community/publish 也不等于发布到 Diagramly。\n\n候选方案：本地协作明确标识访问范围；云端保存/分享显式走 Diagramly，默认保留私有。未实现云端能力的入口加入待隐藏/移除清单。\n\n验收：离线本地图不自动上传；登录成功不触发批量上传；分享给谁、保存在哪里清楚；云端和本地权限分别验证。\n\n参考：Doop ShareModal/Community/图片 URL；Diagramly `apps/web/app/api/device-auth/diagrams/route.ts` 可从源码创建私有图，不调用 AI。",
+    "issue_number": 9,
+    "url": "https://github.com/ZenUml/doop/issues/9"
+  },
+  {
+    "key": "DSK-10",
+    "title": "[Desktop] 核验各导出格式，未支持的导出最后统一处理",
+    "priority": "P1",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P1\n\n现状：图编辑有图片导出、复制 PNG 和 PDF 导出。macOS 沙盒截图已有 WebKit helper 路径；这不能证明 PDF 路径也已可用。\n\n待决策：保留真实验证可用的 PNG/JPEG/源码等输出；PDF 要么实现沙盒兼容路径，要么在统一删减时隐藏。SVG 是否保留也需对动态图和样式独立验证。\n\n验收：用真实长图、多页图验证；打开产物检查内容、样式、尺寸和裁切；沙盒包内运行；没有“下载成功但空白”的结果。\n\n参考：Doop `server/screenshot.ts`、`server/desktopScreenshot.ts`、`desktop/scripts/FrameSnapshot.swift`、`src/lib/frameRaster.ts`、ExportModal。",
+    "issue_number": 10,
+    "url": "https://github.com/ZenUml/doop/issues/10"
+  },
+  {
+    "key": "DSK-11",
+    "title": "[Desktop] 审核 Automations、Webhooks、Integrations 和设计记忆入口",
+    "priority": "P2",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P2\n\n现状：Doop 暴露 Automations、Webhooks、应用集成、参考图/设计记忆等通用设计工作流。\n\n待决策：逐项写出 Diagramly 图编辑中的用途和所需后台。没有明确用途或没有可实现后端的项目，在最后一轮统一删除入口；不要先删持久化数据。\n\n验收：导航、设置、命令菜单和移动端入口同步；MCP 外部 Agent 的活动与必要上下文仍可使用；没有指向不可用流程的链接。\n\n参考：Doop AppRail、Settings、MemoryPanel、Webhooks、Integrations。",
+    "issue_number": 11,
+    "url": "https://github.com/ZenUml/doop/issues/11"
+  },
+  {
+    "key": "DSK-12",
+    "title": "[Desktop] 审核首页与设置，移除网页设计和 Doop 模型账户导向",
+    "priority": "P2",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P2\n\n现状：首页以 Ask Doop what to design、落地页/整站设计为主；设置包含大量 Doop 模型账户连接项。对于已连接外部 Agent 的图编辑用户，这些入口会造成混淆。\n\n候选方案：首页以最近图、打开/新建图、导入旧库和连接 Agent 为主；内置 AI 与 Diagramly 登录/额度接通后再展示对应入口；统一产品命名和账户状态。\n\n验收：新用户能找到第一张图；已有用户能打开旧库；账户、AI 连接、画布访问和可计费的内置生成被明确区分；不把任意配置存在当作连接成功。\n\n依赖：DSK-01、DSK-02、DSK-03。\n参考：Doop Home、Settings、ConnectModal、Onboarding、ModelAccount。",
+    "issue_number": 12,
+    "url": "https://github.com/ZenUml/doop/issues/12"
+  },
+  {
+    "key": "DSK-13",
+    "title": "[Desktop] 明确画布工具保留范围并以产品模式统一执行删减",
+    "priority": "P2",
+    "body": "状态：待审查；本 issue 仅记录，不授权立即删除或接入。\n优先级：P2\n\n现状：Doop 同时支持图框、矩形、圆、文本、矢量、网页元素编辑，以及多种菜单/快捷键/移动端路径。局部删控件容易留下第二入口或破坏旧数据。\n\n待决策：保留整张图的排列、缩放、页、注释和必要标注工具；逐项确认自由绘图、矢量编辑、原型功能是否有价值。以独立 Diagramly 产品能力配置统一控制 UI 与服务能力。\n\n验收：先完成清单审查和依赖接入，再一次性实施已确认的删减；覆盖桌面/浏览器/移动端、菜单/快捷键；数据迁移可恢复；旧库导入、长图、编辑保存、重启、换号和离线流程回归通过。\n\n依赖：本轮清单中的各项决策完成。\n参考：Doop CanvasTools、Stage、CanvasPage、命令菜单、desktop 菜单。",
+    "issue_number": 13,
+    "url": "https://github.com/ZenUml/doop/issues/13"
+  },
+  {
+    "key": "DSK-14",
+    "title": "[Desktop] 统一图编辑术语，审查 Layer / Frame / Canvas 等网页设计用词",
+    "priority": "P1",
+    "body": "状态：待审查；只建立术语清单和候选命名，本轮不改界面或协议。\n优先级：P1\n\n## 问题\n\n用户指出 Layer 等术语不适合 Diagramly 桌面图编辑。当前文案沿用通用网页设计工具的对象名称，容易让用户把整张图、图里的节点/消息、HTML 派生结构混为一谈。\n\n已从代码核实：左侧标题为 Layers、按钮为 New frame、搜索为 Search layers，右侧存在 Frame inspector、Design / HTML / Prototype，另有 Tokens、Memory、Workspace 和含义不同的 plan。\n\n## 术语审查清单（以下均为候选）\n\n| 现有术语 | 需要澄清的含义 | 候选处理 |\n| --- | --- | --- |\n| Layer / Layers | 左侧列的是整张图，还是图中的组成部分，或自由画布上的标注？ | 仅列整张图时考虑 Diagrams / 图表列表；混合内容时考虑 Contents / 内容。图内按实际对象叫参与者、消息、片段、节点、连线，不统称 HTML 图层 |\n| Frame | 存放图源码和渲染结果的区域 | 图编辑流程考虑 Diagram / 图表；New frame → New diagram。整张图的排布边界与图内容分别命名 |\n| Canvas | 一个可含多页、多张图的文档/画板 | 候选 Document / 文档 或 Board / 画板，先确认产品结构；不直接把每个 canvas 都改叫一张图 |\n| Page / Pages | 文档中的页 | 如保留多页，统一 Page / 页面，与文档和图明确区分 |\n| Inspector | 图属性、图源码、或 HTML 元素属性 | 按实际内容叫 Properties / 属性、Diagram source / 图源码 |\n| Tokens | 当前既有设计变量概念，也有认证 token | 保留主题能力时考虑 Style variables / 样式变量；认证 token 保持为凭据概念，两者不可混用 |\n| Memory / References / Rules | Agent 读取的设计偏好和参考材料 | 若功能保留，考虑 Diagram context / 图表上下文、参考资料、绘图规则，并验证实际内容是否相符 |\n| Prototype / Present prototype | 网页交互原型还是图预览/展示 | 若仅展示图，可用 Preview / Present；若仍是网页交互原型，归入功能取舍，不用改名掩盖功能差异 |\n| Workspace | 带成员/套餐的团队空间，还是本地文件整理？ | 团队能力保留时考虑 Team space / 团队空间；本地文档整理另行定义，不擅自叫文件夹 |\n| Connect a plan | 连接模型使用账户，或查询 Diagramly 套餐？ | 分成 Model connection / 模型连接 与 Diagramly plan / Diagramly 套餐；两种状态分别说明 |\n| Design / Designing | 网页设计任务还是图表绘制/编辑？ | 图流程考虑 Diagram / Create diagram / Edit diagram；依据具体动作命名 |\n| Multiplayer / Agent | 协作者和外部 AI 工具的状态 | 普通入口使用 Collaborators / 协作者、AI agent / AI 助手等易懂用词；MCP 在连接配置处可保留并解释 |\n\n## 先确定对象关系\n\n候选结构：文档 → 页面 → 图表；图表内部再按语言区分参与者/消息/片段或节点/连线。自由画布标注与派生 HTML 结构不自动成为图的领域对象。该结构仍需整体审查，并非本 issue 已定稿。\n\n## 范围与验收\n\n- 为每个词记录当前文案、位置、真实对象、候选新词、保留/删除决定及中英文对应；同一概念同名，不同概念不共用模糊词。\n- 覆盖导航、按钮、空状态、导入/导出、帮助、快捷键、原生菜单、错误提示、无障碍名称和面向 Agent 的说明。\n- 先审查功能清单；已经决定删除的功能不再做无用改名。\n- 最后一轮统一改文案并验证真实用户流程，不逐个发现后立即修改。\n- 用户可见术语与内部类型/存储字段/MCP 工具名分开处理。不能为改文案直接改 `Frame`、`canvasId`、`create_frame` 等协议，导致旧数据和现有 Agent 连接失效。\n\n## 代码参考与关联\n\n- Doop `src/lib/i18n/en/panels.ts`：Layers、New frame、Search layers、Tokens、Memory、Pages。\n- `src/lib/i18n/en/inspector.ts`：Frame name、Design/HTML/Prototype、布局/设计变量/记忆文案。\n- `src/lib/i18n/en/canvas.ts`、`home.ts`、`settings.ts`：canvas、frame、workspace、plan 及首页引导。\n- `src/components/LayersPanel.tsx`、`Inspector.tsx`、`ElementPanel.tsx` 与 `shared/types.ts`：核对文案指向的实际对象。\n- 与 #5（HTML 元素控件）、#12（首页/设置）、#13（产品能力范围）协同，纳入 #14 总清单。",
+    "issue_number": 15,
+    "url": "https://github.com/ZenUml/doop/issues/15"
+  }
+]

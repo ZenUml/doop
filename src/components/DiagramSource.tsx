@@ -38,7 +38,7 @@ export function DiagramSource({ frame, diagram }: { frame: Frame; diagram: Diagr
 
   function onSourceChange(source: string) {
     setDraft(source)
-    const html = buildDiagramHtml({ kind: diagram.kind, source })
+    const html = buildDiagramHtml({ ...diagram, source })
     /* the HTML as it was before this burst of typing: what undo goes back to */
     const before = queued.current?.before ?? frame.html
     if (queued.current) {

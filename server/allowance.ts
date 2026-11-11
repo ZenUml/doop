@@ -1,9 +1,9 @@
 import { env } from './env.ts'
 import { readConnections, usableAccount, type Connections } from './agentDefaults.ts'
 import { geminiCloudWorkerFor } from './geminiCloudRuns.ts'
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, isNotNull, sql } from 'drizzle-orm'
 import { db } from './db/index.ts'
-import { residentUsage } from './db/schema.ts'
+import { agentKeys, residentUsage } from './db/schema.ts'
 import { oauthAccessToken } from './db/auth-schema.ts'
 import type { AccountKind } from './modelAccounts.ts'
 
@@ -30,7 +30,7 @@ export const RESIDENT_TASK_LIMIT = env.RESIDENT_TASK_LIMIT
 export interface Allowance {
   used: number
   limit: number
-  /** the user has completed the MCP OAuth flow with their own agent */
+  /** the user completed MCP OAuth or authenticated with an Agent key */
   connected: boolean
   /** the user connected a model account the Doop Agent can run on */
   byoModel: boolean
@@ -54,7 +54,13 @@ async function hasOwnAgent(userId: string): Promise<boolean> {
     .from(oauthAccessToken)
     .where(eq(oauthAccessToken.userId, userId))
     .limit(1)
-  return !!row
+  if (row) return true
+  const [key] = await db
+    .select({ id: agentKeys.id })
+    .from(agentKeys)
+    .where(and(eq(agentKeys.userId, userId), isNotNull(agentKeys.lastUsedAt)))
+    .limit(1)
+  return !!key
 }
 
 async function usedCount(userId: string): Promise<number> {

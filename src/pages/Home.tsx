@@ -1,3 +1,4 @@
+import { LegacyZenUmlImport } from '../components/LegacyZenUmlImport'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Canvas, CanvasMeta, WorkspaceSummary } from '../../shared/types'
 import { colorFor } from '../../shared/types'
@@ -94,6 +95,8 @@ export function Home() {
     () => new URLSearchParams(location.search).get('workspace') === 'new',
   )
   const [showConnect, setShowConnect] = useState(false)
+  const [legacyImport, setLegacyImport] = useState(false)
+  const [legacyBusy, setLegacyBusy] = useState(false)
   const [importing, setImporting] = useState(false)
   /* the upgrade wall, aimed at one workspace, with what they were doing */
   const [upgrade, setUpgrade] = useState<{ workspaceId: string; reason?: string } | null>(null)
@@ -195,6 +198,10 @@ export function Home() {
   /** Import: the picker opens here; the chosen source lands on a fresh canvas,
    *  which opens straight on that source's screen. */
   async function importInto(source: string) {
+    if (source === 'legacy-zenuml') {
+      setLegacyImport(true)
+      return
+    }
     if (starting) return
     setStarting(true)
     const workspaceId = workspaceOf(scope)
@@ -529,8 +536,31 @@ export function Home() {
       </DashMain>
       {showConnect && <ConnectModal onClose={() => setShowConnect(false)} />}
       {importing && (
-        <Modal size="lg" showClose onClose={() => setImporting(false)}>
-          <SourcePicker sources={importSources()} onPick={(id) => void importInto(id)} />
+        <Modal
+          size={legacyImport ? 'xl' : 'lg'}
+          showClose
+          onClose={() => {
+            if (!legacyBusy) {
+              setImporting(false)
+              setLegacyImport(false)
+            }
+          }}
+        >
+          {legacyImport ? (
+            <LegacyZenUmlImport
+              workspaceId={workspaceOf(scope)}
+              onBack={() => setLegacyImport(false)}
+              onBusyChange={setLegacyBusy}
+              onImported={reload}
+              onOpen={(id, name) => {
+                setImporting(false)
+                setLegacyImport(false)
+                open(id, name)
+              }}
+            />
+          ) : (
+            <SourcePicker sources={importSources()} onPick={(id) => void importInto(id)} />
+          )}
         </Modal>
       )}
       {shareCanvas && (

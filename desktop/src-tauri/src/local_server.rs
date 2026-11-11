@@ -31,7 +31,8 @@ static SERVER: Mutex<Option<Child>> = Mutex::new(None);
 
 /// Starts the bundled server, if the app carries one, and returns its origin.
 pub fn start(app: &AppHandle) -> Option<String> {
-    let bundled = resources()?.join("local-server");
+    let resources = resources()?;
+    let bundled = resources.join("local-server");
     let node = bundled.join("node");
     let root = bundled.join("app");
     let entry = root.join("server").join("index.ts");
@@ -41,12 +42,17 @@ pub fn start(app: &AppHandle) -> Option<String> {
     }
     let data = data_dir(app)?;
     std::fs::create_dir_all(&data).ok()?;
-    let port = free_port()?;
+    let port = free_port(&data)?;
     let origin = format!("http://127.0.0.1:{port}");
     let loader = Url::from_file_path(root.join("node_modules/tsx/dist/loader.mjs")).ok()?;
     let shutdown = Url::from_file_path(shutdown).ok()?;
     let log = File::create(data.join("server.log")).ok()?;
-    let child = Command::new(&node)
+    let mut command = Command::new(&node);
+    let snapshot_helper = resources.parent()?.join("Helpers/DoopFrameSnapshot");
+    if snapshot_helper.is_file() {
+        command.env("DOOP_FRAME_SNAPSHOT_HELPER", snapshot_helper);
+    }
+    let child = command
         .arg("--import")
         .arg(shutdown.as_str())
         .arg("--import")
@@ -118,10 +124,20 @@ pub fn stop() {
     let _ = child.wait();
 }
 
-/// A port nothing listens on right now, picked by the system.
-fn free_port() -> Option<u16> {
-    let listener = TcpListener::bind("127.0.0.1:0").ok()?;
-    Some(listener.local_addr().ok()?.port())
+/// Reuse this installation's loopback port so MCP clients keep their saved
+/// address and OAuth origin across launches. Pick a new port if it is occupied.
+fn free_port(data: &Path) -> Option<u16> {
+    let file = data.join("port");
+    let previous = std::fs::read_to_string(&file)
+        .ok()
+        .and_then(|value| value.trim().parse::<u16>().ok())
+        .unwrap_or(0);
+    let listener = TcpListener::bind(("127.0.0.1", previous))
+        .or_else(|_| TcpListener::bind("127.0.0.1:0"))
+        .ok()?;
+    let port = listener.local_addr().ok()?.port();
+    std::fs::write(file, port.to_string()).ok()?;
+    Some(port)
 }
 
 fn listening(port: u16) -> bool {

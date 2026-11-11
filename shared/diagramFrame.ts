@@ -15,6 +15,8 @@ export type DiagramKind = (typeof DIAGRAM_KINDS)[number]
 export interface DiagramFrame {
   kind: DiagramKind
   source: string
+  /** Compiled legacy styles, retained when the source is edited. */
+  css?: string
 }
 
 /** Where the server serves the renderers from, same origin as the app. */
@@ -104,21 +106,38 @@ const stale = root.querySelector(':scope > [data-doop-diagram-mount]')
 if (stale) stale.remove()
 const mount = document.createElement('div')
 mount.setAttribute('data-doop-diagram-mount', '')
+mount.id = 'diagram'
 root.appendChild(mount)
 
+const oldCustomStyle = root.querySelector(':scope > [data-doop-diagram-custom-style]')
+if (oldCustomStyle) oldCustomStyle.remove()
+const customStyle = document.createElement('style')
+customStyle.setAttribute('data-doop-diagram-custom-style', '')
+root.appendChild(customStyle)
+
 let shown = null
+let shownCss = null
 let busy = false
 
 async function sync() {
   if (busy) return
   const holder = document.querySelector('[data-doop-diagram-source]')
   const source = holder ? holder.textContent || '' : ''
+  const css = document.querySelector('[data-doop-diagram-css]')?.textContent || ''
+  if (css !== shownCss) {
+    customStyle.textContent = css
+    shownCss = css
+  }
   if (source === shown) return
   busy = true
   shown = source
   try {
     await renderDiagram(mount, source)
     root.setAttribute('${DIAGRAM_STATE_ATTR}', 'rendered')
+    await new Promise(requestAnimationFrame)
+    const content = mount.querySelector('.sequence-diagram, svg') || mount
+    const bounds = content.getBoundingClientRect()
+    parent.postMessage({ type: 'doop:diagram-size', source, width: Math.ceil(bounds.right + 16), height: Math.ceil(bounds.bottom + 16) }, '*')
   } catch (error) {
     /* the last good diagram stays up while the source does not parse */
     root.setAttribute('${DIAGRAM_STATE_ATTR}', 'error')
@@ -151,7 +170,7 @@ function isDiagramKind(kind: string): kind is DiagramKind {
   return (DIAGRAM_KINDS as readonly string[]).includes(kind)
 }
 
-export function buildDiagramHtml({ kind, source }: DiagramFrame): string {
+export function buildDiagramHtml({ kind, source, css }: DiagramFrame): string {
   /* the HTML parser drops one newline right after <pre>, so one is always
      written there and the source's own leading newlines survive */
   return [
@@ -160,6 +179,7 @@ export function buildDiagramHtml({ kind, source }: DiagramFrame): string {
     `<head><meta charset="utf-8"><style data-doop-diagram-base>${BASE_STYLE}</style></head>`,
     `<body data-doop-diagram="${kind}">`,
     `<pre hidden data-doop-diagram-source>\n${escapeHtml(source)}</pre>`,
+    ...(css ? [`<pre hidden data-doop-diagram-css>\n${escapeHtml(css)}</pre>`] : []),
     `<script type="module">${RENDERER_PRELUDE[kind]}\n${RENDERER_LOOP}</script>`,
     '</body>',
     '</html>',
@@ -171,5 +191,6 @@ export function readDiagramFrame(html: string): DiagramFrame | null {
   if (!kind || !isDiagramKind(kind)) return null
   const source = /<pre\b[^>]*\bdata-doop-diagram-source\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
   if (source === undefined) return null
-  return { kind, source: unescapeHtml(source) }
+  const css = /<pre\b[^>]*\bdata-doop-diagram-css\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
+  return { kind, source: unescapeHtml(source), ...(css !== undefined ? { css: unescapeHtml(css) } : {}) }
 }

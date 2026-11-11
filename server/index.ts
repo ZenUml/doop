@@ -1,3 +1,5 @@
+import { parseLegacyZenUml } from '../shared/legacyZenUml.ts'
+import { legacyCanvases } from './legacyZenUml.ts'
 import { env } from './env.ts'
 import { canvasPages, framePageId, samePages } from '../shared/pages.ts'
 import { normalizePageBackground } from '../shared/pageBackground.ts'
@@ -1399,6 +1401,51 @@ function requireGrowableWorkspace(req: express.Request, res: express.Response, w
   }
   return ws
 }
+
+app.post('/api/import/zenuml', async (req, res) => {
+  const workspaceId = typeof req.body?.workspaceId === 'string' ? req.body.workspaceId : undefined
+  if (workspaceId && !requireGrowableWorkspace(req, res, workspaceId)) return
+  let documents
+  try {
+    documents = parseLegacyZenUml(req.body?.items)
+    const selected: unknown = req.body?.selected
+    if (selected !== undefined) {
+      if (
+        !Array.isArray(selected) ||
+        !selected.length ||
+        selected.some(
+          (index: unknown) =>
+            typeof index !== 'number' || !Number.isInteger(index) || index < 0 || index >= documents.length,
+        )
+      ) {
+        throw new Error('Choose at least one valid document.')
+      }
+      const indexes = new Set(selected)
+      documents = documents.filter((_, index) => indexes.has(index))
+    }
+  } catch (error) {
+    return res.status(400).json({ error: error instanceof Error ? error.message : 'Invalid ZenUML export.' })
+  }
+  try {
+    const library = await legacyCanvases(documents, req.user!.id, req.user!.name, workspaceId)
+    const counts = await store.importCanvases(library.canvases)
+    userEvents.notifyUsers([req.user!.id], { type: 'canvases' })
+    res.json({
+      ...counts,
+      /* A retry uses the existing page IDs, never the newly prepared ones. */
+      canvases: library.destinations.map((destination) => {
+        const canvas = store.getCanvas(destination.id)!
+        const prepared = library.canvases.find((item) => item.id === destination.id)!
+        const index = prepared.pages!.findIndex((page) => page.id === destination.pageId)
+        return { ...destination, pageId: canvas.pages?.[Math.max(0, index)]?.id }
+      }),
+      warnings: library.warnings,
+    })
+  } catch (error) {
+    console.error('[zenuml] library import failed', error)
+    res.status(500).json({ error: 'Import could not be saved. Retry the same file safely.' })
+  }
+})
 
 app.post('/api/canvases', (req, res) => {
   const name = String(req.body?.name || 'Untitled canvas')
