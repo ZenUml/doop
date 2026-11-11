@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 /** Rebuild the PNG sizes and macOS ICNS from the SVG master. Requires sharp and macOS iconutil. */
 import { execFileSync } from 'node:child_process'
+import { Buffer } from 'node:buffer'
+import console from 'node:console'
 import { copyFile, mkdir, mkdtemp, rm } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 
