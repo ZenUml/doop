@@ -395,7 +395,7 @@ export async function renderFrame(
   frame: Frame,
   /* output pixel density — fractional values downscale huge frames */
   scale: number = 1,
-  opts: { type?: 'png' | 'jpeg'; quality?: number; maxHeight?: number } = {},
+  opts: { type?: 'png' | 'jpeg'; quality?: number; maxHeight?: number; transparent?: boolean } = {},
 ): Promise<Buffer> {
   if (env.DOOP_FRAME_SNAPSHOT_HELPER) {
     return renderDesktopFrame(env.DOOP_FRAME_SNAPSHOT_HELPER, frame, scale, opts)
@@ -409,12 +409,17 @@ export async function renderFrame(
       deviceScaleFactor: scale,
     })
     const type = opts.type ?? 'png'
+    if (type === 'png' && opts.transparent) {
+      const { TRANSPARENT_DIAGRAM_STYLE } = await import('../shared/diagramExport.ts')
+      await page.addStyleTag({ content: TRANSPARENT_DIAGRAM_STYLE })
+    }
     const clip =
       opts.maxHeight && frame.height > opts.maxHeight
         ? { x: 0, y: 0, width: Math.round(frame.width), height: Math.round(opts.maxHeight) }
         : undefined
     const buf = await page.screenshot({
       type,
+      ...(type === 'png' && opts.transparent ? { omitBackground: true } : {}),
       ...(type === 'jpeg' ? { quality: opts.quality ?? 90 } : {}),
       ...(clip ? { clip } : {}),
     })

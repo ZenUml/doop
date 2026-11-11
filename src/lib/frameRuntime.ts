@@ -321,7 +321,9 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
     var reads = []
     var imgs = live.querySelectorAll('img'), imgClones = root.querySelectorAll('img')
     for (var i = 0; i < imgs.length; i++) {
-      var src = imgs[i].currentSrc
+      /* currentSrc can still be empty immediately after assigning a blob.
+         Read those bytes in this frame before handing its clone to the parent. */
+      var src = imgs[i].currentSrc || imgs[i].getAttribute('src')
       if (src) imgClones[i].setAttribute('src', src)
       imgClones[i].removeAttribute('srcset')
       imgClones[i].removeAttribute('sizes')

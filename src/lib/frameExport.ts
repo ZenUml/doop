@@ -112,7 +112,13 @@ const rasterType = (format: RasterFormat) => (format === 'jpg' ? 'jpeg' : 'png')
 /** The frame drawn by this browser (what the person sees, no server
  *  round trip), or null when it cannot be: an image its host refuses to
  *  share, a document the serializer cannot round-trip. */
-async function rasterExport(frame: Frame, format: RasterFormat, scale: number, clip?: ClipRect): Promise<Blob | null> {
+async function rasterExport(
+  frame: Frame,
+  format: RasterFormat,
+  scale: number,
+  clip?: ClipRect,
+  transparent = false,
+): Promise<Blob | null> {
   try {
     return await rasterizeFrame(frame, {
       scale,
@@ -120,6 +126,7 @@ async function rasterExport(frame: Frame, format: RasterFormat, scale: number, c
       quality: JPG_QUALITY,
       signal: AbortSignal.timeout(RASTER_TIMEOUT_MS),
       clip,
+      ...(transparent ? { transparent: true } : {}),
     })
   } catch {
     return null
@@ -255,6 +262,24 @@ export async function downloadFrameExport(
   scale = DEFAULT_EXPORT_SCALE,
 ): Promise<void> {
   return downloadExport(frame, format, scale)
+}
+
+/** Legacy desktop owners could export the diagram without its white paper.
+ * Both the local rasterizer and native fallback must preserve real PNG alpha. */
+export async function downloadTransparentFramePng(frame: Frame, wanted = DEFAULT_EXPORT_SCALE): Promise<void> {
+  inFlight += 1
+  useStore.getState().pushNotice(t('panels.exportingFormat', { label: 'PNG' }), { busy: true })
+  const scale = fitExportScale(frame, wanted)
+  const fileName = `${exportName(frame)}-transparent${exportScaleSuffix(scale)}.png`
+  const output = async (): Promise<Fetched> => {
+    const local = await rasterExport(frame, 'png', scale, undefined, true)
+    if (local) return { ok: true, blob: local, fileName }
+    const response = await fetchFile(`${frameExportUrl(frame, 'png', scale)}&transparent=1`, 'PNG', fileName)
+    return response.ok ? { ...response, fileName } : response
+  }
+  const outcome = await exportOutcome(output())
+  inFlight -= 1
+  report(outcome)
 }
 
 /** Download one element of a frame as an image: the frame rendered whole,

@@ -56,6 +56,13 @@ beforeEach(() => {
 })
 
 describe('getImage', () => {
+  it('keeps transparent PNGs separate from opaque renders and primed MCP images', async () => {
+    const f = frame()
+    primeImage(f, 1, Buffer.from('opaque'))
+    const result = await getImage(f, req({ ext: 'png', ...{ transparent: true } }))
+    expect(mocks.renderFrame).toHaveBeenCalledWith(expect.anything(), 1, expect.objectContaining({ transparent: true }))
+    expect(result).toMatchObject({ status: 'ok', buf: Buffer.from('rendered') })
+  })
   it('png?preview does a full png render, never the jpeg thumb path', async () => {
     const r = await getImage(frame(), req({ ext: 'png', preview: true }))
     expect(r.status).toBe('ok')

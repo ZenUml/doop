@@ -37,6 +37,7 @@ export interface ImageRequest {
   /** output density, already parsed and fitted (shared/exportScale.ts) */
   scale: number
   quality: number
+  transparent?: boolean
   /** dashboard-card variant: small, clipped, jpeg, persisted. Only
    *  meaningful for jpg — a png?preview would serve jpeg bytes under an
    *  image/png content-type, so the flag is ignored there. */
@@ -51,7 +52,8 @@ export type ImageResult = { status: 'ok'; buf: Buffer } | { status: 'rate-limite
 /** May reject when the render itself fails — the caller owns the 500. */
 export async function getImage(frame: Frame, req: ImageRequest): Promise<ImageResult> {
   const preview = req.preview && req.ext === 'jpg'
-  const key = imageKey(frame.id, req.ext, req.scale, req.ext === 'jpg' ? req.quality : '', preview)
+  const transparent = req.ext === 'png' && req.transparent === true
+  const key = imageKey(frame.id, req.ext, req.scale, req.ext === 'jpg' ? req.quality : '', preview, transparent)
   const cached = imgCache.get(key)
   let pending =
     cached && cached.updatedAt === frame.updatedAt && Date.now() - cached.at < IMG_CACHE_MS ? cached.buf : null
@@ -76,6 +78,7 @@ export async function getImage(frame: Frame, req: ImageRequest): Promise<ImageRe
           renderFrame(await store.renderSource(frame), req.scale, {
             type: req.ext === 'jpg' ? 'jpeg' : 'png',
             quality: req.quality,
+            ...(transparent ? { transparent: true } : {}),
           }),
         )
     remember(key, pending, frame.updatedAt)
@@ -84,8 +87,15 @@ export async function getImage(frame: Frame, req: ImageRequest): Promise<ImageRe
   return { status: 'ok', buf: await pending }
 }
 
-function imageKey(id: string, ext: 'png' | 'jpg', scale: number, quality: number | '', preview: boolean): string {
-  return `${id}:${ext}:${scale}:${quality}:${preview ? 'p' : ''}`
+function imageKey(
+  id: string,
+  ext: 'png' | 'jpg',
+  scale: number,
+  quality: number | '',
+  preview: boolean,
+  transparent = false,
+): string {
+  return `${id}:${ext}:${scale}:${quality}:${preview ? 'p' : ''}${transparent ? ':transparent' : ''}`
 }
 
 /** Seeds the cache with a render another path already paid for. The MCP

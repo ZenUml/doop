@@ -7,6 +7,7 @@ import {
   downloadElementExport,
   downloadFrameExport,
   downloadFramesPdf,
+  downloadTransparentFramePng,
 } from '../src/lib/frameExport'
 import { cropRaster, frameSvg, rasterizeFrame } from '../src/lib/frameRaster'
 import { inspectElement } from '../src/lib/frameBridge'
@@ -45,6 +46,17 @@ beforeEach(() => {
   })
   URL.createObjectURL = vi.fn(() => 'blob:export')
   URL.revokeObjectURL = vi.fn()
+})
+
+it('keeps transparent PNG exports on their alpha-preserving server path when local rendering fails', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => new Response('transparent-png')),
+  )
+  await downloadTransparentFramePng(frame)
+  expect(rasterizeFrame).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ transparent: true }))
+  expect(fetch).toHaveBeenCalledWith('/i/export-frame.png?scale=2&download&transparent=1', expect.anything())
+  expect(clicked.map((anchor) => anchor.download)).toEqual(['Poster-transparent@2x.png'])
 })
 
 afterEach(() => {

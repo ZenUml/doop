@@ -6,6 +6,7 @@ import { buildDiagramHtml, DIAGRAM_VENDOR_PATH, readDiagramFrame } from '../shar
 import { exportPixelSize, MAX_EXPORT_SIDE } from '../shared/exportScale.ts'
 import type { Frame } from '../shared/types.ts'
 import { env } from './env.ts'
+import { TRANSPARENT_DIAGRAM_STYLE } from '../shared/diagramExport.ts'
 
 const MAX_PIXELS = 24_000_000
 const MAX_WORKERS = 2
@@ -17,6 +18,7 @@ interface Options {
   type?: 'png' | 'jpeg'
   quality?: number
   maxHeight?: number
+  transparent?: boolean
 }
 
 /** A fresh WebKit view for a saved frame, available only in the bundled desktop app. */
@@ -42,18 +44,18 @@ export async function renderDesktopFrame(helper: string, frame: Frame, scale: nu
     const diagram = readDiagramFrame(frame.html)
     const document = diagram ? buildDiagramHtml(diagram) : frame.html
     const input = JSON.stringify({
-      html: snapshotDocument(document, origin, Boolean(diagram)),
+      html: snapshotDocument(document, origin, Boolean(diagram), opts.type !== 'jpeg' && opts.transparent === true),
       origin: `${origin}/`,
       width,
       height,
       captureHeight,
       outputWidth: output.width,
       diagram: Boolean(diagram),
+      transparent: opts.type !== 'jpeg' && opts.transparent === true,
     })
     const png = await capture(helper, input)
-    const image = sharp(png)
-      .resize({ ...output, fit: 'fill' })
-      .flatten({ background: '#fff' })
+    const image = sharp(png).resize({ ...output, fit: 'fill' })
+    if (!opts.transparent || opts.type === 'jpeg') image.flatten({ background: '#fff' })
     return await (opts.type === 'jpeg' ? image.jpeg({ quality: opts.quality ?? 90 }) : image.png()).toBuffer()
   } finally {
     const next = waiting.shift()
@@ -64,7 +66,7 @@ export async function renderDesktopFrame(helper: string, frame: Frame, scale: nu
 
 /** Only our generated diagram code may execute. A frame's saved HTML can
  *  come from an agent or an import and is never a trusted WebKit document. */
-function snapshotDocument(source: string, origin: string, diagram: boolean): string {
+function snapshotDocument(source: string, origin: string, diagram: boolean, transparent = false): string {
   const nonce = randomBytes(16).toString('base64')
   const document = parse(
     diagram ? source.replace('<script type="module">', `<script nonce="${nonce}" type="module">`) : source,
@@ -92,6 +94,11 @@ function snapshotDocument(source: string, origin: string, diagram: boolean): str
   ])
   if (head.childNodes[0]) defaultTreeAdapter.insertBefore(head, meta, head.childNodes[0])
   else defaultTreeAdapter.appendChild(head, meta)
+  if (transparent) {
+    const style = defaultTreeAdapter.createElement('style', html.NS.HTML, [])
+    defaultTreeAdapter.insertText(style, TRANSPARENT_DIAGRAM_STYLE)
+    defaultTreeAdapter.appendChild(head, style)
+  }
   return serialize(document)
 }
 

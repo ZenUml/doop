@@ -134,12 +134,29 @@ describe.skipIf(!findBrowserPath())('rasterizing a frame in the browser', () => 
     expect(out.paper).toEqual([255, 255, 255, 255])
   })
 
+  it('preserves ink while exporting a transparent PNG, including a white document background', async () => {
+    const out = await render({ transparent: true })
+    expect(out.type).toBe('image/png')
+    expect(out.block).toEqual([255, 0, 0, 255])
+    expect(out.pic).toEqual([0, 0, 255, 255])
+    expect(out.paper).toEqual([0, 0, 0, 0])
+    const jpeg = await render({ transparent: true, type: 'jpeg' })
+    expect(jpeg.paper).toEqual([255, 255, 255, 255])
+  })
+
   it('exports what the runtime shows: script-made elements, canvas pixels, adopted sheets, picked sources', async () => {
     const out = await render({ live: true, html: '<html><body></body></html>' })
     expect(out.made).toEqual([0, 128, 0, 255])
     expect(out.chart).toEqual([128, 0, 128, 255])
     expect(out.adopted).toEqual([255, 128, 0, 255])
     expect(out.picked).toEqual([0, 0, 255, 255])
+    expect(out.blobbed).toEqual([0, 128, 128, 255])
+  })
+
+  it('inlines a frame-owned blob while its currentSrc is still empty', async () => {
+    // Guards our snapshot adapter against the browser's image-loading state;
+    // the fixture holds currentSrc empty without replacing the real blob bytes.
+    const out = await render({ live: true, pendingBlob: true })
     expect(out.blobbed).toEqual([0, 128, 128, 255])
   })
 

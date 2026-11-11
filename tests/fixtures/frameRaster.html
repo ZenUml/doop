@@ -40,7 +40,7 @@
       </scr` + `ipt></body></html>`
 
       /* mount the runtime the way FrameView does and hand it the document */
-      async function mountLive() {
+      async function mountLive(pendingBlob = false) {
         const iframe = document.createElement('iframe')
         iframe.sandbox = 'allow-scripts'
         iframe.style.cssText = 'display:block;border:0;width:300px;height:300px'
@@ -56,7 +56,14 @@
         document.body.appendChild(iframe)
         await ready
         registerFrameWindow('live', iframe.contentWindow)
-        await requestFrame('live', 'doop:html', { html: LIVE_HTML })
+        const closingScript = '</scr' + 'ipt>'
+        const liveHtml = pendingBlob
+          ? LIVE_HTML.replace(
+              closingScript,
+              `Object.defineProperty(document.querySelector('.blobbed'), 'currentSrc', { get: function () { return '' } });${closingScript}`,
+            )
+          : LIVE_HTML
+        await requestFrame('live', 'doop:html', { html: liveHtml })
         /* until the script has run AND the srcset image has a picked source:
            currentSrc stays empty until the browser resolves srcset, a beat
            after the script on a slow runner, and the snapshot then carries
@@ -70,8 +77,16 @@
         throw new Error('the runtime never ran the script, or never picked the srcset image')
       }
 
-      window.render = async ({ scale = 1, type = 'png', html = HTML, live = false, clip } = {}) => {
-        if (live) await mountLive()
+      window.render = async ({
+        scale = 1,
+        type = 'png',
+        html = HTML,
+        live = false,
+        clip,
+        transparent,
+        pendingBlob,
+      } = {}) => {
+        if (live) await mountLive(pendingBlob)
         const frame = {
           id: live ? 'live' : 'raster',
           canvasId: 'c',
@@ -82,7 +97,7 @@
           height: 300,
           html,
         }
-        const blob = await rasterizeFrame(frame, { scale, type, clip })
+        const blob = await rasterizeFrame(frame, { scale, type, clip, transparent })
         const bitmap = await createImageBitmap(blob)
         const canvas = document.createElement('canvas')
         canvas.width = bitmap.width
