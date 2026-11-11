@@ -56,6 +56,7 @@ import { withWebFontLinks } from '../../shared/webFonts'
 import { withTokenBlock } from '../../shared/designTokens'
 import { canvasFonts } from '../lib/customFonts'
 import { t as translate, useT } from '../lib/i18n'
+import { isDiagramly } from '../lib/product'
 
 /** ?comment=<rootId> — the link in a comment email. The thread opens once
  *  Stage has selected the linked frame (deselection closes popovers, and on
@@ -274,6 +275,7 @@ export const FrameView = memo(function FrameView({
   const select = useStore((s) => s.select)
   const flash = useStore((s) => s.flashes[frame.id])
   const stream = useStore((s) => s.streams[frame.id])
+  const unsupportedDiagram = isDiagramly() && !readDiagramFrame(frame.html)
   /* select the stable presences map, derive in render — a selector that
      builds a fresh array re-renders every frame on EVERY store update
      (zustand compares by identity), which defeats the memo above */
@@ -348,7 +350,9 @@ export const FrameView = memo(function FrameView({
       e.stopPropagation()
       e.preventDefault()
       if (!s.selectedIds.includes(frame.id)) select(frame.id)
-      if (probeOnClick) {
+      if (isDiagramly()) {
+        commentOnFrame()
+      } else if (probeOnClick) {
         const at = designOffset(e, frame.rotation)
         probeAt(at.x, at.y, 'comment')
       } else if (panelOnClick) {
@@ -370,6 +374,7 @@ export const FrameView = memo(function FrameView({
     // reply that is already in flight when the next layer starts moving.
     if (mode === 'move' && probeOnClick && !skipElement) cancelProbe()
     if (
+      !isDiagramly() &&
       mode === 'move' &&
       probeOnClick &&
       !skipElement &&
@@ -402,6 +407,7 @@ export const FrameView = memo(function FrameView({
        (or drops it from) the selection, and a dropped frame does not start
        a drag */
     const togglesElement =
+      !isDiagramly() &&
       mode === 'move' &&
       probeOnClick &&
       e.shiftKey &&
@@ -972,7 +978,7 @@ export const FrameView = memo(function FrameView({
      cancels it instead of flashing the toolbar; a comment click has no
      double-click to wait out, so it probes at once */
   function probeAt(x: number, y: number, intent: ProbeIntent = 'toolbar') {
-    if (!frame.html || editing) return
+    if (isDiagramly() || !frame.html || editing) return
     /* the current pick stays until the probe answers: clearing it here would
        close the element panel and reopen it a beat later on the next
        element. A probe that hits nothing clears it then. */
@@ -1319,6 +1325,7 @@ export const FrameView = memo(function FrameView({
 
   async function enterElementEdit(where: { x: number; y: number } | { selector: string }) {
     if (
+      isDiagramly() ||
       !frame.html ||
       stream ||
       frame.locked ||
@@ -1490,6 +1497,18 @@ export const FrameView = memo(function FrameView({
     // eslint-disable-next-line react/set-state-in-effect -- exitEdit syncs the iframe's edit mode
     if ((frame.locked || readOnly) && editing) exitEdit()
   }, [frame.locked, readOnly]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!isDiagramly()) return
+    cancelProbe()
+    clearHover()
+    closePopovers()
+    if (editing) {
+      // eslint-disable-next-line react/set-state-in-effect -- product mode must end an in-frame HTML edit
+      exitEdit()
+    }
+    const picked = useStore.getState().selectedElement
+    if (picked?.frameId === frame.id) useStore.getState().pickElement(null)
+  }, [frame.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <ContextMenu
@@ -1545,7 +1564,7 @@ export const FrameView = memo(function FrameView({
             const request = ++menuRequest.current
             /* the element menu only edits layers; a reader gets the frame
                menu's read-only half (copy, links, export, history) anywhere */
-            if (target.closest('[data-frame-title]') || readOnly) {
+            if (isDiagramly() || target.closest('[data-frame-title]') || readOnly) {
               if (editing) exitEdit()
               menuKind.current = 'frame'
               setMenuTarget('frame')
@@ -1627,14 +1646,14 @@ export const FrameView = memo(function FrameView({
                   </span>
                 </Tooltip>
               )}
-              {isSyncedFrame(frame.html) && (
+              {!isDiagramly() && isSyncedFrame(frame.html) && (
                 <Tooltip label={t('stage.syncedTip')} side="top" align="start">
                   <span className="flex shrink-0 items-center text-brand">
                     <SyncIcon width={11} height={11} />
                   </span>
                 </Tooltip>
               )}
-              {isGithubFrame(frame.html) && (
+              {!isDiagramly() && isGithubFrame(frame.html) && (
                 <Tooltip
                   label={
                     isGithubPlaceholder(frame.html) ? t('stage.githubPlaceholderTip') : t('stage.githubImportedTip')
@@ -1653,7 +1672,7 @@ export const FrameView = memo(function FrameView({
                 </Tooltip>
               )}
               <span className="min-w-0 overflow-hidden text-ellipsis">{frame.name}</span>
-              <FrameApprovalBadge frame={frame} />
+              {!isDiagramly() && <FrameApprovalBadge frame={frame} />}
               <span className="flex shrink-0 gap-1 @max-[180px]/title:order-first">
                 {stream && (
                   <span
@@ -1680,7 +1699,7 @@ export const FrameView = memo(function FrameView({
             </div>
           )}
 
-          {dropTarget &&
+          {!isDiagramly() && dropTarget &&
             createPortal(
               <div className="pointer-events-none absolute inset-0 z-40">
                 <div
@@ -1736,11 +1755,15 @@ export const FrameView = memo(function FrameView({
                  cover the frame's pins and hover outlines */
               zIndex: selected ? stack : undefined,
             }}
-            onPointerDown={(e) => startDrag(e, 'move', true)}
+            onPointerDown={(e) => startDrag(e, 'move', !isDiagramly())}
             onDoubleClick={(e) => {
-              void enterElementEdit(designPoint(e, e.currentTarget, frame.rotation))
+              if (isDiagramly()) {
+                select(frame.id)
+                useStore.getState().setInspectorOpen(true)
+              } else void enterElementEdit(designPoint(e, e.currentTarget, frame.rotation))
             }}
             onPointerMove={(e) => {
+              if (isDiagramly()) return
               /* where the pointer is stays current through a drag or a resize
                  too: once the gesture's save lands, the hover is probed again
                  at the pointer's spot, which the gesture has moved */
@@ -1765,7 +1788,7 @@ export const FrameView = memo(function FrameView({
             }}
             onPointerLeave={leaveHover}
           >
-            <iframe
+            {!unsupportedDiagram ? <iframe
               ref={iframeRef}
               className="relative block border-none bg-transparent"
               title={frame.name}
@@ -1794,10 +1817,14 @@ export const FrameView = memo(function FrameView({
                    dark canvas sat on a white square */
                 ...(isCanvasElement(frame.html) ? { colorScheme: 'light' } : null),
               }}
-            />
+            /> : (
+              <div className="absolute inset-0 grid place-items-center bg-[repeating-linear-gradient(45deg,transparent_0_10px,rgba(28,26,21,0.025)_10px_20px)] px-4 text-center text-[13px] text-ink-faint">
+                {translate('stage.diagramUnavailable')}
+              </div>
+            )}
             {/* a standalone element is see-through: the paper's grid shows */}
-            {!isCanvasElement(frame.html) && <PixelGrid layoutZoom={layoutZoom} />}
-            {!frame.html && (
+            {!unsupportedDiagram && !isCanvasElement(frame.html) && <PixelGrid layoutZoom={layoutZoom} />}
+            {!isDiagramly() && !frame.html && (
               <div className="absolute inset-0 grid place-items-center bg-[repeating-linear-gradient(45deg,transparent_0_10px,rgba(28,26,21,0.025)_10px_20px)] text-[13px] text-ink-faint">
                 empty frame — add HTML
               </div>

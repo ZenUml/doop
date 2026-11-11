@@ -13,6 +13,11 @@ export const canvas = {
 
   /* top bar */
   untitled: 'Untitled',
+  untitledDocument: 'Untitled document',
+  newDiagram: 'New diagram',
+  backToDocuments: 'Back to documents',
+  diagrams: 'Diagrams',
+  diagramActionsDescription: 'Diagrams, external agent connection, and account settings.',
   allCanvases: 'All canvases',
   readOnlyBadgeTitle: 'Your share link lets you look around but not change the design',
   canComment: 'Can comment',
@@ -72,6 +77,7 @@ export const canvas = {
   prototypeMode: 'Prototype mode',
   leavePrototypeMode: 'Leave Prototype mode',
   frameInspector: 'Frame inspector',
+  diagramInspector: 'Diagram inspector',
   canvasActivity: 'Canvas activity',
 
   /* side rail */

@@ -12,6 +12,11 @@ export const canvas: Catalog['canvas'] = {
   toolZoom: 'Zoom',
 
   untitled: 'Sem título',
+  untitledDocument: 'Documento sem título',
+  newDiagram: 'Novo diagrama',
+  backToDocuments: 'Voltar aos documentos',
+  diagrams: 'Diagramas',
+  diagramActionsDescription: 'Diagramas, conexão com agente externo e configurações da conta.',
   allCanvases: 'Todos os canvases',
   readOnlyBadgeTitle: 'Seu link de compartilhamento permite explorar, mas não alterar o design',
   canComment: 'Pode comentar',
@@ -73,6 +78,7 @@ export const canvas: Catalog['canvas'] = {
   prototypeMode: 'Modo Protótipo',
   leavePrototypeMode: 'Sair do modo Protótipo',
   frameInspector: 'Inspetor do frame',
+  diagramInspector: 'Inspetor do diagrama',
   canvasActivity: 'Atividade do canvas',
 
   canvasPanels: 'Painéis do canvas',

@@ -102,6 +102,7 @@ import {
   StaticField,
 } from './ui/property-field'
 import { useT, type PlainMessageKey } from '../lib/i18n'
+import { isDiagramly } from '../lib/product'
 
 const TAB_KEY = 'doop:element-panel-tab'
 /* Only refreshes wait for streaming chunks to settle; a new selection is
@@ -122,7 +123,17 @@ function readTab(): Tab {
 /** The element properties rail — the second panel at the right, opened from
  *  a Layers row. Reads the element's computed styles out of the live frame
  *  and writes edits back as inline styles; the HTML tab edits its markup. */
-export function ElementPanel({
+export function ElementPanel(props: {
+  frame: Frame
+  selector: string
+  surface?: Exclude<PanelSurface, 'inline'>
+  className?: string
+  style?: CSSProperties
+}) {
+  return isDiagramly() ? null : <DoopElementPanel {...props} />
+}
+
+function DoopElementPanel({
   frame,
   selector,
   surface = 'floating',

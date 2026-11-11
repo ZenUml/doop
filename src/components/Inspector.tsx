@@ -24,6 +24,8 @@ import { NumberField, PropertyScrubContext } from './ui/property-field'
 import { normalizeRotation } from '../../shared/frameRotation'
 import { MIN_FRAME_SIZE } from '../lib/frameResize'
 import { t as translate, useT } from '../lib/i18n'
+import { isDiagramly } from '../lib/product'
+import { DiagramlyInspector } from './DiagramlyInspector'
 
 const HTML_OPEN_KEY = 'doop:inspector-html'
 
@@ -40,7 +42,11 @@ function boxOf(frame: Frame): FrameBox {
   return { x: frame.x, y: frame.y, width: frame.width, height: frame.height, rotation: frame.rotation ?? 0 }
 }
 
-export function Inspector({
+export function Inspector(props: { frame: Frame; surface?: PanelSurface; className?: string; style?: CSSProperties }) {
+  return isDiagramly() ? <DiagramlyInspector {...props} /> : <DoopInspector {...props} />
+}
+
+function DoopInspector({
   frame,
   surface = 'floating',
   className,

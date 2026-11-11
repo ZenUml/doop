@@ -14,6 +14,7 @@ export const stage = {
   hintShape: 'Drag to draw · Shift for a square · Esc to cancel',
   finishPath: 'Finish path',
   newFrame: 'New frame',
+  diagramUnavailable: 'This item is not a supported diagram. Import or create a ZenUML or Mermaid diagram to view it.',
 
   /* drawing, path editing, moving and resizing */
   textInputLabel: 'Text to add to canvas',

@@ -1,6 +1,11 @@
 /** The canvas side panels and modals: Layers, Pages, Memory, Activity, the
  *  prompt bar, Share, Export, frame history, imports and the prototype player. */
 export const panels = {
+  contentsTitle: 'Diagrams',
+  contentsSearch: 'Search diagrams',
+  contentsEmpty: 'No diagrams on this page yet.',
+  contentsMoveForward: 'Move diagram forward',
+  contentsMoveBackward: 'Move diagram backward',
   layersTitle: 'Layers',
   layersCollapsePanel: 'Collapse panel',
   layersExpandPanel: 'Expand panel',
