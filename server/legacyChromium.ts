@@ -363,19 +363,73 @@ function string16(data: Buffer): string {
   }
   return chars.toString('utf16le')
 }
-function plain(value: unknown, seen: Set<object>, depth = 0): void {
-  if (depth > 100) fail('document nesting too deep')
-  if (value === null || typeof value === 'string' || typeof value === 'boolean') return
-  if (typeof value === 'number' && Number.isFinite(value)) return
-  if (!value || typeof value !== 'object' || seen.has(value)) fail('unsupported structured value')
-  const prototype = Object.getPrototypeOf(value)
-  if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null)
-    fail('unsupported structured value')
-  seen.add(value)
-  for (const item of Object.values(value)) plain(item, seen, depth + 1)
-  seen.delete(value)
+type ValueBudget = { nodes: number; properties: number; bytes: number }
+function addJsonString(value: string, budget: ValueBudget): void {
+  budget.bytes += 2
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i)
+    if (code === 34 || code === 92) budget.bytes += 2
+    else if (code < 32) budget.bytes += [8, 9, 10, 12, 13].includes(code) ? 2 : 6
+    else if (code < 128) budget.bytes++
+    else if (code < 2048) budget.bytes += 2
+    else if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(i + 1)
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        budget.bytes += 4
+        i++
+      } else budget.bytes += 6
+    } else if (code >= 0xdc00 && code <= 0xdfff) budget.bytes += 6
+    else budget.bytes += 3
+    if (budget.bytes > MAX_EXPORT) fail('legacy export too large')
+  }
 }
-function decodeValue(value: Buffer): unknown {
+function plain(value: unknown, seen: Set<object>, budget: ValueBudget, depth = 0): void {
+  if (depth > 100) fail('document nesting too deep')
+  if (++budget.nodes > 200_000) fail('too many legacy values')
+  if (typeof value === 'string') {
+    addJsonString(value, budget)
+    return
+  }
+  if (value === null) {
+    budget.bytes += 4
+    return
+  }
+  if (typeof value === 'boolean') {
+    budget.bytes += value ? 4 : 5
+    return
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    budget.bytes += String(value).length
+    return
+  }
+  if (!value || typeof value !== 'object' || seen.has(value)) fail('unsupported structured value')
+  const isArray = Array.isArray(value)
+  if (isArray && value.length > 100_000) fail('legacy array too large')
+  const prototype = Object.getPrototypeOf(value)
+  if (!isArray && prototype !== Object.prototype && prototype !== null) fail('unsupported structured value')
+  budget.bytes += 2
+  seen.add(value)
+  let count = 0
+  for (const key in value) {
+    if (!Object.hasOwn(value, key)) continue
+    if (++budget.properties > 200_000) fail('too many legacy properties')
+    count++
+    if (isArray) {
+      const index = Number(key)
+      if (!Number.isSafeInteger(index) || index < 0 || index >= value.length || String(index) !== key)
+        fail('unsupported array property')
+    } else addJsonString(key, budget)
+    budget.bytes += isArray ? 1 : 2
+    if (budget.bytes > MAX_EXPORT) fail('legacy export too large')
+    const descriptor = Object.getOwnPropertyDescriptor(value, key)
+    if (!descriptor || !('value' in descriptor)) fail('unsupported structured value')
+    plain(descriptor.value, seen, budget, depth + 1)
+  }
+  if (isArray && count !== value.length) fail('sparse legacy array')
+  seen.delete(value)
+  if (budget.bytes > MAX_EXPORT) fail('legacy export too large')
+}
+function decodeValue(value: Buffer, budget: ValueBudget): unknown {
   const cursor = new Cursor(value)
   cursor.varint()
   const data = value.subarray(cursor.offset)
@@ -396,7 +450,7 @@ function decodeValue(value: Buffer): unknown {
   } catch {
     return fail('unsupported V8 value')
   }
-  plain(result, new Set())
+  plain(result, new Set(), budget)
   return result
 }
 
@@ -463,6 +517,19 @@ export async function readLegacyChromiumLibrary(directory: string): Promise<unkn
     for (const batch of logicalRecords(await safeFile(absolute, log.name))) readBatch(batch, records)
   const latest = new Map<string, RecordEntry>()
   for (const entry of records) {
+    const structural = prefix(entry.key)
+    if (structural.database === 0 && structural.store === 0 && structural.index === 0 && structural.rest[0] === 201) {
+      const names = new Cursor(structural.rest.subarray(1))
+      names.take(names.number() * 2)
+      names.take(names.number() * 2)
+      if (!names.done()) fail('invalid database name key')
+    }
+    if (structural.database > 0 && structural.store === 0 && structural.index === 0 && structural.rest[0] === 50) {
+      const metadata = new Cursor(structural.rest.subarray(1))
+      metadata.number()
+      metadata.byte()
+      if (!metadata.done()) fail('invalid object store metadata')
+    }
     const key = entry.key.toString('hex')
     const previous = latest.get(key)
     if (previous && previous.seq === entry.seq && (previous.kind !== entry.kind || !previous.value.equals(entry.value)))
@@ -498,7 +565,20 @@ export async function readLegacyChromiumLibrary(directory: string): Promise<unkn
   }
   if (stores.size !== 1) fail('datatable metadata not found or ambiguous')
   const store = [...stores][0]!
+  // Validate primary-key encodings in every version, including tombstones,
+  // before returning winners. IndexedDB compares logical keys, not raw bytes.
+  for (const entry of records) {
+    const key = prefix(entry.key)
+    if (key.database !== database || key.store !== store || (key.index !== 1 && key.index !== 2 && key.index !== 3))
+      continue
+    const primary = new Cursor(key.rest)
+    if (primary.byte() !== 1) fail('unsupported document key')
+    const length = primary.number()
+    const id = string16(primary.take(length * 2))
+    if (!primary.done() || !id) fail('invalid document key')
+  }
   const result: Array<{ id: string; data: unknown }> = []
+  const valueBudget: ValueBudget = { nodes: 0, properties: 0, bytes: 0 }
   const ids = new Set<string>()
   for (const entry of live) {
     const key = prefix(entry.key)
@@ -524,7 +604,7 @@ export async function readLegacyChromiumLibrary(directory: string): Promise<unkn
     const length = primaryKey.number()
     const id = string16(primaryKey.take(length * 2))
     if (!primaryKey.done() || !id || ids.has(id)) fail('invalid or duplicate document key')
-    const row = decodeValue(entry.value)
+    const row = decodeValue(entry.value, valueBudget)
     if (!row || typeof row !== 'object' || Array.isArray(row)) fail('invalid document row')
     const record = row as Record<string, unknown>
     if (record.id !== id || !record.data || typeof record.data !== 'object' || Array.isArray(record.data))

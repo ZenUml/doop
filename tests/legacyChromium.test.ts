@@ -1,4 +1,15 @@
-import { cp, mkdtemp, readFile, readdir, realpath, rm, symlink, truncate, writeFile } from 'node:fs/promises'
+import {
+  appendFile,
+  cp,
+  mkdtemp,
+  readFile,
+  readdir,
+  realpath,
+  rm,
+  symlink,
+  truncate,
+  writeFile,
+} from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { serialize } from 'node:v8'
@@ -83,7 +94,18 @@ function internal(key: Buffer, seq: number, kind = 1): Buffer {
 function objectKey(index: number, id: string): Buffer {
   return Buffer.concat([b(0, 1, 1, index, 1), textKey(id)])
 }
-function value(id: string, title: string, unsupported = false): Buffer {
+function value(
+  id: string,
+  title: string,
+  unsupported: 'date' | 'sparse' | 'expansion' | undefined = undefined,
+): Buffer {
+  const sparse: unknown[] = []
+  if (unsupported === 'sparse') {
+    sparse.length = 0xffffffff
+    sparse[0] = 'value'
+  }
+  const shared = Array.from({ length: 20 }, () => 'x'.repeat(1000))
+  const expansion = unsupported === 'expansion' ? Array.from({ length: 600 }, () => shared) : undefined
   return Buffer.concat([
     b(1, 0xff, 20),
     serialize({
@@ -92,7 +114,9 @@ function value(id: string, title: string, unsupported = false): Buffer {
         id,
         title,
         js: 'A->B',
-        ...(unsupported ? { attachment: new Date('2020-01-01T00:00:00Z') } : {}),
+        ...(unsupported === 'date' ? { attachment: new Date('2020-01-01T00:00:00Z') } : {}),
+        ...(unsupported === 'sparse' ? { unexpected: sparse } : {}),
+        ...(unsupported === 'expansion' ? { unexpected: expansion } : {}),
         pages: [
           { id: 'p1', js: 'A->B' },
           { id: 'p2', js: 'B->C' },
@@ -101,7 +125,10 @@ function value(id: string, title: string, unsupported = false): Buffer {
     }),
   ])
 }
-async function makeSyntheticFixture(directory: string, unsupported = false) {
+async function makeSyntheticFixture(
+  directory: string,
+  unsupported: 'date' | 'sparse' | 'expansion' | undefined = undefined,
+) {
   const databaseName = Buffer.concat([b(0, 0, 0, 0, 201), textKey('file://'), textKey('ZenUML_DB')])
   const storeName = b(0, 1, 0, 0, 50, 1, 0)
   const edited = objectKey(1, 'edited')
@@ -230,8 +257,27 @@ describe('read-only legacy Chromium IndexedDB', () => {
   })
   it('rejects unsupported structured values instead of returning partial documents', async () => {
     const directory = await testDirectory()
-    await makeSyntheticFixture(directory, true)
+    await makeSyntheticFixture(directory, 'date')
     await expect(readLegacyChromiumLibrary(directory)).rejects.toThrow('unsupported structured value')
+  })
+  it('rejects a huge sparse array before JSON serialization', async () => {
+    const directory = await testDirectory()
+    await makeSyntheticFixture(directory, 'sparse')
+    await expect(readLegacyChromiumLibrary(directory)).rejects.toThrow('array too large')
+  })
+  it('rejects shared-reference expansion beyond the JSON output budget', async () => {
+    const directory = await testDirectory()
+    await makeSyntheticFixture(directory, 'expansion')
+    await expect(readLegacyChromiumLibrary(directory)).rejects.toThrow('legacy export too large')
+  })
+  it('rejects a noncanonical tombstone rather than resurrecting its logical key', async () => {
+    const directory = await fixtureCopy()
+    const key = Buffer.concat([b(0, 1, 1, 1, 1, 0x86, 0), utf16be('edited')])
+    const header = Buffer.alloc(12)
+    header.writeBigUInt64LE(100n)
+    header.writeUInt32LE(1, 8)
+    await appendFile(path.join(directory, '000003.log'), physicalRecord(Buffer.concat([header, b(0), prefixed(key)])))
+    await expect(readLegacyChromiumLibrary(directory)).rejects.toThrow('non-canonical')
   })
   it('rejects a truncated active WAL', async () => {
     const directory = await fixtureCopy()
