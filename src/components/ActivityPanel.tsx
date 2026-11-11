@@ -1,3 +1,4 @@
+import { isDiagramly } from '../lib/product'
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import type { AgentTask } from '../../shared/types'
 import { canEditOpenCanvas, useStore } from '../lib/store'
@@ -71,7 +72,9 @@ export function ActivityPanel({
   const setTab = useStore((s) => s.setPanelTab)
   const canEdit = useStore(canEditOpenCanvas)
   /* someone who cannot edit sees the comments only (PanelTabButtons) */
-  const tab = useStore((s) => (canEdit ? s.panelTab : 'comments'))
+  const tab = useStore((s) =>
+    canEdit ? (isDiagramly() && s.panelTab !== 'comments' ? 'activity' : s.panelTab) : 'comments',
+  )
   const [, tick] = useState(0)
   const openThreads = useOpenThreadCount()
   const working = useStore((s) => s.tasks.filter((t) => t.agentName && !t.endedAt && !t.failedAt).length)
@@ -97,7 +100,7 @@ export function ActivityPanel({
       <PanelTabsRoot value={tab} onValueChange={(next) => setTab(next as typeof tab)}>
         <PanelHeader className="pl-2">
           <PanelTabs aria-label={t('panels.activityPanelAria')}>
-            {canEdit && (
+            {canEdit && !isDiagramly() && (
               <PanelIconTab value="tasks" icon={<SparkIcon />} title={t('panels.activityAgents')}>
                 {t('panels.activityAgents')}
                 {working > 0 && (
@@ -129,9 +132,11 @@ export function ActivityPanel({
                 <PanelIconTab value="activity" icon={<PulseIcon />} title={t('panels.activityActivity')}>
                   {t('panels.activityActivity')}
                 </PanelIconTab>
-                <PanelIconTab value="memory" icon={<BookOpenIcon />} title={t('panels.activityMemoryTitle')}>
-                  {t('panels.activityMemory')}
-                </PanelIconTab>
+                {!isDiagramly() && (
+                  <PanelIconTab value="memory" icon={<BookOpenIcon />} title={t('panels.activityMemoryTitle')}>
+                    {t('panels.activityMemory')}
+                  </PanelIconTab>
+                )}
               </>
             )}
           </PanelTabs>
@@ -144,7 +149,7 @@ export function ActivityPanel({
             <RecentTasks />
           </div>
           {/* the composer briefs agents to change frames: editors only */}
-          {canEdit && <PromptBar canvasId={canvasId} />}
+          {canEdit && !isDiagramly() && <PromptBar canvasId={canvasId} />}
         </PanelTabPanel>
         <PanelTabPanel value="comments" className={tabEnter}>
           <CommentsPanel />

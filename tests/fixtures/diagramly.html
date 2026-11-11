@@ -23,6 +23,7 @@
       import { useStore } from '/src/lib/store.ts'
       import { buildDiagramHtml } from '/shared/diagramFrame.ts'
       import { TooltipProvider } from '/src/components/ui/tooltip.tsx'
+      import { initProduct } from '/src/lib/product.ts'
       import '/src/styles.css'
 
       const frame = {
@@ -59,10 +60,12 @@
           name: 'Checkout document',
           role: 'edit',
           pages: [{ id: 'page-a', name: 'Overview' }],
-          frames: [{
-            ...frame,
-            html: `<!doctype html><img src=x onerror="parent.postMessage({type: 'diagramly:unsafe-html'}, '*')">`,
-          }],
+          frames: [
+            {
+              ...frame,
+              html: `<!doctype html><img src=x onerror="parent.postMessage({type: 'diagramly:unsafe-html'}, '*')">`,
+            },
+          ],
           createdAt: 0,
           updatedAt: 0,
         })
@@ -90,6 +93,7 @@
           selected ? React.createElement(Inspector, { frame: selected }) : null,
         )
       }
+      await initProduct()
       createRoot(document.getElementById('root')).render(
         React.createElement(TooltipProvider, null, React.createElement(Surface)),
       )

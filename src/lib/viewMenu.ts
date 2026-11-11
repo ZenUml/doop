@@ -4,6 +4,8 @@
    menu's checkmarks and disabled items follow the page. Outside the shell
    (and in shells older than the menu) nothing is relayed and nothing is sent. */
 
+import { productViewCommandAvailable } from './productActions'
+
 const VIEW_COMMANDS = [
   'rulers',
   'ui',
@@ -62,6 +64,7 @@ export function onViewCommand(handler: (command: ViewCommand) => void): () => vo
 
 /** Hand a command from the shell to every subscriber. */
 export function runViewCommand(command: ViewCommand) {
+  if (!productViewCommandAvailable(command)) return
   for (const handler of handlers) handler(command)
 }
 

@@ -85,7 +85,7 @@ export function LegacyZenUmlImport({
       <ImportStepHeader
         icon={<UploadIcon size={32} />}
         title="Import from ZenUML desktop"
-        lede="Choose the JSON file from the old app’s Export all command. Each document becomes a new canvas, with its pages and editable diagram source."
+        lede="Choose the JSON file from the old app’s Export all command. Each document becomes a local document, with its pages and editable diagram source."
       />
       {result ? (
         <div className="mt-5 space-y-3" aria-live="polite">

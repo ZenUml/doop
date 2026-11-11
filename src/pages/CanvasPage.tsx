@@ -389,7 +389,7 @@ export function CanvasPage({
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const typing = isTypingTarget(e.target)
-      if (!isDiagramly() && dispatchActionKey(e, typing)) return
+      if (dispatchActionKey(e, typing)) return
       if (isDiagramly() && !typing && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault()
         void (e.shiftKey ? redo() : undo())

@@ -1,3 +1,7 @@
+import { makeDiagramBackup, restoreDiagramBackup } from '../shared/diagramBackup.ts'
+import { createHash as backupHash } from 'node:crypto'
+import { diagramlyRouter, deliverApplePurchase } from './diagramlyRouter.ts'
+import { DIAGRAMLY_DECISIONS, diagramlyApiAvailable } from '../shared/product.ts'
 import { parseLegacyZenUml } from '../shared/legacyZenUml.ts'
 import { legacyCanvases } from './legacyZenUml.ts'
 import { env } from './env.ts'
@@ -648,6 +652,7 @@ for (const extension of extensions) {
 }
 
 app.use(express.json({ limit: '10mb' }))
+app.post('/api/diagramly/apple/deliver', deliverApplePurchase)
 app.all('/gemini-cloud/mcp/:id', (req, res, next) => {
   handleGeminiCloudMcp(req, res).catch(next)
 })
@@ -707,6 +712,13 @@ app.get('/api/oidc-config', (req, res) => {
 
 /* Public: the interface language for visitors who have not picked one. The
    client asks before its first render, so sign-in already speaks it. */
+app.get('/api/product-config', (_req, res) => {
+  res.json({
+    mode: env.DOOP_PRODUCT,
+    ...(env.DOOP_PRODUCT === 'diagramly' ? { capabilities: DIAGRAMLY_DECISIONS } : {}),
+  })
+})
+
 app.get('/api/locale-config', (_req, res) => {
   const config: LocaleConfig = { defaultLocale: env.DEFAULT_LOCALE }
   res.json(config)
@@ -758,6 +770,9 @@ declare global {
 app.get('/api/integrations/:provider/callback', relayDesktopCallback)
 app.use('/api/live-activities', logLiveActivityRequests)
 app.use('/api', async (req, res, next) => {
+  if (env.DOOP_PRODUCT === 'diagramly' && !diagramlyApiAvailable(req.path)) {
+    return res.status(404).json({ error: 'This feature is not part of Diagramly Desktop.' })
+  }
   try {
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
     if (!session) return res.status(401).json({ error: 'unauthorized' })
@@ -990,6 +1005,7 @@ function requireFrame(
   return frame
 }
 
+app.use('/api/diagramly', diagramlyRouter)
 app.use('/api/local-agent', localAgentRouter)
 app.use('/api/image-descriptions', imageDescriptions.imageDescriptionsRouter)
 app.use('/api/notifications', notificationsRouter)
@@ -1401,6 +1417,53 @@ function requireGrowableWorkspace(req: express.Request, res: express.Response, w
   }
   return ws
 }
+
+app.get('/api/desktop/document-backup', async (req, res, next) => {
+  const releases: (() => void)[] = []
+  try {
+    const owned = store.listCanvases(req.user!.id).filter((canvas) => canvas.ownerId === req.user!.id)
+    for (const canvas of owned) {
+      await store.load(canvas.id)
+      releases.push(store.hold(canvas.id))
+    }
+    const backup = makeDiagramBackup(owned.map((canvas) => store.getCanvas(canvas.id)!))
+    res.setHeader('Cache-Control', 'no-store')
+    res.setHeader('Content-Disposition', 'attachment; filename="diagramly-documents.json"')
+    res.json(backup)
+  } catch (error) {
+    next(error)
+  } finally {
+    for (const release of releases) release()
+  }
+})
+
+app.post('/api/desktop/document-backup', async (req, res) => {
+  if (req.get('origin') !== new URL(env.BETTER_AUTH_URL).origin)
+    return res.status(403).json({ error: 'Restore from the application.' })
+  try {
+    const fingerprint = backupHash('sha256').update(JSON.stringify(req.body)).digest('hex')
+    const library = restoreDiagramBackup(
+      req.body,
+      req.user!.id,
+      req.user!.name,
+      (value) =>
+        'db_' +
+        backupHash('sha256')
+          .update(req.user!.id + ':' + fingerprint + ':' + value)
+          .digest('hex')
+          .slice(0, 30),
+    )
+    const result = await store.importCanvases(library)
+    userEvents.notifyUsers([req.user!.id], { type: 'canvases' })
+    res.json({ ...result, documents: library.map(({ id, name }) => ({ id, name })) })
+  } catch {
+    res
+      .status(400)
+      .json({
+        error: 'This backup could not be restored. Check the format and size. Existing documents were not replaced.',
+      })
+  }
+})
 
 app.post('/api/import/zenuml', async (req, res) => {
   const workspaceId = typeof req.body?.workspaceId === 'string' ? req.body.workspaceId : undefined

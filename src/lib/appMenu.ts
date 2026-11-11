@@ -19,6 +19,7 @@ import {
   ACTIONS,
   MENUS,
   isEnabled,
+  isActionVisible,
   onActionHostChange,
   runAction,
   takesKey,
@@ -124,16 +125,17 @@ function rows(actions: readonly CanvasAction[]): (NativeMenuItem | null)[] {
 /** Every menu the page puts in the bar, in the registry's order. */
 export function nativeMenus(): NativeMenu[] {
   return MENUS.map((menu) => {
-    const own = ACTIONS.filter((a) => a.menu === menu.id && !SHELL_OWNED.has(a.id))
-    const lead = menu.id === 'help' ? ACTIONS.filter((a) => HELP_LEAD.includes(a.id)).map(item) : []
+    const own = ACTIONS.filter((a) => isActionVisible(a) && a.menu === menu.id && !SHELL_OWNED.has(a.id))
+    const lead =
+      menu.id === 'help' ? ACTIONS.filter((a) => isActionVisible(a) && HELP_LEAD.includes(a.id)).map(item) : []
     return { id: menu.id, label: t(menu.label), items: lead.length ? [...lead, null, ...rows(own)] : rows(own) }
-  })
+  }).filter((menu) => menu.items.some((row) => row !== null))
 }
 
 /** What each item in the bar shows now. */
 export function nativeStates(): NativeItemState[] {
   const inBar = (a: CanvasAction) => !SHELL_OWNED.has(a.id) && (a.menu !== 'general' || HELP_LEAD.includes(a.id))
-  return ACTIONS.filter(inBar).map((a) => {
+  return ACTIONS.filter((action) => isActionVisible(action) && inBar(action)).map((a) => {
     const enabled = isEnabled(a)
     return [a.id, enabled, a.checked ? enabled && a.checked() : null]
   })
@@ -144,7 +146,7 @@ export function nativeStates(): NativeItemState[] {
  *  never saw that key. */
 export function runNativeItem(id: string, key: boolean) {
   const action = ACTIONS.find((a) => a.id === id)
-  if (!action) return
+  if (!action || !isActionVisible(action)) return
   const focused = document.activeElement
   if (key && !takesKey(action, isTypingTarget(focused) || focused instanceof HTMLIFrameElement)) return
   runAction(action)

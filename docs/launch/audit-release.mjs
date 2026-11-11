@@ -55,23 +55,83 @@ add(
   `Listing state: ${listing.status}. Product and policy URLs still need release verification.`,
   'Use only claims supported by the shipping build and verified public URLs.',
 )
-const tauri = JSON.parse(fs.readFileSync(path.join(root, 'desktop/src-tauri/tauri.conf.json'), 'utf8'))
+const tauriBase = JSON.parse(fs.readFileSync(path.join(root, 'desktop/src-tauri/tauri.conf.json'), 'utf8'))
+const appStoreProfilePath = 'desktop/src-tauri/tauri.app-store.conf.json'
+const appStoreProfile = JSON.parse(fs.readFileSync(path.join(root, appStoreProfilePath), 'utf8'))
+const appStoreBuildScript = fs.readFileSync(path.join(root, 'scripts/desktop-app-store.sh'), 'utf8')
+const profile = {
+  source: appStoreProfilePath,
+  productNameStatus: 'Candidate only; owner has not chosen between Diagramly and ZenUML.',
+  appStoreIdentifierStatus:
+    'ai.diagramly.desktop is registered in the Developer Portal; no App Store app record exists.',
+  templateName: tauriBase.productName,
+  templateId: tauriBase.identifier,
+  productName: appStoreProfile.productName,
+  identifier: appStoreProfile.identifier,
+  updaterOverride: appStoreProfile.plugins?.updater,
+  upstreamUpdaterDisabled:
+    appStoreProfile.plugins?.updater === null && appStoreProfile.bundle?.createUpdaterArtifacts === false,
+  appleUpdatePolicy: 'Intended through Mac App Store; delivery is not verified in a shipped build.',
+  bundleTargets: appStoreProfile.bundle?.targets,
+  entitlements: appStoreProfile.bundle?.macOS?.entitlements,
+  infoPlist: appStoreProfile.bundle?.macOS?.infoPlist,
+  appStoreCapability: appStoreProfile.app?.security?.capabilities?.includes('app-store') ?? false,
+  buildUsesAppStoreFeature:
+    appStoreBuildScript.includes('--features app-store') && appStoreBuildScript.includes('--no-default-features'),
+  profileIsSelectedByLocalBuild: appStoreBuildScript.includes('--config src-tauri/tauri.app-store.conf.json'),
+}
+const profileConfigured =
+  profile.productName === 'Diagramly Desktop' &&
+  profile.identifier === 'ai.diagramly.desktop' &&
+  profile.upstreamUpdaterDisabled &&
+  profile.bundleTargets?.includes('app') &&
+  profile.entitlements &&
+  profile.infoPlist &&
+  profile.appStoreCapability &&
+  profile.buildUsesAppStoreFeature &&
+  profile.profileIsSelectedByLocalBuild
 add(
   'release-profile',
-  'review',
+  profileConfigured ? 'review' : 'blocked',
+  profile,
+  'The candidate profile and build command are static configuration evidence only. Do not finalize the name or create listing metadata before the owner decision. Build the signed candidate afterwards, inspect its effective identity, capabilities and update path, then verify it on a clean Mac.',
+)
+const appleEvidenceFiles = [
+  'desktop/commerce/CommercePolicy.swift',
+  'desktop/commerce/StoreKitBridge.swift',
+  'desktop/src-tauri/src/commerce.rs',
+  'src/lib/diagramly.ts',
+  'src/pages/DiagramlySettings.tsx',
+  'server/diagramlyRouter.ts',
+  'server/diagramlyConnection.ts',
+]
+const appleEvidence = Object.fromEntries(appleEvidenceFiles.map((file) => [file, fs.existsSync(path.join(root, file))]))
+const doopProductDefaultsOff =
+  /DOOP_PRODUCT:\s*str\(\{\s*choices:\s*\[[^\]]*diagramly[^\]]*\],\s*default:\s*'doop'/s.test(
+    fs.readFileSync(path.join(root, 'server/env.ts'), 'utf8'),
+  )
+add(
+  'apple-commerce-implementation',
+  Object.values(appleEvidence).every(Boolean) ? 'review' : 'blocked',
   {
-    templateName: tauri.productName,
-    templateId: tauri.identifier,
-    updateEndpoints: tauri.plugins.updater.endpoints,
-    bundledUpdaterGuard: 'updates.rs disables upstream updates for the current debug/bundled local-server build',
+    sourceEvidencePresent: appleEvidence,
+    backendProductDefaultsToDoop: doopProductDefaultsOff,
+    storekitTestStatus: 'unverified; latest simulator attempt returned StoreKit error code 3',
+    note: 'Source presence does not prove a live StoreKit connection or an effective entitlement.',
   },
-  'Provide a Diagramly Mac App Store profile with store signing/provisioning and Apple-delivered updates. Verify that no upstream service fallback or self-update path is active.',
+  'Run StoreKit configuration and App Store sandbox tests, verify signed transaction delivery and account binding, and confirm the Diagramly service is intentionally enabled for the test environment.',
 )
 add(
   'apple-commerce',
   'blocked',
-  { selectedChannel: listing.paymentChannel, status: listing.commerceStatus },
-  'Complete native StoreKit, authenticated server verification, account binding, restore, notifications and sandbox acceptance. A selected channel is not a verified connection.',
+  {
+    selectedChannel: listing.paymentChannel,
+    status: 'not live',
+    productsConfigured: false,
+    transactionsVerified: false,
+    backendProductDefaultsToDoop: doopProductDefaultsOff,
+  },
+  'Configure real products only after the reviewed offer and backend flow are ready. Then test purchase, pending, cancellation, restore, renewal, refund and account-switch cases end to end. A selected channel or source file is not a verified connection.',
 )
 if (bundle) {
   if (!fs.existsSync(bundle)) add('bundle', 'blocked', 'Bundle path does not exist.')
@@ -83,11 +143,17 @@ if (bundle) {
       identifier: get('CFBundleIdentifier'),
       version: get('CFBundleShortVersionString'),
     }
+    const matchesAppStoreProfile = identity.name === profile.productName && identity.identifier === profile.identifier
     add(
       'bundle-identity',
-      /spike|doop/i.test(identity.name + identity.identifier) ? 'blocked' : 'review',
-      identity,
-      'Decide the production bundle identity and verify migration from the spike and legacy app before changing containers.',
+      matchesAppStoreProfile ? 'review' : 'blocked',
+      {
+        ...identity,
+        expectedName: profile.productName,
+        expectedIdentifier: profile.identifier,
+        matchesAppStoreProfile,
+      },
+      'The bundle identity should match the current candidate profile, but that does not settle the pending product-name choice. Verify explicit migration from the separate preview container and older legacy library before distribution.',
     )
     const verification = spawnSync('/usr/bin/codesign', ['--verify', '--strict', bundle], {
       encoding: 'utf8',

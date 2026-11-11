@@ -99,30 +99,32 @@ export function DiagramlyInspector({
             </div>
           )}
         </section>
-        {diagram && <section className="border-b border-line-soft px-3 py-2">
-          <h3 className="mb-1.5 flex h-5 items-center text-label font-normal text-ink-soft">
-            {t('inspector.groupExport')}
-          </h3>
-          <div className="grid grid-cols-2 gap-1.5">
-            <Button
-              variant="bare"
-              className="h-8 gap-1.5 rounded-control bg-sub px-2 text-label font-normal text-ink hover:bg-paper-deep max-md:min-h-10"
-              title={t('inspector.downloadDiagramPngTitle')}
-              onClick={() => void downloadFrameExport(frame, 'png')}
-            >
-              <DownloadIcon className="size-3.5" />
-              {t('inspector.downloadPng')}
-            </Button>
-            <Button
-              variant="bare"
-              className="h-8 rounded-control bg-sub px-2 text-label font-normal text-ink hover:bg-paper-deep max-md:min-h-10"
-              title={t('inspector.copyPngTitle', { scale: '1×' })}
-              onClick={() => void copyFramePng(frame)}
-            >
-              {t('inspector.copyPng')}
-            </Button>
-          </div>
-        </section>}
+        {diagram && (
+          <section className="border-b border-line-soft px-3 py-2">
+            <h3 className="mb-1.5 flex h-5 items-center text-label font-normal text-ink-soft">
+              {t('inspector.groupExport')}
+            </h3>
+            <div className="grid grid-cols-2 gap-1.5">
+              <Button
+                variant="bare"
+                className="h-8 gap-1.5 rounded-control bg-sub px-2 text-label font-normal text-ink hover:bg-paper-deep max-md:min-h-10"
+                title={t('inspector.downloadDiagramPngTitle')}
+                onClick={() => void downloadFrameExport(frame, 'png')}
+              >
+                <DownloadIcon className="size-3.5" />
+                {t('inspector.downloadPng')}
+              </Button>
+              <Button
+                variant="bare"
+                className="h-8 rounded-control bg-sub px-2 text-label font-normal text-ink hover:bg-paper-deep max-md:min-h-10"
+                title={t('inspector.copyPngTitle', { scale: '1×' })}
+                onClick={() => void copyFramePng(frame)}
+              >
+                {t('inspector.copyPng')}
+              </Button>
+            </div>
+          </section>
+        )}
       </div>
       <footer className="flex flex-none items-center justify-end border-t border-line-soft py-2 pr-2 pl-3">
         <Button

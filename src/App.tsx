@@ -1,3 +1,6 @@
+import { isDiagramly } from './lib/product'
+import { DiagramlyHome } from './pages/DiagramlyHome'
+import { DiagramlySettings } from './pages/DiagramlySettings'
 import { startLocalAgent } from './lib/localAgent'
 import { navigate } from './lib/navigate'
 import { useEffect, useRef, useState } from 'react'
@@ -127,7 +130,7 @@ export function App() {
 
   const localAgentUser = !isPending && me && !me.impersonating ? session?.user.id : undefined
   useEffect(() => {
-    if (localAgentUser) return startLocalAgent(localAgentUser)
+    if (localAgentUser && !isDiagramly()) return startLocalAgent(localAgentUser)
   }, [localAgentUser])
 
   if (isPending)
@@ -197,7 +200,15 @@ export function App() {
 
   /* /c/<id>/proto: the prototype player, full page */
   const prototypeOf = path.match(/^\/c\/([^/]+)\/proto\/?$/)?.[1]
-  const page = prototypeOf ? (
+  const diagramlyDashboard =
+    isDiagramly() && !canvasId && ![CODEX_SETUP_PATH, DESKTOP_HANDOFF_PATH, '/oauth/consent'].includes(path)
+  const page = diagramlyDashboard ? (
+    path.startsWith('/settings') ? (
+      <DiagramlySettings />
+    ) : (
+      <DiagramlyHome />
+    )
+  ) : prototypeOf && !isDiagramly() ? (
     <PrototypePage canvasId={prototypeOf} key={prototypeOf} />
   ) : canvasId ? (
     <CanvasPage canvasId={canvasId} key={canvasId} />

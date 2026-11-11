@@ -6,66 +6,87 @@
     "number": 26,
     "url": "https://github.com/ZenUml/doop/issues/26"
   },
-  "issues": [
+  "closedOwnerDecisions": [
     {
-      "key": "COM-01",
       "number": 16,
       "url": "https://github.com/ZenUml/doop/issues/16",
-      "title": "[Launch P0] Resolve AGPL compliance and Mac App Store distribution compatibility"
-    },
+      "title": "[Launch P0] Resolve AGPL compliance and Mac App Store distribution compatibility",
+      "status": "closed-owner-decision",
+      "decision": "The owner selected the Mac App Store with Apple In-App Purchase. This closes the channel decision only; source/licence/notices review remains a release gate."
+    }
+  ],
+  "issues": [
     {
       "key": "COM-02",
       "number": 17,
       "url": "https://github.com/ZenUml/doop/issues/17",
-      "title": "[Launch P0] Build a production Mac App Store package and safe data migration"
+      "title": "[Launch P0] Build a production Mac App Store package and safe data migration",
+      "status": "in-progress",
+      "progress": "Dedicated App Store profile and bundler are present; the final candidate has not been built."
     },
     {
       "key": "COM-03",
       "number": 18,
       "url": "https://github.com/ZenUml/doop/issues/18",
-      "title": "[Launch P0] Add native StoreKit purchase, restore and subscription management"
+      "title": "[Launch P0] Add native StoreKit purchase, restore and subscription management",
+      "status": "in-progress",
+      "progress": "Native purchase UI and bridge are implemented; live products and StoreKit verification remain unavailable."
     },
     {
       "key": "COM-04",
       "number": 19,
       "url": "https://github.com/ZenUml/doop/issues/19",
-      "title": "[Launch P0] Verify Apple transactions and reconcile Diagramly entitlements"
+      "title": "[Launch P0] Verify Apple transactions and reconcile Diagramly entitlements",
+      "status": "in-progress",
+      "progress": "Backend connection and delivery work is on a separate branch, default-off, and awaiting critical fixes and live verification."
     },
     {
       "key": "COM-05",
       "number": 20,
       "url": "https://github.com/ZenUml/doop/issues/20",
-      "title": "[Launch P0] Finalize Apple subscription offer, allowance costs and product catalogue"
+      "title": "[Launch P0] Finalize Apple subscription offer, allowance costs and product catalogue",
+      "status": "in-progress",
+      "progress": "Pricing remains a proposal; no products or final service allowance are configured."
     },
     {
       "key": "COM-06",
       "number": 21,
       "url": "https://github.com/ZenUml/doop/issues/21",
-      "title": "[Launch P1] Establish Diagramly Desktop name, icon and consistent product identity"
+      "title": "[Launch P1] Establish Diagramly Desktop name, icon and consistent product identity",
+      "status": "in-progress",
+      "progress": "Name choice between Diagramly and ZenUML remains open. Current identity, profile and assets are candidates only; no App Store app record or final bundle exists."
     },
     {
       "key": "COM-07",
       "number": 22,
       "url": "https://github.com/ZenUml/doop/issues/22",
-      "title": "[Launch P1] Prepare truthful App Store listing, screenshots, demo and support pages"
+      "title": "[Launch P1] Prepare truthful App Store listing, screenshots, demo and support pages",
+      "status": "in-progress",
+      "progress": "Listing and synthetic examples are drafts; support pages are committed locally but not deployed, and no shipping-build screenshots exist."
     },
     {
       "key": "COM-08",
       "number": 23,
       "url": "https://github.com/ZenUml/doop/issues/23",
-      "title": "[Launch P0] Audit desktop data flows, privacy disclosures and local security boundaries"
+      "title": "[Launch P0] Audit desktop data flows, privacy disclosures and local security boundaries",
+      "status": "in-progress",
+      "progress": "Implementation evidence is being assembled; privacy and final sandbox review are not complete."
     },
     {
       "key": "COM-09",
       "number": 24,
       "url": "https://github.com/ZenUml/doop/issues/24",
-      "title": "[Launch P0] Prove clean-machine beta, data recovery and Apple purchase lifecycle"
+      "title": "[Launch P0] Prove clean-machine beta, data recovery and Apple purchase lifecycle",
+      "status": "in-progress",
+      "progress": "Local test suites cover parts of the workflows; clean-machine acceptance and live Apple purchase lifecycle remain."
     },
     {
       "key": "COM-10",
       "number": 25,
       "url": "https://github.com/ZenUml/doop/issues/25",
-      "title": "[Launch P1] Establish support, incident response and measurable go-to-market operations"
+      "title": "[Launch P1] Establish support, incident response and measurable go-to-market operations",
+      "status": "in-progress",
+      "progress": "Internal playbooks and draft measurement plan exist; support pages are not deployed and no response-time commitment is published."
     }
   ]
 }

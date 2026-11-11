@@ -1,3 +1,4 @@
+import { isDiagramly } from '../lib/product'
 import { cn } from '@/lib/utils'
 
 /** The Disc-D: a half-disc with a dot resting under its stem, reading as
@@ -6,6 +7,7 @@ import { cn } from '@/lib/utils'
  *  The tile is part of the mark, so every call site gets the same lockup
  *  without having to supply its own background. */
 export function Logo({ className = 'size-[30px]' }: { className?: string }) {
+  if (isDiagramly()) return <img src="/diagramly-brand/icon.svg" className={className} alt="" aria-hidden />
   return (
     <svg className={className} viewBox="0 0 200 200" aria-hidden>
       <rect width="200" height="200" rx="48" fill="#111110" />

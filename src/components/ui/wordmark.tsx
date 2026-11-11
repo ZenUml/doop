@@ -1,3 +1,4 @@
+import { isDiagramly } from '../../lib/product'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
@@ -7,7 +8,7 @@ import { Logo } from '../Logo'
 function Wordmark({
   size = 'md',
   className,
-  children = 'Doop',
+  children,
   ...props
 }: React.ComponentProps<'span'> & { size?: 'sm' | 'md' }) {
   return (
@@ -21,7 +22,7 @@ function Wordmark({
       {...props}
     >
       <Logo className={size === 'sm' ? 'size-[26px]' : 'size-[30px]'} />
-      {children}
+      {children ?? (isDiagramly() ? 'Diagramly' : 'Doop')}
     </span>
   )
 }

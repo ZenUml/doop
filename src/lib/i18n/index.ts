@@ -1,3 +1,5 @@
+import { isDiagramly } from '../product'
+import { diagramlyMessage } from './diagramly'
 import { en } from './en'
 import { ptBR } from './pt-BR'
 import { getLocale, useLocale, type Locale } from './locale'
@@ -85,7 +87,8 @@ function fill(text: string, vars: Vars | undefined): string {
 /** The message for `key` in `locale`, falling back to English and then to the
  *  key itself, so a gap shows up as readable text rather than a blank. */
 export function translateIn(locale: Locale, key: MessageKey, vars?: Vars): string {
-  const message = lookup(catalogs[locale], key) ?? lookup(en, key)
+  const message =
+    (isDiagramly() ? diagramlyMessage(locale, key) : undefined) ?? lookup(catalogs[locale], key) ?? lookup(en, key)
   if (message === undefined) return key
   return fill(pick(message, locale, vars), vars)
 }

@@ -19,6 +19,16 @@ describe.skipIf(!findBrowserPath())('Diagramly canvas profile', { timeout: 30_00
   beforeEach(async () => {
     page = await pages.open()
     await page.setViewport({ width: 1200, height: 800 })
+    await page.setRequestInterception(true)
+    page.on('request', (request) => {
+      if (new URL(request.url()).pathname === '/api/product-config') {
+        void request.respond({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ mode: 'diagramly' }),
+        })
+      } else void request.continue()
+    })
     await page.goto(fixtureUrl('diagramly.html'))
     await page.waitForFunction(() => typeof window.seedDiagramly === 'function')
     await page.evaluate(() => window.seedDiagramly())
@@ -52,7 +62,9 @@ describe.skipIf(!findBrowserPath())('Diagramly canvas profile', { timeout: 30_00
     await page.evaluate(() => window.seedUnsupportedDiagram())
     await page.waitForSelector('[data-frame-surface]')
     expect(await page.$('iframe[data-doop-frame]')).toBeNull()
-    expect(await page.$$eval('body', (items) => items[0]?.textContent)).toContain('This item is not a supported diagram')
+    expect(await page.$$eval('body', (items) => items[0]?.textContent)).toContain(
+      'This item is not a supported diagram',
+    )
     expect(await page.evaluate(() => window.diagramlyMessages)).not.toContain('diagramly:unsafe-html')
   })
 
