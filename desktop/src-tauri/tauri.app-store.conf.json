@@ -1,0 +1,16 @@
+{
+  "productName": "Diagramly Desktop",
+  "identifier": "ai.diagramly.desktop",
+  "build": { "frontendDist": "../../dist" },
+  "plugins": { "updater": null, "deep-link": { "desktop": { "schemes": ["diagramly"] } } },
+  "app": { "security": { "capabilities": ["app-store"] } },
+  "bundle": {
+    "targets": ["app"],
+    "createUpdaterArtifacts": false,
+    "macOS": {
+      "minimumSystemVersion": "13.0",
+      "entitlements": "app-store/shell.entitlements",
+      "infoPlist": "app-store/Info.plist"
+    }
+  }
+}

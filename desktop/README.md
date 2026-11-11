@@ -443,3 +443,92 @@ sizes="256 128 64 48 40 32 24 20 16"
 for s in $sizes; do magick app-icon.png -filter Lanczos -resize ${s}x${s} -strip PNG32:/tmp/doop-$s.png; done
 magick $(for s in $sizes; do echo /tmp/doop-$s.png; done) src-tauri/icons/icon.ico
 ```
+
+## Diagramly Desktop — Mac App Store profile
+
+`src-tauri/tauri.app-store.conf.json` and Cargo's `app-store` feature define a
+separate product: **Diagramly Desktop**, bundle ID `ai.diagramly.desktop`,
+macOS 13+, system WebKit. Build with both `--no-default-features` and
+`--features app-store`; the build rejects the self-updater or Chromium profile.
+This profile runs only its packaged loopback server. A missing or failed server
+stops launch; it never falls back to doop.design. Apple delivers app updates.
+The Claude installer, local CLI runner, extension installer, server switcher and
+updater IPC commands are omitted from this profile. The child receives a clean
+environment, `DOOP_PRODUCT=diagramly`, and the fixed cloud origin
+`https://diagramly.ai`; inherited API keys and Node loader options are excluded.
+
+Build a review app with `bash scripts/desktop-app-store.sh --unsigned` from the
+repository root. This builds the frontend and release shell, installs only locked
+production dependencies into a separate staging directory, bundles Node and the
+snapshot helper, and signs nested Mach-O files before the outer sandboxed app.
+It rejects dependencies on non-system absolute libraries, external symlinks,
+private configuration files, and known development packages. The two provenance
+JSON files contain SHA-256 file inventories and available package licence metadata
+before and after signing. They are build evidence, not a completed licence audit.
+Set `DIAGRAMLY_BUILD_OUTPUT` to an empty destination for another build. Set
+`DIAGRAMLY_NODE_BINARY` to an official self-contained Node >=22.19 when the local
+runtime depends on Homebrew libraries. No runtime is downloaded by this script.
+
+`--sign` additionally requires `MAS_APPLICATION_IDENTITY` (Apple Distribution or
+3rd Party Mac Developer Application), `MAS_INSTALLER_IDENTITY` (3rd Party Mac
+Developer Installer), and `MAS_PROVISIONING_PROFILE` (the explicit profile for
+`ai.diagramly.desktop`). It embeds that profile, derives identity entitlements
+from it, verifies nested signatures and creates a signed installer package.
+It never uploads, publishes, changes commerce agreements, or configures products.
+A successful unsigned build is not App Store signing or App Review approval.
+Current canvas HTML, local MCP, exports, and packaged native-module behavior still
+need review in the signed sandboxed app. The inventory also exposes executable
+npm dependencies for that review.
+
+The new identity keeps its data in its own container. It does **not** automatically
+read or copy DoopSpike/Doop databases, uploads, cookies, credentials, or bookmarks.
+Keep the old app/container while migrating. Rebuild the old spike with the
+explicit library backup feature, choose **Export library**, then select that
+backup with **Restore library** in Diagramly Desktop. Confirm the imported
+designs before removing the old installation. This file flow transfers design
+data and excludes authentication and provider credentials; raw container/database
+copying is not supported. Diagramly cloud login and Apple purchases do not
+transfer ownership of local designs or bind an existing web subscription.
+
+### Native Apple purchases
+
+Only the main window at this launch's exact `http://127.0.0.1:<port>` origin gets
+`window.__DIAGRAMLY_STOREKIT__.request(action, payload)`. WebKit validates the
+actual frame and security origin for every message. Sandboxed diagram iframes,
+other localhost ports, and external sites cannot invoke purchasing. No device
+bearer token or private Apple key is exposed to JavaScript.
+
+| Action         | Payload                          | Result                                                                                   |
+| -------------- | -------------------------------- | ---------------------------------------------------------------------------------------- |
+| `products`     | none                             | `{products:[{id,displayName,description,displayPrice,subscriptionPeriod:{value,unit}}]}` |
+| `purchase`     | `{productId,appAccountToken}`    | `{status:"purchased",transaction}` or `{status:"pending"}` or `{status:"cancelled"}`     |
+| `transactions` | none                             | `{transactions:[transaction]}` from verified current, unfinished and listener updates    |
+| `restore`      | none                             | Apple sync, then the same transaction result                                             |
+| `deliver`      | `{transactionId,deliveryTicket}` | `{delivered:true,transactionId}` after backend acknowledgement and native finish         |
+| `manage`       | none                             | Opens Apple's subscription-management page                                               |
+
+Transaction records contain string `transactionId`, `originalTransactionId`,
+`productId`, `signedTransaction`, and optional `appAccountToken`, `expiresAt`,
+`revokedAt`. Product IDs are allowlisted to `ai.diagramly.desktop.pro.monthly`
+and `ai.diagramly.desktop.pro.yearly`. The backend issues the opaque UUID account
+token and verifies JWS, app, environment, product and ownership before granting
+access. A native verified purchase alone never grants Diagramly cloud access.
+Native `deliver` posts the known signed transaction and a short-lived ticket to
+`/api/diagramly/apple/deliver` on the exact local launch origin, refuses redirects,
+and finishes only after HTTP success with `delivered:true` and an exact matching
+transaction ID. There is no JavaScript `finish` action. Delivery failure retains
+Apple's unfinished transaction for retry after restart.
+
+Run `bash scripts/desktop-commerce-test.sh` for origin/delivery policy tests and
+Swift compilation. `--webkit` also runs the real WKWebView bridge boundary test:
+main-frame dispatch, opaque and same-origin iframe denial, and another-port
+denial. `--storekit` also compiles a local test app using
+`commerce/Diagramly.storekit`, then exercises Apple's StoreKit test service.
+The fixture prices are synthetic test data, not configured App Store prices.
+The test first uses the local-only `SKTestSession.buyProduct` API and stops when
+the test service is unavailable. Xcode's StoreKit configuration/session must work
+on the test Mac; a CLI compile does not establish that session. The initial local
+run compiled but StoreKit rejected configuration with `SKInternalErrorDomain`
+code 3. Product fetch, real purchase sheets, pending/cancel, renewal/refund,
+reinstall restore and a signed sandbox build therefore remain acceptance gates.
+No live purchase or configured App Store Connect product is claimed.

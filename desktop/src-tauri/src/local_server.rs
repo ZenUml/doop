@@ -48,6 +48,24 @@ pub fn start(app: &AppHandle) -> Option<String> {
     let shutdown = Url::from_file_path(shutdown).ok()?;
     let log = File::create(data.join("server.log")).ok()?;
     let mut command = Command::new(&node);
+    if cfg!(feature = "app-store") {
+        // Do not inherit API keys, NODE_OPTIONS, loaders, provider routing or
+        // arbitrary executable search paths from the launching environment.
+        let home = std::env::var_os("HOME");
+        let temporary = std::env::var_os("TMPDIR");
+        command
+            .env_clear()
+            .env("PATH", "/usr/bin:/bin")
+            .env("LANG", "en_US.UTF-8")
+            .env("DOOP_PRODUCT", "diagramly")
+            .env("DIAGRAMLY_ORIGIN", "https://diagramly.ai");
+        if let Some(value) = home {
+            command.env("HOME", value);
+        }
+        if let Some(value) = temporary {
+            command.env("TMPDIR", value);
+        }
+    }
     let snapshot_helper = resources.parent()?.join("Helpers/DoopFrameSnapshot");
     if snapshot_helper.is_file() {
         command.env("DOOP_FRAME_SNAPSHOT_HELPER", snapshot_helper);
@@ -154,9 +172,13 @@ fn listening(port: u16) -> bool {
 
 /// The session-signing secret, made once and kept with the data it protects.
 fn secret(data: &Path) -> Option<String> {
+    #[cfg(unix)]
+    use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
     let file = data.join("auth-secret");
     if let Ok(saved) = std::fs::read_to_string(&file) {
         if saved.len() >= 64 {
+            #[cfg(unix)]
+            std::fs::set_permissions(&file, std::fs::Permissions::from_mode(0o600)).ok()?;
             return Some(saved);
         }
     }
@@ -166,6 +188,34 @@ fn secret(data: &Path) -> Option<String> {
         .read_exact(&mut bytes)
         .ok()?;
     let made: String = bytes.iter().map(|byte| format!("{byte:02x}")).collect();
-    File::create(&file).ok()?.write_all(made.as_bytes()).ok()?;
+    let mut options = std::fs::OpenOptions::new();
+    options.write(true).create_new(true);
+    #[cfg(unix)]
+    options.mode(0o600);
+    // Never overwrite a malformed existing key; that could make encrypted
+    // account data unrecoverable. Keep it for diagnosis and stop startup.
+    options.open(&file).ok()?.write_all(made.as_bytes()).ok()?;
     Some(made)
+}
+
+#[cfg(all(test, unix))]
+mod tests {
+    use super::*;
+    use std::os::unix::fs::PermissionsExt;
+
+    #[test]
+    fn server_signing_secret_is_private_and_stable() {
+        let directory = tempfile::tempdir().unwrap();
+        let first = secret(directory.path()).unwrap();
+        assert_eq!(first.len(), 64);
+        assert_eq!(secret(directory.path()).as_deref(), Some(first.as_str()));
+        assert_eq!(
+            std::fs::metadata(directory.path().join("auth-secret"))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o777,
+            0o600
+        );
+    }
 }

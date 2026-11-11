@@ -6,6 +6,12 @@ edition = "2021"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
+serde_json = "1"
+
+[features]
+default = ["self-updater"]
+self-updater = ["dep:tauri-plugin-updater"]
+app-store = []
 
 [dependencies]
 tauri = { version = "2", features = [] }
@@ -27,7 +33,7 @@ tempfile = "3"
 rfd = "0.16"
 # Self-update from the signed feed in tauri.conf.json (src/updates.rs); tokio
 # only for the timer between scheduled checks.
-tauri-plugin-updater = "2"
+tauri-plugin-updater = { version = "2", optional = true }
 tokio = { version = "1", features = ["time"] }
 # The check that a server picked in the app is a Doop server (src/server.rs);
 # the same reqwest and ring-backed rustls the updater already links.

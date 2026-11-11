@@ -51,9 +51,14 @@ mod appimage;
 mod claude;
 mod claude_extension;
 mod codex;
+mod commerce;
 mod fonts;
 mod local_server;
 mod server;
+#[cfg(feature = "self-updater")]
+mod updates;
+#[cfg(not(feature = "self-updater"))]
+#[path = "updates_disabled.rs"]
 mod updates;
 mod view_menu;
 #[cfg(all(chromium, target_os = "macos"))]
@@ -179,11 +184,16 @@ fn build_menu(app: &AppHandle) -> tauri::Result<Menu<ShellRuntime>> {
 fn app_submenu(app: &AppHandle) -> tauri::Result<Submenu<ShellRuntime>> {
     let pkg = app.package_info();
     let about = AboutMetadata {
-        name: Some(pkg.name.clone()),
+        name: Some(if cfg!(feature = "app-store") {
+            "Diagramly Desktop".into()
+        } else {
+            pkg.name.clone()
+        }),
         version: Some(pkg.version.to_string()),
         ..Default::default()
     };
     let about = PredefinedMenuItem::about(app, None, Some(about))?;
+    #[cfg(feature = "self-updater")]
     let check_updates = updates::menu::item(app)?;
     let server_reset = server::menu::item(app)?;
     let separator = PredefinedMenuItem::separator(app)?;
@@ -191,7 +201,9 @@ fn app_submenu(app: &AppHandle) -> tauri::Result<Submenu<ShellRuntime>> {
     let hide = PredefinedMenuItem::hide(app, None)?;
     let hide_others = PredefinedMenuItem::hide_others(app, None)?;
     let quit = PredefinedMenuItem::quit(app, None)?;
-    let mut app_items: Vec<&dyn IsMenuItem<ShellRuntime>> = vec![&about, &check_updates];
+    let mut app_items: Vec<&dyn IsMenuItem<ShellRuntime>> = vec![&about];
+    #[cfg(feature = "self-updater")]
+    app_items.push(&check_updates);
     // only while another server is chosen: the way back from one that no
     // longer loads (src/server.rs)
     if let Some(item) = &server_reset {
@@ -206,7 +218,16 @@ fn app_submenu(app: &AppHandle) -> tauri::Result<Submenu<ShellRuntime>> {
         &separator,
         &quit,
     ]);
-    Submenu::with_items(app, pkg.name.clone(), true, &app_items)
+    Submenu::with_items(
+        app,
+        if cfg!(feature = "app-store") {
+            "Diagramly Desktop".into()
+        } else {
+            pkg.name.clone()
+        },
+        true,
+        &app_items,
+    )
 }
 
 /// File's Close Tab (Cmd+W), relayed to the page as `close-tab`.
@@ -315,43 +336,57 @@ fn main() {
     // single-instance must be the first plugin so a second launch is caught
     // before anything else initialises; it hands the launch's URL args to
     // the deep-link plugin through the `deep-link` feature.
+    #[cfg(feature = "app-store")]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        codex::codex_add_mcp,
+        fonts::fonts_choose_local,
+        fonts::fonts_read_local,
+        view_menu::view_menu_state,
+        app_menu::app_menu_set,
+        app_menu::app_menu_state
+    ]);
+    #[cfg(not(feature = "app-store"))]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        claude::claude_status,
+        claude::claude_connect,
+        claude::claude_login,
+        claude::claude_install,
+        claude::claude_choose_cli,
+        claude::claude_reset_cli,
+        claude::claude_run,
+        claude::claude_stop,
+        claude_extension::claude_add_extension,
+        codex::codex_add_mcp,
+        fonts::fonts_choose_local,
+        fonts::fonts_read_local,
+        server::server_status,
+        server::server_choose,
+        view_menu::view_menu_state,
+        app_menu::app_menu_set,
+        app_menu::app_menu_state,
+        updates::update_card_ready,
+        updates::update_restart
+    ]);
     let builder = builder
         .manage(claude::ClaudeState::default())
         .manage(fonts::LocalFonts::default())
         .manage(app_menu::AppMenu::default())
-        .invoke_handler(tauri::generate_handler![
-            claude::claude_status,
-            claude::claude_connect,
-            claude::claude_login,
-            claude::claude_install,
-            claude::claude_choose_cli,
-            claude::claude_reset_cli,
-            claude::claude_run,
-            claude::claude_stop,
-            claude_extension::claude_add_extension,
-            codex::codex_add_mcp,
-            fonts::fonts_choose_local,
-            fonts::fonts_read_local,
-            server::server_status,
-            server::server_choose,
-            view_menu::view_menu_state,
-            app_menu::app_menu_set,
-            app_menu::app_menu_state,
-            updates::update_card_ready,
-            updates::update_restart
-        ])
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             focus_main_window(app)
         }))
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_updater::Builder::new().build());
+        .plugin(tauri_plugin_deep_link::init());
+    #[cfg(feature = "self-updater")]
+    let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
     #[cfg(target_os = "macos")]
     let builder = builder.menu(build_menu).on_menu_event(|app, event| {
+        #[cfg(feature = "self-updater")]
+        if event.id() == updates::menu::MENU_ID {
+            updates::menu::check(app);
+            return;
+        }
         if event.id() == CLOSE_TAB {
             let _ = app.emit(CLOSE_TAB, ());
-        } else if event.id() == updates::menu::MENU_ID {
-            updates::menu::check(app);
         } else if event.id() == server::menu::MENU_ID {
             server::menu::reset(app);
         } else {
@@ -377,6 +412,9 @@ fn main() {
             let _ = (window, event);
         })
         .setup(|app| {
+            if cfg!(feature = "app-store") && app.config().identifier != "ai.diagramly.desktop" {
+                return Err("The App Store build requires the ai.diagramly.desktop configuration.".into());
+            }
             // macOS registers doop:// from the bundle's Info.plist, so it
             // only works installed; Windows and Linux can register at
             // runtime, which also makes `tauri dev` receive links.
@@ -429,6 +467,9 @@ fn main() {
                 // only macOS has a menu bar for the page to build (app_menu.rs)
                 cfg!(target_os = "macos")
             );
+            let desktop_marker = if cfg!(feature = "app-store") {
+                format!("if(window===window.top){{window.__DOOP_DESKTOP__='{}';window.__DOOP_DESKTOP_PLATFORM__='macos';window.__DOOP_CODEX_SETUP__=true;window.__DOOP_VIEW_MENU__=true;window.__DOOP_APP_MENU__=true;window.__DOOP_LOCAL_FONTS__=true;window.__DIAGRAMLY_APP_STORE__=true;}}", app.package_info().version)
+            } else { desktop_marker };
             // macOS never reports the saved path on `Finished`, so remember
             // the destinations chosen on `Requested`, keyed by URL. The same
             // URL can be in flight more than once (double-clicking Download),
@@ -438,7 +479,7 @@ fn main() {
             let downloads: Mutex<HashMap<String, VecDeque<PathBuf>>> =
                 Mutex::new(HashMap::new());
             let builder =
-                WebviewWindowBuilder::new(app, "main", WebviewUrl::External(first_url))
+                WebviewWindowBuilder::new(app, "main", WebviewUrl::External(if cfg!(feature = "app-store") { "about:blank".parse()? } else { first_url }))
                     .initialization_script(&desktop_marker)
                     .on_download(move |_webview, event| {
                         match event {
@@ -506,7 +547,7 @@ fn main() {
                             }
                         }
                     })
-                    .title("doop")
+                    .title(if cfg!(feature = "app-store") { "Diagramly Desktop" } else { "doop" })
                     .visible(!migrating)
                     .inner_size(1440.0, 900.0)
                     .min_inner_size(900.0, 600.0)
@@ -526,6 +567,8 @@ fn main() {
                 .title_bar_style(tauri::TitleBarStyle::Overlay)
                 .hidden_title(true);
             let _webview_window = builder.build()?;
+            commerce::attach(&_webview_window, server::active(app.handle()))?;
+            if cfg!(feature = "app-store") { _webview_window.navigate(entry.parse()?)?; }
             server::check_on_launch(app.handle(), entry.parse()?);
             #[cfg(target_os = "macos")]
             if let Ok(ns_window) = _webview_window.ns_window() {

@@ -1,0 +1,20 @@
+{
+  "identifier": "B75E3BFC",
+  "nonRenewingSubscriptions": [],
+  "products": [],
+  "settings": {"_failTransactionsEnabled": false, "_locale": "en_AU", "_storefront": "AUS", "_storeKitErrors": []},
+  "subscriptionGroups": [{
+    "id": "DIAGRAMLY_PRO", "localizations": [{"description": "Diagramly Pro", "displayName": "Diagramly Pro", "locale": "en_US"}],
+    "name": "Diagramly Pro", "subscriptions": [
+      {"adHocOffers": [], "codeOffers": [], "displayPrice": "12.99", "familyShareable": false, "groupNumber": 1,
+       "internalID": "MONTHLY", "introductoryOffer": null,
+       "localizations": [{"description": "Cloud access for Diagramly Desktop. Local documents stay available.", "displayName": "Diagramly Pro Monthly", "locale": "en_US"}],
+       "productID": "ai.diagramly.desktop.pro.monthly", "recurringSubscriptionPeriod": "P1M", "referenceName": "Pro Monthly", "subscriptionGroupID": "DIAGRAMLY_PRO", "type": "RecurringSubscription", "winBackOffers": []},
+      {"adHocOffers": [], "codeOffers": [], "displayPrice": "99.99", "familyShareable": false, "groupNumber": 1,
+       "internalID": "YEARLY", "introductoryOffer": null,
+       "localizations": [{"description": "Cloud access for Diagramly Desktop. Local documents stay available.", "displayName": "Diagramly Pro Yearly", "locale": "en_US"}],
+       "productID": "ai.diagramly.desktop.pro.yearly", "recurringSubscriptionPeriod": "P1Y", "referenceName": "Pro Yearly", "subscriptionGroupID": "DIAGRAMLY_PRO", "type": "RecurringSubscription", "winBackOffers": []}
+    ]
+  }],
+  "version": {"major": 4, "minor": 0}
+}
