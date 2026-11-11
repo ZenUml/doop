@@ -12,6 +12,14 @@ Status: proposed desktop offer, no live price changes. Payment decision: Apple I
 
 Use one subscription group with monthly and annual alternatives; avoid multiple overlapping new desktop tiers at launch. These are working USD targets, not registered products or verified available Apple price points. StoreKit's localized product data must supply the actual price shown to customers. No free trial or lifetime/unlimited AI promise is included in this proposal.
 
+## Product catalogue decision checklist
+
+Keep the catalogue to one auto-renewable Pro subscription group with monthly and annual durations. Before the App Store Connect owner creates products, record the final bundle ID, seller, subscription-group display name, immutable product identifiers, exact benefits, renewal wording, localization set, tax category and support/refund destinations. Treat product IDs and group membership as durable public billing contracts. Do not create placeholder live products to test copy.
+
+The $9.99 monthly and $99.99 annual amounts are USD targets for review only. Verify that Apple offers the desired price points in App Store Connect, check the localized customer price and billing period returned by StoreKit, and show that returned value in every purchase surface. No product is currently configured. The app cannot sell Pro until purchase, server verification, entitlement grant/expiry/refund handling and Restore Purchases all work end to end.
+
+Before fixing the paid allowance, map each included cloud operation to actual provider and infrastructure cost, choose a server-enforced monthly cap, measure high-percentile use, and prove that the cap protects the conservative proceeds case. Keep local editing and customer-owned external MCP providers outside the Diagramly cloud allowance.
+
 Pro should initially map to a clearly defined, server-enforced allowance compatible with Diagramly Basic. Determine the actual models, credit-to-cost mapping, reset schedule and limits before publishing a numeric allowance. Preserve existing Plus customer access; do not silently downgrade website subscribers or create a second subscription for them. Entitlement mapping is a launch gate, not a new label on the old Doop plan.
 
 ## Existing baseline and market context

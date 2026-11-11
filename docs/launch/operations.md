@@ -33,3 +33,5 @@ Use server-side feature controls to pause failing cloud generation without delet
 Review activation and saved/reopened diagrams, weekly retained editors, verified purchases, renewals, refunds, support themes and service cost per paying account. Separate Apple proceeds from gross sales and existing web revenue. Investigate heavy-user cost tails and failures before buying traffic.
 
 Start acquisition with the existing ZenUML/Diagramly audience, a clear migration guide, technical examples and a short truthful demo. Prepare posts and release notes, then publish through authorized channels after the build is ready. No ad spend, customer email campaign, review solicitation or public launch has been executed. Use App Store discovery data to revise screenshots/keywords; do not promise sales or ask for incentivized reviews.
+
+Support intake and incident templates are in [support-playbook.md](support-playbook.md). Proposed event definitions and review rules are in [measurement-plan.md](measurement-plan.md). Neither document activates customer support or telemetry; verify the release build and privacy settings before use.

@@ -1,0 +1,6 @@
+Browser -> Checkout: Start checkout
+Checkout -> Payments: Authorize payment
+Payments -> Bank: Request authorization
+Bank -> Payments: Declined
+Payments -> Checkout: Return decline
+Checkout -> Browser: Show retry option
