@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, expect, it } from 'vitest'
 import { Client, startServer, type Server } from './harness'
-import { readDiagramFrame } from '../shared/diagramFrame'
+import { buildDiagramHtml, readDiagramFrame } from '../shared/diagramFrame'
 
 let server: Server
 let owner: Client
@@ -80,4 +80,41 @@ it('requires local authentication and same-origin connection mutations; purchase
     body: JSON.stringify({ deliveryTicket: 'random', transactionId: '123', signedTransaction: 'forged' }),
   })
   expect(unauthorized.status).toBe(403)
+})
+
+it('backs up and restores newly created diagrams with their real stacking values', async () => {
+  const canvas = await (await owner.post('/api/canvases', { name: 'Stacking backup' })).json()
+  const first = await (
+    await owner.post(`/api/canvases/${canvas.id}/frames`, {
+      name: 'First',
+      html: buildDiagramHtml({ kind: 'zenuml', source: 'A->B: first' }),
+    })
+  ).json()
+  const second = await (
+    await owner.post(`/api/canvases/${canvas.id}/frames`, {
+      name: 'Second',
+      html: buildDiagramHtml({ kind: 'zenuml', source: 'B->C: second' }),
+    })
+  ).json()
+  expect(first.z).toBeGreaterThan(1_000_000)
+  const fractional = first.z + 0.5
+  expect((await owner.patch(`/api/frames/${second.id}`, { z: fractional })).status).toBe(200)
+  const response = await owner.get('/api/desktop/document-backup')
+  expect(response.status).toBe(200)
+  const backup = await response.json()
+  const saved = backup.documents.find((item: { id: string }) => item.id === canvas.id)
+  expect(saved.frames.map((frame: { z: number }) => frame.z)).toEqual([first.z, fractional])
+  const restored = await owner.req('/api/desktop/document-backup', {
+    method: 'POST',
+    headers: { Origin: server.base },
+    body: JSON.stringify(backup),
+  })
+  expect(restored.status).toBe(200)
+  const target = (await restored.json()).documents.find((item: { name: string }) => item.name === 'Stacking backup')
+  const actual = await (await owner.get(`/api/canvases/${target.id}`)).json()
+  expect(actual.frames.map((frame: { z: number }) => frame.z)).toEqual([first.z, fractional])
+  expect(actual.frames.map((frame: { html: string }) => readDiagramFrame(frame.html)?.source)).toEqual([
+    'A->B: first',
+    'B->C: second',
+  ])
 })

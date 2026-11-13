@@ -16,4 +16,6 @@ The renderer regression delays the first Mermaid module request by one second, t
 
 Preserve singleton drafts when the first inner pages are added. Recover them only on the original page, including after undo, and retain the old stored draft if writing its replacement fails. Duplication and undo/redo must retain all page source and styles. Reject backups whose displayed content disagrees with their active page before restoring any documents.
 
+Backup stacking order is a finite ordering value, often a timestamp or fraction, rather than a bounded canvas coordinate. Acceptance must create new diagrams through the server before exporting and restoring a library; import-only fixtures do not exercise this value.
+
 Older unkeyed JSON identities must remain stable when page dimensions become recognized. Cross-format association between an unkeyed JSON import and a keyed IndexedDB export requires a durable alias; it is tracked separately in the migration issue and must not be inferred from an unstored content match.

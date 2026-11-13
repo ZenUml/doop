@@ -52,7 +52,7 @@ const frameSchema = z
     hidden: z.boolean().optional(),
     locked: z.boolean().optional(),
     rotation: coordinate.optional(),
-    z: coordinate.optional(),
+    z: z.number().finite().optional(),
     diagram: diagramSchema.optional(),
     legacyHtml: z.string().max(5_000_000).optional(),
   })

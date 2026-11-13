@@ -132,3 +132,18 @@ it('rejects conflicting active page projection before restore can overwrite sour
   delete oldEmptyCss.documents[0]!.frames[0]!.diagram!.css
   expect(() => restoreDiagramBackup(oldEmptyCss, 'owner', 'User', identity)).not.toThrow()
 })
+
+it('round-trips finite timestamp-scale and fractional stacking order, rejecting nonfinite values', () => {
+  const input = structuredClone(original)
+  input.frames[0]!.z = 1_794_555_265_587
+  input.frames[1]!.z = 1_794_555_265_587.5
+  const backup = makeDiagramBackup([input])
+  expect(backup.documents[0]!.frames.map((frame) => frame.z)).toEqual([1_794_555_265_587, 1_794_555_265_587.5])
+  const restored = restoreDiagramBackup(backup, 'owner', 'User', identity)
+  expect(restored[0]!.frames.map((frame) => frame.z)).toEqual([1_794_555_265_587, 1_794_555_265_587.5])
+  for (const invalid of [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN]) {
+    const bad = structuredClone(input)
+    bad.frames[0]!.z = invalid
+    expect(() => makeDiagramBackup([bad])).toThrow()
+  }
+})
