@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { mkdtemp, mkdir, rm, symlink, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
@@ -151,4 +151,16 @@ test('rejects the old app version instead of producing a non-upgrade package', (
       '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.zenuml.app</string><key>CFBundleShortVersionString</key><string>1.0.7</string><key>CFBundleVersion</key><string>40</string></dict></plist>',
     )
     await assert.rejects(auditBundle(app), /must exceed version 1.0.7 build 40/)
+  }))
+
+test('audit CLI executes through a symlink and writes its manifest', () =>
+  fixture(async (app, temporary) => {
+    const linkedScript = path.join(temporary, 'linked audit.mjs')
+    const manifest = path.join(temporary, 'audit-result.json')
+    await symlink(path.resolve('scripts/desktop-bundle-audit.mjs'), linkedScript)
+    const output = execFileSync(process.execPath, [linkedScript, app, manifest], { encoding: 'utf8' })
+    assert.match(output, /Bundle audit:/)
+    const result = JSON.parse(await readFile(manifest, 'utf8'))
+    assert.equal(result.bundleIdentifier, 'com.zenuml.app')
+    assert.ok(result.files.some((file) => file.path === 'Contents/Info.plist'))
   }))

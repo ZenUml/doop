@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { lstat, readdir, readFile, realpath, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import assert from 'node:assert/strict'
+import { fileURLToPath } from 'node:url'
 
 // Run after assembling and before signing. No network access or package code
 // execution is needed. The manifest is an inventory, not a legal licence audit.
@@ -103,7 +104,8 @@ export async function auditBundle(app) {
   return { format: 1, bundleIdentifier, version, buildVersion, minimumSystemVersion, files, packages, native }
 }
 
-if (process.argv[1] === new URL(import.meta.url).pathname) {
+const entry = process.argv[1] ? await realpath(process.argv[1]).catch(() => null) : null
+if (entry === (await realpath(fileURLToPath(import.meta.url)))) {
   assert(process.argv[2], 'Usage: node scripts/desktop-bundle-audit.mjs <app> [manifest]')
   const result = await auditBundle(process.argv[2])
   if (process.argv[3]) await writeFile(process.argv[3], JSON.stringify(result, null, 2) + '\n')

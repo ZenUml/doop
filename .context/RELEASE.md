@@ -194,3 +194,7 @@ per user/frame before the debounce and cleared only after acknowledgement;
 source and stylesheet writes reject stale revisions. See
 [`docs/launch/legacy-upgrade.md`](../docs/launch/legacy-upgrade.md) for supported
 formats, unsupported style conversions and release acceptance limits.
+
+## Desktop review bundle audits
+
+The Mac App Store preparation command builds from an exact clean Git commit into a new output directory. Both pre-signing and final audits must execute successfully and produce fresh, nonempty, valid inventories. Native paths are validated inside the assembled app before signing; a missing or malformed inventory stops packaging. The audit CLI resolves entry-point aliases (including macOS `/var` and `/private/var`) before deciding whether to run. `--unsigned` creates an ad-hoc local review signature and does not submit an Apple release.

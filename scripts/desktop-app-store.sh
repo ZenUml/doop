@@ -34,6 +34,36 @@ process.stdout.write(process.argv[2]);
 NODE
 }
 
+# Run and parse in the foreground: process substitution does not propagate its
+# exit status to the surrounding signing loop, even with set -e.
+desktop_run_audit() {
+  local binary="$1" auditor="$2" app="$3" manifest="$4"
+  [[ ! -e "$manifest" && ! -e "$manifest.native-list" ]] || { echo 'Bundle audit output must be fresh.' >&2; return 1; }
+  if ! "$binary" "$auditor" "$app" "$manifest"; then
+    echo 'Bundle audit failed; packaging stopped before further signing or success.' >&2; return 1
+  fi
+  [[ -f "$manifest" && ! -L "$manifest" && -s "$manifest" ]] || { echo 'Bundle audit did not produce a manifest; packaging stopped.' >&2; return 1; }
+  "$binary" - "$app" "$manifest" <<'NODE'
+const fs = require('node:fs'), path = require('node:path');
+const root = fs.realpathSync(process.argv[2]), file = process.argv[3];
+const audit = JSON.parse(fs.readFileSync(file, 'utf8'));
+if (audit.format !== 1 || audit.bundleIdentifier !== 'com.zenuml.app' || audit.version !== '1.1.0' ||
+    audit.buildVersion !== '41' || !/^\d+\.\d+(?:\.\d+)?$/.test(audit.minimumSystemVersion) ||
+    !Array.isArray(audit.files) || !Array.isArray(audit.packages) || !Array.isArray(audit.native))
+  throw Error('Invalid bundle audit manifest');
+const native = audit.native.map(entry => {
+  if (typeof entry !== 'string' || entry.includes('\0') || path.isAbsolute(entry) ||
+      entry.split(/[\\/]/).includes('..')) throw Error('Invalid native path in bundle audit');
+  const actual = fs.realpathSync(path.join(root, entry));
+  if (!actual.startsWith(root + path.sep) || !fs.statSync(actual).isFile()) throw Error('Native audit path escapes the bundle');
+  return actual;
+});
+for (const required of ['Contents/Resources/local-server/node', 'Contents/Helpers/DoopFrameSnapshot'])
+  if (!audit.native.includes(required)) throw Error('Bundle audit did not inventory a required executable');
+fs.writeFileSync(file + '.native-list', native.map(file => file + '\0').join(''), {flag: 'wx'});
+NODE
+}
+
 desktop_write_build_info() {
   local binary="$1" local_server="$2" app="$3" revision="$4" archive="$5" mode="$6"
   local identifier version build_version
@@ -126,7 +156,7 @@ NODE
   ditto "$STAGE/node_modules" "$LOCAL/app/node_modules"
   rm -rf "$LOCAL/app/dist/claude-extension"
   xcrun swiftc -O -parse-as-library -target "$(uname -m)-apple-macosx13.5" "$ROOT/desktop/scripts/FrameSnapshot.swift" -o "$APP/Contents/Helpers/DoopFrameSnapshot"
-  "$NODE_BINARY" "$ROOT/scripts/desktop-bundle-audit.mjs" "$APP" "$OUTPUT/provenance-before-signing.json"
+  desktop_run_audit "$NODE_BINARY" "$ROOT/scripts/desktop-bundle-audit.mjs" "$APP" "$OUTPUT/provenance-before-signing.json"
   IDENTITY=-
   if [[ "$MODE" == --sign ]]; then
     IDENTITY="$MAS_APPLICATION_IDENTITY"
@@ -146,7 +176,7 @@ NODE
       fi
       codesign --verify --strict "$executable"
     fi
-  done < <("$NODE_BINARY" -e 'const fs=require("node:fs"),path=require("node:path");for(const file of JSON.parse(fs.readFileSync(process.argv[2],"utf8")).native)process.stdout.write(path.join(process.argv[1],file)+"\0")' "$APP" "$OUTPUT/provenance-before-signing.json")
+  done < "$OUTPUT/provenance-before-signing.json.native-list"
   cp "$ROOT/desktop/src-tauri/app-store/shell.entitlements" "$STAGE/shell.entitlements"
   if [[ "$MODE" == --sign ]]; then
     # Provisioning-controlled identity entitlements are merged only from the
@@ -163,7 +193,7 @@ NODE
   else
     [[ "$SIGNATURE" != *'Signature=adhoc'* ]] || { echo 'Expected a Mac App Store distribution signature.' >&2; exit 1; }
   fi
-  "$NODE_BINARY" "$ROOT/scripts/desktop-bundle-audit.mjs" "$APP" "$OUTPUT/provenance.json"
+  desktop_run_audit "$NODE_BINARY" "$ROOT/scripts/desktop-bundle-audit.mjs" "$APP" "$OUTPUT/provenance.json"
   if [[ "$MODE" == --sign ]]; then
     productbuild --component "$APP" /Applications --sign "$MAS_INSTALLER_IDENTITY" "$OUTPUT/ZenUML-1.1.0.pkg"
     pkgutil --check-signature "$OUTPUT/ZenUML-1.1.0.pkg"
