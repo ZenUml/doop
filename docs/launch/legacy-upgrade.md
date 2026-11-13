@@ -16,7 +16,7 @@ Before opening the new local database, the sandboxed shell preserves the existin
 
 The server reads only a manifest-owned recovery path. It selects the active LevelDB manifest, verifies checksums and record versions, applies tombstones, and strictly decodes the known ZenUML IndexedDB schema. Untrusted V8 decoding runs in a bounded separate Node process. A complete validated JSON export is written only into the recovery directory; invalid input produces no partial import.
 
-The user reviews documents/pages before importing into the current local profile. Stable content/owner-derived IDs make repeated imports skip previously imported documents, including documents edited afterward. Another local profile does not inherit document ownership. Portable backups preserve source, style inputs, pages and diagram layout; they omit account grants, history, comments and external image files.
+The user reviews documents/pages before importing into the current local profile. Migration identity uses the owner and stable IndexedDB record key when available. Older JSON exports retain content-derived identities and preserve repeated identical entries as distinct documents. Re-importing the same records skips previously imported documents, including documents edited afterward. Another local profile does not inherit document ownership. Portable backups preserve source, style inputs, pages and diagram layout; they omit account grants, history, comments and external image files.
 
 ## Acceptance boundaries
 

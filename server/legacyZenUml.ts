@@ -19,10 +19,16 @@ export async function legacyCanvases(
   const canvases: Canvas[] = []
   const destinations: { id: string; name: string; pageId?: string }[] = []
   for (const document of documents) {
-    /* Content-derived IDs make retry/re-import a no-op, including after the
-       imported diagram has been edited. Each account/workspace has its own copy. */
+    /* Stable source keys, or content plus identical-record occurrence for older
+       JSON, make retries a no-op. Each account/workspace has its own copy. */
     const id = `zu_${createHash('sha256')
-      .update(JSON.stringify([ownerId, workspaceId ?? null, document]))
+      .update(
+        JSON.stringify([
+          ownerId,
+          workspaceId ?? null,
+          document.sourceRecordId ? ['indexeddb-record-v1', document.sourceRecordId] : document,
+        ]),
+      )
       .digest('hex')
       .slice(0, 32)}`
     const now = Date.now()

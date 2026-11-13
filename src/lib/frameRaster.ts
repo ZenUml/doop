@@ -312,6 +312,17 @@ async function inlineInto(
     }
   }
 
+  /* A live diagram mounts beneath <html>, outside its zero-height body. HTML
+     parsing reparents that mount into the body, where the diagram's runtime
+     clipping would otherwise erase it in the foreignObject export. */
+  if (doc.body.hasAttribute('data-doop-diagram')) {
+    if (!doc.querySelector('[data-doop-diagram-mount]')) throw new Error('the diagram has not rendered')
+    const style = doc.createElement('style')
+    style.setAttribute('data-doop-diagram-export', '')
+    style.textContent = 'body { height: auto !important; overflow: visible !important; }'
+    doc.head.append(style)
+  }
+
   if (opts.transparent) {
     const style = doc.createElement('style')
     style.textContent = TRANSPARENT_DIAGRAM_STYLE

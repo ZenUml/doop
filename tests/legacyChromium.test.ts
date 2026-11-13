@@ -12,6 +12,7 @@ import {
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { createHash } from 'node:crypto'
 import { serialize } from 'node:v8'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { readLegacyChromiumLibrary } from '../server/legacyChromium.ts'
@@ -98,6 +99,7 @@ function value(
   id: string,
   title: string,
   unsupported: 'date' | 'sparse' | 'expansion' | undefined = undefined,
+  payloadId = id,
 ): Buffer {
   const sparse: unknown[] = []
   if (unsupported === 'sparse') {
@@ -111,7 +113,7 @@ function value(
     serialize({
       id,
       data: {
-        id,
+        id: payloadId,
         title,
         js: 'A->B',
         ...(unsupported === 'date' ? { attachment: new Date('2020-01-01T00:00:00Z') } : {}),
@@ -128,6 +130,7 @@ function value(
 async function makeSyntheticFixture(
   directory: string,
   unsupported: 'date' | 'sparse' | 'expansion' | undefined = undefined,
+  duplicatePayloadId = false,
 ) {
   const databaseName = Buffer.concat([b(0, 0, 0, 0, 201), textKey('file://'), textKey('ZenUML_DB')])
   const storeName = b(0, 1, 0, 0, 50, 1, 0)
@@ -137,6 +140,10 @@ async function makeSyntheticFixture(
   const deletedExists = objectKey(2, 'deleted')
   const created = objectKey(1, 'created')
   const createdExists = objectKey(2, 'created')
+  const samePayloadA = objectKey(1, 'storage-a')
+  const samePayloadAExists = objectKey(2, 'storage-a')
+  const samePayloadB = objectKey(1, 'storage-b')
+  const samePayloadBExists = objectKey(2, 'storage-b')
   const data = tableWithTrailer(
     tableBlock([
       [internal(databaseName, 1), b(1)],
@@ -170,18 +177,26 @@ async function makeSyntheticFixture(
   ])
   const batchHeader = Buffer.alloc(12)
   batchHeader.writeBigUInt64LE(7n)
-  batchHeader.writeUInt32LE(6, 8)
   const put = (key: Buffer, val: Buffer) => Buffer.concat([b(1), prefixed(key), prefixed(val)])
   const del = (key: Buffer) => Buffer.concat([b(0), prefixed(key)])
-  const batch = Buffer.concat([
-    batchHeader,
+  const batchOperations = [
     put(edited, value('edited', 'after', unsupported)),
     put(editedExists, b(1)),
     del(deleted),
     del(deletedExists),
     put(created, value('created', 'new')),
     put(createdExists, b(1)),
-  ])
+    ...(duplicatePayloadId
+      ? [
+          put(samePayloadA, value('storage-a', 'shared payload A', undefined, 'shared-payload')),
+          put(samePayloadAExists, b(1)),
+          put(samePayloadB, value('storage-b', 'shared payload B', undefined, 'shared-payload')),
+          put(samePayloadBExists, b(1)),
+        ]
+      : []),
+  ]
+  batchHeader.writeUInt32LE(batchOperations.length, 8)
+  const batch = Buffer.concat([batchHeader, ...batchOperations])
   await Promise.all([
     writeFile(path.join(directory, 'CURRENT'), 'MANIFEST-000001\n'),
     writeFile(path.join(directory, 'MANIFEST-000001'), physicalRecord(manifest)),
@@ -210,7 +225,27 @@ describe('read-only legacy Chromium IndexedDB', () => {
   it('reads current data from a synthetic SST + WAL and applies updates and tombstones', async () => {
     const docs = (await readLegacyChromiumLibrary(syntheticFixture)) as Array<Record<string, unknown>>
     expect(docs.map((row) => row.title)).toEqual(['new', 'after'])
+    expect(docs.map((row) => row.sourceRecordId)).toEqual([
+      `idb1_${createHash('sha256').update('created').digest('hex')}`,
+      `idb1_${createHash('sha256').update('edited').digest('hex')}`,
+    ])
     expect(docs[1]?.pages).toHaveLength(2)
+  })
+  it('preserves distinct storage record identities when payload IDs collide', async () => {
+    const directory = await testDirectory()
+    await makeSyntheticFixture(directory, undefined, true)
+    const read = () => readLegacyChromiumLibrary(directory) as Promise<Array<Record<string, unknown>>>
+
+    const first = await read()
+    const shared = first.filter((row) => row.id === 'shared-payload')
+    const expected = [
+      `idb1_${createHash('sha256').update('storage-a').digest('hex')}`,
+      `idb1_${createHash('sha256').update('storage-b').digest('hex')}`,
+    ]
+    expect(shared).toHaveLength(2)
+    expect(shared.map((row) => row.sourceRecordId)).toEqual(expected)
+    expect(shared.map((row) => row.id)).toEqual(['shared-payload', 'shared-payload'])
+    expect((await read()).map((row) => row.sourceRecordId)).toEqual(first.map((row) => row.sourceRecordId))
   })
   it('rejects a missing or malformed CURRENT instead of returning an empty library', async () => {
     const directory = await testDirectory()

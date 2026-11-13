@@ -117,3 +117,60 @@ it('preserves unsupported AtomicCSS inputs for recovery without claiming convert
     styleHtml: html,
   })
 })
+
+it('keeps separately keyed legacy records with equal payloads, and retries without overwriting edits', async () => {
+  const items = [
+    { id: 'shared-payload-id', sourceRecordId: `idb1_${'1'.repeat(64)}`, title: 'Twin', js: 'A->B: same' },
+    { id: 'shared-payload-id', sourceRecordId: `idb1_${'2'.repeat(64)}`, title: 'Twin', js: 'A->B: same' },
+  ]
+  const first = await (await owner.post('/api/import/zenuml', { items })).json()
+  expect(first).toMatchObject({ imported: 2, skipped: 0 })
+  expect(first.canvases[0].id).not.toBe(first.canvases[1].id)
+  const original = await (await owner.get(`/api/canvases/${first.canvases[1].id}`)).json()
+  const html = buildDiagramHtml({ ...readDiagramFrame(original.frames[0].html)!, source: 'A->B: edited' })
+  expect((await owner.patch(`/api/frames/${original.frames[0].id}`, { html })).status).toBe(200)
+  const retry = await (await owner.post('/api/import/zenuml', { items })).json()
+  expect(retry).toMatchObject({ imported: 0, skipped: 2 })
+  const kept = await (await owner.get(`/api/canvases/${first.canvases[1].id}`)).json()
+  expect(readDiagramFrame(kept.frames[0].html)?.source).toBe('A->B: edited')
+  expect((await outsider.get(`/api/canvases/${first.canvases[0].id}`)).status).toBe(403)
+})
+
+it('retains two identical records without source keys even when selected separately', async () => {
+  const record = { id: 'identical-old-json', title: 'Same', js: 'A->B: original' }
+  const items = [record, { ...record }]
+  const first = await (await owner.post('/api/import/zenuml', { items, selected: [0] })).json()
+  const second = await (await owner.post('/api/import/zenuml', { items, selected: [1] })).json()
+  expect(first.imported).toBe(1)
+  expect(second.imported).toBe(1)
+  expect(first.canvases[0].id).not.toBe(second.canvases[0].id)
+  expect(await (await owner.post('/api/import/zenuml', { items })).json()).toMatchObject({ imported: 0, skipped: 2 })
+})
+
+it('uses source key across source edits and preserves the first imported work', async () => {
+  const item = { id: 'changed-keyed', sourceRecordId: `idb1_${'a'.repeat(64)}`, title: 'Before', js: 'A->B: before' }
+  const first = await (await owner.post('/api/import/zenuml', { items: [item] })).json()
+  const retry = await (
+    await owner.post('/api/import/zenuml', { items: [{ ...item, title: 'After', js: 'A->B: after' }] })
+  ).json()
+  expect(retry).toMatchObject({ imported: 0, skipped: 1 })
+  expect(retry.canvases[0].id).toBe(first.canvases[0].id)
+  const kept = await (await owner.get(`/api/canvases/${first.canvases[0].id}`)).json()
+  expect(readDiagramFrame(kept.frames[0].html)?.source).toBe('A->B: before')
+})
+
+it('rejects a repeated source key instead of merging two records', async () => {
+  const item = { id: 'same-key', sourceRecordId: 'idb1_duplicate', title: 'Before', js: 'A->B' }
+  const response = await owner.post('/api/import/zenuml', { items: [item, { ...item, js: 'B->C' }] })
+  expect(response.status).toBe(400)
+  expect((await response.json()).error).toMatch(/repeated source record ID/)
+})
+
+it('keeps unkeyed identities stable when different records are reordered', async () => {
+  const item = { id: 'reorder-same-id', title: 'Twin', js: 'A->B' }
+  const other = { ...item, js: 'B->C' }
+  const first = await (await owner.post('/api/import/zenuml', { items: [item, other, { ...item }] })).json()
+  expect(first).toMatchObject({ imported: 3, skipped: 0 })
+  const retry = await (await owner.post('/api/import/zenuml', { items: [{ ...item }, item, other] })).json()
+  expect(retry).toMatchObject({ imported: 0, skipped: 3 })
+})

@@ -2,6 +2,7 @@
 // @vitest-environment-options { "happyDOM": { "settings": { "disableCSSFileLoading": true } } }
 import { afterEach, expect, it, vi } from 'vitest'
 import { clipToFrame, inlineDocument, pinViewportUnits } from '../src/lib/frameRaster'
+import { buildDiagramHtml } from '../shared/diagramFrame'
 
 const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47])
 const PNG_DATA = 'data:image/png;base64,iVBORw=='
@@ -207,4 +208,19 @@ it('drops what would run once the file is opened as a page', async () => {
   )
   expect(svg).not.toMatch(/javascript:|onload|onclick|onmouseover/i)
   expect(svg).toContain('href="https://doop.design"')
+})
+
+it('keeps a rendered source diagram visible when its live root mount is parsed into the body', async () => {
+  const snapshot = buildDiagramHtml({ kind: 'zenuml', source: 'A->B: hello' }).replace(
+    '</html>',
+    '<div data-doop-diagram-mount><div>Diagram</div></div></html>',
+  )
+  const svg = await inlineDocument(snapshot, opts())
+  expect(svg).toContain('data-doop-diagram-export')
+  expect(svg).toMatch(/body\s*\{\s*height:\s*auto\s*!important;\s*overflow:\s*visible\s*!important/)
+})
+
+it('rejects an unrendered source diagram so an export cannot silently save a blank image', async () => {
+  const html = buildDiagramHtml({ kind: 'zenuml', source: 'A->B: hello' })
+  await expect(inlineDocument(html, opts())).rejects.toThrow('diagram has not rendered')
 })

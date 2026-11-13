@@ -4,6 +4,7 @@
     <script type="module">
       import { frameSvg, rasterizeFrame } from '/src/lib/frameRaster.ts'
       import { FRAME_BOOTSTRAP } from '/src/lib/frameRuntime.ts'
+      import { buildDiagramHtml } from '/shared/diagramFrame.ts'
       import { registerFrameWindow, requestFrame } from '/src/lib/frameBridge.ts'
 
       /* a frame with a painted block, an image from the fixture server
@@ -40,7 +41,7 @@
       </scr` + `ipt></body></html>`
 
       /* mount the runtime the way FrameView does and hand it the document */
-      async function mountLive(pendingBlob = false) {
+      async function mountLive(pendingBlob = false, diagram = false) {
         const iframe = document.createElement('iframe')
         iframe.sandbox = 'allow-scripts'
         iframe.style.cssText = 'display:block;border:0;width:300px;height:300px'
@@ -57,12 +58,14 @@
         await ready
         registerFrameWindow('live', iframe.contentWindow)
         const closingScript = '</scr' + 'ipt>'
-        const liveHtml = pendingBlob
-          ? LIVE_HTML.replace(
-              closingScript,
-              `Object.defineProperty(document.querySelector('.blobbed'), 'currentSrc', { get: function () { return '' } });${closingScript}`,
-            )
-          : LIVE_HTML
+        const liveHtml = diagram
+          ? buildDiagramHtml({ kind: 'zenuml', source: 'Client->Service: request\nService->Database: save' })
+          : pendingBlob
+            ? LIVE_HTML.replace(
+                closingScript,
+                `Object.defineProperty(document.querySelector('.blobbed'), 'currentSrc', { get: function () { return '' } });${closingScript}`,
+              )
+            : LIVE_HTML
         await requestFrame('live', 'doop:html', { html: liveHtml })
         /* until the script has run AND the srcset image has a picked source:
            currentSrc stays empty until the browser resolves srcset, a beat
@@ -70,12 +73,22 @@
            no src for it, so the export (rightly) paints nothing there */
         for (let i = 0; i < 50; i++) {
           const reply = await requestFrame('live', 'doop:snapshot', {})
-          if (reply?.html?.includes('class="made"') && /class="picked"[^>]*src="[^"]*blue\.svg"/.test(reply.html))
+          if (
+            diagram
+              ? reply?.html?.includes('data-doop-diagram-state="rendered"')
+              : reply?.html?.includes('class="made"') && /class="picked"[^>]*src="[^"]*blue\.svg"/.test(reply.html)
+          )
             return
           await new Promise((r) => setTimeout(r, 50))
         }
         throw new Error('the runtime never ran the script, or never picked the srcset image')
       }
+
+      window.diagramSnapshot = () =>
+        buildDiagramHtml({ kind: 'zenuml', source: 'A->B: hello' }).replace(
+          '</html>',
+          '<div data-doop-diagram-mount><div style="width:100px;height:100px;background:rgb(255,0,0)"></div></div></html>',
+        )
 
       window.render = async ({
         scale = 1,
@@ -85,10 +98,11 @@
         clip,
         transparent,
         pendingBlob,
+        diagram = false,
       } = {}) => {
-        if (live) await mountLive(pendingBlob)
+        if (live || diagram) await mountLive(pendingBlob, diagram)
         const frame = {
-          id: live ? 'live' : 'raster',
+          id: live || diagram ? 'live' : 'raster',
           canvasId: 'c',
           name: 'Raster',
           x: 0,
@@ -118,6 +132,12 @@
           adopted: at(250 * scale, 150 * scale),
           picked: at(150 * scale, 50 * scale),
           blobbed: at(50 * scale, 250 * scale),
+          inkPixels: (() => {
+            const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data
+            let n = 0
+            for (let i = 0; i < data.length; i += 4) if (data[i] < 230 || data[i + 1] < 230 || data[i + 2] < 230) n++
+            return n
+          })(),
         }
       }
 

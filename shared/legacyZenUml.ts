@@ -11,6 +11,10 @@ export interface LegacyZenUmlPage {
 
 export interface LegacyZenUmlDocument {
   legacyId: string
+  /** Stable IndexedDB primary-key fingerprint, when supplied by the reader. */
+  sourceRecordId?: string
+  /** Occurrence among identical unkeyed exports, assigned before selection. */
+  duplicateOrdinal?: number
   title: string
   pages: LegacyZenUmlPage[]
   activePageId?: string
@@ -38,11 +42,20 @@ export function parseLegacyZenUml(value: unknown): LegacyZenUmlDocument[] {
   if (!Array.isArray(value) || !value.length || value.length > 1000) {
     throw new Error('Choose a ZenUML export containing 1–1000 documents (a JSON array).')
   }
+  const seenSources = new Set<string>()
+  const occurrences = new Map<string, number>()
   return value.map((entry: unknown, index) => {
     const label = `Document ${index + 1}`
     const item = record(entry, label)
     /* An unrelated JSON array must not become hundreds of empty canvases. */
     if (typeof item.id !== 'string' || !item.id.trim()) throw new Error(`${label}: missing legacy document ID.`)
+    const sourceRecordId =
+      item.sourceRecordId === undefined ? undefined : text(item.sourceRecordId, `${label} source record ID`, 200)
+    if (sourceRecordId !== undefined) {
+      if (!sourceRecordId.trim() || seenSources.has(sourceRecordId))
+        throw new Error(`${label}: invalid or repeated source record ID.`)
+      seenSources.add(sourceRecordId)
+    }
     const title = text(item.title, `${label} title`, 1000).trim() || `Untitled legacy document ${index + 1}`
     const cssMode = text(item.cssMode, `${label} style format`, 20) || 'css'
     if (item.pages !== undefined && !Array.isArray(item.pages)) throw new Error(`${label}: invalid pages.`)
@@ -70,6 +83,16 @@ export function parseLegacyZenUml(value: unknown): LegacyZenUmlDocument[] {
       }
     })
     const activePageId = typeof item.currentPageId === 'string' ? item.currentPageId : undefined
-    return { legacyId: item.id, title, pages, ...(activePageId ? { activePageId } : {}) }
+    const document: LegacyZenUmlDocument = {
+      legacyId: item.id,
+      title,
+      pages,
+      ...(activePageId ? { activePageId } : {}),
+    }
+    if (sourceRecordId !== undefined) return { ...document, sourceRecordId }
+    const identity = JSON.stringify(document)
+    const occurrence = occurrences.get(identity) ?? 0
+    occurrences.set(identity, occurrence + 1)
+    return occurrence ? { ...document, duplicateOrdinal: occurrence } : document
   })
 }

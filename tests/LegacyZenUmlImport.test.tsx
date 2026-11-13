@@ -104,4 +104,29 @@ describe('LegacyZenUmlImport prepared preview', () => {
 
     expect(document.body.querySelector('[role="alert"]')?.textContent).toContain('Could not read this export.')
   })
+
+  it('lets identical legacy payload IDs be selected separately', async () => {
+    const importSpy = vi
+      .spyOn(api, 'importLegacyZenUml')
+      .mockResolvedValue({ canvases: [], imported: 1, skipped: 0, warnings: [] })
+    const items = [
+      { id: 'same', sourceRecordId: 'idb1_first', title: 'Same', js: 'A->B' },
+      { id: 'same', sourceRecordId: 'idb1_second', title: 'Same', js: 'A->B' },
+    ]
+    await act(async () =>
+      root.render(
+        <Modal onClose={() => {}}>
+          <LegacyZenUmlImport initialItems={items} onBack={() => {}} onBusyChange={() => {}} onOpen={() => {}} />
+        </Modal>,
+      ),
+    )
+    const choices = document.body.querySelectorAll('[aria-label="Documents to import"] input[type="checkbox"]')
+    expect(choices).toHaveLength(2)
+    await act(async () => (choices[0] as HTMLInputElement).click())
+    const button = [...document.body.querySelectorAll('button')].find((item) =>
+      item.textContent?.includes('Import 1 document'),
+    )
+    await act(async () => button!.click())
+    expect(importSpy).toHaveBeenCalledWith(items, [1], undefined)
+  })
 })

@@ -2,6 +2,7 @@ import { constants } from 'node:fs'
 import { lstat, open, readdir, realpath } from 'node:fs/promises'
 import path from 'node:path'
 import { deserialize } from 'node:v8'
+import { createHash } from 'node:crypto'
 
 // LevelDB disk formats: https://github.com/google/leveldb/tree/main/doc
 // Chromium IndexedDB coding: https://chromium.googlesource.com/chromium/src/+/62.0.3178.1/content/browser/indexed_db/leveldb_coding_scheme.md
@@ -610,13 +611,19 @@ export async function readLegacyChromiumLibrary(directory: string): Promise<unkn
     if (record.id !== id || !record.data || typeof record.data !== 'object' || Array.isArray(record.data))
       fail('invalid document row')
     validateDocument(record.data)
+    if (Object.hasOwn(record.data, 'sourceRecordId')) fail('reserved source record metadata field')
     ids.add(id)
     result.push({ id, data: record.data })
     if (result.length > MAX_DOCUMENTS) fail('too many documents')
   }
   if (!result.length) fail('no documents found')
   result.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
-  const documents = result.map((row) => row.data)
+  const documents = result.map(({ id, data }) => ({
+    ...(data as Record<string, unknown>),
+    /* Keep the IndexedDB primary key separate from the payload's own ID. The
+     * payload ID is application data and may collide between storage rows. */
+    sourceRecordId: `idb1_${createHash('sha256').update(id, 'utf8').digest('hex')}`,
+  }))
   if (Buffer.byteLength(JSON.stringify(documents), 'utf8') > MAX_EXPORT) fail('legacy export too large')
   return documents
 }
