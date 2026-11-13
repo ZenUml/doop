@@ -122,6 +122,10 @@
         return {
           type: blob.type,
           topLeft: at(0, 0),
+          diagramPaper: at(30 * scale, 70 * scale),
+          diagramHeaderPaper: at(30 * scale, 40 * scale),
+          diagramParticipant: at(55 * scale, 100 * scale),
+          diagramBorder: at(24 * scale, 100 * scale),
           width: bitmap.width,
           height: bitmap.height,
           block: at(50 * scale, 50 * scale),
@@ -132,10 +136,18 @@
           adopted: at(250 * scale, 150 * scale),
           picked: at(150 * scale, 50 * scale),
           blobbed: at(50 * scale, 250 * scale),
+          messageInk: (() => {
+            const data = ctx.getImageData(40 * scale, 130 * scale, 180 * scale, 90 * scale).data
+            let n = 0
+            for (let i = 0; i < data.length; i += 4)
+              if (data[i + 3] > 0 && data[i] < 100 && data[i + 1] < 100 && data[i + 2] < 100) n++
+            return n
+          })(),
           inkPixels: (() => {
             const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data
             let n = 0
-            for (let i = 0; i < data.length; i += 4) if (data[i] < 230 || data[i + 1] < 230 || data[i + 2] < 230) n++
+            for (let i = 0; i < data.length; i += 4)
+              if (data[i + 3] > 0 && (data[i] < 100 || data[i + 1] < 100 || data[i + 2] < 100)) n++
             return n
           })(),
         }

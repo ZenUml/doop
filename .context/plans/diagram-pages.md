@@ -20,4 +20,6 @@ Preserve singleton drafts when the first inner pages are added. Recover them onl
 
 Backup stacking order is a finite ordering value, often a timestamp or fraction, rather than a bounded canvas coordinate. Acceptance must create new diagrams through the server before exporting and restoring a library; import-only fixtures do not exercise this value.
 
+Transparent export acceptance uses the real renderer, checking alpha at empty diagram-paper and title-header pixels and opacity at white participant shapes, borders and message ink. Transparent space outside the diagram alone does not prove the paper was removed. Target the renderer's document-paper nodes; do not remove white pixels or all white shapes. A regular PNG must retain its opaque paper.
+
 Older unkeyed JSON identities must remain stable when page dimensions become recognized. Cross-format association between an unkeyed JSON import and a keyed IndexedDB export requires a durable alias; it is tracked separately in the migration issue and must not be inferred from an unstored content match.
