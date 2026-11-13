@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import path from 'node:path'
+import { dataDir } from '../dataDir.ts'
 import { nanoid } from 'nanoid'
 import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { db } from './index.ts'
@@ -72,75 +72,83 @@ export function saveCanvas(c: Canvas) {
 /** Persist a newly duplicated canvas as one unit. Unlike ordinary live edits,
  * duplication must not report success until every copied row is durable. */
 export async function saveCanvasCopy(c: Canvas): Promise<void> {
+  await saveCanvasCopies([c])
+}
+
+/** An imported library is committed completely before it becomes visible. */
+export async function saveCanvasCopies(canvases: Canvas[]): Promise<void> {
   await db.transaction(async (tx) => {
-    await tx.insert(t.canvases).values({ id: c.id, ...canvasColumns(c), createdAt: c.createdAt })
+    for (const c of canvases) {
+      await tx.insert(t.canvases).values({ id: c.id, ...canvasColumns(c), createdAt: c.createdAt })
 
-    if (c.frames.length) {
-      await tx.insert(t.frames).values(
-        c.frames.map((frame) => ({
-          id: frame.id,
-          canvasId: frame.canvasId,
-          pageId: frame.pageId ?? null,
-          name: frame.name,
-          x: frame.x,
-          y: frame.y,
-          width: frame.width,
-          height: frame.height,
-          html: frame.html,
-          createdAt: frame.createdAt,
-          updatedAt: frame.updatedAt,
-          updatedBy: frame.updatedBy,
-          demo: frame.demo ?? null,
-          hidden: frame.hidden ?? null,
-          locked: frame.locked ?? null,
-          z: frame.z ?? null,
-          rotation: frame.rotation ?? null,
-        })),
+      if (c.frames.length) {
+        await tx.insert(t.frames).values(
+          c.frames.map((frame) => ({
+            id: frame.id,
+            canvasId: frame.canvasId,
+            pageId: frame.pageId ?? null,
+            name: frame.name,
+            x: frame.x,
+            y: frame.y,
+            width: frame.width,
+            height: frame.height,
+            html: frame.html,
+            createdAt: frame.createdAt,
+            updatedAt: frame.updatedAt,
+            updatedBy: frame.updatedBy,
+            demo: frame.demo ?? null,
+            hidden: frame.hidden ?? null,
+            locked: frame.locked ?? null,
+            z: frame.z ?? null,
+            rotation: frame.rotation ?? null,
+          })),
+        )
+      }
+
+      if (c.guidelines?.length) {
+        await tx.insert(t.guidelines).values(
+          c.guidelines.map((doc) => ({
+            canvasId: c.id,
+            name: doc.name,
+            markdown: doc.markdown,
+            title: doc.title ?? null,
+            updatedAt: doc.updatedAt,
+            updatedBy: doc.updatedBy,
+            x: doc.x ?? null,
+            y: doc.y ?? null,
+          })),
+        )
+      }
+
+      if (c.components?.length) {
+        await tx.insert(t.components).values(c.components.map((def) => componentRow(c.id, def)))
+      }
+
+      if (c.tokens?.length) {
+        await tx.insert(t.designTokens).values(c.tokens.map((token) => tokenRow(c.id, token)))
+      }
+
+      if (c.references?.length) {
+        await tx.insert(t.memoryReferences).values(
+          c.references.map((ref) => ({
+            id: ref.id,
+            canvasId: c.id,
+            frameId: ref.frameId,
+            title: ref.title,
+            html: ref.html,
+            width: ref.width,
+            height: ref.height,
+            pinnedBy: ref.pinnedBy,
+            pinnedAt: ref.pinnedAt,
+          })),
+        )
+      }
+
+      const refs = c.frames.flatMap((frame) =>
+        [...extractAssetIds(frame.html)].map((assetId) => ({ assetId, frameId: frame.id })),
       )
+      if (refs.length) await tx.insert(t.assetRefs).values(refs)
     }
-
-    if (c.guidelines?.length) {
-      await tx.insert(t.guidelines).values(
-        c.guidelines.map((doc) => ({
-          canvasId: c.id,
-          name: doc.name,
-          markdown: doc.markdown,
-          title: doc.title ?? null,
-          updatedAt: doc.updatedAt,
-          updatedBy: doc.updatedBy,
-          x: doc.x ?? null,
-          y: doc.y ?? null,
-        })),
-      )
-    }
-
-    if (c.components?.length) {
-      await tx.insert(t.components).values(c.components.map((def) => componentRow(c.id, def)))
-    }
-    if (c.tokens?.length) {
-      await tx.insert(t.designTokens).values(c.tokens.map((token) => tokenRow(c.id, token)))
-    }
-
-    if (c.references?.length) {
-      await tx.insert(t.memoryReferences).values(
-        c.references.map((ref) => ({
-          id: ref.id,
-          canvasId: c.id,
-          frameId: ref.frameId,
-          title: ref.title,
-          html: ref.html,
-          width: ref.width,
-          height: ref.height,
-          pinnedBy: ref.pinnedBy,
-          pinnedAt: ref.pinnedAt,
-        })),
-      )
-    }
-
-    const refs = c.frames.flatMap((frame) =>
-      [...extractAssetIds(frame.html)].map((assetId) => ({ assetId, frameId: frame.id })),
-    )
-    if (refs.length) await tx.insert(t.assetRefs).values(refs)
   })
 }
 
@@ -1291,7 +1299,7 @@ export async function hydrate(): Promise<Hydrated> {
 
 /** One-time import of the pre-DB data/store.json so existing canvases survive. */
 export async function importLegacyJson(): Promise<Canvas[] | null> {
-  const file = path.join(process.cwd(), 'data', 'store.json')
+  const file = dataDir('store.json')
   let parsed: Canvas[]
   try {
     parsed = JSON.parse(fs.readFileSync(file, 'utf8'))

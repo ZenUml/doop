@@ -1,3 +1,4 @@
+import { buildDiagramHtml, readDiagramFrame } from '../../shared/diagramFrame'
 import { memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { ElementComment, Frame } from '../../shared/types'
@@ -63,6 +64,7 @@ import { withWebFontLinks } from '../../shared/webFonts'
 import { withTokenBlock } from '../../shared/designTokens'
 import { canvasFonts } from '../lib/customFonts'
 import { t as translate, useT } from '../lib/i18n'
+import { isDiagramly } from '../lib/product'
 
 /** ?comment=<rootId> — the link in a comment email. The thread opens once
  *  Stage has selected the linked frame (deselection closes popovers, and on
@@ -293,6 +295,7 @@ export const FrameView = memo(function FrameView({
   const select = useStore((s) => s.select)
   const flash = useStore((s) => s.flashes[frame.id])
   const stream = useStore((s) => s.streams[frame.id])
+  const unsupportedDiagram = isDiagramly() && !readDiagramFrame(frame.html)
   /* select the stable presences map, derive in render — a selector that
      builds a fresh array re-renders every frame on EVERY store update
      (zustand compares by identity), which defeats the memo above */
@@ -367,7 +370,9 @@ export const FrameView = memo(function FrameView({
       e.stopPropagation()
       e.preventDefault()
       if (!s.selectedIds.includes(frame.id)) select(frame.id)
-      if (probeOnClick) {
+      if (isDiagramly()) {
+        commentOnFrame()
+      } else if (probeOnClick) {
         const at = designOffset(e, frame.rotation)
         probeAt(at.x, at.y, 'comment')
       } else if (panelOnClick) {
@@ -389,6 +394,7 @@ export const FrameView = memo(function FrameView({
     // reply that is already in flight when the next layer starts moving.
     if (mode === 'move' && probeOnClick && !skipElement) cancelProbe()
     if (
+      !isDiagramly() &&
       mode === 'move' &&
       probeOnClick &&
       !skipElement &&
@@ -421,6 +427,7 @@ export const FrameView = memo(function FrameView({
        (or drops it from) the selection, and a dropped frame does not start
        a drag */
     const togglesElement =
+      !isDiagramly() &&
       mode === 'move' &&
       probeOnClick &&
       e.shiftKey &&
@@ -868,7 +875,10 @@ export const FrameView = memo(function FrameView({
     const request = ++htmlRequest.current
     noteFrameDocument(frame.id, null)
     let cancelled = false
-    void requestFrame(frame.id, 'doop:html', { html }).then((reply) => {
+    const diagram = readDiagramFrame(html)
+    /* Saved source survives renderer upgrades; execute this build's renderer. */
+    const runtimeHtml = diagram ? buildDiagramHtml(diagram) : html
+    void requestFrame(frame.id, 'doop:html', { html: runtimeHtml }).then((reply) => {
       if (!reply || request !== htmlRequest.current) return
       /* the runtime shows it whether or not this effect is still current */
       noteFrameDocument(frame.id, html)
@@ -1057,7 +1067,7 @@ export const FrameView = memo(function FrameView({
      cancels it instead of flashing the toolbar; a comment click has no
      double-click to wait out, so it probes at once */
   function probeAt(x: number, y: number, intent: ProbeIntent = 'toolbar') {
-    if (!frame.html || editing) return
+    if (isDiagramly() || !frame.html || editing) return
     /* the current pick stays until the probe answers: clearing it here would
        close the element panel and reopen it a beat later on the next
        element. A probe that hits nothing clears it then. */
@@ -1404,6 +1414,7 @@ export const FrameView = memo(function FrameView({
 
   async function enterElementEdit(where: { x: number; y: number } | { selector: string }) {
     if (
+      isDiagramly() ||
       !frame.html ||
       stream ||
       frame.locked ||
@@ -1487,6 +1498,27 @@ export const FrameView = memo(function FrameView({
   useEffect(() => {
     function onMsg(ev: MessageEvent) {
       if (ev.source !== iframeRef.current?.contentWindow) return
+      if (ev.data?.type === 'doop:diagram-size') {
+        const state = useStore.getState()
+        const live = state.canvas?.frames.find((item) => item.id === frame.id)
+        if (!live || live.locked || !canEditOpenCanvas(state)) return
+        const diagram = readDiagramFrame(live.html)
+        if (!diagram || diagram.source !== ev.data.source) return
+        const { width, height } = ev.data as { width: unknown; height: unknown }
+        if (typeof width !== 'number' || typeof height !== 'number' || !Number.isFinite(width + height)) return
+        /* Grow to keep the source visible. A larger hand-sized artboard stays larger. */
+        const size = {
+          width: Math.max(live.width, Math.min(16_384, Math.ceil(width))),
+          height: Math.max(live.height, Math.min(16_384, Math.ceil(height))),
+        }
+        if (size.width === live.width && size.height === live.height) return
+        state.patchFrameLocal(frame.id, size)
+        trackSave(
+          api.updateFrame(frame.id, size).catch((error: unknown) => {
+            useStore.getState().pushNotice(error instanceof Error ? error.message : 'Could not save diagram size.')
+          }),
+        )
+      }
       if (ev.data?.type === 'doop:edited' && typeof ev.data.html === 'string') {
         // The runtime already has this document. Echoing it through the HTML
         // throttle can overwrite a newer style edit still waiting to save.
@@ -1554,6 +1586,18 @@ export const FrameView = memo(function FrameView({
     // eslint-disable-next-line react/set-state-in-effect -- exitEdit syncs the iframe's edit mode
     if ((frame.locked || readOnly) && editing) exitEdit()
   }, [frame.locked, readOnly]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!isDiagramly()) return
+    cancelProbe()
+    clearHover()
+    closePopovers()
+    if (editing) {
+      // eslint-disable-next-line react/set-state-in-effect -- product mode must end an in-frame HTML edit
+      exitEdit()
+    }
+    const picked = useStore.getState().selectedElement
+    if (picked?.frameId === frame.id) useStore.getState().pickElement(null)
+  }, [frame.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <ContextMenu
@@ -1609,7 +1653,7 @@ export const FrameView = memo(function FrameView({
             const request = ++menuRequest.current
             /* the element menu only edits layers; a reader gets the frame
                menu's read-only half (copy, links, export, history) anywhere */
-            if (target.closest('[data-frame-title]') || readOnly) {
+            if (isDiagramly() || target.closest('[data-frame-title]') || readOnly) {
               if (editing) exitEdit()
               menuKind.current = 'frame'
               setMenuTarget('frame')
@@ -1691,14 +1735,14 @@ export const FrameView = memo(function FrameView({
                   </span>
                 </Tooltip>
               )}
-              {isSyncedFrame(frame.html) && (
+              {!isDiagramly() && isSyncedFrame(frame.html) && (
                 <Tooltip label={t('stage.syncedTip')} side="top" align="start">
                   <span className="flex shrink-0 items-center text-brand">
                     <SyncIcon width={11} height={11} />
                   </span>
                 </Tooltip>
               )}
-              {isGithubFrame(frame.html) && (
+              {!isDiagramly() && isGithubFrame(frame.html) && (
                 <Tooltip
                   label={
                     isGithubPlaceholder(frame.html) ? t('stage.githubPlaceholderTip') : t('stage.githubImportedTip')
@@ -1717,7 +1761,7 @@ export const FrameView = memo(function FrameView({
                 </Tooltip>
               )}
               <span className="min-w-0 overflow-hidden text-ellipsis">{frame.name}</span>
-              <FrameApprovalBadge frame={frame} />
+              {!isDiagramly() && <FrameApprovalBadge frame={frame} />}
               <span className="flex shrink-0 gap-1 @max-[180px]/title:order-first">
                 {stream && (
                   <span
@@ -1744,7 +1788,8 @@ export const FrameView = memo(function FrameView({
             </div>
           )}
 
-          {dropTarget &&
+          {!isDiagramly() &&
+            dropTarget &&
             createPortal(
               <div className="pointer-events-none absolute inset-0 z-40">
                 <div
@@ -1800,11 +1845,15 @@ export const FrameView = memo(function FrameView({
                  cover the frame's pins and hover outlines */
               zIndex: selected ? stack : undefined,
             }}
-            onPointerDown={(e) => startDrag(e, 'move', true)}
+            onPointerDown={(e) => startDrag(e, 'move', !isDiagramly())}
             onDoubleClick={(e) => {
-              void enterElementEdit(designPoint(e, e.currentTarget, frame.rotation))
+              if (isDiagramly()) {
+                select(frame.id)
+                useStore.getState().setInspectorOpen(true)
+              } else void enterElementEdit(designPoint(e, e.currentTarget, frame.rotation))
             }}
             onPointerMove={(e) => {
+              if (isDiagramly()) return
               /* where the pointer is stays current through a drag or a resize
                  too: once the gesture's save lands, the hover is probed again
                  at the pointer's spot, which the gesture has moved */
@@ -1829,14 +1878,15 @@ export const FrameView = memo(function FrameView({
             }}
             onPointerLeave={leaveHover}
           >
-            <iframe
-              ref={iframeRef}
-              className="relative block border-none bg-transparent"
-              title={frame.name}
-              data-doop-frame=""
-              sandbox="allow-scripts"
-              srcDoc={FRAME_BOOTSTRAP}
-              /* The world is laid out at CSS zoom k (Stage), which an iframe
+            {!unsupportedDiagram ? (
+              <iframe
+                ref={iframeRef}
+                className="relative block border-none bg-transparent"
+                title={frame.name}
+                data-doop-frame=""
+                sandbox="allow-scripts"
+                srcDoc={FRAME_BOOTSTRAP}
+                /* The world is laid out at CSS zoom k (Stage), which an iframe
                  passes into its document. Chromium takes it as pixel density:
                  the document keeps its design-px viewport and rasterizes at
                  k×, even out of process, where a transform on this element
@@ -1844,24 +1894,29 @@ export const FrameView = memo(function FrameView({
                  document out at the zoomed width, so there the zoom is undone
                  here (keeping viewport, vh/vw, media queries and runtime rects
                  in design px) and the scale restores the box. */
-              style={{
-                width: frame.width,
-                height: frame.height,
-                ...(FRAME_DOCUMENTS_TAKE_ZOOM_AS_DENSITY
-                  ? null
-                  : { zoom: counterZoom(layoutZoom), transform: `scale(${layoutZoom})` }),
-                transformOrigin: '0 0',
-                /* Chromium paints an opaque backdrop behind an iframe whose
+                style={{
+                  width: frame.width,
+                  height: frame.height,
+                  ...(FRAME_DOCUMENTS_TAKE_ZOOM_AS_DENSITY
+                    ? null
+                    : { zoom: counterZoom(layoutZoom), transform: `scale(${layoutZoom})` }),
+                  transformOrigin: '0 0',
+                  /* Chromium paints an opaque backdrop behind an iframe whose
                    colour scheme differs from its document's; the page's dark
                    scheme reaches this element by inheritance while a
                    standalone element's document is light, so a shape on the
                    dark canvas sat on a white square */
-                ...(isCanvasElement(frame.html) ? { colorScheme: 'light' } : null),
-              }}
-            />
+                  ...(isCanvasElement(frame.html) ? { colorScheme: 'light' } : null),
+                }}
+              />
+            ) : (
+              <div className="absolute inset-0 grid place-items-center bg-[repeating-linear-gradient(45deg,transparent_0_10px,rgba(28,26,21,0.025)_10px_20px)] px-4 text-center text-[13px] text-ink-faint">
+                {translate('stage.diagramUnavailable')}
+              </div>
+            )}
             {/* a standalone element is see-through: the paper's grid shows */}
-            {!isCanvasElement(frame.html) && <PixelGrid layoutZoom={layoutZoom} />}
-            {!frame.html && (
+            {!unsupportedDiagram && !isCanvasElement(frame.html) && <PixelGrid layoutZoom={layoutZoom} />}
+            {!isDiagramly() && !frame.html && (
               <div className="absolute inset-0 grid place-items-center bg-[repeating-linear-gradient(45deg,transparent_0_10px,rgba(28,26,21,0.025)_10px_20px)] text-[13px] text-ink-faint">
                 empty frame — add HTML
               </div>

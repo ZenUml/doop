@@ -1,0 +1,33 @@
+{
+  "status": "draft-not-submitted",
+  "productName": "Diagramly Desktop",
+  "name": "Diagramly Desktop",
+  "subtitle": "Mermaid & ZenUML diagrams",
+  "primaryCategory": "Productivity",
+  "secondaryCategory": "Developer Tools",
+  "keywords": "mermaid,zenuml,sequence,flowchart,architecture,uml,diagram,mcp",
+  "promotionalText": "Create editable Mermaid and ZenUML diagrams on your Mac. Keep your documents local and connect a compatible MCP client to revise them.",
+  "description": "Diagramly Desktop is a local workspace for editable ZenUML and Mermaid diagrams.\n\nCREATE AND EDIT\nWrite ZenUML or Mermaid source and see the diagram update. Organize work in documents and pages, then save and reopen it on your Mac.\n\nCONNECT YOUR AI AGENT\nConnect a compatible MCP client to the desktop app and let it read or update the open diagram. Your MCP client and any AI model may require a separate account or subscription.\n\nIMPORT A ZENUML LIBRARY\nImport the JSON library exported by the older ZenUML desktop app. Review imported documents and pages, then continue editing their diagram source. Import reports identify styles that need attention.\n\nLOCAL BY DEFAULT\nYour documents stay on your Mac unless you choose to connect an external service or agent. Diagramly cloud AI, account entitlements and Apple subscriptions are not available in this release draft.\n\nThis draft describes the local desktop spike. Confirm every claim against the signed App Store build before submission.",
+  "supportUrl": "https://diagramly.ai/desktop/support",
+  "marketingUrl": "https://diagramly.ai/desktop",
+  "privacyPolicyUrl": "https://diagramly.ai/legal/privacy-policy",
+  "termsUrl": "https://diagramly.ai/legal/terms",
+  "refundPolicyUrl": "https://diagramly.ai/legal/refund-policy",
+  "urlStatus": "Desktop marketing and support pages are proposed and not deployed. Existing legal pages resolve but need desktop and Apple purchase coverage review.",
+  "bundleId": null,
+  "sku": null,
+  "copyright": "Confirm seller identity and third-party attribution before submission.",
+  "releaseNotes": "Initial release. Replace with tested release contents before submission.",
+  "reviewNotes": "Not submission-ready. Provide a synthetic local demo, exact supported import format, MCP connection steps, sandbox explanations, third-party notices and verified account or purchase flows. Do not provide personal accounts or customer diagrams.",
+  "claimLimits": [
+    "Do not claim cloud AI, Diagramly account entitlements, Apple subscriptions, purchase restore or cloud sync are available until implemented and verified.",
+    "Only claim ZenUML, Mermaid, MCP and legacy import workflows that pass acceptance on the exact signed release build.",
+    "Do not advertise PlantUML, Draw.io, PDF, SVG or native source-file export until each is verified in the signed release build.",
+    "Do not describe the debug spike as an approved, notarized or published release.",
+    "Use only synthetic documents in marketing material. Remove emails, credentials, private libraries and customer work.",
+    "Apple In-App Purchase is the selected channel, not a live integration. Use localized StoreKit prices only after products are configured and verified."
+  ],
+  "paymentChannel": "apple-in-app-purchase",
+  "distributionChannel": "mac-app-store",
+  "commerceStatus": "Apple payments were selected. StoreKit, products and backend transaction verification are not implemented."
+}

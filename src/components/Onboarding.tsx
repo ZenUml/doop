@@ -10,6 +10,8 @@ import { IconButton } from './ui/icon-button'
 import { CheckIcon, CircleIcon, SparkIcon, XIcon } from './ui/icons'
 import { ConnectModal } from './ConnectModal'
 import { useT } from '../lib/i18n'
+import { api } from '../lib/api'
+import type { Me } from '../lib/me'
 
 const obHint = 'text-body text-ink-soft'
 /* the copy-this-command affordance inside a step */
@@ -19,38 +21,48 @@ const obCopy =
 /**
  * Getting-started checklist, whose whole point is getting an agent of their
  * own onto the canvas over MCP. No "next" buttons: each step checks itself
- * off from live canvas state (a real agent joining presence, its first task
- * appearing). Progress persists in localStorage so completed steps stay
- * checked across canvases and sessions.
+ * off from the account's authenticated connection, a real agent arriving
+ * on this canvas, and a real frame change. Canvas progress belongs to the signed-in
+ * account, so switching accounts cannot reuse someone else's checks.
  */
 
 const LS_KEY = 'doop:onboarding'
 
 interface Progress {
   dismissed?: boolean
-  connected?: boolean
-  tasked?: boolean
+  reached?: boolean
+  completed?: boolean
 }
 
-function load(): Progress {
+function load(key: string): Progress {
   try {
-    return JSON.parse(localStorage.getItem(LS_KEY) ?? '{}')
+    const value = JSON.parse(localStorage.getItem(key) ?? '{}') as Progress | null
+    return {
+      dismissed: value?.dismissed === true,
+      reached: value?.reached === true,
+      completed: value?.completed === true,
+    }
   } catch {
     return {}
   }
 }
 
-function save(p: Progress) {
-  localStorage.setItem(LS_KEY, JSON.stringify(p))
-}
-
-export function Onboarding({ canvasId }: { canvasId: string }) {
+export function Onboarding({ canvasId, user }: { canvasId: string; user: Pick<Me, 'id' | 'name' | 'email'> }) {
   const t = useT()
   const isMobile = useIsMobile()
   const docked = usePanelLayout() === 'docked'
   const tasks = useStore((s) => s.tasks)
   const presences = useStore((s) => s.presences)
-  const [progress, setProgress] = useState<Progress>(load)
+  const accountKey = `${LS_KEY}:${user.id}`
+  const canvasKey = `${accountKey}:${canvasId}`
+  const [progress, setProgress] = useState<Progress>(() => ({
+    ...load(canvasKey),
+    // An old dismissal is a browser preference. Old connection/work checks
+    // have no account identity and cannot prove this account completed them.
+    dismissed: load(accountKey).dismissed || load(LS_KEY).dismissed,
+  }))
+  const [connection, setConnection] = useState<'checking' | 'connected' | 'disconnected' | 'error'>('checking')
+  const allowanceVersion = useStore((s) => s.allowanceVersion)
   const [copied, setCopied] = useState(false)
   const [showConnect, setShowConnect] = useState(false)
 
@@ -60,25 +72,75 @@ export function Onboarding({ canvasId }: { canvasId: string }) {
        (Doop and the specialists) doesn't count towards the setup steps */
     const outside = (name: string) => name !== '' && !roleByAgentName(name)
     const agentHere = Object.values(presences).some((p) => p.kind === 'agent' && outside(p.name))
-    const agentWorked = tasks.some((t) => outside(t.agentName))
-    return { connected: agentHere || agentWorked, tasked: agentWorked }
+    const agentWorked = tasks.some((task) => outside(task.agentName))
+    const completed = tasks.some((task) => outside(task.agentName) && !!task.frameIds?.length && !task.failedAt)
+    return { reached: agentHere || agentWorked, completed }
   }, [tasks, presences])
 
   /* a step, once seen live, stays done: fold the live signals into the
      stored progress as they light up */
   const next: Progress = {
     ...progress,
-    connected: progress.connected || live.connected,
-    tasked: progress.tasked || live.tasked,
+    reached: progress.reached || live.reached,
+    completed: progress.completed || live.completed,
   }
-  if (next.connected !== progress.connected || next.tasked !== progress.tasked) {
+  if (next.reached !== progress.reached || next.completed !== progress.completed) {
     setProgress(next)
   }
 
-  useEffect(() => save(progress), [progress])
+  useEffect(() => {
+    try {
+      localStorage.setItem(accountKey, JSON.stringify({ dismissed: progress.dismissed }))
+      localStorage.setItem(canvasKey, JSON.stringify({ reached: progress.reached, completed: progress.completed }))
+    } catch {
+      // Private browsing or a full store still keeps progress in this tab.
+    }
+  }, [accountKey, canvasKey, progress])
+
+  useEffect(() => {
+    if (progress.dismissed) return
+    let disposed = false
+    let pending = false
+    let timer: ReturnType<typeof setTimeout>
+    const check = () => {
+      if (pending) return
+      clearTimeout(timer)
+      pending = true
+      api
+        .agentAllowance()
+        .then(
+          (state) => {
+            if (disposed) return
+            setConnection(state.connected ? 'connected' : 'disconnected')
+            if (!state.connected) timer = setTimeout(check, 3000)
+          },
+          () => {
+            if (disposed) return
+            setConnection('error')
+            timer = setTimeout(check, 3000)
+          },
+        )
+        .finally(() => {
+          pending = false
+        })
+    }
+    const visible = () => {
+      if (document.visibilityState === 'visible') check()
+    }
+    check()
+    window.addEventListener('focus', check)
+    document.addEventListener('visibilitychange', visible)
+    return () => {
+      disposed = true
+      clearTimeout(timer)
+      window.removeEventListener('focus', check)
+      document.removeEventListener('visibilitychange', visible)
+    }
+  }, [allowanceVersion, showConnect, progress.dismissed])
 
   if (progress.dismissed) return null
-  const allDone = progress.connected && progress.tasked
+  const connected = connection === 'connected'
+  const allDone = connected && progress.reached && progress.completed
 
   function dismiss() {
     setProgress({ ...progress, dismissed: true })
@@ -98,8 +160,18 @@ export function Onboarding({ canvasId }: { canvasId: string }) {
 
   const checklist = (
     <>
-      <Step done={!!progress.connected} label={t('canvas.stepConnect')}>
-        {!progress.connected && (
+      <p className={obHint}>{t('canvas.connectionAccount', { email: user.email })}</p>
+      <Step done={connected} label={t('canvas.stepConnect')}>
+        {connection === 'checking' && <p className={obHint}>{t('canvas.checkingConnection')}</p>}
+        {connection === 'error' && (
+          <>
+            <p className={obHint}>{t('canvas.connectionCheckFailed')}</p>
+            <Button size="sm" onClick={() => useStore.getState().allowanceChanged()}>
+              {t('common.retry')}
+            </Button>
+          </>
+        )}
+        {connection === 'disconnected' && (
           <>
             <p className={obHint}>{t('canvas.stepConnectHint')}</p>
             <Button variant="primary" size="sm" className="mt-0.75 self-start" onClick={() => setShowConnect(true)}>
@@ -109,8 +181,8 @@ export function Onboarding({ canvasId }: { canvasId: string }) {
         )}
       </Step>
 
-      <Step done={!!progress.tasked} label={t('canvas.stepTask')}>
-        {progress.connected && !progress.tasked && (
+      <Step done={!!progress.reached} label={t('canvas.stepCanvas')}>
+        {connected && !progress.reached && (
           <>
             <Button size="sm" className={obCopy} onClick={() => copy(prompt)}>
               {copied ? (
@@ -122,9 +194,13 @@ export function Onboarding({ canvasId }: { canvasId: string }) {
                 t('canvas.copyStarterPrompt')
               )}
             </Button>
-            <p className={obHint}>{t('canvas.stepTaskHint')}</p>
+            <p className={obHint}>{t('canvas.stepCanvasHint')}</p>
           </>
         )}
+      </Step>
+
+      <Step done={!!progress.completed} label={t('canvas.stepTask')}>
+        {progress.reached && !progress.completed && <p className={obHint}>{t('canvas.stepTaskHint')}</p>}
       </Step>
 
       {allDone && (
@@ -141,7 +217,7 @@ export function Onboarding({ canvasId }: { canvasId: string }) {
   const connect = showConnect && <ConnectModal canvasId={canvasId} onClose={() => setShowConnect(false)} />
 
   if (isMobile) {
-    const done = [progress.connected, progress.tasked].filter(Boolean).length
+    const done = [connected, progress.reached, progress.completed].filter(Boolean).length
     return (
       <>
         {connect}
@@ -152,7 +228,7 @@ export function Onboarding({ canvasId }: { canvasId: string }) {
               className="pointer-events-auto absolute left-3 top-3 z-30 h-10 gap-2 rounded-full bg-surface px-3 text-xs font-semibold shadow-card"
             >
               <SparkIcon size={14} className="text-brand" /> {t('canvas.gettingStarted')}
-              <span className="font-mono text-[10px] text-ink-faint">{done}/2</span>
+              <span className="font-mono text-[10px] text-ink-faint">{done}/3</span>
             </Button>
           </SheetTrigger>
           <SheetContent
@@ -210,10 +286,13 @@ export function Onboarding({ canvasId }: { canvasId: string }) {
 }
 
 function Step({ done, label, children }: { done: boolean; label: string; children?: React.ReactNode }) {
+  const t = useT()
   return (
-    <div className="flex items-start gap-2.5">
+    <div role="group" aria-label={label} className="flex items-start gap-2.5">
       {/* one copy line tall, so the mark centres on the label's first line */}
       <span
+        role="img"
+        aria-label={done ? t('canvas.stepComplete') : t('canvas.stepIncomplete')}
         className={cn(
           'flex h-[1lh] w-3.5 flex-none items-center text-copy',
           done ? 'text-success-ink' : 'text-ink-faint',

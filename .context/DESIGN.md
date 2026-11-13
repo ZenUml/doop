@@ -212,3 +212,14 @@ density="rail"` (the group caption with its chevron) and `DashNavItem density="r
 
 - `--breakpoint-xs`: `30rem`, `--breakpoint-md`: `56.25rem` - custom additions on top of
   Tailwind's defaults.
+
+## Diagramly desktop home
+
+The owner approved restoring the original home composition on 2026-11-13:
+compact rail, greeting and wave-backed composer, then document preview tiles.
+`DiagramlyHomeHero` and `DiagramlySidebar` use the existing dashboard primitives;
+`DiagramlyHome` keeps import and backup actions in its Import menu. Legacy recovery
+is a compact contextual link that opens the existing review/import flow. The
+composer carries its draft into `DiagramlyGenerate`; opening that dialog does not
+start generation. Diagramly thumbnails fit painted content into the tile, while
+editor and export dimensions stay unchanged. Keep the upstream Home profile intact.

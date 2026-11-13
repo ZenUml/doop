@@ -1,0 +1,115 @@
+import { createHash } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
+import { lstat, readdir, readFile, realpath, writeFile } from 'node:fs/promises'
+import path from 'node:path'
+import assert from 'node:assert/strict'
+import { fileURLToPath } from 'node:url'
+
+// Run after assembling and before signing. No network access or package code
+// execution is needed. The manifest is an inventory, not a legal licence audit.
+export async function auditBundle(app) {
+  const root = await realpath(app)
+  const plist = (key) =>
+    execFileSync('/usr/libexec/PlistBuddy', ['-c', `Print :${key}`, path.join(root, 'Contents/Info.plist')], {
+      encoding: 'utf8',
+    }).trim()
+  const bundleIdentifier = plist('CFBundleIdentifier')
+  if (bundleIdentifier !== 'com.zenuml.app')
+    throw new Error('Bundle must retain the existing paid app identity com.zenuml.app')
+  const version = plist('CFBundleShortVersionString')
+  const buildVersion = plist('CFBundleVersion')
+  if (!/^\d+\.\d+\.\d+$/.test(version) || !/^\d+$/.test(buildVersion))
+    throw new Error('Missing numeric app version or build')
+  const older = version.split('.').map(Number)
+  const previous = [1, 0, 7]
+  const firstChange = older.findIndex((part, index) => part !== previous[index])
+  if (firstChange < 0 || older[firstChange] < previous[firstChange] || Number(buildVersion) <= 40)
+    throw new Error('The Mac App Store upgrade must exceed version 1.0.7 build 40')
+  const minimumSystemVersion = plist('LSMinimumSystemVersion')
+  if (!/^\d+\.\d+(?:\.\d+)?$/.test(minimumSystemVersion))
+    throw new Error('Missing numeric macOS minimum in app Info.plist')
+  const newerThanMinimum = (version) => {
+    const actual = version.split('.').map(Number)
+    const declared = minimumSystemVersion.split('.').map(Number)
+    for (let index = 0; index < 3; index++) {
+      if ((actual[index] ?? 0) !== (declared[index] ?? 0)) return (actual[index] ?? 0) > (declared[index] ?? 0)
+    }
+    return false
+  }
+  const files = []
+  const packages = []
+  const native = []
+  const forbidden = /(?:^|\/)(?:\.env(?:\..*)?|\.git|\.npmrc|\.yarnrc|\.claude|\.codex|\.DS_Store)$/
+  async function visit(directory) {
+    for (const name of (await readdir(directory)).sort()) {
+      const file = path.join(directory, name)
+      const relative = path.relative(root, file)
+      if (forbidden.test(relative)) throw new Error(`Private/development file in app: ${relative}`)
+      const stat = await lstat(file)
+      if (stat.isSymbolicLink()) {
+        const destination = await realpath(file)
+        if (!destination.startsWith(root + path.sep)) throw new Error(`External symlink: ${relative}`)
+        continue
+      }
+      if (stat.isDirectory()) {
+        await visit(file)
+        continue
+      }
+      if (!stat.isFile()) throw new Error(`Unsupported bundle entry: ${relative}`)
+      const data = await readFile(file)
+      files.push({ path: relative, bytes: data.length, sha256: createHash('sha256').update(data).digest('hex') })
+      if (name === 'package.json' && relative.includes('/node_modules/')) {
+        const metadata = JSON.parse(data)
+        packages.push({
+          path: relative,
+          name: metadata.name,
+          version: metadata.version,
+          license: metadata.license ?? null,
+        })
+        if (['typescript', 'vite', 'vitest', 'husky', '@storybook/react-vite'].includes(metadata.name)) {
+          throw new Error(`Development dependency shipped: ${metadata.name}`)
+        }
+      }
+      const magic = data.length >= 4 ? data.readUInt32BE(0) : 0
+      if ([0xfeedface, 0xcefaedfe, 0xfeedfacf, 0xcffaedfe, 0xcafebabe, 0xbebafeca].includes(magic)) {
+        const loadCommands = execFileSync('/usr/bin/otool', ['-l', file], { encoding: 'utf8' })
+        const targets = [...loadCommands.matchAll(/\bminos ([0-9.]+)/g)].map((match) => match[1])
+        for (const match of loadCommands.matchAll(/cmd LC_VERSION_MIN_MACOSX[\s\S]*?\n\s*version ([0-9.]+)/g))
+          targets.push(match[1])
+        for (const target of targets) {
+          if (newerThanMinimum(target))
+            throw new Error(`${relative} requires macOS ${target}; app declares ${minimumSystemVersion}`)
+        }
+        const dependencies = execFileSync('/usr/bin/otool', ['-L', file], { encoding: 'utf8' })
+        // otool -L includes LC_ID_DYLIB itself. Its original build path is
+        // metadata; only LC_LOAD_* entries are runtime dependencies.
+        const identities = new Set(
+          execFileSync('/usr/bin/otool', ['-D', file], { encoding: 'utf8' })
+            .split('\n')
+            .slice(1)
+            .map((line) => line.trim()),
+        )
+        for (const dependency of dependencies.split('\n').filter((line) => /^\s+/.test(line))) {
+          const library = dependency.trim().split(' (')[0]
+          if (identities.has(library)) continue
+          if (library.startsWith('/') && !library.startsWith('/System/Library/') && !library.startsWith('/usr/lib/')) {
+            throw new Error(`Non-system absolute library in ${relative}: ${library}`)
+          }
+        }
+        native.push(relative)
+      }
+    }
+  }
+  await visit(root)
+  return { format: 1, bundleIdentifier, version, buildVersion, minimumSystemVersion, files, packages, native }
+}
+
+const entry = process.argv[1] ? await realpath(process.argv[1]).catch(() => null) : null
+if (entry === (await realpath(fileURLToPath(import.meta.url)))) {
+  assert(process.argv[2], 'Usage: node scripts/desktop-bundle-audit.mjs <app> [manifest]')
+  const result = await auditBundle(process.argv[2])
+  if (process.argv[3]) await writeFile(process.argv[3], JSON.stringify(result, null, 2) + '\n')
+  console.log(
+    `Bundle audit: ${result.files.length} files, ${result.packages.length} packages, ${result.native.length} native binaries`,
+  )
+}

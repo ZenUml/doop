@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-11T05:41:27.423Z",
+  "releaseReady": false,
+  "status": "blocked",
+  "checks": [
+    {
+      "id": "licence",
+      "status": "review",
+      "evidence": "Root licence is AGPLv3; exact release/source obligations and distribution channel require recorded review.",
+      "next": "Complete the licence/channel issue before distribution. Do not assume the remote Diagramly backend has the same licence boundary."
+    },
+    {
+      "id": "reproducible-source",
+      "status": "blocked",
+      "evidence": "37 working-tree entries differ from HEAD.",
+      "next": "Map the shipped bundle to its exact reviewed source commit/archive; a public upstream fork alone does not identify the modified build."
+    },
+    {
+      "id": "metadata-lengths",
+      "status": "pass",
+      "evidence": {
+        "name": {
+          "characters": 23,
+          "max": 30
+        },
+        "subtitle": {
+          "characters": 28,
+          "max": 30
+        },
+        "keywords": {
+          "characters": 65,
+          "max": 100
+        },
+        "promotionalText": {
+          "characters": 149,
+          "max": 170
+        },
+        "description": {
+          "characters": 1007,
+          "max": 4000
+        }
+      }
+    },
+    {
+      "id": "listing",
+      "status": "blocked",
+      "evidence": "Listing state: draft-not-submitted. Product and policy URLs still need release verification.",
+      "next": "Use only claims supported by the shipping build and verified public URLs."
+    },
+    {
+      "id": "release-profile",
+      "status": "review",
+      "evidence": {
+        "templateName": "doop",
+        "templateId": "design.doop.desktop",
+        "updateEndpoints": ["https://doop.design/desktop/latest.json"],
+        "bundledUpdaterGuard": "updates.rs disables upstream updates for the current debug/bundled local-server build"
+      },
+      "next": "Provide a Diagramly Mac App Store profile with store signing/provisioning and Apple-delivered updates. Verify that no upstream service fallback or self-update path is active."
+    },
+    {
+      "id": "apple-commerce",
+      "status": "blocked",
+      "evidence": {
+        "selectedChannel": "apple-in-app-purchase",
+        "status": "User selected Apple payments; StoreKit, products and backend verification are not implemented."
+      },
+      "next": "Complete native StoreKit, authenticated server verification, account binding, restore, notifications and sandbox acceptance. A selected channel is not a verified connection."
+    },
+    {
+      "id": "bundle-identity",
+      "status": "blocked",
+      "evidence": {
+        "name": "DoopSpike",
+        "identifier": "ai.diagramly.doopspike",
+        "version": "0.13.0"
+      },
+      "next": "Decide the production bundle identity and verify migration from the spike and legacy app before changing containers."
+    },
+    {
+      "id": "distribution-signature",
+      "status": "blocked",
+      "evidence": {
+        "validSignature": true,
+        "adHoc": true,
+        "authorities": [],
+        "storeProvisioningVerified": false
+      },
+      "next": "Verify Mac App Store signing, provisioning, nested executables and sandbox entitlements in the shipping archive. A valid seal or Developer ID certificate alone does not establish store eligibility."
+    },
+    {
+      "id": "bundle-size",
+      "status": "review",
+      "evidence": {
+        "allocatedMiB": 1187
+      },
+      "next": "Measure the signed download and cold start; prune development dependencies and wrong-platform files before a customer release."
+    }
+  ],
+  "limitation": "Passing these static checks does not certify release readiness. Native acceptance, exact source compliance, billing, privacy and channel sign-off remain separate evidence."
+}

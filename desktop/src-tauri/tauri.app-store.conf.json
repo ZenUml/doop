@@ -1,0 +1,31 @@
+{
+  "productName": "ZenUML",
+  "identifier": "com.zenuml.app",
+  "version": "1.1.0",
+  "build": {
+    "frontendDist": "../../dist"
+  },
+  "plugins": {
+    "updater": null,
+    "deep-link": {
+      "desktop": {
+        "schemes": ["diagramly"]
+      }
+    }
+  },
+  "app": {
+    "security": {
+      "capabilities": ["app-store"]
+    }
+  },
+  "bundle": {
+    "targets": ["app"],
+    "createUpdaterArtifacts": false,
+    "macOS": {
+      "minimumSystemVersion": "13.5",
+      "bundleVersion": "41",
+      "entitlements": "app-store/shell.entitlements",
+      "infoPlist": "app-store/Info.plist"
+    }
+  }
+}

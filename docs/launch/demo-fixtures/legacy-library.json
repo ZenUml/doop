@@ -1,0 +1,22 @@
+[
+  {
+    "id": "demo-checkout-library",
+    "title": "Sample checkout flows",
+    "currentPageId": "demo-payment-success",
+    "cssMode": "css",
+    "pages": [
+      {
+        "id": "demo-payment-success",
+        "title": "Payment succeeds",
+        "js": "Browser -> Checkout: Start checkout\nCheckout -> Inventory: Reserve stock\nInventory -> Checkout: Reservation confirmed\nCheckout -> Payments: Authorize payment\nPayments -> Ledger: Record authorization\nLedger -> Payments: Recorded\nPayments -> Checkout: Payment authorized\nCheckout -> Browser: Show confirmation",
+        "css": ""
+      },
+      {
+        "id": "demo-payment-declined",
+        "title": "Payment is declined",
+        "js": "Browser -> Checkout: Start checkout\nCheckout -> Payments: Authorize payment\nPayments -> Bank: Request authorization\nBank -> Payments: Declined\nPayments -> Checkout: Return decline\nCheckout -> Browser: Show retry option",
+        "css": ""
+      }
+    ]
+  }
+]

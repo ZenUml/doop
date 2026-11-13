@@ -51,7 +51,12 @@ describe('install handoff signatures', () => {
     const grants = [grant('1', 'me/site'), grant('22', 'org/app', 'org/site'), grant('333')]
     const pass = issueInstallPass('canvas1', grants)
     expect(redeemInstallPass(pass, 'canvas1')).toEqual(grants)
-    expect(pass).not.toContain('org')
+    const fields = pass.split('.')
+    expect(fields).toHaveLength(5)
+    expect(fields.slice(0, 2)).toEqual(['gh-pass', 'canvas1'])
+    expect(fields[2]).toMatch(/^[A-Za-z0-9_-]{22}$/)
+    expect(fields[3]).toMatch(/^\d{13}$/)
+    expect(fields[4]).toMatch(/^[A-Za-z0-9_-]{43}$/)
     expect(pass.length).toBeLessThan(120)
     const many = Array.from({ length: 15 }, (_, i) => grant(String(i + 1)))
     expect(redeemInstallPass(issueInstallPass('canvas1', many), 'canvas1')).toHaveLength(10)
@@ -339,8 +344,12 @@ describe('app REST when configured', () => {
     expect(back.pathname).toBe(`/c/${canvasId}`)
     /* the pass names the canvas and a nonce; the grants stay in the server */
     const pass = back.searchParams.get('ghInstall')!
-    expect(pass.split('.').slice(0, 2)).toEqual(['gh-pass', canvasId])
-    expect(pass).not.toContain('555')
+    const fields = pass.split('.')
+    expect(fields).toHaveLength(5)
+    expect(fields.slice(0, 2)).toEqual(['gh-pass', canvasId])
+    expect(fields[2]).toMatch(/^[A-Za-z0-9_-]{22}$/)
+    expect(fields[3]).toMatch(/^\d{13}$/)
+    expect(fields[4]).toMatch(/^[A-Za-z0-9_-]{43}$/)
 
     /* the picker and the bind see what GitHub shows the user, not the
        installation's wider list (org/secret) */

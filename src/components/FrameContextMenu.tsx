@@ -15,6 +15,9 @@ import { ContextMenuContent, ContextMenuItem, ContextMenuSeparator } from './ui/
 import { MenuHint } from './ui/menu'
 import { FrameExportModal } from './FrameExportModal'
 import { FrameHistoryModal } from './FrameHistoryModal'
+import { isDiagramly } from '../lib/product'
+import { readDiagramFrame } from '../../shared/diagramFrame'
+import { shiftFrame } from '../lib/layerEdits'
 
 async function copyImageUrl(frame: Frame) {
   const notify = useStore.getState().pushNotice
@@ -77,6 +80,66 @@ export function FrameContextMenu({
     const group = s.canvas?.frames.filter((f) => ids.includes(f.id)) ?? [frame]
     return group.every((f) => f.approval?.status === 'ready_for_dev')
   })
+  if (isDiagramly()) {
+    const diagram = readDiagramFrame(frame.html)
+    const pageFrames = useStore.getState().canvas?.frames.filter((candidate) => candidate.pageId === frame.pageId) ?? []
+    return (
+      <>
+        <ContextMenuContent
+          onCloseAutoFocus={(event) => {
+            if (renameRequested.current) {
+              event.preventDefault()
+              renameRequested.current = false
+              onRename?.()
+            }
+            if (historyOpen) event.preventDefault()
+          }}
+        >
+          {onRename && !readOnly && (
+            <ContextMenuItem disabled={isStackLocked(frame)} onSelect={() => (renameRequested.current = true)}>
+              {t('panels.layersRename')}
+            </ContextMenuItem>
+          )}
+          {!readOnly && (
+            <>
+              <ContextMenuItem disabled={isStackLocked(frame)} onSelect={() => shiftFrame(pageFrames, frame.id, -1)}>
+                {t('panels.contentsMoveForward')}
+              </ContextMenuItem>
+              <ContextMenuItem disabled={isStackLocked(frame)} onSelect={() => shiftFrame(pageFrames, frame.id, 1)}>
+                {t('panels.contentsMoveBackward')}
+              </ContextMenuItem>
+              <ContextMenuItem onSelect={() => duplicateFrames([frame])}>{t('stage.duplicate')}</ContextMenuItem>
+              <ContextMenuItem onSelect={() => setFramesHidden([frame], !frame.hidden)}>
+                {t(frame.hidden ? 'stage.show' : 'stage.hide')}
+              </ContextMenuItem>
+              <ContextMenuItem onSelect={() => setFramesLocked([frame], !frame.locked)}>
+                {t(frame.locked ? 'stage.unlock' : 'stage.lock')}
+              </ContextMenuItem>
+            </>
+          )}
+          <ContextMenuSeparator />
+          {diagram && (
+            <ContextMenuItem onSelect={() => void navigator.clipboard.writeText(diagram.source)}>
+              {t('inspector.copyDiagramSourceTitle')}
+            </ContextMenuItem>
+          )}
+          {diagram && (
+            <ContextMenuItem onSelect={() => void copyFramePng(frame)}>{t('stage.copyAsPng')}</ContextMenuItem>
+          )}
+          <ContextMenuItem onSelect={() => setHistoryOpen(true)}>{t('stage.versionHistory')}</ContextMenuItem>
+          {!readOnly && (
+            <>
+              <ContextMenuSeparator />
+              <ContextMenuItem tone="danger" disabled={!!frame.locked} onSelect={() => deleteFramesTracked([frame])}>
+                {t('stage.deleteFrame')}
+              </ContextMenuItem>
+            </>
+          )}
+        </ContextMenuContent>
+        {historyOpen && <FrameHistoryModal frame={frame} onClose={() => setHistoryOpen(false)} />}
+      </>
+    )
+  }
   async function changeApproval() {
     setSavingApproval(true)
     try {

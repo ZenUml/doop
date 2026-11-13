@@ -1,4 +1,5 @@
 import React from 'react'
+import { initProduct } from './lib/product'
 import ReactDOM from 'react-dom/client'
 import './lib/posthog'
 import { App } from './App'
@@ -15,7 +16,7 @@ initDesktopShell()
 initTheme()
 
 /* the language is settled first, so the first paint already speaks it */
-void initLocale().then(() =>
+void Promise.all([initLocale(), initProduct()]).then(() =>
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <TooltipProvider>

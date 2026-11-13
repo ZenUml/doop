@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useT } from '../lib/i18n'
 import { TOOLS } from '../lib/tools'
 import { boundOn, chordHint } from '../lib/actions/chords'
-import { ACTIONS, MENUS } from '../lib/actions/registry'
+import { ACTIONS, MENUS, isActionVisible } from '../lib/actions/registry'
+import { productToolAvailable } from '../lib/productActions'
 import { Kbd } from './ui/kbd'
 import { Modal, ModalTitle } from './ui/modal'
 import { SearchField } from './ui/search-field'
@@ -16,17 +17,23 @@ export function ShortcutsSheet({ onClose }: { onClose: () => void }) {
   const t = useT()
   const [query, setQuery] = useState('')
   const q = query.trim().toLowerCase()
-  const tools = TOOLS.map((tool) => ({ id: tool.id, label: t(tool.label), hints: [tool.key] }))
+  const tools = TOOLS.filter((tool) => productToolAvailable(tool.id)).map((tool) => ({
+    id: tool.id,
+    label: t(tool.label),
+    hints: [tool.key],
+  }))
   const groups = [
     { id: 'tools', label: t('stage.canvasTools'), rows: tools },
     ...MENUS.map((menu) => ({
       id: menu.id,
       label: t(menu.label),
-      rows: ACTIONS.filter((a) => a.menu === menu.id && a.keys?.some((k) => boundOn(k))).map((a) => ({
-        id: a.id,
-        label: t(a.label),
-        hints: a.keys!.filter((k) => boundOn(k)).map((k) => chordHint(k)),
-      })),
+      rows: ACTIONS.filter((a) => isActionVisible(a) && a.menu === menu.id && a.keys?.some((k) => boundOn(k))).map(
+        (a) => ({
+          id: a.id,
+          label: t(a.label),
+          hints: a.keys!.filter((k) => boundOn(k)).map((k) => chordHint(k)),
+        }),
+      ),
     })),
   ]
     .map((g) => ({ ...g, rows: g.rows.filter((r) => !q || r.label.toLowerCase().includes(q)) }))

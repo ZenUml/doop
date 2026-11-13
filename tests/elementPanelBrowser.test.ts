@@ -10,6 +10,7 @@ import type { ElementInfo, GeometryEdit } from '../src/lib/frameBridge'
 
 declare global {
   interface Window {
+    clearElementPanelHistory: () => void
     elementPanelHarness: {
       seed: (frame: Frame) => void
       remote: (frame: Frame) => void
@@ -703,7 +704,6 @@ describe.skipIf(!findBrowserPath())('element design controls', () => {
     )
     const sibling = await frame.$eval('#sibling', (el) => el.getBoundingClientRect().toJSON())
     const originalTransform = await frame.$eval('#box', (el) => getComputedStyle(el).transform)
-    const before = await frame.$eval('#box', (el) => (el as HTMLElement).style.translate)
     await number('X position', 40)
     await frame.waitForFunction(
       () =>
@@ -757,6 +757,9 @@ describe.skipIf(!findBrowserPath())('element design controls', () => {
     expect(await frame.$eval('#box', (el) => getComputedStyle(el).transform)).toBe(originalTransform)
     await expect.poll(() => saved.html).toContain('scale: 1.2 -0.8')
     const previousSave = saved.html
+    const before = await frame.$eval('#box', (el) => (el as HTMLElement).style.translate)
+    // Isolate this edit: earlier edits may span several time-based undo groups on a busy runner.
+    await page.evaluate(() => window.clearElementPanelHistory())
     await number('X position', 80)
     await expect.poll(() => saved.html).not.toBe(previousSave)
     await page.evaluate(() => window.elementPanelHarness.undo())
@@ -766,8 +769,9 @@ describe.skipIf(!findBrowserPath())('element design controls', () => {
       before,
     )
     await page.waitForFunction(
-      () => document.querySelector<HTMLInputElement>('[aria-label="Rotation"]')?.value === '20',
+      () => document.querySelector<HTMLInputElement>('[aria-label="Rotation"]')?.value === '45',
     )
+    await expect.poll(() => saved.html).toBe(previousSave)
     await page.screenshot({ path: '/tmp/narwhal-panel-controls.png' })
     await selectLayer('#sibling')
     await page.waitForSelector('[aria-label="X position"][disabled]')

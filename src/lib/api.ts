@@ -1,3 +1,4 @@
+import type { LegacyZenUmlImportResult } from '../../shared/legacyZenUml'
 import { useStore } from './store'
 import type { InstanceSettings, InstanceSettingsPatch } from '../../shared/instanceSettings'
 import { beginFrameSave } from './frameSaves'
@@ -432,6 +433,11 @@ export const api = {
   homeActivity: () => req<HomeActivity[]>('/api/home/activity'),
   createCanvas: (name: string, workspaceId?: string) =>
     req<Canvas>('/api/canvases', { method: 'POST', body: JSON.stringify({ name, workspaceId }) }),
+  importLegacyZenUml: (items: unknown[], selected: number[], workspaceId?: string) =>
+    req<LegacyZenUmlImportResult>('/api/import/zenuml', {
+      method: 'POST',
+      body: JSON.stringify({ items, selected, workspaceId }),
+    }),
   /* file a canvas in a workspace, or back in its owner's personal space (null) */
   moveCanvas: (id: string, workspaceId: string | null) =>
     req(`/api/canvases/${id}/workspace`, { method: 'PUT', body: JSON.stringify({ workspaceId }) }),

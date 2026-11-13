@@ -1,0 +1,8 @@
+Browser -> Checkout: Start checkout
+Checkout -> Inventory: Reserve stock
+Inventory -> Checkout: Reservation confirmed
+Checkout -> Payments: Authorize payment
+Payments -> Ledger: Record authorization
+Ledger -> Payments: Recorded
+Payments -> Checkout: Payment authorized
+Checkout -> Browser: Show confirmation

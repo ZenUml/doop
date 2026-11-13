@@ -1,7 +1,15 @@
 import { Fragment, type ReactNode } from 'react'
 import { useT } from '../lib/i18n'
 import { chordHint, firstChord } from '../lib/actions/chords'
-import { ACTIONS, MENUS, isEnabled, runAction, type CanvasAction, type MenuId } from '../lib/actions/registry'
+import {
+  ACTIONS,
+  MENUS,
+  isActionVisible,
+  isEnabled,
+  runAction,
+  type CanvasAction,
+  type MenuId,
+} from '../lib/actions/registry'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -21,7 +29,7 @@ import { FolderIcon, SearchIcon } from './ui/icons'
    checked is current. */
 function MenuRows({ menu }: { menu: MenuId }) {
   const t = useT()
-  const actions = ACTIONS.filter((a) => a.menu === menu)
+  const actions = ACTIONS.filter((a) => a.menu === menu && isActionVisible(a))
   const sections = [...new Set(actions.map((a) => a.section))]
   return sections.map((section, i) => (
     <Fragment key={section}>
@@ -81,17 +89,19 @@ export function MainMenu({ trigger }: { trigger: ReactNode }) {
           icon={<SearchIcon width={14} height={14} aria-hidden className="flex-none text-ink-faint" />}
         />
         <DropdownMenuSeparator />
-        {MENUS.map((menu) => (
-          <Fragment key={menu.id}>
-            {menu.id === 'help' && <DropdownMenuSeparator />}
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>{t(menu.label)}</DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="w-[min(300px,calc(100vw-24px))]">
-                <MenuRows menu={menu.id} />
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          </Fragment>
-        ))}
+        {MENUS.filter((menu) => ACTIONS.some((action) => action.menu === menu.id && isActionVisible(action))).map(
+          (menu) => (
+            <Fragment key={menu.id}>
+              {menu.id === 'help' && <DropdownMenuSeparator />}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>{t(menu.label)}</DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-[min(300px,calc(100vw-24px))]">
+                  <MenuRows menu={menu.id} />
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            </Fragment>
+          ),
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

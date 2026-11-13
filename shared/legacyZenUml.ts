@@ -1,0 +1,115 @@
+/** The JSON array written by ZenUML desktop's "Export all" command. */
+export interface LegacyZenUmlPage {
+  legacyId: string
+  title: string
+  source: string
+  css: string
+  cssMode: string
+  styleConfig?: string
+  styleHtml?: string
+  width?: number
+  height?: number
+}
+
+export interface LegacyZenUmlDocument {
+  legacyId: string
+  /** Stable IndexedDB primary-key fingerprint, when supplied by the reader. */
+  sourceRecordId?: string
+  /** Occurrence among identical unkeyed exports, assigned before selection. */
+  duplicateOrdinal?: number
+  title: string
+  pages: LegacyZenUmlPage[]
+  activePageId?: string
+}
+
+export interface LegacyZenUmlImportResult {
+  canvases: { id: string; name: string; pageId?: string }[]
+  imported: number
+  skipped: number
+  warnings: string[]
+}
+
+function record(value: unknown, label: string): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`${label}: expected an object.`)
+  return value as Record<string, unknown>
+}
+
+function text(value: unknown, label: string, limit: number): string {
+  if (value === undefined || value === null) return ''
+  if (typeof value !== 'string' || value.length > limit) throw new Error(`${label}: invalid or too long.`)
+  return value
+}
+
+/** Fields recognized by the original importer, in their original order. */
+export function legacyIdentityDocument(document: LegacyZenUmlDocument): Omit<LegacyZenUmlDocument, 'sourceRecordId'> {
+  const { sourceRecordId: _source, ...identity } = document
+  return { ...identity, pages: document.pages.map(({ width: _width, height: _height, ...page }) => page) }
+}
+
+export function parseLegacyZenUml(value: unknown): LegacyZenUmlDocument[] {
+  if (!Array.isArray(value) || !value.length || value.length > 1000) {
+    throw new Error('Choose a ZenUML export containing 1–1000 documents (a JSON array).')
+  }
+  const seenSources = new Set<string>()
+  const occurrences = new Map<string, number>()
+  return value.map((entry: unknown, index) => {
+    const label = `Document ${index + 1}`
+    const item = record(entry, label)
+    /* An unrelated JSON array must not become hundreds of empty canvases. */
+    if (typeof item.id !== 'string' || !item.id.trim()) throw new Error(`${label}: missing legacy document ID.`)
+    const sourceRecordId =
+      item.sourceRecordId === undefined ? undefined : text(item.sourceRecordId, `${label} source record ID`, 200)
+    if (sourceRecordId !== undefined) {
+      if (!sourceRecordId.trim() || seenSources.has(sourceRecordId))
+        throw new Error(`${label}: invalid or repeated source record ID.`)
+      seenSources.add(sourceRecordId)
+    }
+    const title = text(item.title, `${label} title`, 1000).trim() || `Untitled legacy document ${index + 1}`
+    const cssMode = text(item.cssMode, `${label} style format`, 20) || 'css'
+    if (item.pages !== undefined && !Array.isArray(item.pages)) throw new Error(`${label}: invalid pages.`)
+    const entries = Array.isArray(item.pages) && item.pages.length ? item.pages : [item]
+    if (entries.length > 100) throw new Error(`${label}: a canvas supports at most 100 pages.`)
+    const pages = entries.map((entry: unknown, pageIndex) => {
+      const page = record(entry, `${label}, page ${pageIndex + 1}`)
+      const mode = text(page.cssMode, `${label} page style format`, 20) || cssMode
+      const settingsValue = page.cssSettings ?? item.cssSettings
+      const settings = settingsValue == null ? undefined : record(settingsValue, `${label} style settings`)
+      const styleConfig =
+        mode === 'acss' ? text(settings?.acssConfig, `${label} Atomic CSS configuration`, 200_000) : ''
+      const styleHtml = mode === 'acss' ? text(page.html, `${label} original style HTML`, 1_000_000) : ''
+      const dimensions: { width?: number; height?: number } = {}
+      for (const key of ['width', 'height'] as const) {
+        if (page[key] === undefined || page[key] === null) continue
+        const dimension = page[key]
+        if (typeof dimension !== 'number' || !Number.isFinite(dimension) || dimension <= 0 || dimension > 100_000)
+          throw new Error(`${label}: invalid page ${key}.`)
+        dimensions[key] = dimension
+      }
+      return {
+        ...dimensions,
+        legacyId: text(page.id, `${label} page ID`, 1000) || `page-${pageIndex + 1}`,
+        title:
+          entries[0] === item
+            ? 'Page 1'
+            : text(page.title, `${label} page title`, 1000).trim() || `Page ${pageIndex + 1}`,
+        source: text(page.js, `${label} source`, 200_000),
+        css: text(page.css, `${label} styles`, 200_000),
+        cssMode: mode,
+        ...(styleConfig ? { styleConfig } : {}),
+        ...(styleHtml ? { styleHtml } : {}),
+      }
+    })
+    const activePageId = typeof item.currentPageId === 'string' ? item.currentPageId : undefined
+    const document: LegacyZenUmlDocument = {
+      legacyId: item.id,
+      title,
+      pages,
+      ...(activePageId ? { activePageId } : {}),
+    }
+    if (sourceRecordId !== undefined) return { ...document, sourceRecordId }
+    const identity = JSON.stringify(legacyIdentityDocument(document))
+    const occurrence = occurrences.get(identity) ?? 0
+    occurrences.set(identity, occurrence + 1)
+    return occurrence ? { ...document, duplicateOrdinal: occurrence } : document
+  })
+}

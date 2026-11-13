@@ -24,6 +24,8 @@ export const actions = {
   duplicateCanvas: 'Duplicate canvas',
   placeImage: 'Place image…',
   import: 'Import…',
+  newDiagram: 'New ZenUML diagram',
+  newMermaidDiagram: 'New Mermaid diagram',
   versionHistory: 'Show version history',
   export: 'Export…',
   exportPdf: 'Export frames to PDF…',

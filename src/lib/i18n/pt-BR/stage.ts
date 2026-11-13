@@ -14,6 +14,8 @@ export const stage: Catalog['stage'] = {
   hintShape: 'Arraste para desenhar · Shift para um quadrado · Esc para cancelar',
   finishPath: 'Concluir caminho',
   newFrame: 'Novo frame',
+  diagramUnavailable:
+    'Este item não é um diagrama compatível. Importe ou crie um diagrama ZenUML ou Mermaid para visualizá-lo.',
 
   /* drawing, path editing, moving and resizing */
   textInputLabel: 'Texto a adicionar ao canvas',

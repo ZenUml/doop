@@ -105,10 +105,20 @@ const nonNegativeInt = int(0)
 const schema = {
   NODE_ENV: str({ choices: ['development', 'test', 'production'], default: 'development' }),
   PORT: port({ default: 4400 }),
+  DOOP_PRODUCT: str({ choices: ['doop', 'diagramly'], default: 'doop' }),
+  DIAGRAMLY_ORIGIN: origin({ default: 'https://diagramly.ai' }),
   /* the interface language for anyone who has not picked one in Settings */
   DEFAULT_LOCALE: str({ choices: LOCALES, default: FALLBACK_LOCALE }),
   /* unset = embedded Postgres (PGlite) under ./data/pg */
   DATABASE_URL: str({ default: undefined }),
+  /* where the embedded database and uploaded assets live; unset = ./data under the
+     working directory. A packaged desktop app runs from a read-only bundle and sets it (spike) */
+  DOOP_DATA_DIR: str({ default: undefined }),
+  /* the interface to listen on; unset = all of them. A desktop app sets 127.0.0.1 (spike) */
+  HOST: str({ default: undefined }),
+  DOOP_FRAME_SNAPSHOT_HELPER: str({ default: undefined }),
+  /* Written by the native upgrade snapshotter, never supplied over HTTP. */
+  DOOP_LEGACY_LIBRARY_MANIFEST: str({ default: undefined }),
 
   /* ---------------------------------------------------------- auth */
   BETTER_AUTH_SECRET: str({

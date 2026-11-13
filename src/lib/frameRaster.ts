@@ -1,5 +1,6 @@
 import type { Frame } from '../../shared/types'
 import { snapshotFrame } from './frameBridge'
+import { TRANSPARENT_DIAGRAM_STYLE } from '../../shared/diagramExport'
 
 /**
  * Render a frame to an image in this browser: the document is inlined into
@@ -29,6 +30,8 @@ export interface RasterOptions {
   type: RasterType
   /** JPEG only, 0-1 */
   quality?: number
+  /** PNG only: remove the document paper and retain the alpha channel. */
+  transparent?: boolean
   /** the whole render, fetches included, gives up when this fires */
   signal?: AbortSignal
   /** the part of the frame to keep; the whole frame when unset. The
@@ -46,7 +49,12 @@ export async function rasterizeFrame(frame: Frame, opts: RasterOptions): Promise
      pixels cannot all be read is for the server */
   if (snapshot && snapshot.html === null) throw new Error('the frame cannot be drawn here')
   const html = snapshot?.html ?? frame.html
-  const svg = await inlineDocument(html, { width: frame.width, height: frame.height, signal })
+  const svg = await inlineDocument(html, {
+    width: frame.width,
+    height: frame.height,
+    signal,
+    transparent: opts.type === 'png' && opts.transparent === true,
+  })
   return drawSvg(svg, { width: frame.width, height: frame.height, ...opts })
 }
 
@@ -115,6 +123,7 @@ interface InlineOptions {
    *  viewport, so viewport units and media queries are settled against the
    *  frame first (`FrameViewport`) */
   standalone?: boolean
+  transparent?: boolean
 }
 
 /* a number glued to a viewport unit, not inside a word or a base64 run */
@@ -303,6 +312,22 @@ async function inlineInto(
     }
   }
 
+  /* A live diagram mounts beneath <html>, outside its zero-height body. HTML
+     parsing reparents that mount into the body, where the diagram's runtime
+     clipping would otherwise erase it in the foreignObject export. */
+  if (doc.body.hasAttribute('data-doop-diagram')) {
+    if (!doc.querySelector('[data-doop-diagram-mount]')) throw new Error('the diagram has not rendered')
+    const style = doc.createElement('style')
+    style.setAttribute('data-doop-diagram-export', '')
+    style.textContent = 'body { height: auto !important; overflow: visible !important; }'
+    doc.head.append(style)
+  }
+
+  if (opts.transparent) {
+    const style = doc.createElement('style')
+    style.textContent = TRANSPARENT_DIAGRAM_STYLE
+    doc.head.append(style)
+  }
   /* the XML serializer gives an HTML document's root its xhtml namespace */
   const body = new XMLSerializer().serializeToString(doc.documentElement)
   const { width, height, clip } = opts
@@ -441,8 +466,10 @@ async function drawSvg(svg: string, opts: DrawOptions): Promise<Blob> {
   canvas.height = Math.max(1, Math.round(clip.height * opts.scale))
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('no 2d canvas')
-  ctx.fillStyle = '#fff'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  if (!opts.transparent || opts.type === 'jpeg') {
+    ctx.fillStyle = '#fff'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+  }
   /* the whole frame is drawn at scale, shifted so the clip lands at the origin */
   ctx.drawImage(
     image,

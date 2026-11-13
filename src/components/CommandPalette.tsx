@@ -13,6 +13,7 @@ import {
 } from './ui/command'
 import { CheckIcon, SparkIcon } from './ui/icons'
 import { Modal } from './ui/modal'
+import { productActionAvailable } from '../lib/productActions'
 
 /**
  * ⌘K: every canvas command that can run right now, searchable by name and
@@ -29,7 +30,10 @@ export function CommandPalette({ onClose, onAsk }: { onClose: () => void; onAsk:
       actions: ACTIONS.filter((a) => a.menu === menu.id && a.id !== 'palette' && isEnabled(a)),
     })).filter((g) => g.actions.length),
   )
-  const ask = useMemo(() => (onAsk && query.trim() ? query.trim() : null), [onAsk, query])
+  const ask = useMemo(
+    () => (productActionAvailable('ask-agent') && onAsk && query.trim() ? query.trim() : null),
+    [onAsk, query],
+  )
 
   function choose(action: CanvasAction) {
     onClose()

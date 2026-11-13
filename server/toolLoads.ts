@@ -32,13 +32,16 @@ export async function withArgsCanvases<T>(args: unknown, run: () => T | Promise<
 /** Every tool registered on `server` from here on loads and holds its
  *  canvases. A tool with an input schema is called with (args, extra), one
  *  without with (extra) alone. */
-export function loadToolTargets(server: McpServer): void {
+export function loadToolTargets(server: McpServer, available?: (name: string) => boolean): void {
   type Register = typeof server.registerTool
   type Callback = Parameters<Register>[2]
   const register: Register = server.registerTool.bind(server)
-  server.registerTool = ((name: string, config: Parameters<Register>[1], callback: Callback) =>
-    register(name, config, (async (...params: unknown[]) => {
+  server.registerTool = ((name: string, config: Parameters<Register>[1], callback: Callback) => {
+    const tool = register(name, config, (async (...params: unknown[]) => {
       const forward = () => (callback as (...forwarded: unknown[]) => unknown)(...params)
       return params.length > 1 ? withArgsCanvases(params[0], forward) : forward()
-    }) as unknown as Callback)) as Register
+    }) as unknown as Callback)
+    if (available && !available(name)) tool.disable()
+    return tool
+  }) as Register
 }

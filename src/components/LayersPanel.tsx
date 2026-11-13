@@ -89,6 +89,8 @@ import {
   SearchIcon,
 } from './ui/icons'
 import { t as translate, useT } from '@/lib/i18n'
+import { isDiagramly } from '../lib/product'
+import { DiagramlyContents } from './DiagramlyContents'
 
 /* the tree indents 16px per level; frame rows sit at depth 0 */
 const INDENT = 16
@@ -220,7 +222,16 @@ function visibleRows(frames: Frame[], query: string, expanded: Set<string>): Vis
 /** The Layers rail: every frame on the canvas, opening into the element tree
  *  of its HTML. Selection runs both ways — a row selects the element in the
  *  frame, a click in the frame highlights its row. */
-export function LayersPanel({
+export function LayersPanel(props: {
+  onAddFrame: () => void
+  surface?: PanelSurface
+  onClose?: () => void
+  resize?: PanelResize
+}) {
+  return isDiagramly() ? <DiagramlyContents {...props} /> : <DoopLayersPanel {...props} />
+}
+
+function DoopLayersPanel({
   onAddFrame,
   surface = 'floating',
   onClose,
@@ -687,9 +698,10 @@ export function LayersRailToggle({ docked = false }: { docked?: boolean }) {
   const setLayersOpen = useStore((s) => s.setLayersOpen)
   const count = usePageCanvas()?.frames.length ?? 0
   const t = useT()
+  const diagramly = isDiagramly()
   return (
     <Toolbar
-      aria-label={t('panels.layersRailAria')}
+      aria-label={t(diagramly ? 'panels.contentsTitle' : 'panels.layersRailAria')}
       orientation="vertical"
       className={cn(
         'pointer-events-auto absolute z-[35]',
@@ -702,7 +714,7 @@ export function LayersRailToggle({ docked = false }: { docked?: boolean }) {
         <PanelExpandIcon />
       </ToolbarControl>
       <ToolbarControl
-        label={t('panels.layersRailCount', { count })}
+        label={diagramly ? `${t('panels.contentsTitle')} · ${count}` : t('panels.layersRailCount', { count })}
         side="right"
         onClick={() => {
           useStore.getState().setLayersTab('layers')
@@ -711,26 +723,30 @@ export function LayersRailToggle({ docked = false }: { docked?: boolean }) {
       >
         <LayersIcon />
       </ToolbarControl>
-      <ToolbarControl
-        label={t('components.title')}
-        side="right"
-        onClick={() => {
-          useStore.getState().setLayersTab('components')
-          setLayersOpen(true)
-        }}
-      >
-        <ComponentIcon />
-      </ToolbarControl>
-      <ToolbarControl
-        label={t('panels.layersTabTokens')}
-        side="right"
-        onClick={() => {
-          useStore.getState().setLayersTab('tokens')
-          setLayersOpen(true)
-        }}
-      >
-        <BracesIcon />
-      </ToolbarControl>
+      {!diagramly && (
+        <>
+          <ToolbarControl
+            label={t('components.title')}
+            side="right"
+            onClick={() => {
+              useStore.getState().setLayersTab('components')
+              setLayersOpen(true)
+            }}
+          >
+            <ComponentIcon />
+          </ToolbarControl>
+          <ToolbarControl
+            label={t('panels.layersTabTokens')}
+            side="right"
+            onClick={() => {
+              useStore.getState().setLayersTab('tokens')
+              setLayersOpen(true)
+            }}
+          >
+            <BracesIcon />
+          </ToolbarControl>
+        </>
+      )}
     </Toolbar>
   )
 }

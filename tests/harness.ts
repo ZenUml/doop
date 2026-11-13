@@ -127,7 +127,9 @@ async function boot(env: Record<string, string>, reuseDir: string | undefined, t
       stopped,
       stop({ keepData }: { keepData?: boolean } = {}) {
         proc.kill()
-        if (!keepData) rmSync(dataDir, { recursive: true, force: true })
+        // The child may still finish a PGlite write after SIGTERM. Retry transient
+        // ENOTEMPTY instead of racing its exit during test cleanup.
+        if (!keepData) rmSync(dataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 })
       },
     }
   }

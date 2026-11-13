@@ -8,7 +8,10 @@ import { useStore } from '../store'
 import { currentPageCanvas } from '../pages'
 import { readingOrder } from '../../../shared/frameOrder'
 import { redo, undo } from '../history'
+import { newDiagramFrame } from '../diagramFrames'
 import { runViewCommand } from '../viewMenu'
+import { productActionAvailable } from '../productActions'
+import { isDiagramly } from '../product'
 import { downloadFramesPdf } from '../frameExport'
 import { duplicateFrames, hasFrameClip, pasteFramesOver, replaceFramesWithClip } from '../frameClipboard'
 import { hasElementClip, pasteLayer, replaceWithClip } from '../elementClipboard'
@@ -241,6 +244,30 @@ export const ACTIONS: readonly CanvasAction[] = [
     edit: true,
     enabled: () => !h()?.guest,
     run: () => h()?.openImport(),
+  },
+  {
+    id: 'new-diagram',
+    label: 'actions.newDiagram',
+    menu: 'file',
+    section: 1,
+    edit: true,
+    enabled: () => !h()?.guest,
+    run: () => {
+      const canvasId = h()?.canvasId
+      if (canvasId) void newDiagramFrame(canvasId, 'zenuml')
+    },
+  },
+  {
+    id: 'new-mermaid-diagram',
+    label: 'actions.newMermaidDiagram',
+    menu: 'file',
+    section: 1,
+    edit: true,
+    enabled: () => !h()?.guest,
+    run: () => {
+      const canvasId = h()?.canvasId
+      if (canvasId) void newDiagramFrame(canvasId, 'mermaid')
+    },
   },
   {
     id: 'version-history',
@@ -1067,7 +1094,15 @@ export const ACTIONS: readonly CanvasAction[] = [
 
 /** Whether the action can run now: the canvas is open and editable when it
  *  needs to be, and its own test passes. */
+export function isActionVisible(action: CanvasAction): boolean {
+  return productActionAvailable(action.id)
+}
+
 export function isEnabled(action: CanvasAction): boolean {
+  if (!isActionVisible(action)) return false
+  // Retained selection state must not redirect whole-diagram actions into
+  // their upstream DOM-editing branches.
+  if (action.edit && isDiagramly() && store().selectedElement) return false
   if (!host) return false
   if (action.edit && !canEdit()) return false
   return action.enabled ? action.enabled() : true
@@ -1083,7 +1118,7 @@ export function runAction(action: CanvasAction) {
  *  `dispatchActionKey` applies, for a key that reached the desktop menu bar
  *  instead of the page. */
 export function takesKey(action: CanvasAction, typing: boolean): boolean {
-  if (!host || host.presenting || action.hintOnly) return false
+  if (!isActionVisible(action) || !host || host.presenting || action.hintOnly) return false
   return !typing || !!action.keys?.some((chord) => chord.global)
 }
 

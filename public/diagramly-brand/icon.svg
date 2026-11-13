@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Diagramly Desktop icon candidate</title>
+  <desc id="desc">A white D formed from a diagram connection on a full-bleed blue, violet and magenta background.</desc>
+  <defs>
+    <linearGradient id="brand" x1="0" y1="1" x2="1" y2="0">
+      <stop stop-color="#505bff"/>
+      <stop offset=".52" stop-color="#7b36ed"/>
+      <stop offset="1" stop-color="#c400ce"/>
+    </linearGradient>
+    <linearGradient id="light" x2="0" y2="1">
+      <stop stop-color="#fff" stop-opacity=".15"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- App icon assets stay square; macOS applies its own icon presentation. -->
+  <rect width="1024" height="1024" fill="url(#brand)"/>
+  <rect width="1024" height="1024" fill="url(#light)"/>
+  <path d="M330 306H476C623 306 710 387 710 512S623 718 476 718H330" fill="none" stroke="#fff" stroke-width="74" stroke-linecap="round"/>
+  <path d="M330 362V662" fill="none" stroke="#fff" stroke-width="55" stroke-linecap="round"/>
+  <rect x="273" y="249" width="114" height="114" rx="30" fill="#fff"/>
+  <rect x="273" y="661" width="114" height="114" rx="30" fill="#fff"/>
+  <circle cx="710" cy="512" r="57" fill="#fff"/>
+  <path d="M750 226C750 255 765 270 794 270C765 270 750 285 750 314C750 285 735 270 706 270C735 270 750 255 750 226Z" fill="#fff"/>
+</svg>

@@ -23,7 +23,7 @@ it('persists a complete canvas duplicate across a server restart', async () => {
     expect(
       (
         await owner.patch(`/api/frames/${sourceFrame.id}`, {
-          html: `<img src="${asset.url}" alt="persistent duplicate">`,
+          html: `<img src="${asset.url}" alt="persistent duplicate"><span class="tag" data-doop-id="tagone">One</span><span class="tag">Two</span>`,
         })
       ).status,
     ).toBe(200)
@@ -38,6 +38,15 @@ it('persists a complete canvas duplicate across a server restart', async () => {
     const sourceReference = await (
       await owner.post(`/api/canvases/${source.id}/references`, { frameId: sourceFrame.id })
     ).json()
+
+    const componentResponse = await owner.post(`/api/canvases/${source.id}/components`, {
+      name: 'Tag',
+      frameId: sourceFrame.id,
+      element: 'tagone',
+      replaceMatching: true,
+    })
+    const componentResult = await componentResponse.json()
+    expect(componentResponse.status, JSON.stringify(componentResult)).toBe(200)
 
     const duplicateResponse = await owner.post(`/api/canvases/${source.id}/duplicate`)
     const duplicate = await duplicateResponse.json()
@@ -68,6 +77,17 @@ it('persists a complete canvas duplicate across a server restart', async () => {
     expect(restored.references).toHaveLength(1)
     expect(restored.references[0].id).not.toBe(sourceReference.id)
     expect(restored.references[0].frameId).toBe(restored.frames[0].id)
+
+    expect(restored.components).toHaveLength(1)
+    const copiedComponent = restored.components[0]
+    expect(restored.frames[0].html).toContain(`data-doop-instance="${copiedComponent.id}"`)
+    const componentUpdate = await signedIn.patch(`/api/canvases/${duplicate.id}/components/${copiedComponent.id}`, {
+      find: 'class="tag"',
+      replace: 'class="tag after-copy-restart"',
+    })
+    expect(componentUpdate.status).toBe(200)
+    const updated = await (await signedIn.get(`/api/canvases/${duplicate.id}`)).json()
+    expect(updated.frames[0].html.match(/after-copy-restart/g)?.length).toBeGreaterThanOrEqual(2)
 
     const assetPath = new URL(restored.frames[0].html.match(/src="([^"]+)"/)![1]).pathname
     const copiedAsset = await fetch(`${server.base}${assetPath}`)

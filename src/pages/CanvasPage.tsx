@@ -1,3 +1,4 @@
+import { LegacyZenUmlImport } from '../components/LegacyZenUmlImport'
 import { CAPTURE_PREFIX, pasteWebCapture } from '../lib/webCapture'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { canEditOpenCanvas, pickedSelectors, roleOf, useStore } from '../lib/store'
@@ -49,6 +50,7 @@ import { ShareModal } from '../components/ShareModal'
 import { ExportModal } from '../components/ExportModal'
 import { AppIcon } from '../components/ui/brand-mark'
 import { pageFrames } from '../../shared/pages'
+import { readDiagramFrame } from '../../shared/diagramFrame'
 import type { Frame } from '../../shared/types'
 import { ImportStepFooter, ImportStepHeader, SourcePicker } from '../components/ImportSources'
 import { importSources } from '../components/importSourceList'
@@ -70,7 +72,7 @@ import {
   splitIncoming,
   svgMarkupOf,
 } from '../lib/frameClipboard'
-import { clearHistory } from '../lib/history'
+import { clearHistory, redo, undo } from '../lib/history'
 import { deleteSelection, nudgeSelection } from '../lib/layerEdits'
 import { copyPicked, hasElementClip, pasteLayer } from '../lib/elementClipboard'
 import { isCanvasClipboard, writeCanvasClipboard } from '../lib/canvasClipboard'
@@ -126,6 +128,8 @@ import { loadCanvasFonts } from '../lib/customFonts'
 import { t as translate, useT } from '../lib/i18n'
 import { NO_INSETS, type StageInsets } from '../lib/viewFit'
 import { usePanelLayout } from '../lib/panelLayout'
+import { isDiagramly } from '../lib/product'
+import { buildDiagramHtml, DEFAULT_DIAGRAM_SOURCE } from '../../shared/diagramFrame'
 
 /* The floating chrome's geometry, in px from the canvas area's edges. The
    panels sit 14px in from the edge; on the right the resizable Agents panel
@@ -387,6 +391,11 @@ export function CanvasPage({
     function onKey(e: KeyboardEvent) {
       const typing = isTypingTarget(e.target)
       if (dispatchActionKey(e, typing)) return
+      if (isDiagramly() && !typing && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault()
+        void (e.shiftKey ? redo() : undo())
+        return
+      }
       if (typing) return
       /* a picked element (from the canvas or the layers tree) is what ⌫
          removes — the frame it lives in only goes when nothing inside it is
@@ -398,7 +407,10 @@ export function CanvasPage({
       const canEdit = canEditOpenCanvas(useStore.getState())
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault()
-        if (canEdit && !e.repeat) deleteSelection()
+        if (canEdit && !e.repeat) {
+          if (isDiagramly()) useStore.getState().pickElement(null)
+          deleteSelection()
+        }
       }
       /* Figma's walk of the selection: ↩ into it, ⇧↩ out to the parent, Tab
          and ⇧Tab along the siblings. Only the bare keys, and only when no
@@ -406,7 +418,13 @@ export function CanvasPage({
          ↩ presses and Tab moves focus, as they must. An unhandled key is left
          alone, so Tab still walks the chrome when nothing is selected. */
       const bare = !e.metaKey && !e.ctrlKey && !e.altKey
-      if (bare && !presenting && (e.key === 'Enter' || e.key === 'Tab') && !isControlTarget(e.target)) {
+      if (
+        !isDiagramly() &&
+        bare &&
+        !presenting &&
+        (e.key === 'Enter' || e.key === 'Tab') &&
+        !isControlTarget(e.target)
+      ) {
         const moved =
           e.key === 'Enter' ? (e.shiftKey ? exitSelection() : enterSelection()) : selectSibling(e.shiftKey ? -1 : 1)
         if (moved) {
@@ -436,8 +454,16 @@ export function CanvasPage({
       if (isTypingTarget(e.target) || window.getSelection()?.toString() || !e.clipboardData) return
       const state = useStore.getState()
       const picked = state.selectedElement
-      const frame = state.canvas?.frames.find((f) => f.id === picked?.frameId)
+      const frame = state.canvas?.frames.find((f) => f.id === (picked?.frameId ?? state.selectedId))
       let copy: () => boolean | void
+      if (isDiagramly()) {
+        if (!frame) return
+        const diagram = readDiagramFrame(frame.html)
+        if (!diagram) return
+        e.clipboardData.setData('text/plain', diagram.source)
+        e.preventDefault()
+        return
+      }
       if (picked) {
         if (!frame) return
         const selectors = pickedSelectors(state)
@@ -451,6 +477,10 @@ export function CanvasPage({
     }
     function onPaste(e: ClipboardEvent) {
       if (isTypingTarget(e.target)) return
+      if (isDiagramly()) {
+        e.preventDefault()
+        return
+      }
       /* every paste lands a frame or a layer */
       if (!canEditOpenCanvas(useStore.getState())) return
       const captureText = e.clipboardData?.getData('text/plain') ?? ''
@@ -499,7 +529,8 @@ export function CanvasPage({
   useEffect(() => {
     /* files from outside, or a component card from the Components panel; both
        need the frames' shields up so the drop reaches the window */
-    const carriesComponent = (e: DragEvent) => e.dataTransfer?.types.includes(COMPONENT_DRAG_TYPE) ?? false
+    const carriesComponent = (e: DragEvent) =>
+      !isDiagramly() && (e.dataTransfer?.types.includes(COMPONENT_DRAG_TYPE) ?? false)
     const carriesFiles = (e: DragEvent) => (e.dataTransfer?.types.includes('Files') ?? false) || carriesComponent(e)
     let depth = 0
     const setDragging = useStore.getState().setFileDragging
@@ -528,7 +559,7 @@ export function CanvasPage({
       e.preventDefault()
       if (!canEditOpenCanvas(useStore.getState())) return
       const componentId = e.dataTransfer?.getData(COMPONENT_DRAG_TYPE)
-      if (componentId) {
+      if (componentId && !isDiagramly()) {
         void dropComponent(componentId, { x: e.clientX, y: e.clientY })
         return
       }
@@ -668,7 +699,10 @@ export function CanvasPage({
   async function addFrame() {
     if (readOnly) return
     const n = (canvas?.frames.length ?? 0) + 1
-    const frame = await createCenteredFrame(canvasId, `Frame ${n}`, STARTER_HTML)
+    const html = isDiagramly()
+      ? buildDiagramHtml({ kind: 'zenuml', source: DEFAULT_DIAGRAM_SOURCE.zenuml })
+      : STARTER_HTML
+    const frame = await createCenteredFrame(canvasId, isDiagramly() ? `Diagram ${n}` : `Frame ${n}`, html)
     select(frame.id)
   }
 
@@ -699,7 +733,7 @@ export function CanvasPage({
   /* with nothing selected the slot is the page's own settings, once opened
      from the rail, until closed */
   const pagePanelOpen = useStore((s) => s.pagePanelOpen)
-  const pageShown = !readOnly && !selectedFrame && pagePanelOpen && !deferPanel
+  const pageShown = !isDiagramly() && !readOnly && !selectedFrame && pagePanelOpen && !deferPanel
   /* the frame Inspector, the element panel or the Page panel, whichever has the slot */
   const propertiesShown =
     (!readOnly && !!selectedFrame && !deferPanel && (!!panelElement || inspectorOpen)) || pageShown
@@ -834,26 +868,39 @@ export function CanvasPage({
       >
         <div className="flex min-w-0 items-center gap-2 max-xs:basis-full">
           <BarPill className="min-w-0 gap-1 pr-3 pl-1">
-            <MainMenu
-              trigger={
-                <Button
-                  variant="bare"
-                  size="icon-sm"
-                  className={barPillIconBtn}
-                  aria-label={t('actions.mainMenu')}
-                  title={t('actions.mainMenu')}
-                >
-                  <DoopMark size={14} />
-                </Button>
-              }
-            />
+            {isDiagramly() ? (
+              <Button
+                variant="bare"
+                size="icon-sm"
+                className={barPillIconBtn}
+                aria-label={t('canvas.backToDocuments')}
+                title={t('canvas.backToDocuments')}
+                onClick={() => navigate('/')}
+              >
+                <DoopMark size={14} />
+              </Button>
+            ) : (
+              <MainMenu
+                trigger={
+                  <Button
+                    variant="bare"
+                    size="icon-sm"
+                    className={barPillIconBtn}
+                    aria-label={t('actions.mainMenu')}
+                    title={t('actions.mainMenu')}
+                  >
+                    <DoopMark size={14} />
+                  </Button>
+                }
+              />
+            )}
             <CanvasName readOnly={readOnly} />
             {readOnly && (
               <Badge tone="outline" title={t('canvas.readOnlyBadgeTitle')}>
                 {role === 'comment' ? t('canvas.canComment') : t('canvas.viewOnly')}
               </Badge>
             )}
-            <CanvasIdMenu canvasId={canvasId} onCopied={showToast} />
+            {!isDiagramly() && <CanvasIdMenu canvasId={canvasId} onCopied={showToast} />}
             {connected ? (
               /* nothing to save for someone who can only look */
               !readOnly && (
@@ -879,7 +926,7 @@ export function CanvasPage({
               <PeerAvatars others={others} />
             </span>
           </div>
-          {!guest && (
+          {!guest && !isDiagramly() && (
             <BarPill>
               {!readOnly && (
                 <>
@@ -902,35 +949,37 @@ export function CanvasPage({
             </BarPill>
           )}
           <BarPill>
-            {!guest && (
+            {!guest && !isDiagramly() && (
               <Button variant="bare" className={barPillBtn} onClick={() => setShowShare(true)}>
                 <ShareUpIcon className="size-3.5" />
                 {t('canvas.share')}
               </Button>
             )}
-            <Tooltip
-              label={
-                selectedId
-                  ? `${t('canvas.presentFromFrame')} · ${PRESENT_SHORTCUT_HINT}`
-                  : playFrom
-                    ? `${t('canvas.presentPrototype')} · ${PRESENT_SHORTCUT_HINT}`
-                    : t('canvas.addFrameToPresent')
-              }
-              side="bottom"
-            >
-              <span className="inline-flex">
-                <Button
-                  variant="bare"
-                  size="icon-sm"
-                  className={barPillIconBtn}
-                  aria-label={t('canvas.presentPrototypeLabel')}
-                  disabled={!playFrom}
-                  onClick={() => setPresenting(playFrom)}
-                >
-                  <PlayIcon className="size-3.5" />
-                </Button>
-              </span>
-            </Tooltip>
+            {!isDiagramly() && (
+              <Tooltip
+                label={
+                  selectedId
+                    ? `${t('canvas.presentFromFrame')} · ${PRESENT_SHORTCUT_HINT}`
+                    : playFrom
+                      ? `${t('canvas.presentPrototype')} · ${PRESENT_SHORTCUT_HINT}`
+                      : t('canvas.addFrameToPresent')
+                }
+                side="bottom"
+              >
+                <span className="inline-flex">
+                  <Button
+                    variant="bare"
+                    size="icon-sm"
+                    className={barPillIconBtn}
+                    aria-label={t('canvas.presentPrototypeLabel')}
+                    disabled={!playFrom}
+                    onClick={() => setPresenting(playFrom)}
+                  >
+                    <PlayIcon className="size-3.5" />
+                  </Button>
+                </span>
+              </Tooltip>
+            )}
           </BarPill>
           {/* the bar's one black action — it opens the MCP connection modal;
               an agent connected through a view or comment link could not
@@ -997,31 +1046,34 @@ export function CanvasPage({
           style={rulerInset || docked ? { top: 'var(--chrome-top)', left: rulerInset } : undefined}
         >
           <div className="pointer-events-none absolute top-3.5 right-[var(--chrome-right)] z-30 flex flex-col items-end gap-2 transition-[right] duration-150 [&>*]:pointer-events-auto max-md:top-[56px] max-md:right-2 max-md:left-2">
-            {pendingProposal && mutedProposal !== pendingProposal.id && !(showActivity && panelTab === 'memory') && (
-              <div className="flex items-center rounded-[10px] bg-surface shadow-ring">
-                <Button
-                  variant="bare"
-                  className="h-8 pr-1 pl-3 text-[12px] font-medium text-ink hover:bg-transparent hover:text-ink"
-                  onClick={() => {
-                    useStore.getState().setPanelTab('memory')
-                    setShowActivity(true)
-                  }}
-                >
-                  <DoopMark size={12} /> {t('canvas.memorySuggestionReview')}
-                </Button>
-                <Button
-                  variant="bare"
-                  size="icon-sm"
-                  className="mr-1 size-6 rounded-[6px] text-ink-faint"
-                  title={t('canvas.hideForNow')}
-                  aria-label={t('canvas.hideForNow')}
-                  onClick={() => setMutedProposal(pendingProposal.id)}
-                >
-                  <XIcon className="size-3" />
-                </Button>
-              </div>
-            )}
-            {decisionToast && (
+            {!isDiagramly() &&
+              pendingProposal &&
+              mutedProposal !== pendingProposal.id &&
+              !(showActivity && panelTab === 'memory') && (
+                <div className="flex items-center rounded-[10px] bg-surface shadow-ring">
+                  <Button
+                    variant="bare"
+                    className="h-8 pr-1 pl-3 text-[12px] font-medium text-ink hover:bg-transparent hover:text-ink"
+                    onClick={() => {
+                      useStore.getState().setPanelTab('memory')
+                      setShowActivity(true)
+                    }}
+                  >
+                    <DoopMark size={12} /> {t('canvas.memorySuggestionReview')}
+                  </Button>
+                  <Button
+                    variant="bare"
+                    size="icon-sm"
+                    className="mr-1 size-6 rounded-[6px] text-ink-faint"
+                    title={t('canvas.hideForNow')}
+                    aria-label={t('canvas.hideForNow')}
+                    onClick={() => setMutedProposal(pendingProposal.id)}
+                  >
+                    <XIcon className="size-3" />
+                  </Button>
+                </div>
+              )}
+            {!isDiagramly() && decisionToast && (
               <Button
                 variant="bare"
                 className="max-w-full items-center gap-2.5 whitespace-normal rounded-[12px] bg-surface px-3.5 py-2.5 text-left font-normal shadow-pop transition-shadow hover:bg-surface hover:shadow-ring-hover sm:max-w-[320px] [&_svg]:text-ink-soft"
@@ -1043,7 +1095,9 @@ export function CanvasPage({
           {/* the presence pill in the bar already carries each agent's status
               line; this per-agent stack is only for windows too narrow for it */}
           <WorkingNow style={{ left: chrome.left }} className="min-[1180px]:hidden" />
-          {!readOnly && <Onboarding canvasId={canvasId} />}
+          {!isDiagramly() && !readOnly && session?.user && (
+            <Onboarding key={`${session.user.id}:${canvasId}`} canvasId={canvasId} user={session.user} />
+          )}
           <AccessBanner guest={guest} onSignUp={onSignUp} onSignIn={onSignIn} />
           {!isMobile &&
             (layersOpen ? (
@@ -1073,7 +1127,7 @@ export function CanvasPage({
               }}
             />
           )}
-          {!isMobile && !readOnly && selectedFrame && panelElement && !deferPanel && (
+          {!isDiagramly() && !isMobile && !readOnly && selectedFrame && panelElement && !deferPanel && (
             <ElementPanel
               /* keyed by frame, not element: picking the next element swaps
                  the values in place instead of remounting the panel blank */
@@ -1112,7 +1166,7 @@ export function CanvasPage({
               agentsOpen={showActivity}
               onToggleAgents={() => setShowActivity((open) => !open)}
               inspectorOpen={propertiesShown}
-              inspectorAvailable={!readOnly}
+              inspectorAvailable={!readOnly && (!isDiagramly() || !!selectedFrame)}
               inspectTarget={selectedFrame ? 'frame' : 'page'}
               onToggleInspector={() => {
                 const s = useStore.getState()
@@ -1145,7 +1199,7 @@ export function CanvasPage({
               <div className="border-b border-line-soft px-5 py-4 pr-14">
                 <SheetTitle className="font-display text-lg font-extrabold">{t('canvas.canvasActions')}</SheetTitle>
                 <SheetDescription className="mt-1 text-xs text-ink-soft">
-                  {t('canvas.canvasActionsDescription')}
+                  {t(isDiagramly() ? 'canvas.diagramActionsDescription' : 'canvas.canvasActionsDescription')}
                 </SheetDescription>
               </div>
               {/* the same glyphs as the desktop bar and islands; pages live
@@ -1159,9 +1213,9 @@ export function CanvasPage({
                     setShowMobileLayers(true)
                   }}
                 >
-                  <LayersIcon /> {t('canvas.layers')}
+                  <LayersIcon /> {t(isDiagramly() ? 'canvas.diagrams' : 'canvas.layers')}
                 </Button>
-                {!readOnly && (
+                {!readOnly && !isDiagramly() && (
                   <Button
                     variant="ghost"
                     className="h-11 justify-start gap-2.5 border-line bg-surface px-4"
@@ -1173,7 +1227,7 @@ export function CanvasPage({
                     <ImportIcon /> {t('canvas.importWebsite')}
                   </Button>
                 )}
-                {!guest && (
+                {!guest && !isDiagramly() && (
                   <Button
                     variant="ghost"
                     className="h-11 justify-start gap-2.5 border-line bg-surface px-4"
@@ -1187,17 +1241,19 @@ export function CanvasPage({
                 )}
                 {/* the phone's tool strip has no room for the Edit / Prototype
                     switch, so Prototype mode toggles here */}
-                <Button
-                  variant="ghost"
-                  className="h-11 justify-start gap-2.5 border-line bg-surface px-4 aria-pressed:bg-paper-deep"
-                  aria-pressed={prototypeMode}
-                  onClick={() => {
-                    setShowMobileActions(false)
-                    useStore.getState().setPrototypeMode(!prototypeMode)
-                  }}
-                >
-                  <PrototypeModeIcon /> {prototypeMode ? t('canvas.leavePrototypeMode') : t('canvas.prototypeMode')}
-                </Button>
+                {!isDiagramly() && (
+                  <Button
+                    variant="ghost"
+                    className="h-11 justify-start gap-2.5 border-line bg-surface px-4 aria-pressed:bg-paper-deep"
+                    aria-pressed={prototypeMode}
+                    onClick={() => {
+                      setShowMobileActions(false)
+                      useStore.getState().setPrototypeMode(!prototypeMode)
+                    }}
+                  >
+                    <PrototypeModeIcon /> {prototypeMode ? t('canvas.leavePrototypeMode') : t('canvas.prototypeMode')}
+                  </Button>
+                )}
                 {!guest && (
                   <Button
                     variant="ghost"
@@ -1220,7 +1276,7 @@ export function CanvasPage({
               onOpenAutoFocus={(e) => e.preventDefault()}
               className="max-h-[calc(100svh-56px)] gap-0 rounded-t-2xl border-line bg-surface p-0 shadow-pop data-[side=bottom]:h-[min(78svh,680px)]"
             >
-              <SheetTitle className="sr-only">{t('canvas.layers')}</SheetTitle>
+              <SheetTitle className="sr-only">{t(isDiagramly() ? 'canvas.diagrams' : 'canvas.layers')}</SheetTitle>
               <LayersPanel onAddFrame={addFrame} surface="inline" onClose={() => setShowMobileLayers(false)} />
             </SheetContent>
           </Sheet>
@@ -1238,7 +1294,9 @@ export function CanvasPage({
               showCloseButton={false}
               className="max-h-[calc(100svh-56px)] gap-0 rounded-t-2xl border-line bg-surface p-0 shadow-pop data-[side=bottom]:h-[min(78svh,680px)]"
             >
-              <SheetTitle className="sr-only">{t('canvas.frameInspector')}</SheetTitle>
+              <SheetTitle className="sr-only">
+                {t(isDiagramly() ? 'canvas.diagramInspector' : 'canvas.frameInspector')}
+              </SheetTitle>
               {selectedFrame && <Inspector frame={selectedFrame} surface="inline" />}
             </SheetContent>
           </Sheet>
@@ -1702,6 +1760,15 @@ function ImportModal({
           <>
             {source === null ? (
               <SourcePicker onPick={setSource} sources={importSources()} />
+            ) : source === 'legacy-zenuml' ? (
+              <LegacyZenUmlImport
+                onBack={() => setSource(null)}
+                onBusyChange={(value) => setBusy(value ? 'importing' : null)}
+                onOpen={(id) => {
+                  onClose()
+                  navigate(`/c/${id}`)
+                }}
+              />
             ) : source === 'website' ? (
               <>
                 <ImportStepHeader
@@ -2409,6 +2476,7 @@ function CanvasIdMenu({ canvasId, onCopied }: { canvasId: string; onCopied: (msg
 
 /* The canvas title doubles as its rename field. */
 function CanvasName({ readOnly }: { readOnly: boolean }) {
+  const t = useT()
   const canvas = useStore((s) => s.canvas)
   return (
     <TopBarTitle
@@ -2416,6 +2484,7 @@ function CanvasName({ readOnly }: { readOnly: boolean }) {
       readOnly={readOnly}
       loading={!canvas}
       value={canvas?.name ?? ''}
+      placeholder={isDiagramly() ? t('canvas.untitledDocument') : undefined}
       onCommit={(name) => {
         if (!canvas) return
         api.renameCanvas(canvas.id, name).catch(console.error)

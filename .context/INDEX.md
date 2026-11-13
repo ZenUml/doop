@@ -2,6 +2,8 @@
 
 ## Root Files
 
+- [GLOSSARY.md](../GLOSSARY.md) - Diagramly document, board, diagram and page terminology.
+
 - [@TECHSTACK.md](TECHSTACK.md) - Tech stack reference (auto-imported).
 - [@DESIGN.md](DESIGN.md) - Design tokens (palette, type, radius/shadow scale) and shadcn config
   (auto-imported).

@@ -443,3 +443,126 @@ sizes="256 128 64 48 40 32 24 20 16"
 for s in $sizes; do magick app-icon.png -filter Lanczos -resize ${s}x${s} -strip PNG32:/tmp/doop-$s.png; done
 magick $(for s in $sizes; do echo /tmp/doop-$s.png; done) src-tauri/icons/icon.ico
 ```
+
+## ZenUML upgrade — Mac App Store profile
+
+`src-tauri/tauri.app-store.conf.json` and Cargo's `app-store` feature define a
+the upgrade of the existing paid **ZenUML** app, bundle ID `com.zenuml.app`,
+App Store ID `1602636196`, version `1.1.0` build `41` (previously `1.0.7` build `40`),
+macOS 13.5+, system WebKit. Build with both `--no-default-features` and
+`--features app-store`; the build rejects the self-updater or Chromium profile.
+This profile runs only its packaged loopback server. A missing or failed server
+stops launch; it never falls back to doop.design. Apple delivers app updates.
+The Claude installer, local CLI runner, extension installer, server switcher and
+updater IPC commands are omitted from this profile. The child receives a clean
+environment, `DOOP_PRODUCT=diagramly`, and the fixed cloud origin
+`https://diagramly.ai`; inherited API keys and Node loader options are excluded.
+The frontend build also sets `VITE_PRODUCT_MODE=diagramly`. The native Codex
+configuration installer is disabled: the App Sandbox cannot write the real
+Codex configuration in the user's home directory. Use the displayed MCP config
+or CLI instructions in the external client; external MCP access remains available.
+
+Build a review app with `bash scripts/desktop-app-store.sh --unsigned` from the
+repository root. This builds the frontend and release shell, installs only locked
+production dependencies into a separate staging directory, bundles Node and the
+snapshot helper, and signs nested Mach-O files before the outer sandboxed app.
+It rejects dependencies on non-system absolute libraries, external symlinks,
+private configuration files, and known development packages. The two provenance
+JSON files contain SHA-256 file inventories and available package licence metadata
+before and after signing. They are build evidence, not a completed licence audit.
+The audit also rejects any native component whose deployment target exceeds the
+app's declared macOS minimum; Swift helpers use an explicit deployment target.
+Set `DIAGRAMLY_BUILD_OUTPUT` to an empty destination for another build. Set
+`DIAGRAMLY_NODE_BINARY` to an official self-contained Node >=22.19 when the local
+runtime depends on Homebrew libraries. No runtime is downloaded by this script.
+
+`--sign` additionally requires `MAS_APPLICATION_IDENTITY` (Apple Distribution or
+3rd Party Mac Developer Application), `MAS_INSTALLER_IDENTITY` (3rd Party Mac
+Developer Installer), and `MAS_PROVISIONING_PROFILE` (the explicit profile for
+`com.zenuml.app`). It embeds that profile, derives identity entitlements
+from it, verifies nested signatures and creates a signed installer package.
+It never uploads, publishes, changes commerce agreements, or configures products.
+A successful unsigned build is not App Store signing or App Review approval.
+Current canvas HTML, local MCP, exports, and packaged native-module behavior still
+need review in the signed sandboxed app. The inventory also exposes executable
+npm dependencies for that review.
+
+The app keeps the existing `com.zenuml.app` sandbox identity. Core local editing
+and exports do not depend on a cloud account or Apple subscription. Reusing the
+identity alone does not make Electron IndexedDB readable by WebKit.
+
+Before the bundled server starts, native code preserves the old container's
+`Library/Application Support/ZenUML/IndexedDB` and `Local Storage` in a private
+`legacy-library-backups/legacy-*` directory beside the new server data. It opens
+originals read-only, holds LevelDB writer-excluding locks, rejects links, checks
+before/after file inventory, and records SHA-256 hashes. Backups are private
+(0700 directories, 0600 files). A running old app or partial copy does not produce
+a successful snapshot. Original browser databases are never opened by a database
+engine or upgraded in place.
+
+Native writes `legacy-library.json` and supplies its absolute path to Node through
+`DOOP_LEGACY_LIBRARY_MANIFEST`. A raw copy has status `preserved_needs_export`:
+**preserved is not imported or migrated**. The server must validate a complete,
+current-record export before offering import, and retain the snapshot for recovery.
+The manifest carries snapshot paths, file sizes/hashes and an optional validated
+`exportFile`; exported JSON must remain inside its snapshot. It never includes
+cloud credentials or document contents inline.
+
+If the old app used an unsandboxed folder, choose the original **ZenUML** folder
+using the native folder picker. The native bridge advertises
+`window.__DOOP_LEGACY_LIBRARY__` only in the main local page, and
+`legacy_library_choose` accepts no path supplied by JavaScript. The chooser is
+restricted to the main window's exact launch origin and the runtime permission.
+Keep the old app and backup until imported diagrams have been checked. The
+separate library JSON export/restore flow remains available for newer spike data.
+
+The local snapshot utility is for private recovery QA, never app publication:
+`cargo run --manifest-path desktop/src-tauri/Cargo.toml --no-default-features --features app-store --example legacy_snapshot -- OLD_ZENUML_FOLDER PRIVATE_DESTINATION`.
+It prints counts/status only. Do not put user databases or exports in this repo.
+Run the native Cargo tests for lock, traversal, private-file and startup checks.
+Run `node --test scripts/desktop-frame-snapshot.test.mjs` for actual WebKit image
+alpha and opaque-shape checks. Transparent captures use two deterministic public
+WebKit snapshots over black/white paper; no private WebKit API or color-key removal.
+
+### Native Apple purchases
+
+Only the main window at this launch's exact `http://127.0.0.1:<port>` origin gets
+`window.__DIAGRAMLY_STOREKIT__.request(action, payload)`. WebKit validates the
+actual frame and security origin for every message. Sandboxed diagram iframes,
+other localhost ports, and external sites cannot invoke purchasing. No device
+bearer token or private Apple key is exposed to JavaScript.
+
+| Action         | Payload                          | Result                                                                                   |
+| -------------- | -------------------------------- | ---------------------------------------------------------------------------------------- |
+| `products`     | none                             | `{products:[{id,displayName,description,displayPrice,subscriptionPeriod:{value,unit}}]}` |
+| `purchase`     | `{productId,appAccountToken}`    | `{status:"purchased",transaction}` or `{status:"pending"}` or `{status:"cancelled"}`     |
+| `transactions` | none                             | `{transactions:[transaction]}` from verified current, unfinished and listener updates    |
+| `restore`      | none                             | Apple sync, then the same transaction result                                             |
+| `deliver`      | `{transactionId,deliveryTicket}` | `{delivered:true,transactionId}` after backend acknowledgement and native finish         |
+| `manage`       | none                             | Opens Apple's subscription-management page                                               |
+
+Transaction records contain string `transactionId`, `originalTransactionId`,
+`productId`, `signedTransaction`, and optional `appAccountToken`, `expiresAt`,
+`revokedAt`. Product IDs are allowlisted to `ai.diagramly.desktop.pro.monthly`
+and `ai.diagramly.desktop.pro.yearly`. The backend issues the opaque UUID account
+token and verifies JWS, app, environment, product and ownership before granting
+access. A native verified purchase alone never grants Diagramly cloud access.
+Native `deliver` posts the known signed transaction and a short-lived ticket to
+`/api/diagramly/apple/deliver` on the exact local launch origin, refuses redirects,
+and finishes only after HTTP success with `delivered:true` and an exact matching
+transaction ID. There is no JavaScript `finish` action. Delivery failure retains
+Apple's unfinished transaction for retry after restart.
+
+Run `bash scripts/desktop-commerce-test.sh` for origin/delivery policy tests and
+Swift compilation. `--webkit` also runs the real WKWebView bridge boundary test:
+main-frame dispatch, opaque and same-origin iframe denial, and another-port
+denial. `--storekit` also compiles a local test app using
+`commerce/Diagramly.storekit`, then exercises Apple's StoreKit test service.
+The fixture prices are synthetic test data, not configured App Store prices.
+The test first uses the local-only `SKTestSession.buyProduct` API and stops when
+the test service is unavailable. Xcode's StoreKit configuration/session must work
+on the test Mac; a CLI compile does not establish that session. The initial local
+run compiled but StoreKit rejected configuration with `SKInternalErrorDomain`
+code 3. Product fetch, real purchase sheets, pending/cancel, renewal/refund,
+reinstall restore and a signed sandbox build therefore remain acceptance gates.
+No live purchase or configured App Store Connect product is claimed.

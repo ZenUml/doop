@@ -53,6 +53,7 @@ import { useT, type PlainMessageKey } from '../lib/i18n'
 import { NO_INSETS, fitBox, type StageInsets } from '../lib/viewFit'
 import { spaceWouldScroll } from '../lib/spaceScroll'
 import { ZOOM_DRAG_MIN, ZOOM_TOOL_STEP, zoomAtPoint, zoomToBox } from '../lib/zoomTool'
+import { isDiagramly } from '../lib/product'
 
 const MIN_ZOOM = 0.08
 /* The settled world is laid out at up to this zoom too (layoutZoomFor), so
@@ -250,11 +251,19 @@ export function Stage({
   const isMobile = useIsMobile()
   const showRulers = useStore((s) => s.rulers) && !uiHidden && !isMobile
   const tool = useStore((s) => s.tool)
+  const diagramly = isDiagramly()
   /* view links get Select and Hand, comment links add the Comment tool */
   const role = useStore(roleOf)
   const readOnly = !roleAllows(role, 'edit')
   const t = useT()
   const setTool = useStore((s) => s.setTool)
+  useEffect(() => {
+    if (diagramly && isDrawingTool(useStore.getState().tool)) useStore.getState().setTool('select')
+    if (!diagramly) return
+    return useStore.subscribe((state) => {
+      if (isDrawingTool(state.tool)) state.setTool('select')
+    })
+  }, [diagramly])
   const [panning, setPanning] = useState(false)
   /* the selection rectangle being dragged out, in world coordinates */
   /* Z held down: the tool to go back to on release */
@@ -841,9 +850,10 @@ export function Stage({
       if (isTypingTarget(e.target)) return
       const next = toolForKey(e.key)
       if (!next) return
+      if (diagramly && !(['select', 'hand', 'zoom', 'comment'] as Tool[]).includes(next)) return
       e.preventDefault()
       const previous = useStore.getState().tool
-      if (next === 'zoom') zoomHeld.current ??= { previous }
+      if (next === 'zoom') zoomHeld.current ??= { previous: diagramly && isDrawingTool(previous) ? 'select' : previous }
       else zoomHeld.current = null
       useStore.getState().setTool(next)
     }
@@ -855,7 +865,7 @@ export function Stage({
       window.removeEventListener('keyup', onKeyUp)
       window.removeEventListener('blur', release)
     }
-  }, [])
+  }, [diagramly])
 
   /* ⌥ turns the Zoom tool's cursor into zoom-out, the way a click would go */
   useEffect(() => {
@@ -1122,9 +1132,9 @@ export function Stage({
                         : 'cursor-default',
             )}
             style={{ ...bounds, ...paperStyle(paper) }}
-            onPointerDownCapture={drawing.onPointerDown}
-            onDoubleClickCapture={drawing.onDoubleClick}
-            onTouchStartCapture={drawing.onTouchStart}
+            onPointerDownCapture={diagramly ? undefined : drawing.onPointerDown}
+            onDoubleClickCapture={diagramly ? undefined : drawing.onDoubleClick}
+            onTouchStartCapture={diagramly ? undefined : drawing.onTouchStart}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onContextMenu={(e) => {
@@ -1167,13 +1177,13 @@ export function Stage({
                 <FrameStack frames={canvas?.frames ?? []} layoutZoom={layoutZoom} />
               </FrameLabelLayer.Provider>
               <GhostFrames />
-              <FlowOverlay />
+              {!diagramly && <FlowOverlay />}
               <GuideLines stage={ref} />
-              <PrototypeOverlay />
+              {!diagramly && <PrototypeOverlay />}
               <SnapGuides />
               <CanvasComments composeAt={composeAt} onComposeDone={dismissCompose} />
               {showCursors && <Cursors />}
-              {drawing.preview}
+              {!diagramly && drawing.preview}
               {marquee && (
                 <div
                   className="pointer-events-none absolute bg-brand/10 [box-shadow:inset_0_0_0_calc(1px/var(--zoom,1))_var(--brand)]"
@@ -1200,7 +1210,7 @@ export function Stage({
             uiHidden && 'hidden',
           )}
         >
-          {isDrawingTool(tool) && (
+          {!diagramly && isDrawingTool(tool) && (
             <div
               data-drawing-hint
               className="absolute bottom-full left-1/2 mb-2 flex w-max max-w-[min(340px,90vw)] -translate-x-1/2 flex-wrap items-center justify-center gap-2 rounded-[10px] bg-surface px-3 py-2 text-center text-[12px] text-ink-soft shadow-pop md:top-0 md:bottom-auto md:left-full md:mb-0 md:ml-2.5 md:translate-x-0 md:justify-start md:text-left"
@@ -1241,26 +1251,63 @@ export function Stage({
             {/* one fill slides between tools; the buttons themselves stay
                 transparent so the pill is the only thing that moves */}
             <ToolbarHighlight activeKey={tool} />
-            {TOOLS.filter((entry) => entry.id !== 'comment' && entry.id !== 'zoom' && toolAllowed(entry.id, role)).map(
-              (entry) => (
-                <Tooltip
-                  key={entry.id}
-                  label={t('stage.toolTooltip', { label: t(entry.label), key: entry.key })}
-                  side="right"
+            {TOOLS.filter(
+              (entry) =>
+                entry.id !== 'comment' &&
+                entry.id !== 'zoom' &&
+                toolAllowed(entry.id, role) &&
+                (!diagramly || entry.id === 'select' || entry.id === 'hand'),
+            ).map((entry) => (
+              <Tooltip
+                key={entry.id}
+                label={t('stage.toolTooltip', { label: t(entry.label), key: entry.key })}
+                side="right"
+              >
+                <ToolbarButton
+                  aria-label={t(entry.label)}
+                  aria-pressed={tool === entry.id}
+                  className="relative z-[1] hover:bg-transparent aria-pressed:text-ink"
+                  onClick={() => setTool(entry.id)}
                 >
+                  {TOOL_ICONS[entry.id]}
+                </ToolbarButton>
+              </Tooltip>
+            ))}
+            {diagramly ? (
+              <>
+                <ToolbarDivider className="md:mx-0 md:my-1 md:h-px md:w-[18px]" />
+                <Tooltip label={t('canvas.toolZoom')} side="right">
                   <ToolbarButton
-                    aria-label={t(entry.label)}
-                    aria-pressed={tool === entry.id}
+                    aria-label={t('canvas.toolZoom')}
+                    aria-pressed={tool === 'zoom'}
                     className="relative z-[1] hover:bg-transparent aria-pressed:text-ink"
-                    onClick={() => setTool(entry.id)}
+                    onClick={() => setTool('zoom')}
                   >
-                    {TOOL_ICONS[entry.id]}
+                    <ZoomInIcon />
                   </ToolbarButton>
                 </Tooltip>
-              ),
+                {toolAllowed('comment', role) && (
+                  <>
+                    <ToolbarDivider className="md:mx-0 md:my-1 md:h-px md:w-[18px]" />
+                    <Tooltip label={t('canvas.toolComment')} side="right">
+                      <ToolbarButton
+                        aria-label={t('canvas.toolComment')}
+                        aria-pressed={tool === 'comment'}
+                        className="relative z-[1] hover:bg-transparent aria-pressed:text-ink"
+                        onClick={() => setTool('comment')}
+                      >
+                        <CommentIcon />
+                      </ToolbarButton>
+                    </Tooltip>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <ToolbarDivider className="md:mx-0 md:my-1 md:h-px md:w-[18px]" />
+                <ModeSwitch canComment={toolAllowed('comment', role)} />
+              </>
             )}
-            <ToolbarDivider className="md:mx-0 md:my-1 md:h-px md:w-[18px]" />
-            <ModeSwitch canComment={toolAllowed('comment', role)} />
           </Toolbar>
         </div>
 
@@ -1276,14 +1323,18 @@ export function Stage({
 
         {canvas && (
           <ContextMenuContent>
-            <ContextMenuItem
-              disabled={!hasFrameClip()}
-              onSelect={() => pasteFrameAtScreen(canvas.id, bgAt.current.x, bgAt.current.y)}
-            >
-              {t('stage.paste')}
-              <MenuHint>{MOD_KEY}V</MenuHint>
+            {!diagramly && (
+              <ContextMenuItem
+                disabled={!hasFrameClip()}
+                onSelect={() => pasteFrameAtScreen(canvas.id, bgAt.current.x, bgAt.current.y)}
+              >
+                {t('stage.paste')}
+                <MenuHint>{MOD_KEY}V</MenuHint>
+              </ContextMenuItem>
+            )}
+            <ContextMenuItem onSelect={onAddFrame}>
+              {t(diagramly ? 'canvas.newDiagram' : 'stage.newFrame')}
             </ContextMenuItem>
-            <ContextMenuItem onSelect={onAddFrame}>{t('stage.newFrame')}</ContextMenuItem>
           </ContextMenuContent>
         )}
       </ContextMenu>

@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import { env } from './env.ts'
 import { canvasPages, copyPageName, pageFrames, samePages } from '../shared/pages.ts'
 import * as persist from './db/persist.ts'
 import type { LinkAccess } from '../shared/canvasRole.ts'
@@ -58,6 +59,7 @@ class Store {
   canvases = new Map<string, Canvas>()
   private frameIndex = new Map<string, string>() // frameId -> canvasId
   /** the page copy in flight per canvas, so the next one waits for it */
+  private libraryImport: Promise<unknown> = Promise.resolve()
   private pageCopies = new Map<string, Promise<unknown>>()
   /** canvases whose frame HTML is in memory -> when they were last used */
   private loaded = new Map<string, number>()
@@ -312,6 +314,7 @@ class Store {
     this.canvases.set(canvas.id, canvas)
     this.loaded.set(canvas.id, now)
     canvas.pages = canvasPages(canvas)
+    if (env.DOOP_PRODUCT === 'diagramly') canvas.pages[0]!.name = 'Board 1'
     persist.saveCanvas(canvas)
     return canvas
   }
@@ -389,6 +392,24 @@ class Store {
     this.loaded.set(canvas.id, Date.now())
     for (const frame of frames) this.frameIndex.set(frame.id, canvas.id)
     return canvas
+  }
+
+  /** Retry-safe library import. Serialize batches and publish only durable canvases. */
+  importCanvases(canvases: Canvas[]): Promise<{ imported: number; skipped: number }> {
+    const task = this.libraryImport.then(async () => {
+      const fresh = [...new Map(canvases.map((canvas) => [canvas.id, canvas])).values()].filter(
+        (canvas) => !this.canvases.has(canvas.id),
+      )
+      if (fresh.length) await persist.saveCanvasCopies(fresh)
+      for (const canvas of fresh) {
+        this.canvases.set(canvas.id, canvas)
+        this.loaded.set(canvas.id, Date.now())
+        for (const frame of canvas.frames) this.frameIndex.set(frame.id, canvas.id)
+      }
+      return { imported: fresh.length, skipped: canvases.length - fresh.length }
+    })
+    this.libraryImport = task.catch(() => {})
+    return task
   }
 
   /** Copy a page and every frame on it (same names, geometry and html under

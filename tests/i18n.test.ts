@@ -77,6 +77,28 @@ describe('translateIn', () => {
     const missing = 'settings.notThere' as MessageKey
     expect(i18n.translateIn('pt-BR', missing)).toBe('settings.notThere')
   })
+
+  it('uses document and diagram terms only in Diagramly mode', async () => {
+    expect(i18n.translateIn('en', 'actions.newCanvas')).toBe('New canvas')
+    expect(i18n.translateIn('pt-BR', 'canvas.allCanvases')).toBe('Todos os canvases')
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, json: async () => ({ mode: 'diagramly' }) })),
+    )
+    const product = await import('../src/lib/product')
+    await product.initProduct()
+
+    expect(i18n.translateIn('en', 'actions.newCanvas')).toBe('New document')
+    expect(i18n.translateIn('en', 'actions.newDiagram')).toBe('New diagram')
+    expect(i18n.translateIn('en', 'canvas.allCanvases')).toBe('All documents')
+    expect(i18n.translateIn('en', 'canvas.newCanvas')).toBe('New document')
+    expect(i18n.translateIn('en', 'canvas.resizeLayers')).toBe('Resize Contents panel')
+    expect(i18n.translateIn('en', 'canvas.addFrameToPresent')).toBe('Add a diagram to the presentation')
+    expect(i18n.translateIn('pt-BR', 'home.allCanvases')).toBe('Todos os documentos')
+    expect(i18n.translateIn('pt-BR', 'canvas.backToCanvases')).toBe('Voltar aos documentos')
+    expect(i18n.translateIn('pt-BR', 'canvas.resizeLayers')).toBe('Redimensionar painel de conteúdo')
+  })
 })
 
 describe('locale', () => {

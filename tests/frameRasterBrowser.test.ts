@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { fixtureUrl, pagePerTest, serveBuilt, type BuiltServer } from './browser'
+import { freePort, startServer, type Server } from './harness'
 
 interface Rendered {
   type: string
@@ -40,6 +41,12 @@ describe.skipIf(!findBrowserPath())('rasterizing a frame in the browser', () => 
     expect(out.block).toEqual([255, 0, 0, 255])
     expect(out.pic).toEqual([0, 0, 255, 255])
     expect(out.paper).toEqual([255, 255, 255, 255])
+  })
+
+  it('paints a rendered source diagram mount from the live snapshot', async () => {
+    const html = await page.evaluate(() => (window as unknown as { diagramSnapshot: () => string }).diagramSnapshot())
+    const out = await render({ html })
+    expect(out.block).toEqual([255, 0, 0, 255])
   })
 
   it('renders at 2x for a retina export', async () => {
@@ -134,12 +141,29 @@ describe.skipIf(!findBrowserPath())('rasterizing a frame in the browser', () => 
     expect(out.paper).toEqual([255, 255, 255, 255])
   })
 
+  it('preserves ink while exporting a transparent PNG, including a white document background', async () => {
+    const out = await render({ transparent: true })
+    expect(out.type).toBe('image/png')
+    expect(out.block).toEqual([255, 0, 0, 255])
+    expect(out.pic).toEqual([0, 0, 255, 255])
+    expect(out.paper).toEqual([0, 0, 0, 0])
+    const jpeg = await render({ transparent: true, type: 'jpeg' })
+    expect(jpeg.paper).toEqual([255, 255, 255, 255])
+  })
+
   it('exports what the runtime shows: script-made elements, canvas pixels, adopted sheets, picked sources', async () => {
     const out = await render({ live: true, html: '<html><body></body></html>' })
     expect(out.made).toEqual([0, 128, 0, 255])
     expect(out.chart).toEqual([128, 0, 128, 255])
     expect(out.adopted).toEqual([255, 128, 0, 255])
     expect(out.picked).toEqual([0, 0, 255, 255])
+    expect(out.blobbed).toEqual([0, 128, 128, 255])
+  })
+
+  it('inlines a frame-owned blob while its currentSrc is still empty', async () => {
+    // Guards our snapshot adapter against the browser's image-loading state;
+    // the fixture holds currentSrc empty without replacing the real blob bytes.
+    const out = await render({ live: true, pendingBlob: true })
     expect(out.blobbed).toEqual([0, 128, 128, 255])
   })
 
@@ -155,4 +179,29 @@ describe.skipIf(!findBrowserPath())('rasterizing a frame in the browser', () => 
     )
     expect(failed).toMatch(/fetch/i)
   })
+})
+
+describe.skipIf(!findBrowserPath())('source diagram raster export', () => {
+  const pages = pagePerTest()
+  let server: Server
+  let web: BuiltServer
+  beforeAll(async () => {
+    const port = await freePort()
+    web = await serveBuilt({ '/vendor/diagram': { target: `http://localhost:${port}` } })
+    server = await startServer({ PORT: String(port) })
+  }, 60_000)
+  afterAll(async () => {
+    server?.stop()
+    await server?.stopped
+    await web?.close()
+  })
+  it('captures real rendered ZenUML pixels from a live legacy-source diagram', async () => {
+    const page = await pages.open()
+    await page.goto(`${web.origin}/tests/fixtures/frameRaster.html`)
+    await page.waitForFunction(() => typeof (window as { render?: unknown }).render === 'function')
+    const out = await page.evaluate(() =>
+      (window as unknown as { render: (o: unknown) => Promise<{ inkPixels: number }> }).render({ diagram: true }),
+    )
+    expect(out.inkPixels).toBeGreaterThan(200)
+  }, 30_000)
 })

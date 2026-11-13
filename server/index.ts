@@ -1,3 +1,12 @@
+import { makeDiagramBackup, restoreDiagramBackup } from '../shared/diagramBackup.ts'
+import { createHash as backupHash } from 'node:crypto'
+import { diagramlyRouter, deliverApplePurchase } from './diagramlyRouter.ts'
+import { DIAGRAMLY_DECISIONS, diagramlyApiAvailable } from '../shared/product.ts'
+import { parseLegacyZenUml } from '../shared/legacyZenUml.ts'
+import { legacyCanvases } from './legacyZenUml.ts'
+import { LegacyLibrary, LegacyLibraryError } from './legacyLibrary.ts'
+import { compileDiagramStyle } from './diagramStyles.ts'
+import { buildDiagramHtml, readDiagramFrame, updateDiagramPage } from '../shared/diagramFrame.ts'
 import { env } from './env.ts'
 import {
   catalogEntry,
@@ -33,6 +42,9 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import express from 'express'
+import { diagramVendorRouter } from './diagramVendor'
+import { appRoot } from './dataDir'
+import { DIAGRAM_VENDOR_PATH } from '../shared/diagramFrame'
 import { eq, inArray } from 'drizzle-orm'
 import { toNodeHandler, fromNodeHeaders } from 'better-auth/node'
 import { oAuthDiscoveryMetadata } from 'better-auth/plugins'
@@ -133,7 +145,7 @@ const PORT = env.PORT
 const BUILD_ID = (() => {
   try {
     return createHash('sha1')
-      .update(readFileSync(path.join(process.cwd(), 'dist', 'index.html')))
+      .update(readFileSync(path.join(appRoot(), 'dist', 'index.html')))
       .digest('hex')
       .slice(0, 12)
   } catch {
@@ -478,6 +490,7 @@ app.get('/i/:id.:ext', async (req, res) => {
       ext,
       scale,
       quality: Math.min(100, Math.max(1, Number(req.query.quality) || 90)),
+      transparent: ext === 'png' && req.query.transparent === '1',
       /* ?preview — the dashboard-card variant; see previews.ts */
       preview: req.query.preview !== undefined,
       ip: req.ip ?? 'unknown',
@@ -512,6 +525,9 @@ app.get('/i/:id.:ext', async (req, res) => {
 /* by the same unguessable-id logic as /i/ (frame HTML embedding these    */
 /* URLs renders for anyone who can see the canvas).                       */
 /* ------------------------------------------------------------------ */
+
+/* diagram renderers for diagram frames (spike): see server/diagramVendor.ts */
+app.use(DIAGRAM_VENDOR_PATH, diagramVendorRouter())
 
 app.get('/a/:id.:ext', async (req, res) => {
   const { id, ext } = req.params as { id: string; ext: string }
@@ -659,6 +675,7 @@ for (const extension of extensions) {
 }
 
 app.use(express.json({ limit: '10mb' }))
+app.post('/api/diagramly/apple/deliver', deliverApplePurchase)
 app.all('/gemini-cloud/mcp/:id', (req, res, next) => {
   handleGeminiCloudMcp(req, res).catch(next)
 })
@@ -718,6 +735,13 @@ app.get('/api/oidc-config', (req, res) => {
 
 /* Public: the interface language for visitors who have not picked one. The
    client asks before its first render, so sign-in already speaks it. */
+app.get('/api/product-config', (_req, res) => {
+  res.json({
+    mode: env.DOOP_PRODUCT,
+    ...(env.DOOP_PRODUCT === 'diagramly' ? { capabilities: DIAGRAMLY_DECISIONS } : {}),
+  })
+})
+
 app.get('/api/locale-config', (_req, res) => {
   const config: LocaleConfig = { defaultLocale: env.DEFAULT_LOCALE }
   res.json(config)
@@ -769,6 +793,9 @@ declare global {
 app.get('/api/integrations/:provider/callback', relayDesktopCallback)
 app.use('/api/live-activities', logLiveActivityRequests)
 app.use('/api', async (req, res, next) => {
+  if (env.DOOP_PRODUCT === 'diagramly' && !diagramlyApiAvailable(req.path)) {
+    return res.status(404).json({ error: 'This feature is not part of Diagramly Desktop.' })
+  }
   try {
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
     if (!session) return res.status(401).json({ error: 'unauthorized' })
@@ -1001,6 +1028,7 @@ function requireFrame(
   return frame
 }
 
+app.use('/api/diagramly', diagramlyRouter)
 app.use('/api/local-agent', localAgentRouter)
 app.use('/api/image-descriptions', imageDescriptions.imageDescriptionsRouter)
 app.use('/api/notifications', notificationsRouter)
@@ -1412,6 +1440,113 @@ function requireGrowableWorkspace(req: express.Request, res: express.Response, w
   }
   return ws
 }
+
+app.get('/api/desktop/document-backup', async (req, res, next) => {
+  const releases: (() => void)[] = []
+  try {
+    const owned = store.listCanvases(req.user!.id).filter((canvas) => canvas.ownerId === req.user!.id)
+    for (const canvas of owned) {
+      await store.load(canvas.id)
+      releases.push(store.hold(canvas.id))
+    }
+    const backup = makeDiagramBackup(owned.map((canvas) => store.getCanvas(canvas.id)!))
+    res.setHeader('Cache-Control', 'no-store')
+    res.setHeader('Content-Disposition', 'attachment; filename="diagramly-documents.json"')
+    res.json(backup)
+  } catch (error) {
+    next(error)
+  } finally {
+    for (const release of releases) release()
+  }
+})
+
+app.post('/api/desktop/document-backup', async (req, res) => {
+  if (req.get('origin') !== new URL(env.BETTER_AUTH_URL).origin)
+    return res.status(403).json({ error: 'Restore from the application.' })
+  try {
+    const fingerprint = backupHash('sha256').update(JSON.stringify(req.body)).digest('hex')
+    const library = restoreDiagramBackup(
+      req.body,
+      req.user!.id,
+      req.user!.name,
+      (value) =>
+        'db_' +
+        backupHash('sha256')
+          .update(req.user!.id + ':' + fingerprint + ':' + value)
+          .digest('hex')
+          .slice(0, 30),
+    )
+    const result = await store.importCanvases(library)
+    userEvents.notifyUsers([req.user!.id], { type: 'canvases' })
+    res.json({ ...result, documents: library.map(({ id, name }) => ({ id, name })) })
+  } catch {
+    res.status(400).json({
+      error: 'This backup could not be restored. Check the format and size. Existing documents were not replaced.',
+    })
+  }
+})
+
+const legacyLibrary = new LegacyLibrary(env.DOOP_LEGACY_LIBRARY_MANIFEST)
+app.get('/api/desktop/legacy-library', async (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  res.json(await legacyLibrary.status())
+})
+
+app.get('/api/desktop/legacy-library/:snapshotId', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  try {
+    res.json({ items: await legacyLibrary.read(req.params.snapshotId) })
+  } catch (error) {
+    res.status(error instanceof LegacyLibraryError ? error.status : 503).json({
+      error: error instanceof LegacyLibraryError ? error.message : 'The saved library could not be opened.',
+    })
+  }
+})
+
+app.post('/api/import/zenuml', async (req, res) => {
+  const workspaceId = typeof req.body?.workspaceId === 'string' ? req.body.workspaceId : undefined
+  if (workspaceId && !requireGrowableWorkspace(req, res, workspaceId)) return
+  let documents
+  try {
+    documents = parseLegacyZenUml(req.body?.items)
+    const selected: unknown = req.body?.selected
+    if (selected !== undefined) {
+      if (
+        !Array.isArray(selected) ||
+        !selected.length ||
+        selected.some(
+          (index: unknown) =>
+            typeof index !== 'number' || !Number.isInteger(index) || index < 0 || index >= documents.length,
+        )
+      ) {
+        throw new Error('Choose at least one valid document.')
+      }
+      const indexes = new Set(selected)
+      documents = documents.filter((_, index) => indexes.has(index))
+    }
+  } catch (error) {
+    return res.status(400).json({ error: error instanceof Error ? error.message : 'Invalid ZenUML export.' })
+  }
+  try {
+    const library = await legacyCanvases(documents, req.user!.id, req.user!.name, workspaceId)
+    const counts = await store.importCanvases(library.canvases)
+    userEvents.notifyUsers([req.user!.id], { type: 'canvases' })
+    res.json({
+      ...counts,
+      /* A retry uses the existing page IDs, never the newly prepared ones. */
+      canvases: library.destinations.map((destination) => {
+        const canvas = store.getCanvas(destination.id)!
+        const prepared = library.canvases.find((item) => item.id === destination.id)!
+        const index = prepared.pages!.findIndex((page) => page.id === destination.pageId)
+        return { ...destination, pageId: canvas.pages?.[Math.max(0, index)]?.id }
+      }),
+      warnings: library.warnings,
+    })
+  } catch (error) {
+    console.error('[zenuml] library import failed', error)
+    res.status(500).json({ error: 'Import could not be saved. Retry the same file safely.' })
+  }
+})
 
 app.post('/api/canvases', (req, res) => {
   const name = String(req.body?.name || 'Untitled canvas')
@@ -2221,6 +2356,52 @@ app.put('/api/canvases/:id/stack', (req, res) => {
   res.json(frames)
 })
 
+app.post('/api/frames/:id/diagram-style', async (req, res) => {
+  if (env.DOOP_PRODUCT !== 'diagramly') return res.status(404).json({ error: 'Not available.' })
+  if (req.get('origin') !== new URL(env.BETTER_AUTH_URL).origin)
+    return res.status(403).json({ error: 'Apply diagram styles from the application.' })
+  const { source, mode, expectedUpdatedAt, diagramPageId } = req.body ?? {}
+  if (
+    typeof source !== 'string' ||
+    typeof mode !== 'string' ||
+    mode.length > 20 ||
+    !Number.isFinite(expectedUpdatedAt) ||
+    (diagramPageId !== undefined && (typeof diagramPageId !== 'string' || !diagramPageId))
+  )
+    return res.status(400).json({ error: 'A stylesheet, language and current diagram revision are required.' })
+  const frame = requireFrame(req, res, req.params.id, 'edit', expectedUpdatedAt)
+  if (!frame) return
+  if (frame.locked) return res.status(409).json({ error: 'Unlock this diagram before editing its styles.' })
+  const diagram = readDiagramFrame(frame.html)
+  if (!diagram) return res.status(400).json({ error: 'This item has no editable diagram source.' })
+  if (diagramPageId && (!diagram.pages || !diagram.pages.some((page) => page.id === diagramPageId)))
+    return res.status(400).json({ error: 'Diagram page not found.' })
+  let css: string
+  try {
+    css = await compileDiagramStyle(source, mode)
+  } catch (error) {
+    return res.status(400).json({
+      error: error instanceof Error ? error.message : 'Styles could not be compiled. Your saved diagram is unchanged.',
+    })
+  }
+  const current = requireFrame(req, res, req.params.id, 'edit', expectedUpdatedAt)
+  if (!current) return
+  if (current.locked) return res.status(409).json({ error: 'Unlock this diagram before editing its styles.' })
+  res.json(
+    actions.updateFrame(
+      frame.id,
+      {
+        html: buildDiagramHtml(
+          diagramPageId
+            ? updateDiagramPage(diagram, diagramPageId, { css, styleSource: source, styleMode: mode })
+            : { ...diagram, css, styleSource: source, styleMode: mode },
+        ),
+      },
+      userActor(req),
+    ),
+  )
+})
+
 app.patch('/api/frames/:id', (req, res) => {
   const current = requireFrame(req, res, req.params.id, 'edit', req.body?.expectedUpdatedAt)
   if (!current) return
@@ -2949,7 +3130,7 @@ app.get('/sitemap.xml', (_req, res) => {
 
 /* production: serve the built client */
 if (env.isProduction) {
-  const dist = path.join(process.cwd(), 'dist')
+  const dist = path.join(appRoot(), 'dist')
   app.use(express.static(dist))
   /* a missing bundle or source map is a 404, not the app shell: HTML served
      as a .js or .map breaks module loads and source map resolution */
@@ -3152,7 +3333,7 @@ wss.on('connection', (ws, upgradeReq) => {
   })
 })
 
-server.listen(PORT, () => {
+server.listen(PORT, env.HOST, () => {
   console.log(`⟡ doop server     http://localhost:${PORT}`)
   /* frame HTML is loaded per canvas; a canvas nobody has used for
      CANVAS_IDLE_MS gives it back, unless a room, agent or stream is on it.

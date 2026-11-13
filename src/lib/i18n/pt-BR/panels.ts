@@ -1,6 +1,11 @@
 import type { Catalog } from '..'
 
 export const panels: Catalog['panels'] = {
+  contentsTitle: 'Diagramas',
+  contentsSearch: 'Buscar diagramas',
+  contentsEmpty: 'Ainda não há diagramas nesta página.',
+  contentsMoveForward: 'Mover diagrama para frente',
+  contentsMoveBackward: 'Mover diagrama para trás',
   layersTitle: 'Camadas',
   layersCollapsePanel: 'Recolher painel',
   layersExpandPanel: 'Expandir painel',

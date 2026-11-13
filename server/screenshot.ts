@@ -1,43 +1,17 @@
-import { env, windowsBrowserDirectories } from './env.ts'
-import fs from 'node:fs'
-import path from 'node:path'
+import { env } from './env.ts'
 import puppeteer, { type Browser, type Page } from 'puppeteer-core'
 import type { Frame } from '../shared/types.ts'
 import { guardPublicPageRequests } from './publicUrl.ts'
+import { isDiagramVendorUrl } from './diagramVendor.ts'
+import { DIAGRAM_STATE_ATTR, readDiagramFrame } from '../shared/diagramFrame.ts'
+import { renderDesktopFrame } from './desktopScreenshot.ts'
+import { findBrowserPath } from './browserDetection.ts'
+export { findBrowserPath } from './browserDetection.ts'
 
 /**
  * Render a frame's HTML in headless Chrome so agents can *see* their work.
  * Uses the system browser via puppeteer-core — no bundled download.
  */
-
-const windowsDirectories = process.platform === 'win32' ? windowsBrowserDirectories() : []
-
-const CHROME_PATHS = [
-  env.CHROME_PATH,
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-  '/Applications/Chromium.app/Contents/MacOS/Chromium',
-  '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
-  '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
-  '/usr/bin/google-chrome',
-  '/usr/bin/chromium',
-  '/usr/bin/chromium-browser',
-  ...windowsDirectories.map((dir) => path.join(dir, 'Google', 'Chrome', 'Application', 'chrome.exe')),
-  ...windowsDirectories.map((dir) => path.join(dir, 'Microsoft', 'Edge', 'Application', 'msedge.exe')),
-  ...windowsDirectories.map((dir) => path.join(dir, 'BraveSoftware', 'Brave-Browser', 'Application', 'brave.exe')),
-].filter((p): p is string => !!p)
-
-/** The first usable local browser executable, or null when there is none. */
-export function findBrowserPath(): string | null {
-  for (const p of CHROME_PATHS) {
-    try {
-      fs.accessSync(p, fs.constants.X_OK)
-      return p
-    } catch {
-      /* keep looking */
-    }
-  }
-  return null
-}
 
 function findBrowser(): string {
   const path = findBrowserPath()
@@ -118,6 +92,8 @@ export async function loadFramePage(frame: Frame): Promise<IsolatedPage> {
     await guardPublicPageRequests(page, {
       allowUrl: (url) =>
         (url.origin === assetOrigin && url.pathname.startsWith('/a/')) ||
+        /* diagram frames load their renderer from this server (spike) */
+        isDiagramVendorUrl(url, assetOrigin) ||
         /* webfonts referenced by imported frames (imports request the
            source design's families from Google Fonts) */
         url.origin === 'https://fonts.googleapis.com' ||
@@ -148,6 +124,13 @@ export async function loadFramePage(frame: Frame): Promise<IsolatedPage> {
       /* Slow external resources: inspect whatever has rendered. */
     }
     await new Promise((resolve) => setTimeout(resolve, 120))
+    /* a diagram frame draws after load (its renderer is async, and Mermaid
+       fetches the diagram type's chunk first): wait until it reports (spike) */
+    if (readDiagramFrame(html)) {
+      await page
+        .waitForFunction((attr) => document.documentElement.hasAttribute(attr), { timeout: 8000 }, DIAGRAM_STATE_ATTR)
+        .catch(() => {})
+    }
     return loaded
   } catch (error) {
     await loaded.close()
@@ -383,8 +366,11 @@ export async function renderFrame(
   frame: Frame,
   /* output pixel density — fractional values downscale huge frames */
   scale: number = 1,
-  opts: { type?: 'png' | 'jpeg'; quality?: number; maxHeight?: number } = {},
+  opts: { type?: 'png' | 'jpeg'; quality?: number; maxHeight?: number; transparent?: boolean } = {},
 ): Promise<Buffer> {
+  if (env.DOOP_FRAME_SNAPSHOT_HELPER) {
+    return renderDesktopFrame(env.DOOP_FRAME_SNAPSHOT_HELPER, frame, scale, opts)
+  }
   const loaded = await loadFramePage(frame)
   const { page } = loaded
   try {
@@ -394,12 +380,17 @@ export async function renderFrame(
       deviceScaleFactor: scale,
     })
     const type = opts.type ?? 'png'
+    if (type === 'png' && opts.transparent) {
+      const { TRANSPARENT_DIAGRAM_STYLE } = await import('../shared/diagramExport.ts')
+      await page.addStyleTag({ content: TRANSPARENT_DIAGRAM_STYLE })
+    }
     const clip =
       opts.maxHeight && frame.height > opts.maxHeight
         ? { x: 0, y: 0, width: Math.round(frame.width), height: Math.round(opts.maxHeight) }
         : undefined
     const buf = await page.screenshot({
       type,
+      ...(type === 'png' && opts.transparent ? { omitBackground: true } : {}),
       ...(type === 'jpeg' ? { quality: opts.quality ?? 90 } : {}),
       ...(clip ? { clip } : {}),
     })

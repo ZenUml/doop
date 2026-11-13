@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      html,
+      body,
+      #root {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React from 'react'
+      import { createRoot } from 'react-dom/client'
+      import { Stage } from '/src/components/Stage.tsx'
+      import { LayersPanel } from '/src/components/LayersPanel.tsx'
+      import { Inspector } from '/src/components/Inspector.tsx'
+      import { useStore } from '/src/lib/store.ts'
+      import { buildDiagramHtml } from '/shared/diagramFrame.ts'
+      import { TooltipProvider } from '/src/components/ui/tooltip.tsx'
+      import { initProduct } from '/src/lib/product.ts'
+      import '/src/styles.css'
+
+      const frame = {
+        id: 'diagram-a',
+        canvasId: 'doc-a',
+        pageId: 'page-a',
+        name: 'Checkout',
+        x: 80,
+        y: 80,
+        width: 600,
+        height: 420,
+        html: buildDiagramHtml({ kind: 'zenuml', source: 'Browser -> Checkout: Start' }),
+        createdAt: 0,
+        updatedAt: 0,
+        updatedBy: 'Test User',
+      }
+      window.seedDiagramly = () => {
+        useStore.getState().setCanvas({
+          id: 'doc-a',
+          name: 'Checkout document',
+          role: 'edit',
+          pages: [{ id: 'page-a', name: 'Overview' }],
+          frames: [frame],
+          createdAt: 0,
+          updatedAt: 0,
+        })
+        useStore.getState().select(frame.id)
+        useStore.getState().setInspectorOpen(true)
+        useStore.getState().setLayersOpen(true)
+      }
+      window.seedUnsupportedDiagram = () => {
+        useStore.getState().setCanvas({
+          id: 'doc-a',
+          name: 'Checkout document',
+          role: 'edit',
+          pages: [{ id: 'page-a', name: 'Overview' }],
+          frames: [
+            {
+              ...frame,
+              html: `<!doctype html><img src=x onerror="parent.postMessage({type: 'diagramly:unsafe-html'}, '*')">`,
+            },
+          ],
+          createdAt: 0,
+          updatedAt: 0,
+        })
+        useStore.getState().select(frame.id)
+        useStore.getState().setInspectorOpen(true)
+      }
+      window.diagramlyState = () => ({
+        selectedId: useStore.getState().selectedId,
+        selectedElement: useStore.getState().selectedElement,
+      })
+      window.diagramlyMessages = []
+      window.addEventListener('message', (event) => {
+        if (event.data && typeof event.data.type === 'string') window.diagramlyMessages.push(event.data.type)
+      })
+
+      function Surface() {
+        const canvas = useStore((state) => state.canvas)
+        const selectedId = useStore((state) => state.selectedId)
+        const selected = canvas?.frames.find((item) => item.id === selectedId)
+        return React.createElement(
+          'div',
+          { className: 'fixed inset-0 bg-canvas' },
+          React.createElement(Stage, { onAddFrame: () => {} }),
+          React.createElement(LayersPanel, { onAddFrame: () => {} }),
+          selected ? React.createElement(Inspector, { frame: selected }) : null,
+        )
+      }
+      await initProduct()
+      createRoot(document.getElementById('root')).render(
+        React.createElement(TooltipProvider, null, React.createElement(Surface)),
+      )
+    </script>
+  </body>
+</html>

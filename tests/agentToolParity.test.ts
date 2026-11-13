@@ -34,6 +34,11 @@ const BY_CONTEXT = [
 /** Real gaps: MCP agents can do these and resident agents cannot yet. */
 const MISSING = [
   'get_canvas',
+  // External MCP has source-aware diagram operations and optimistic concurrency;
+  // resident HTML tools are not equivalent and cannot safely claim parity.
+  'create_diagram',
+  'get_diagram',
+  'update_diagram',
   'delete_frame',
   'list_frame_versions',
   'restore_frame_version',

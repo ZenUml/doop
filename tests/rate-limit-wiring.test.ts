@@ -1,6 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
  * The per-minute caps are configurable through environment variables. This
@@ -59,9 +59,15 @@ afterEach(() => {
 })
 
 describe('configurable tool rate limits', () => {
-  it('applies a lowered MCP_UPLOADS_PER_MIN to upload_asset', async () => {
+  let session: Awaited<ReturnType<typeof connect>>
+  beforeEach(async () => {
     vi.stubEnv('MCP_UPLOADS_PER_MIN', '2')
-    const { client, canvasId, close } = await connect()
+    // Cold MCP module loading belongs to setup, not the rate-limit response budget.
+    session = await connect()
+  })
+
+  it('applies a lowered MCP_UPLOADS_PER_MIN to upload_asset', async () => {
+    const { client, canvasId, close } = session
     try {
       /* the first two tickets are handed out… */
       for (let i = 0; i < 2; i++) {

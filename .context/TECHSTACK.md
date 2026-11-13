@@ -910,3 +910,13 @@ The shared font library serves public font assets with CORS so sandboxed frames 
 Migrations 0040 (agent feedback) and 0041 (custom fonts) retain their shared timestamps; their OSS
 snapshots omit the deferred Figma `integrations.refresh_token` column, as does the credential
 encryption backfill. Desktop downloads use the platform-neutral `https://doop.design/download` page.
+
+## Desktop integration checks
+
+Diagramly retains its source-diagram capability profile when upstream features are integrated; see `docs/desktop-capability-decisions.md`. The Vitest project excludes `scripts/*.test.mjs`, which use Node's native test runner and run in the desktop workflow. Vite allows the resolved installed dependency directory as well as its workspace root, so a worktree can load asset imports from shared `node_modules` without disabling filesystem checks.
+
+Browser executable discovery lives in `server/browserDetection.ts` without loading native image-renderer dependencies. Rendering continues to use `server/screenshot.ts` and the desktop WebKit helper where configured. Browser geometry tests isolate the edit under undo validation, rather than relying on several preceding edits fitting inside the history coalescing window.
+
+Generated diagram snapshots mount outside their zero-height runtime body. Raster export normalizes that mount inside the export copy and rejects unrendered diagrams, so a successful download cannot silently contain only blank paper. Strict IndexedDB recovery carries a stable storage-record fingerprint separately from the payload ID. Repeated identical records in older JSON exports receive distinct occurrence identities while the first keeps its existing identity.
+
+The integration-test server cleanup retries transient directory-removal failures while the terminated PGlite child finishes exiting. Data retained for restart tests bypasses this cleanup.

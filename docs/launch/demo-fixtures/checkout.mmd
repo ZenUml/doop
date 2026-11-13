@@ -1,0 +1,6 @@
+flowchart LR
+    Browser --> Checkout[Checkout API]
+    Checkout --> Inventory[Inventory API]
+    Checkout --> Payments[Payments API]
+    Payments --> Ledger[(Ledger)]
+    Inventory --> Stock[(Stock database)]

@@ -30,7 +30,10 @@ use rfd::{AsyncMessageDialog, MessageButtons, MessageDialogResult, MessageLevel}
 use serde_json::{json, Value};
 use tauri::{AppHandle, Manager, Url};
 
+#[cfg(not(feature = "app-store"))]
 const CAPABILITY: &str = include_str!("../capabilities/default.json");
+#[cfg(feature = "app-store")]
+const CAPABILITY: &str = include_str!("../capabilities/app-store.json");
 const CONNECT: &str = "Connect";
 const SWITCH: &str = "Switch";
 const CANCEL: &str = "Cancel";
@@ -56,7 +59,17 @@ pub fn default_url() -> String {
 /// The server this launch opens, without a trailing slash. Read from disk on
 /// the first call (the menu or setup, both before any page loads).
 pub fn active(app: &AppHandle) -> &'static str {
-    ACTIVE.get_or_init(|| chosen(app).unwrap_or_else(default_url))
+    // a bundle that carries its own server runs on it (spike: local_server.rs)
+    ACTIVE.get_or_init(|| {
+        if cfg!(feature = "app-store") {
+            return crate::local_server::start(app).expect(
+                "Diagramly's bundled server could not start. No remote fallback is permitted.",
+            );
+        }
+        crate::local_server::start(app)
+            .or_else(|| chosen(app))
+            .unwrap_or_else(default_url)
+    })
 }
 
 /// The server this launch opens, for code with no app handle; only valid
@@ -66,7 +79,7 @@ pub fn active_url() -> String {
 }
 
 pub fn is_custom(app: &AppHandle) -> bool {
-    !same_server(active(app), &default_url())
+    !cfg!(feature = "app-store") && !same_server(active(app), &default_url())
 }
 
 fn config_file(app: &AppHandle) -> Option<PathBuf> {
@@ -195,7 +208,7 @@ fn capability_for(server: &str) -> Result<String, String> {
 /// Lets a chosen server's pages use the shell's IPC. The bundled capability
 /// already covers the default server (and dev builds' local pages).
 pub fn grant(app: &AppHandle) -> Result<(), String> {
-    if !is_custom(app) {
+    if !cfg!(feature = "app-store") && !is_custom(app) {
         return Ok(());
     }
     let capability = capability_for(active(app))?;

@@ -21,7 +21,12 @@ import posthog from 'posthog-js/dist/module.no-external'
 import { installFrameReplay } from './frameReplay'
 import { desktopPlatform, isDesktopShell, shellVersion } from './shell'
 
-const key = import.meta.env.VITE_POSTHOG_KEY
+// Desktop documents and local development never opt into upstream replay.
+const privateDesktop =
+  isDesktopShell() ||
+  ['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname) ||
+  import.meta.env.VITE_PRODUCT_MODE === 'diagramly'
+const key = privateDesktop ? undefined : import.meta.env.VITE_POSTHOG_KEY
 /* Default to the same-origin relay (server/index.ts); VITE_POSTHOG_HOST is an
    escape hatch for pointing elsewhere, e.g. straight at PostHog in a dev
    setup without the API server. */

@@ -6,6 +6,8 @@ lists every file in this folder.
 
 ## Active
 
+- [diagram-pages.md](diagram-pages.md) - Preserve diagram-owned pages, rename outer workspaces Boards, and verify legacy migration and native editing.
+
 - [image-descriptions.md](image-descriptions.md) - Three phases, test-first: storage and the
   describer worker, the agent read paths (`get_canvas`, `get_frame`, the resident kickoff), the
   Settings → Agents switch.

@@ -11,6 +11,8 @@ import { deleteFrameTracked, recordUpdate, trackSave } from '../lib/history'
 import { setFramesLocked } from '../lib/layerEdits'
 import { FrameHistoryModal } from './FrameHistoryModal'
 import { FrameApprovalControl } from './FrameApproval'
+import { DiagramSource } from './DiagramSource'
+import { readDiagramFrame } from '../../shared/diagramFrame'
 import { cn } from '@/lib/utils'
 import { Panel, PanelClose, PanelHeader, type PanelSurface } from './ui/panel'
 import { Collapsible, CollapsibleContent } from './ui/collapsible'
@@ -22,6 +24,8 @@ import { NumberField, PropertyScrubContext } from './ui/property-field'
 import { normalizeRotation } from '../../shared/frameRotation'
 import { MIN_FRAME_SIZE } from '../lib/frameResize'
 import { t as translate, useT } from '../lib/i18n'
+import { isDiagramly } from '../lib/product'
+import { DiagramlyInspector } from './DiagramlyInspector'
 
 const HTML_OPEN_KEY = 'doop:inspector-html'
 
@@ -38,7 +42,11 @@ function boxOf(frame: Frame): FrameBox {
   return { x: frame.x, y: frame.y, width: frame.width, height: frame.height, rotation: frame.rotation ?? 0 }
 }
 
-export function Inspector({
+export function Inspector(props: { frame: Frame; surface?: PanelSurface; className?: string; style?: CSSProperties }) {
+  return isDiagramly() ? <DiagramlyInspector {...props} /> : <DoopInspector {...props} />
+}
+
+function DoopInspector({
   frame,
   surface = 'floating',
   className,
@@ -52,6 +60,8 @@ export function Inspector({
 }) {
   const t = useT()
   const select = useStore((s) => s.select)
+  /* a diagram frame is edited as source text, not as HTML (spike) */
+  const diagram = readDiagramFrame(frame.html)
   /* the raw HTML editor is a power tool — collapsed by default so the panel
      reads as frame properties, not a code dump; the choice sticks */
   const [showHtml, setShowHtml] = useState(() => localStorage.getItem(HTML_OPEN_KEY) === '1')
@@ -231,6 +241,11 @@ export function Inspector({
         <InspectorGroup title={t('inspector.groupDevelopment')}>
           <FrameApprovalControl key={frame.id} frame={frame} hasUnsavedChanges={saveState === 'dirty'} />
         </InspectorGroup>
+        {diagram && (
+          <InspectorGroup title={t('inspector.groupDiagram')}>
+            <DiagramSource key={frame.id} frame={frame} diagram={diagram} />
+          </InspectorGroup>
+        )}
         <PropertyScrubContext.Provider value={boxScrub}>
           <InspectorGroup title={t('inspector.sectionPosition')}>
             <div className="grid grid-cols-2 gap-1.5">

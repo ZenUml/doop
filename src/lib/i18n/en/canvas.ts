@@ -13,6 +13,11 @@ export const canvas = {
 
   /* top bar */
   untitled: 'Untitled',
+  untitledDocument: 'Untitled document',
+  newDiagram: 'New diagram',
+  backToDocuments: 'Back to documents',
+  diagrams: 'Diagrams',
+  diagramActionsDescription: 'Diagrams, external agent connection, and account settings.',
   allCanvases: 'All canvases',
   readOnlyBadgeTitle: 'Your share link lets you look around but not change the design',
   canComment: 'Can comment',
@@ -72,6 +77,7 @@ export const canvas = {
   prototypeMode: 'Prototype mode',
   leavePrototypeMode: 'Leave Prototype mode',
   frameInspector: 'Frame inspector',
+  diagramInspector: 'Diagram inspector',
   canvasActivity: 'Canvas activity',
 
   /* side rail */
@@ -118,13 +124,20 @@ export const canvas = {
 
   /* onboarding */
   gettingStarted: 'Getting started',
-  gettingStartedDescription: 'Two steps to bring your own agent onto the canvas.',
-  stepConnect: 'Connect your own agent',
+  gettingStartedDescription: 'Connect an agent, open this canvas, and create or edit a frame.',
+  stepConnect: 'Connect AI',
   stepConnectHint: 'Claude Code, Codex, Cursor or any MCP client can design on this canvas as you.',
-  stepTask: 'Give it a task',
+  connectionAccount: 'Account: {email}',
+  checkingConnection: 'Checking connection…',
+  connectionCheckFailed: 'Could not check the connection. Trying again…',
+  stepCanvas: 'Open this canvas in your agent',
+  stepCanvasHint: 'Paste this prompt into your connected agent. This step completes when it reads the canvas.',
+  stepTask: 'Create or edit a frame',
+  stepComplete: 'Complete',
+  stepIncomplete: 'Incomplete',
   copiedLower: 'copied',
   copyStarterPrompt: 'copy a starter prompt',
-  stepTaskHint: "Paste it into your agent's chat and watch the frame stream in.",
+  stepTaskHint: 'Ask your agent to create or change a frame. This step completes when a frame changes on this canvas.',
   loopDone:
     "That's the loop. One more trick: hover a task in the panel and reply to it — your note becomes an open request any agent picks up mid-flight.",
   gotIt: 'Got it',
