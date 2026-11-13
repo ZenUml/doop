@@ -20,7 +20,12 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
       currentPageId: 'payment',
       cssMode: 'less',
       pages: [
-        { id: 'order', title: 'Order', js: 'Customer->Order: create', css: '@ink: #3155aa; .message {color: @ink;}' },
+        {
+          id: 'order',
+          title: 'Order',
+          js: 'Customer->Order: create',
+          css: '@ink: #3155aa; .sequence-diagram {background: #fff;} .message {color: @ink;}',
+        },
         { id: 'payment', title: 'Payment', js: 'Order->Payment: authorize', css: '' },
       ],
     },
@@ -127,12 +132,58 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
         () => !document.querySelector<HTMLButtonElement>('[aria-label="Diagram page"]')?.disabled,
       )
     }
+    async function assertCanvas(label: string, absent: string, background?: string, messageColor?: string) {
+      const iframe = (await page.$('iframe[data-doop-frame]'))!
+      const rendered = (await iframe.contentFrame())!
+      try {
+        await rendered.waitForFunction(
+          (label, absent, background, messageColor) => {
+            const sequence = document.querySelector<HTMLElement>('.sequence-diagram')
+            const message = sequence?.querySelector('.message')
+            return (
+              document.documentElement.getAttribute('data-doop-diagram-state') === 'rendered' &&
+              sequence?.innerText.includes(label) &&
+              !sequence.innerText.includes(absent) &&
+              (!background || getComputedStyle(sequence).backgroundColor === background) &&
+              (!messageColor || (message && getComputedStyle(message).color === messageColor))
+            )
+          },
+          { timeout: 5000 },
+          label,
+          absent,
+          background,
+          messageColor,
+        )
+      } catch (error) {
+        const diagnostic = await rendered.evaluate(() => ({
+          state: document.documentElement.getAttribute('data-doop-diagram-state'),
+          body: document.body.outerHTML,
+          mount: document.querySelector('[data-doop-diagram-mount]')?.outerHTML,
+          head: document.head.outerHTML,
+        }))
+        const artifact = `/tmp/diagramly-same-kind-${Date.now()}.json`
+        await writeFile(
+          artifact,
+          JSON.stringify({ expected: { label, absent, background, messageColor }, diagnostic }, null, 2),
+        )
+        console.error(`Same-kind renderer diagnostic: ${artifact}`)
+        throw error
+      }
+      const geometry = await rendered.$eval('.sequence-diagram', (sequence) => ({
+        width: sequence.getBoundingClientRect().width,
+        height: sequence.getBoundingClientRect().height,
+      }))
+      expect(geometry.width).toBeGreaterThan(100)
+      expect(geometry.height).toBeGreaterThan(30)
+    }
+    await assertCanvas('authorize', 'create')
     const source = 'Order->Payment: upgraded and still editable'
     await page.locator('textarea[aria-label="Diagram source"]').fill(source)
     await page.waitForFunction(
       () => !document.querySelector<HTMLButtonElement>('[aria-label="Diagram page"]')?.disabled,
     )
     await expect.poll(async () => readDiagramFrame((await documentState()).frames[0]!.html)?.source).toBe(source)
+    await assertCanvas('upgraded and still editable', 'authorize')
     await page.locator('button::-p-text(Diagram styles)').click()
     const style = '.sequence-diagram { background: #dceeff; }'
     await page.locator('textarea[aria-label="Diagram styles"]').fill(style)
@@ -141,7 +192,9 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
       page.waitForResponse((response) => response.url().endsWith('/diagram-style') && response.ok()),
       page.locator('button::-p-text(Apply styles)').click(),
     ])
+    await assertCanvas('upgraded and still editable', 'create', 'rgb(220, 238, 255)')
     await selectInnerPage('Order')
+    await assertCanvas('create', 'upgraded and still editable', 'rgb(255, 255, 255)', 'rgb(49, 85, 170)')
     expect(await page.$eval('textarea[aria-label="Diagram source"]', (el) => (el as HTMLTextAreaElement).value)).toBe(
       'Customer->Order: create',
     )
@@ -150,6 +203,11 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
     expect(beforeRestart.pages![0]!.styleSource).toContain('@ink: #3155aa')
     expect(beforeRestart.pages![1]!.source).toBe(source)
     expect(beforeRestart.pages![1]!.styleSource).toBe(style)
+
+    await selectInnerPage('Payment')
+    await assertCanvas('upgraded and still editable', 'create', 'rgb(220, 238, 255)')
+    await selectInnerPage('Order')
+    await assertCanvas('create', 'upgraded and still editable', 'rgb(255, 255, 255)', 'rgb(49, 85, 170)')
 
     const dataDir = server.dataDir
     const port = server.port
@@ -169,7 +227,9 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
     await page.click('[data-frame-title]')
     await page.waitForSelector('[aria-label="Diagram page"]')
     expect(await page.$eval('[aria-label="Diagram page"]', (el) => el.textContent)).toContain('Order')
+    await assertCanvas('create', 'upgraded and still editable', 'rgb(255, 255, 255)', 'rgb(49, 85, 170)')
     await selectInnerPage('Payment')
+    await assertCanvas('upgraded and still editable', 'create', 'rgb(220, 238, 255)')
     expect(await page.$eval('textarea[aria-label="Diagram source"]', (el) => (el as HTMLTextAreaElement).value)).toBe(
       source,
     )

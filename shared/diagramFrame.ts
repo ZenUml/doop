@@ -176,7 +176,18 @@ async function sync() {
     await renderDiagram(mount, source)
     if (!current()) return
     root.setAttribute('${DIAGRAM_STATE_ATTR}', 'rendered')
-    await new Promise(requestAnimationFrame)
+    // WebKit may suspend animation frames in a hidden or occluded iframe.
+    // Measuring a completed render must not hold the source-update lock forever.
+    await new Promise((resolve) => {
+      let frame = 0
+      const finish = () => {
+        clearTimeout(timer)
+        cancelAnimationFrame(frame)
+        resolve()
+      }
+      const timer = setTimeout(finish, 80)
+      frame = requestAnimationFrame(finish)
+    })
     if (!current()) return
     const content = mount.querySelector('.sequence-diagram, svg') || mount
     const bounds = content.getBoundingClientRect()

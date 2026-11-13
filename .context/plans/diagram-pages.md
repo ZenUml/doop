@@ -14,6 +14,8 @@ Acceptance uses a two-page legacy document with different source and styles. Ver
 
 The renderer regression delays the first Mermaid module request by one second, then completes two ZenUML → Mermaid → ZenUML cycles in the actual app. It checks the rendered language, labels, page CSS, mount geometry and restored ZenUML library styles; a readiness marker alone is insufficient evidence.
 
+Same-language page switching must also change the actual canvas labels and computed styles, including after source edits and a server restart. Post-render size measurement uses a bounded paint wait: a suspended animation frame must never retain the source-update lock and prevent later pages from rendering. A separate real-renderer regression suspends animation callbacks while observing with a timer, then checks successive source and CSS changes.
+
 Preserve singleton drafts when the first inner pages are added. Recover them only on the original page, including after undo, and retain the old stored draft if writing its replacement fails. Duplication and undo/redo must retain all page source and styles. Reject backups whose displayed content disagrees with their active page before restoring any documents.
 
 Backup stacking order is a finite ordering value, often a timestamp or fraction, rather than a bounded canvas coordinate. Acceptance must create new diagrams through the server before exporting and restoring a library; import-only fixtures do not exercise this value.
