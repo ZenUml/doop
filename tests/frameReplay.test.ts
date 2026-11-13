@@ -197,14 +197,45 @@ describe.skipIf(!findBrowserPath())('sandboxed frame replay', () => {
       await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 1100)))
       expect(attempts).toBe(3)
 
+      // Observe the first failed script in the child. Its error handler queues
+      // the retry after capture, so notify the parent only after setTimeout
+      // has actually returned an ID. The parent stops in the browser, without
+      // a driver round trip racing the 250ms retry.
+      const child = page.frames().find((f) => f !== page.mainFrame())!
+      await child.evaluate(() => {
+        const originalSet = window.setTimeout.bind(window)
+        const originalClear = window.clearTimeout.bind(window)
+        let failedRecorder = false
+        let retryId: number | undefined
+        window.addEventListener(
+          'error',
+          (event) => {
+            if ((event.target as Element | null)?.matches('script[data-doop-replay]')) failedRecorder = true
+          },
+          true,
+        )
+        window.setTimeout = ((handler: TimerHandler, delay?: number, ...args: unknown[]) => {
+          const id = originalSet(handler, delay, ...args)
+          if (failedRecorder && delay === 250 && retryId === undefined) {
+            retryId = id
+            parent.postMessage({ type: 'test:retry-scheduled' }, '*')
+          }
+          return id
+        }) as typeof window.setTimeout
+        window.clearTimeout = ((id?: number) => {
+          if (id !== undefined && id === retryId) parent.postMessage({ type: 'test:retry-cancelled' }, '*')
+          originalClear(id)
+        }) as typeof window.clearTimeout
+      })
       await page.evaluate(() => {
+        const childWindow = document.querySelector('iframe')!.contentWindow
+        window.addEventListener('message', (event) => {
+          if (event.source === childWindow && event.data?.type === 'test:retry-scheduled') window.stopReplay()
+        })
         window.stopReplay()
         window.startReplay()
       })
-      await vi.waitFor(() => expect(attempts).toBe(4))
-      const child = page.frames().find((f) => f !== page.mainFrame())!
-      await child.waitForFunction(() => !document.querySelector('script[data-doop-replay]'))
-      await page.evaluate(() => window.stopReplay())
+      await page.waitForFunction(() => window.messages.some((message) => message.type === 'test:retry-cancelled'))
       await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 600)))
       expect(attempts).toBe(4)
       expect(await page.evaluate(() => window.messages.filter((m) => m.type === 'rrweb'))).toEqual([])
