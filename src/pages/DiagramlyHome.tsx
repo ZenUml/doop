@@ -5,7 +5,26 @@ import type { CanvasMeta } from '../../shared/types'
 import { buildDiagramHtml, DEFAULT_DIAGRAM_SOURCE, type DiagramKind } from '../../shared/diagramFrame'
 import { api } from '../lib/api'
 import { navigate } from '../lib/navigate'
-import { DiagramlyShell } from '../components/DiagramlyShell'
+import { DiagramlyHomeHero } from '../components/DiagramlyHomeHero'
+import { DiagramlySidebar } from '../components/DiagramlySidebar'
+import { FramePreview, FrameThumb } from '../components/FramePreview'
+import { DashContent, DashHeader, DashLayout, DashMain } from '../components/ui/dash'
+import { Tile, TileBody, TileCover } from '../components/ui/tile'
+import { Pressable } from '../components/ui/pressable'
+import { IconButton } from '../components/ui/icon-button'
+import { MenuButton } from '../components/ui/menu-button'
+import { SegmentedIconItem, SegmentedIcons } from '../components/ui/segmented'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu'
+import { GridIcon, ListIcon, PlusIcon, SearchIcon, UploadIcon, GearIcon, CirclePlusIcon } from '../components/ui/icons'
+import { timeAgo } from '../lib/time'
 import { LegacyZenUmlImport } from '../components/LegacyZenUmlImport'
 import { ConnectModal } from '../components/ConnectModal'
 import { Button } from '../components/ui/button'
@@ -19,6 +38,10 @@ export function DiagramlyHome() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [search, setSearch] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [sort, setSort] = useState('updated')
+  const [view, setView] = useState('grid')
+  const [prompt, setPrompt] = useState('')
   const [legacyImport, setLegacyImport] = useState(false)
   const [sourceImport, setSourceImport] = useState(false)
   const [restoreImport, setRestoreImport] = useState(false)
@@ -124,103 +147,181 @@ export function DiagramlyHome() {
     }
   }
 
+  const visible = documents
+    .filter((document) => document.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
+    .sort((a, b) => (sort === 'name' ? a.name.localeCompare(b.name) : b.updatedAt - a.updatedAt))
+
   return (
-    <DiagramlyShell
-      title="Documents"
-      actions={
-        <>
-          <Button variant="ghost" disabled={busy} onClick={() => setLegacyImport(true)}>
-            Import ZenUML library
+    <DashLayout>
+      <DiagramlySidebar onConnectAgent={() => setConnect(true)} onImportLibrary={() => setLegacyImport(true)} />
+      <DashMain className="[background:var(--paper)]">
+        <DashHeader variant="bare">
+          <span className="mr-auto text-body font-medium md:hidden">Diagramly</span>
+          <span className="hidden flex-1 md:block" />
+          <IconButton className="md:hidden" aria-label="Connect an agent" onClick={() => setConnect(true)}>
+            <CirclePlusIcon width={16} height={16} />
+          </IconButton>
+          <IconButton className="md:hidden" aria-label="Settings" onClick={() => navigate('/settings')}>
+            <GearIcon width={16} height={16} />
+          </IconButton>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <MenuButton disabled={busy} aria-label="Import and backups" icon={<UploadIcon width={15} height={15} />}>
+                Import
+              </MenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent width="lg">
+              <DropdownMenuItem onSelect={() => setSourceImport(true)}>Open source file</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setLegacyImport(true)}>Import ZenUML library</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <a href="/api/desktop/document-backup" download="diagramly-documents.json">
+                  Export document backup
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setRestoreImport(true)}>Restore document backup</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            variant="primary"
+            size="bar"
+            aria-label="New diagram"
+            disabled={busy}
+            onClick={() => void create('zenuml')}
+          >
+            <PlusIcon width={15} height={15} strokeWidth={1.75} />
+            <span className="hidden sm:inline">New diagram</span>
+            <span className="sm:hidden">New</span>
           </Button>
-          <Button disabled={busy} onClick={() => void create('zenuml')}>
-            New diagram
-          </Button>
-        </>
-      }
-    >
-      {error && (
-        <Callout role="alert" className="mb-5">
-          {error}
-        </Callout>
-      )}
-      {restoreNotice && (
-        <Callout role="status" className="mb-5">
-          {restoreNotice}
-        </Callout>
-      )}
-      <LegacyLibraryMigration onImported={() => void refresh().catch(() => {})} />
-      <section className="mb-8 rounded-panel border border-line-soft bg-surface p-6">
-        <h2 className="font-display text-title font-semibold">Diagrams you can keep editing.</h2>
-        <p className="mt-3 max-w-2xl text-copy text-ink-soft">
-          Write Mermaid or ZenUML, bring your old library, or connect your own AI agent. Your local work stays on this
-          Mac.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          <Button disabled={busy} onClick={() => void create('zenuml')}>
-            Create ZenUML diagram
-          </Button>
-          <Button variant="ghost" disabled={busy} onClick={() => void create('mermaid')}>
-            Create Mermaid diagram
-          </Button>
-          <Button variant="ghost" onClick={() => setSourceImport(true)}>
-            Open source file
-          </Button>
-          <Button variant="ghost" onClick={() => setConnect(true)}>
-            Connect AI agent
-          </Button>
-          <Button variant="ghost" onClick={() => setGenerate(true)}>
-            Use Diagramly cloud AI
-          </Button>
-        </div>
-      </section>
-      <div className="mb-6 flex flex-wrap items-center gap-2">
-        <Button variant="ghost" asChild>
-          <a href="/api/desktop/document-backup" download="diagramly-documents.json">
-            Export document backup
-          </a>
-        </Button>
-        <Button variant="ghost" disabled={busy} onClick={() => setRestoreImport(true)}>
-          Restore document backup
-        </Button>
-        <p className="text-caption text-ink-faint">
-          Portable documents and pages. Accounts, history, comments and external image files are not included.
-        </p>
-      </div>
-      <div className="mb-4 flex items-center gap-4">
-        <h2 className="mr-auto text-lead font-semibold">Your documents</h2>
-        <Input
-          className="max-w-xs"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          aria-label="Search documents"
-          placeholder="Search documents"
-        />
-      </div>
-      {loading ? (
-        <p role="status" className="text-copy text-ink-soft">
-          Opening your library…
-        </p>
-      ) : documents.length === 0 ? (
-        <Callout>No documents yet. Create a diagram or import your ZenUML library to begin.</Callout>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {documents
-            .filter((document) => document.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
-            .map((document) => (
-              <Button
-                key={document.id}
-                variant="ghost"
-                className="h-auto min-h-24 flex-col items-start justify-center rounded-panel border border-line-soft bg-surface px-5 py-4 text-left"
-                onClick={() => navigate(`/c/${document.id}`)}
-              >
-                <span className="line-clamp-2 text-lead font-semibold">{document.name}</span>
-                <span className="mt-2 text-caption text-ink-faint">
-                  Local document · {new Date(document.updatedAt).toLocaleDateString()}
-                </span>
-              </Button>
-            ))}
-        </div>
-      )}
+        </DashHeader>
+        <DashContent className="px-0 pt-0 md:px-0 md:pt-0">
+          <DiagramlyHomeHero
+            prompt={prompt}
+            onPromptChange={setPrompt}
+            onContinue={() => setGenerate(true)}
+            onCreate={(kind) => void create(kind)}
+            onImport={() => setSourceImport(true)}
+            onConnect={() => setConnect(true)}
+            busy={busy}
+          />
+          <section className="px-4 pt-8 md:px-8 md:pt-10" aria-label="Document library">
+            {error && (
+              <Callout role="alert" className="mb-5">
+                {error}
+              </Callout>
+            )}
+            {restoreNotice && (
+              <Callout role="status" className="mb-5">
+                {restoreNotice}
+              </Callout>
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="mr-auto text-body font-medium">Recent documents</h2>
+              <LegacyLibraryMigration compact onImported={() => void refresh().catch(() => {})} />
+              {searchOpen ? (
+                <Input
+                  className="w-40"
+                  autoFocus
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  aria-label="Search documents"
+                  placeholder="Search documents"
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                      setSearch('')
+                      setSearchOpen(false)
+                    }
+                  }}
+                />
+              ) : (
+                <IconButton aria-label="Search documents" onClick={() => setSearchOpen(true)}>
+                  <SearchIcon width={15} height={15} />
+                </IconButton>
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <MenuButton aria-label="Sort documents">{sort === 'name' ? 'Name' : 'Last edited'}</MenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent width="sm">
+                  <DropdownMenuRadioGroup value={sort} onValueChange={setSort}>
+                    <DropdownMenuRadioItem value="updated">Last edited</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="name">Name</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <SegmentedIcons aria-label="Document view" value={view} onValueChange={setView}>
+                <SegmentedIconItem value="grid" aria-label="Grid view">
+                  <GridIcon width={14} height={14} />
+                </SegmentedIconItem>
+                <SegmentedIconItem value="list" aria-label="List view">
+                  <ListIcon width={14} height={14} />
+                </SegmentedIconItem>
+              </SegmentedIcons>
+            </div>
+            {loading ? (
+              <p role="status" className="mt-5 text-copy text-ink-soft">
+                Opening your library…
+              </p>
+            ) : (
+              <>
+                {!documents.length && (
+                  <p className="mt-5 text-copy text-ink-soft">
+                    No documents yet. Create a diagram or import your library.
+                  </p>
+                )}
+                {documents.length > 0 && !visible.length && (
+                  <p role="status" className="mt-5 text-copy text-ink-soft">
+                    No matching documents.
+                  </p>
+                )}
+                {view === 'grid' ? (
+                  <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-3.5 xs:grid-cols-[repeat(auto-fill,minmax(230px,1fr))] md:gap-[18px]">
+                    {visible.map((document) => (
+                      <Tile key={document.id} tone="solid">
+                        <Pressable aria-label={`Open ${document.name}`} onClick={() => navigate(`/c/${document.id}`)}>
+                          <TileCover aspect="5/3">
+                            <FramePreview frameId={document.previewFrameId} empty="No diagram preview" />
+                          </TileCover>
+                          <TileBody>
+                            <div className="truncate text-body font-medium">{document.name}</div>
+                            <div className="mt-1 text-caption text-ink-faint">Edited {timeAgo(document.updatedAt)}</div>
+                          </TileBody>
+                        </Pressable>
+                      </Tile>
+                    ))}
+                    <Pressable
+                      aria-label="Create a new diagram"
+                      className="grid min-h-[132px] place-items-center content-center gap-2.5 rounded-panel border border-dashed border-line p-6 text-body text-ink-faint hover:text-ink xs:min-h-full"
+                      disabled={busy}
+                      onClick={() => void create('zenuml')}
+                    >
+                      <span className="grid size-7 place-items-center rounded-full bg-surface text-ink-soft shadow-ring">
+                        <PlusIcon width={14} height={14} />
+                      </span>
+                      New diagram
+                    </Pressable>
+                  </div>
+                ) : (
+                  <div className="mt-4 overflow-hidden rounded-panel border border-line-soft bg-surface">
+                    {visible.map((document) => (
+                      <Pressable
+                        key={document.id}
+                        aria-label={`Open ${document.name}`}
+                        className="flex w-full items-center gap-3 border-b border-line-soft px-3 py-2.5 text-left last:border-b-0 hover:bg-sub"
+                        onClick={() => navigate(`/c/${document.id}`)}
+                      >
+                        <FrameThumb frameId={document.previewFrameId} empty="No preview" />
+                        <span className="min-w-0 flex-1 truncate text-body font-medium">{document.name}</span>
+                        <span className="text-caption text-ink-faint">{timeAgo(document.updatedAt)}</span>
+                      </Pressable>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        </DashContent>
+      </DashMain>
       {legacyImport && (
         <Modal
           size="xl"
@@ -272,6 +373,7 @@ export function DiagramlyHome() {
       {connect && <ConnectModal onClose={() => setConnect(false)} />}
       {generate && (
         <DiagramlyGenerate
+          initialCommand={prompt}
           onClose={() => setGenerate(false)}
           onGenerated={async (kind, source) => {
             const saved = await create(kind, source, 'Cloud diagram')
@@ -306,6 +408,6 @@ export function DiagramlyHome() {
           />
         </Modal>
       )}
-    </DiagramlyShell>
+    </DashLayout>
   )
 }

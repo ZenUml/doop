@@ -18,7 +18,8 @@ async function json<T>(url: string): Promise<T> {
   return body
 }
 
-export function LegacyLibraryMigration({ onImported }: { onImported: () => void }) {
+export function LegacyLibraryMigration({ onImported, compact = false }: { onImported: () => void; compact?: boolean }) {
+  const [detailsOpen, setDetailsOpen] = useState(false)
   const [status, setStatus] = useState<LegacyLibraryStatus | null>(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -57,6 +58,7 @@ export function LegacyLibraryMigration({ onImported }: { onImported: () => void 
     try {
       const result = await json<{ items: unknown[] }>(`/api/desktop/legacy-library/${encodeURIComponent(id)}`)
       setPrepared({ id, items: result.items })
+      setDetailsOpen(false)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'The saved library could not be opened.')
     } finally {
@@ -67,7 +69,7 @@ export function LegacyLibraryMigration({ onImported }: { onImported: () => void 
   if (!status?.configured && !error) return null
   const ready = status?.snapshots.filter((item) => item.canImport) ?? []
   const preserved = (status?.snapshots.length ?? 0) > 0
-  return (
+  const details = (
     <section className="mb-6 rounded-panel border border-line-soft bg-surface p-6" aria-label="Your old ZenUML library">
       <h2 className="text-lead font-semibold">Your old ZenUML library</h2>
       <p className="mt-2 text-copy text-ink-soft">
@@ -108,6 +110,36 @@ export function LegacyLibraryMigration({ onImported }: { onImported: () => void 
           {error}
         </Callout>
       )}
+    </section>
+  )
+  return (
+    <>
+      {compact ? (
+        <Button
+          variant="bare"
+          className="h-8 px-2 text-caption font-normal text-ink-faint hover:text-ink"
+          onClick={() => setDetailsOpen(true)}
+        >
+          {ready.length
+            ? 'Review old ZenUML library'
+            : status?.status === 'error'
+              ? 'Check old ZenUML library'
+              : 'Find old ZenUML library'}
+        </Button>
+      ) : (
+        details
+      )}
+      {compact && detailsOpen && (
+        <Modal
+          size="lg"
+          showClose
+          onClose={() => {
+            if (!busy) setDetailsOpen(false)
+          }}
+        >
+          {details}
+        </Modal>
+      )}
       {prepared && (
         <Modal
           size="xl"
@@ -127,6 +159,6 @@ export function LegacyLibraryMigration({ onImported }: { onImported: () => void 
           />
         </Modal>
       )}
-    </section>
+    </>
   )
 }

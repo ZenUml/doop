@@ -87,6 +87,7 @@ describe.skipIf(!findBrowserPath())('Diagramly cloud UI with a fixture cloud (no
     const port = await freePort()
     web = await serveBuilt({
       '/api': { target: `http://localhost:${port}` },
+      '/i': { target: `http://localhost:${port}` },
       '/ws': { target: `ws://localhost:${port}`, ws: true },
       '/vendor/diagram': { target: `http://localhost:${port}` },
     })
@@ -166,7 +167,7 @@ describe.skipIf(!findBrowserPath())('Diagramly cloud UI with a fixture cloud (no
       if (!response.ok) throw new Error('Could not create isolated local profile')
     })
     await page.reload()
-    await page.locator('button::-p-text(Create Mermaid diagram)').click()
+    await page.locator('button::-p-text(Flowchart)').click()
     await page.waitForSelector('iframe[data-doop-frame]')
     const savedDocument = await page.evaluate(async () => {
       const list = (await (await fetch('/api/canvases')).json()) as { id: string }[]

@@ -52,6 +52,7 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
     const port = await freePort()
     web = await serveBuilt({
       '/api': { target: `http://localhost:${port}` },
+      '/i': { target: `http://localhost:${port}` },
       '/ws': { target: `ws://localhost:${port}`, ws: true },
       '/vendor/diagram': { target: `http://localhost:${port}` },
     })
@@ -83,6 +84,7 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
       if (!response.ok) throw new Error('QA profile failed')
     })
     await page.reload()
+    await page.locator('button::-p-text(Review old ZenUML library)').click()
     await page.locator('button::-p-text(Review saved library)').click()
     await page.waitForFunction(() => document.body.innerText.includes('Existing desktop purchase'))
     expect(await page.$('input[aria-label="ZenUML export file"]')).not.toBeNull()

@@ -18,12 +18,14 @@ interface Job {
 export function DiagramlyGenerate({
   onClose,
   onGenerated,
+  initialCommand = '',
 }: {
   onClose: () => void
+  initialCommand?: string
   onGenerated: (kind: DiagramKind, source: string) => Promise<void>
 }) {
   const [account, setAccount] = useState<DiagramlyAccount | null>(null)
-  const [command, setCommand] = useState('')
+  const [command, setCommand] = useState(initialCommand)
   const [kind, setKind] = useState<DiagramKind>('zenuml')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')

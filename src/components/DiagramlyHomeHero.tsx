@@ -1,8 +1,8 @@
 import type { DiagramKind } from '../../shared/diagramFrame'
 import { DoopMark } from './Logo'
-import { Button } from './ui/button'
+import { IconButton } from './ui/icon-button'
 import { Chip } from './ui/chip'
-import { AttachmentIcon, BracesIcon, SparkIcon, WorkflowIcon } from './ui/icons'
+import { ArrowUpIcon, AttachmentIcon, BracesIcon, SparkIcon, WorkflowIcon } from './ui/icons'
 import { Pressable } from './ui/pressable'
 import { Textarea } from './ui/textarea'
 
@@ -40,7 +40,7 @@ export function DiagramlyHomeHero({
 
       <div className="relative px-4 pt-14 text-center">
         <span className="mx-auto mb-5 block h-[62px] w-[48px] text-ink">
-          <DoopMark animated size="fill" className="block" />
+          <DoopMark animated size="fill" className="block object-contain" />
         </span>
         <h1 className="font-hero text-title font-light leading-none md:text-display">
           What would you like to diagram?
@@ -63,13 +63,20 @@ export function DiagramlyHomeHero({
         <div className="rounded-panel bg-surface px-[18px] pb-3 pt-5 shadow-float">
           <Textarea
             variant="bare"
-            rows={3}
+            rows={2}
+            maxLength={5000}
             value={prompt}
             disabled={busy}
             placeholder="Describe the diagram you want to create…"
             aria-label="Diagram prompt"
             onChange={(event) => onPromptChange(event.target.value)}
-            className="min-h-[72px] text-lead placeholder:text-ink-ghost md:text-lead"
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && prompt.trim()) {
+                event.preventDefault()
+                onContinue()
+              }
+            }}
+            className="min-h-[52px] text-lead placeholder:text-ink-ghost md:text-lead"
           />
           <div className="mt-1 flex items-center gap-3 text-body text-ink-soft md:gap-5">
             <Pressable
@@ -83,17 +90,18 @@ export function DiagramlyHomeHero({
               <AttachmentIcon width={14} height={14} /> Files
             </Pressable>
             <span className="flex-1" />
-            <span className="hidden items-center gap-1.5 whitespace-nowrap text-caption text-ink-faint sm:inline-flex">
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-caption text-ink-faint">
               <SparkIcon width={14} height={14} /> Diagramly cloud AI
             </span>
-            <Button
-              variant="primary"
+            <IconButton
+              className="size-[34px] rounded-full bg-ink text-surface hover:bg-ink-soft disabled:bg-paper-deep disabled:text-ink-faint"
               disabled={busy || !prompt.trim()}
               aria-label="Continue with Diagramly cloud AI"
+              title="Continue with Diagramly cloud AI"
               onClick={onContinue}
             >
-              Continue
-            </Button>
+              <ArrowUpIcon width={16} height={16} />
+            </IconButton>
           </div>
         </div>
       </div>

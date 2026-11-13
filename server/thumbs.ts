@@ -1,6 +1,8 @@
 import { PREVIEW_MAX_HEIGHT, type Frame } from '../shared/types.ts'
 import * as storage from './storage.ts'
 import { store } from './store.ts'
+import { env } from './env.ts'
+import { readDiagramFrame } from '../shared/diagramFrame.ts'
 
 /**
  * Persisted dashboard previews: `thumb/<frameId>.jpg` in byte storage,
@@ -27,7 +29,8 @@ const MIN_REVALIDATE_MS = 30_000
 /** frames purged mid-render — a pending create must not re-persist them */
 const dead = new Set<string>()
 
-const keyFor = (frameId: string) => `thumb/${frameId}.jpg`
+const keyFor = (frameId: string) =>
+  `thumb/${env.DOOP_PRODUCT === 'diagramly' ? 'diagramly-home-v1-' : ''}${frameId}.jpg`
 
 /* Global bound on concurrent preview renders. Per-frame dedupe caps repeat
    requests but not breadth: a post-restart dashboard of 50 stale canvases
@@ -50,7 +53,23 @@ async function render(frame: Frame): Promise<Buffer> {
   try {
     const { renderFrame } = await loadScreenshot()
     /* the html is read when the render starts, not when it was queued */
-    return await renderFrame(await store.renderSource(frame), Math.min(1, 640 / frame.width), {
+    const source = await store.renderSource(frame)
+    if (env.DOOP_PRODUCT === 'diagramly' && readDiagramFrame(source.html)) {
+      // A diagram may occupy a small corner of a large imported artboard.
+      // Fit its painted content into the card; editor and export sizes stay intact.
+      const png = await renderFrame(source, Math.min(1, 1280 / frame.width), {
+        type: 'png',
+        maxHeight: PREVIEW_MAX_HEIGHT,
+      })
+      const { default: sharp } = await import('sharp')
+      return await sharp(png)
+        .trim({ background: '#ffffff', threshold: 5 })
+        .resize(600, 344, { fit: 'contain', background: '#f4f4f4' })
+        .extend({ top: 20, bottom: 20, left: 20, right: 20, background: '#f4f4f4' })
+        .jpeg({ quality: 80 })
+        .toBuffer()
+    }
+    return await renderFrame(source, Math.min(1, 640 / frame.width), {
       type: 'jpeg',
       quality: 70,
       maxHeight: PREVIEW_MAX_HEIGHT,
