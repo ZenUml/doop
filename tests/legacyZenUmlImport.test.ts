@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, expect, it } from 'vitest'
 import { Client, startServer, type Server } from './harness'
-import { buildDiagramHtml, readDiagramFrame } from '../shared/diagramFrame'
+import { activateDiagramPage, buildDiagramHtml, readDiagramFrame } from '../shared/diagramFrame'
 
 let server: Server
 let owner: Client
@@ -34,14 +34,16 @@ it('imports a private editable library, preserves pages and LESS, and safely ret
   const id = result.canvases[0].id
   const canvas = await (await owner.get(`/api/canvases/${id}`)).json()
   expect(canvas.name).toBe('Old library')
-  expect(canvas.pages.map((page: { name: string }) => page.name)).toEqual(['Order', 'Payment'])
-  expect(result.canvases[0].pageId).toBe(canvas.pages[1].id)
-  expect(canvas.frames.map((frame: { pageId: string }) => frame.pageId)).toEqual(
-    canvas.pages.map((page: { id: string }) => page.id),
-  )
+  expect(canvas.pages.map((page: { name: string }) => page.name)).toEqual(['Board 1'])
+  expect(result.canvases[0].pageId).toBe(canvas.pages[0].id)
+  expect(canvas.frames).toHaveLength(1)
+  expect(canvas.frames[0].pageId).toBe(canvas.pages[0].id)
   expect((await outsider.get(`/api/canvases/${id}`)).status).toBe(403)
   const frame = canvas.frames[0]
-  const diagram = readDiagramFrame(frame.html)!
+  const active = readDiagramFrame(frame.html)!
+  expect(active.source).toBe('Order->Payment: pay')
+  expect(active.pages?.map((page) => page.title)).toEqual(['Order', 'Payment'])
+  const diagram = activateDiagramPage(active, active.pages![0]!.id)
   expect(diagram.source).toBe('User->Order: create')
   expect(diagram.css).toContain('color: red')
   expect(diagram.styleMode).toBe('less')
@@ -173,4 +175,31 @@ it('keeps unkeyed identities stable when different records are reordered', async
   expect(first).toMatchObject({ imported: 3, skipped: 0 })
   const retry = await (await owner.post('/api/import/zenuml', { items: [{ ...item }, item, other] })).json()
   expect(retry).toMatchObject({ imported: 0, skipped: 3 })
+})
+
+it('imports legacy inner pages in one diagram on one board with the active page intact', async () => {
+  const items = [
+    {
+      id: 'nested-new',
+      title: 'Nested',
+      currentPageId: 'b',
+      pages: [
+        { id: 'a', title: 'First', js: 'A->B: first', css: '.message { color: red }', width: 1400, height: 950 },
+        { id: 'b', title: 'Second', js: 'B->C: second', css: '.message { color: blue }' },
+      ],
+    },
+  ]
+  const response = await owner.post('/api/import/zenuml', { items })
+  expect(response.status).toBe(200)
+  const result = await response.json()
+  const canvas = await (await owner.get(`/api/canvases/${result.canvases[0].id}`)).json()
+  expect(canvas.pages).toHaveLength(1)
+  expect(canvas.frames).toHaveLength(1)
+  const diagram = readDiagramFrame(canvas.frames[0].html)!
+  expect(diagram.pages).toHaveLength(2)
+  expect(diagram.pages?.map((page) => page.title)).toEqual(['First', 'Second'])
+  expect(diagram.pages?.[0]).toMatchObject({ width: 1400, height: 950, source: 'A->B: first' })
+  expect(diagram.source).toBe('B->C: second')
+  expect(diagram.activePageId).toBe(diagram.pages?.[1]?.id)
+  expect(canvas.frames[0].width).toBeGreaterThanOrEqual(1400)
 })

@@ -8,6 +8,7 @@ import { useStore } from '../lib/store'
 import { useT } from '../lib/i18n'
 import { cn } from '@/lib/utils'
 import { DiagramSource } from './DiagramSource'
+import { DiagramPages } from './DiagramPages'
 import { DiagramStyleEditor } from './DiagramStyleEditor'
 import { FrameHistoryModal } from './FrameHistoryModal'
 import { Button } from './ui/button'
@@ -30,8 +31,10 @@ export function DiagramlyInspector({
   const [historyOpen, setHistoryOpen] = useState(false)
   const [stylesOpen, setStylesOpen] = useState(false)
   const [stylesBusy, setStylesBusy] = useState(false)
+  const [stylesDirty, setStylesDirty] = useState(false)
   const diagram = readDiagramFrame(frame.html)
   const canEdit = !frame.locked
+  const editorKey = JSON.stringify([frame.id, diagram?.activePageId ?? null])
 
   return (
     <Panel
@@ -67,13 +70,16 @@ export function DiagramlyInspector({
         </div>
       )}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {diagram && (
+          <DiagramPages key={editorKey} frame={frame} diagram={diagram} disabled={stylesBusy || stylesDirty} />
+        )}
         <section className="border-b border-line-soft px-3 py-2">
           <h3 className="mb-1.5 flex h-5 items-center text-label font-normal text-ink-soft">
             {t('inspector.groupDiagram')}
           </h3>
           {diagram ? (
             canEdit ? (
-              <DiagramSource key={frame.id} frame={frame} diagram={diagram} disabled={stylesBusy} />
+              <DiagramSource key={editorKey} frame={frame} diagram={diagram} disabled={stylesBusy} />
             ) : (
               <p className="text-label leading-5 text-ink-faint">{t('inspector.unlockToEditDiagram')}</p>
             )
@@ -108,13 +114,19 @@ export function DiagramlyInspector({
               variant="bare"
               className="h-8 w-full justify-start text-label"
               aria-expanded={stylesOpen}
-              disabled={stylesBusy}
+              disabled={stylesBusy || stylesDirty}
               onClick={() => setStylesOpen(!stylesOpen)}
             >
               Diagram styles
             </Button>
             {stylesOpen && (
-              <DiagramStyleEditor key={frame.id} frame={frame} diagram={diagram} onBusyChange={setStylesBusy} />
+              <DiagramStyleEditor
+                key={editorKey}
+                frame={frame}
+                diagram={diagram}
+                onBusyChange={setStylesBusy}
+                onDirtyChange={setStylesDirty}
+              />
             )}
           </section>
         )}

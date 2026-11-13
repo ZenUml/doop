@@ -6,7 +6,7 @@ import { parseLegacyZenUml } from '../shared/legacyZenUml.ts'
 import { legacyCanvases } from './legacyZenUml.ts'
 import { LegacyLibrary, LegacyLibraryError } from './legacyLibrary.ts'
 import { compileDiagramStyle } from './diagramStyles.ts'
-import { buildDiagramHtml, readDiagramFrame } from '../shared/diagramFrame.ts'
+import { buildDiagramHtml, readDiagramFrame, updateDiagramPage } from '../shared/diagramFrame.ts'
 import { env } from './env.ts'
 import {
   catalogEntry,
@@ -2360,14 +2360,22 @@ app.post('/api/frames/:id/diagram-style', async (req, res) => {
   if (env.DOOP_PRODUCT !== 'diagramly') return res.status(404).json({ error: 'Not available.' })
   if (req.get('origin') !== new URL(env.BETTER_AUTH_URL).origin)
     return res.status(403).json({ error: 'Apply diagram styles from the application.' })
-  const { source, mode, expectedUpdatedAt } = req.body ?? {}
-  if (typeof source !== 'string' || typeof mode !== 'string' || mode.length > 20 || !Number.isFinite(expectedUpdatedAt))
+  const { source, mode, expectedUpdatedAt, diagramPageId } = req.body ?? {}
+  if (
+    typeof source !== 'string' ||
+    typeof mode !== 'string' ||
+    mode.length > 20 ||
+    !Number.isFinite(expectedUpdatedAt) ||
+    (diagramPageId !== undefined && (typeof diagramPageId !== 'string' || !diagramPageId))
+  )
     return res.status(400).json({ error: 'A stylesheet, language and current diagram revision are required.' })
   const frame = requireFrame(req, res, req.params.id, 'edit', expectedUpdatedAt)
   if (!frame) return
   if (frame.locked) return res.status(409).json({ error: 'Unlock this diagram before editing its styles.' })
   const diagram = readDiagramFrame(frame.html)
   if (!diagram) return res.status(400).json({ error: 'This item has no editable diagram source.' })
+  if (diagramPageId && (!diagram.pages || !diagram.pages.some((page) => page.id === diagramPageId)))
+    return res.status(400).json({ error: 'Diagram page not found.' })
   let css: string
   try {
     css = await compileDiagramStyle(source, mode)
@@ -2382,7 +2390,13 @@ app.post('/api/frames/:id/diagram-style', async (req, res) => {
   res.json(
     actions.updateFrame(
       frame.id,
-      { html: buildDiagramHtml({ ...diagram, css, styleSource: source, styleMode: mode }) },
+      {
+        html: buildDiagramHtml(
+          diagramPageId
+            ? updateDiagramPage(diagram, diagramPageId, { css, styleSource: source, styleMode: mode })
+            : { ...diagram, css, styleSource: source, styleMode: mode },
+        ),
+      },
       userActor(req),
     ),
   )

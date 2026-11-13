@@ -85,3 +85,50 @@ it('rejects invalid page membership, duplicate IDs and oversized geometry before
   invalid.documents[0]!.frames[0]!.width = Number.POSITIVE_INFINITY
   expect(() => restoreDiagramBackup(invalid, 'new', 'Actor', identity)).toThrow()
 })
+
+it('round-trips every inner diagram page and recovery style data', () => {
+  const pages = [
+    {
+      id: 'a',
+      title: 'First',
+      kind: 'zenuml' as const,
+      source: 'A->B',
+      width: 1400,
+      styleSource: '@ink:red',
+      styleMode: 'less',
+    },
+    {
+      id: 'b',
+      title: 'Second',
+      kind: 'mermaid' as const,
+      source: 'flowchart TD\nA-->B',
+      styleConfig: 'config',
+      styleHtml: '<p>old</p>',
+    },
+  ]
+  const input = structuredClone(original)
+  input.frames[0]!.html = buildDiagramHtml({ ...pages[1]!, pages, activePageId: 'b' })
+  const backup = makeDiagramBackup([input])
+  const restored = restoreDiagramBackup(backup, 'owner', 'User', identity)
+  expect(readDiagramFrame(restored[0]!.frames[0]!.html)).toEqual(readDiagramFrame(input.frames[0]!.html))
+})
+
+it('rejects conflicting active page projection before restore can overwrite source or style', () => {
+  const pages = [
+    { id: 'a', title: 'First', kind: 'zenuml' as const, source: 'A->B', styleSource: 'red', css: '' },
+    { id: 'b', title: 'Second', kind: 'mermaid' as const, source: 'flowchart TD\nA-->B' },
+  ]
+  const input = structuredClone(original)
+  input.frames[0]!.html = buildDiagramHtml({ ...pages[0]!, pages, activePageId: 'a' })
+  const backup = makeDiagramBackup([input])
+  for (const field of ['source', 'kind', 'styleSource'] as const) {
+    const corrupted = structuredClone(backup)
+    const diagram = corrupted.documents[0]!.frames[0]!.diagram!
+    if (field === 'kind') diagram.kind = 'mermaid'
+    else diagram[field] = 'different'
+    expect(() => restoreDiagramBackup(corrupted, 'owner', 'User', identity)).toThrow(/active page/i)
+  }
+  const oldEmptyCss = structuredClone(backup)
+  delete oldEmptyCss.documents[0]!.frames[0]!.diagram!.css
+  expect(() => restoreDiagramBackup(oldEmptyCss, 'owner', 'User', identity)).not.toThrow()
+})

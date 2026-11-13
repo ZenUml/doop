@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import { env } from './env.ts'
 import { canvasPages, copyPageName, pageFrames, samePages } from '../shared/pages.ts'
 import * as persist from './db/persist.ts'
 import type { LinkAccess } from '../shared/canvasRole.ts'
@@ -313,6 +314,7 @@ class Store {
     this.canvases.set(canvas.id, canvas)
     this.loaded.set(canvas.id, now)
     canvas.pages = canvasPages(canvas)
+    if (env.DOOP_PRODUCT === 'diagramly') canvas.pages[0]!.name = 'Board 1'
     persist.saveCanvas(canvas)
     return canvas
   }

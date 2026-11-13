@@ -1,6 +1,12 @@
 import { useMemo } from 'react'
 import { useStore } from './store'
 import { canvasPages, pageFrames } from '../../shared/pages'
+import { isDiagramly } from './product'
+
+/** Create a mode-specific label for a newly added outer collection. */
+export function newPageName(number: number): string {
+  return `${isDiagramly() ? 'Board' : 'Page'} ${number}`
+}
 
 export function usePageCanvas() {
   const canvas = useStore((s) => s.canvas)

@@ -163,3 +163,25 @@ it('keeps unsupported legacy style syntax readable until the user selects a supp
   expect(container.textContent).toContain('These STYLUS styles are preserved as-is.')
   expect(applyButton().disabled).toBe(true)
 })
+
+it('targets the selected inner page explicitly and reports unsaved styles before a page switch', async () => {
+  const onDirtyChange = vi.fn()
+  act(() =>
+    root.render(
+      <DiagramStyleEditor
+        frame={frame}
+        diagram={{ kind: 'mermaid', source: 'flowchart LR', activePageId: 'payment' }}
+        onDirtyChange={onDirtyChange}
+      />,
+    ),
+  )
+  typeStyles('.payment { color: blue; }')
+  expect(onDirtyChange).toHaveBeenLastCalledWith(true)
+  vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ ...frame, updatedAt: 18 }), { status: 200 }))
+  await act(async () => applyButton().click())
+  expect(JSON.parse(vi.mocked(fetch).mock.calls[0]![1]!.body as string)).toMatchObject({
+    diagramPageId: 'payment',
+    source: '.payment { color: blue; }',
+  })
+  expect(onDirtyChange).toHaveBeenLastCalledWith(false)
+})

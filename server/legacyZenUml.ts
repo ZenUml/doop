@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto'
 import { nanoid } from 'nanoid'
 import { compileDiagramStyle } from './diagramStyles.ts'
-import { buildDiagramHtml } from '../shared/diagramFrame.ts'
-import type { LegacyZenUmlDocument, LegacyZenUmlPage } from '../shared/legacyZenUml.ts'
+import { buildDiagramHtml, type DiagramPage } from '../shared/diagramFrame.ts'
+import { legacyIdentityDocument, type LegacyZenUmlDocument, type LegacyZenUmlPage } from '../shared/legacyZenUml.ts'
 import type { Canvas } from '../shared/types.ts'
 
 async function compileStyle(page: LegacyZenUmlPage): Promise<string> {
@@ -26,16 +26,15 @@ export async function legacyCanvases(
         JSON.stringify([
           ownerId,
           workspaceId ?? null,
-          document.sourceRecordId ? ['indexeddb-record-v1', document.sourceRecordId] : document,
+          document.sourceRecordId ? ['indexeddb-record-v1', document.sourceRecordId] : legacyIdentityDocument(document),
         ]),
       )
       .digest('hex')
       .slice(0, 32)}`
     const now = Date.now()
-    const pages = document.pages.map((page) => ({ id: nanoid(10), name: page.title.slice(0, 100) }))
-    const frames = []
-    for (let i = 0; i < document.pages.length; i++) {
-      const page = document.pages[i]!
+    const board = { id: nanoid(10), name: 'Board 1' }
+    const diagramPages: DiagramPage[] = []
+    for (const page of document.pages) {
       let css = ''
       try {
         css = await compileStyle(page)
@@ -44,40 +43,50 @@ export async function legacyCanvases(
           `${document.title} / ${page.title}: custom styles could not be converted; the source was imported.`,
         )
       }
-      frames.push({
+      diagramPages.push({
         id: nanoid(10),
-        canvasId: id,
-        pageId: pages[i]!.id,
-        name: document.title,
-        x: 120,
-        y: 120,
-        width: 1200,
-        height: 900,
-        html: buildDiagramHtml({
-          kind: 'zenuml',
-          source: page.source,
-          ...(css ? { css } : {}),
-          ...(page.css || page.styleConfig || page.styleHtml ? { styleSource: page.css, styleMode: page.cssMode } : {}),
-          ...(page.styleConfig ? { styleConfig: page.styleConfig } : {}),
-          ...(page.styleHtml ? { styleHtml: page.styleHtml } : {}),
-        }),
-        createdAt: now,
-        updatedAt: now,
-        updatedBy: by,
+        title: page.title,
+        kind: 'zenuml',
+        source: page.source,
+        ...(page.width !== undefined ? { width: page.width } : {}),
+        ...(page.height !== undefined ? { height: page.height } : {}),
+        ...(css ? { css } : {}),
+        styleSource: page.css,
+        styleMode: page.cssMode,
+        ...(page.styleConfig ? { styleConfig: page.styleConfig } : {}),
+        ...(page.styleHtml ? { styleHtml: page.styleHtml } : {}),
       })
+    }
+    const activeIndex = Math.max(
+      0,
+      document.pages.findIndex((page) => page.legacyId === document.activePageId),
+    )
+    const active = diagramPages[activeIndex]!
+    const frame = {
+      id: nanoid(10),
+      canvasId: id,
+      pageId: board.id,
+      name: document.title,
+      x: 120,
+      y: 120,
+      width: Math.max(1200, ...diagramPages.map((page) => page.width ?? 0)),
+      height: Math.max(900, ...diagramPages.map((page) => page.height ?? 0)),
+      html: buildDiagramHtml({ ...active, pages: diagramPages, activePageId: active.id }),
+      createdAt: now,
+      updatedAt: now,
+      updatedBy: by,
     }
     canvases.push({
       id,
       name: document.title,
       ownerId,
       ...(workspaceId ? { workspaceId } : {}),
-      pages,
-      frames,
+      pages: [board],
+      frames: [frame],
       createdAt: now,
       updatedAt: now,
     })
-    const activeIndex = document.pages.findIndex((page) => page.legacyId === document.activePageId)
-    destinations.push({ id, name: document.title, pageId: pages[Math.max(0, activeIndex)]!.id })
+    destinations.push({ id, name: document.title, pageId: board.id })
   }
   return { canvases, destinations, warnings }
 }

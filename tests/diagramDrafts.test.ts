@@ -8,6 +8,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
 
@@ -32,6 +33,18 @@ it('does not clear a newer draft when an older save confirmation arrives', () =>
   expect(readDiagramDraft('user-a', 'frame-a')).toBeNull()
 })
 
+it('isolates inner page drafts in the same diagram and preserves the legacy singleton draft', () => {
+  writeDiagramDraft('user-a', 'frame-a', { source: 'legacy', baseSource: '' })
+  writeDiagramDraft('user-a', 'frame-a', { source: 'first', baseSource: '' }, 'page-1')
+  writeDiagramDraft('user-a', 'frame-a', { source: 'second', baseSource: '' }, 'page-2')
+  expect(readDiagramDraft('user-a', 'frame-a', 'page-1')?.source).toBe('first')
+  expect(readDiagramDraft('user-a', 'frame-a', 'page-2')?.source).toBe('second')
+  expect(readDiagramDraft('user-a', 'frame-a')?.source).toBe('legacy')
+  clearDiagramDraft('user-a', 'frame-a', 'first', 'page-1')
+  expect(readDiagramDraft('user-a', 'frame-a', 'page-1')).toBeNull()
+  expect(readDiagramDraft('user-a', 'frame-a', 'page-2')?.source).toBe('second')
+})
+
 it('returns null for malformed or unsupported stored data without deleting it', () => {
   expect(writeDiagramDraft('user-a', 'frame-a', { source: 'draft', baseSource: '' })).toBe(true)
   const key = localStorage.key(0)!
@@ -46,8 +59,11 @@ it('returns null for malformed or unsupported stored data without deleting it', 
 
 it('rejects sources over the byte limit and reports storage quota failures without throwing', () => {
   expect(writeDiagramDraft('user-a', 'frame-a', { source: 'é'.repeat(500_001), baseSource: '' })).toBe(false)
-  vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
-    throw new DOMException('quota exceeded', 'QuotaExceededError')
+  vi.stubGlobal('localStorage', {
+    getItem: () => null,
+    setItem: () => {
+      throw new DOMException('quota exceeded', 'QuotaExceededError')
+    },
   })
 
   expect(writeDiagramDraft('user-a', 'frame-a', { source: 'draft', baseSource: '' })).toBe(false)

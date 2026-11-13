@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import type { Frame } from '../shared/types'
-import { buildDiagramHtml } from '../shared/diagramFrame'
+import { buildDiagramHtml, readDiagramFrame, type DiagramFrame } from '../shared/diagramFrame'
 import { DiagramSource } from '../src/components/DiagramSource'
 import { api } from '../src/lib/api'
 import { readDiagramDraft, writeDiagramDraft } from '../src/lib/diagramDrafts'
@@ -71,6 +71,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.unstubAllGlobals()
   unmount()
   useFrameSaves.setState({ pending: {} })
   vi.restoreAllMocks()
@@ -144,8 +145,11 @@ it('keeps the local draft after a compare-and-swap conflict', async () => {
 
 it('notifies once when the browser cannot write the local draft', () => {
   const notice = vi.spyOn(useStore.getState(), 'pushNotice')
-  vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
-    throw new DOMException('quota exceeded', 'QuotaExceededError')
+  vi.stubGlobal('localStorage', {
+    getItem: () => null,
+    setItem: () => {
+      throw new DOMException('quota exceeded', 'QuotaExceededError')
+    },
   })
 
   act(() => sourceInput().focus())
@@ -163,4 +167,130 @@ it('keeps the current style metadata when a source edit rebuilds the diagram fra
 
   const localFrame = useStore.getState().canvas?.frames[0]
   expect(localFrame?.html).toContain('.node { color: navy; }')
+})
+
+it('edits only the current inner page and stores recovery under that page', async () => {
+  const pages = [
+    { id: 'order', title: 'Order', ...diagram },
+    { id: 'payment', title: 'Payment', ...diagram, source: 'flowchart LR\n C-->D', css: '.payment{color:red}' },
+  ]
+  const current: DiagramFrame = { ...pages[1]!, pages, activePageId: 'payment' }
+  act(() =>
+    root.render(
+      <DiagramSource key="payment" frame={{ ...frame, html: buildDiagramHtml(current) }} diagram={current} />,
+    ),
+  )
+  vi.spyOn(api, 'updateFrame').mockRejectedValue(new Error('offline'))
+  typeSource('flowchart LR\n C-->E')
+  const edited = readDiagramFrame(useStore.getState().canvas!.frames[0]!.html)!
+  expect(edited.pages?.[0]).toEqual(pages[0])
+  expect(edited.pages?.[1]).toMatchObject({ source: 'flowchart LR\n C-->E', css: '.payment{color:red}' })
+  expect(readDiagramDraft('local-user', frame.id, 'payment')?.source).toBe('flowchart LR\n C-->E')
+  expect(readDiagramDraft('local-user', frame.id, 'order')).toBeNull()
+  await act(async () => vi.advanceTimersByTimeAsync(500))
+})
+
+it('does not let an older source response overwrite a newer active page received while saving', async () => {
+  let complete!: (saved: Frame) => void
+  vi.spyOn(api, 'updateFrame').mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        complete = resolve
+      }),
+  )
+  typeSource('flowchart LR\n A-->E')
+  await act(async () => vi.advanceTimersByTimeAsync(500))
+  const newer = {
+    ...frame,
+    html: buildDiagramHtml({ ...diagram, source: 'flowchart LR\n Other-->Page' }),
+    updatedAt: 9,
+  }
+  act(() => useStore.getState().upsertFrame(newer))
+  await act(async () =>
+    complete({ ...frame, html: buildDiagramHtml({ ...diagram, source: 'flowchart LR\n A-->E' }), updatedAt: 6 }),
+  )
+  expect(useStore.getState().canvas!.frames[0]).toEqual(newer)
+})
+
+it('keeps the old singleton draft recoverable on the original page after adding inner pages', () => {
+  writeDiagramDraft('local-user', frame.id, { source: 'Old->Draft: recover', baseSource: diagram.source })
+  const pages = [
+    { id: 'page-1', title: 'Original', ...diagram },
+    { id: 'new-page', title: 'New', ...diagram, source: 'New->Page: source' },
+  ]
+  act(() =>
+    root.render(<DiagramSource key="new" frame={frame} diagram={{ ...pages[1]!, pages, activePageId: 'new-page' }} />),
+  )
+  expect(container.textContent).not.toContain('Unsent diagram source')
+  act(() =>
+    root.render(<DiagramSource key="original" frame={frame} diagram={{ ...diagram, pages, activePageId: 'page-1' }} />),
+  )
+  expect(container.textContent).toContain('Unsent diagram source')
+  act(() =>
+    [...container.querySelectorAll<HTMLButtonElement>('button')]
+      .find((button) => button.textContent === 'Discard draft')!
+      .click(),
+  )
+  expect(readDiagramDraft('local-user', frame.id)).toBeNull()
+})
+
+it('does not offer a singleton draft on a different page after the original page was deleted', () => {
+  writeDiagramDraft('local-user', frame.id, { source: 'Old->Draft: recover', baseSource: diagram.source })
+  const remaining = { id: 'new-page', title: 'New', ...diagram }
+  act(() =>
+    root.render(
+      <DiagramSource
+        key="remaining"
+        frame={frame}
+        diagram={{ ...diagram, pages: [remaining], activePageId: remaining.id }}
+      />,
+    ),
+  )
+  expect(container.textContent).not.toContain('Unsent diagram source')
+  expect(readDiagramDraft('local-user', frame.id)?.source).toBe('Old->Draft: recover')
+})
+
+it('moves a recovered singleton draft to its inner page only after local persistence succeeds', () => {
+  const source = 'Old->Draft: recover'
+  writeDiagramDraft('local-user', frame.id, { source, baseSource: diagram.source })
+  const page = { id: 'page-1', title: 'Original', ...diagram }
+  act(() =>
+    root.render(
+      <DiagramSource key="promoted" frame={frame} diagram={{ ...diagram, pages: [page], activePageId: page.id }} />,
+    ),
+  )
+  act(() =>
+    [...container.querySelectorAll<HTMLButtonElement>('button')]
+      .find((button) => button.textContent === 'Recover source')!
+      .click(),
+  )
+  expect(sourceInput().value).toBe(source)
+  expect(readDiagramDraft('local-user', frame.id, page.id)?.source).toBe(source)
+  expect(readDiagramDraft('local-user', frame.id)).toBeNull()
+})
+
+it('keeps the singleton recovery copy when the new page draft cannot be stored', () => {
+  const source = 'Old->Draft: recover'
+  writeDiagramDraft('local-user', frame.id, { source, baseSource: diagram.source })
+  const storage = localStorage
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.getItem(key),
+    setItem: () => {
+      throw new Error('quota')
+    },
+    removeItem: (key: string) => storage.removeItem(key),
+  })
+  const page = { id: 'page-1', title: 'Original', ...diagram }
+  act(() =>
+    root.render(
+      <DiagramSource key="promoted" frame={frame} diagram={{ ...diagram, pages: [page], activePageId: page.id }} />,
+    ),
+  )
+  act(() =>
+    [...container.querySelectorAll<HTMLButtonElement>('button')]
+      .find((button) => button.textContent === 'Recover source')!
+      .click(),
+  )
+  expect(readDiagramDraft('local-user', frame.id)?.source).toBe(source)
+  expect(readDiagramDraft('local-user', frame.id, page.id)).toBeNull()
 })

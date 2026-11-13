@@ -7,6 +7,8 @@ export interface LegacyZenUmlPage {
   cssMode: string
   styleConfig?: string
   styleHtml?: string
+  width?: number
+  height?: number
 }
 
 export interface LegacyZenUmlDocument {
@@ -36,6 +38,12 @@ function text(value: unknown, label: string, limit: number): string {
   if (value === undefined || value === null) return ''
   if (typeof value !== 'string' || value.length > limit) throw new Error(`${label}: invalid or too long.`)
   return value
+}
+
+/** Fields recognized by the original importer, in their original order. */
+export function legacyIdentityDocument(document: LegacyZenUmlDocument): Omit<LegacyZenUmlDocument, 'sourceRecordId'> {
+  const { sourceRecordId: _source, ...identity } = document
+  return { ...identity, pages: document.pages.map(({ width: _width, height: _height, ...page }) => page) }
 }
 
 export function parseLegacyZenUml(value: unknown): LegacyZenUmlDocument[] {
@@ -69,7 +77,16 @@ export function parseLegacyZenUml(value: unknown): LegacyZenUmlDocument[] {
       const styleConfig =
         mode === 'acss' ? text(settings?.acssConfig, `${label} Atomic CSS configuration`, 200_000) : ''
       const styleHtml = mode === 'acss' ? text(page.html, `${label} original style HTML`, 1_000_000) : ''
+      const dimensions: { width?: number; height?: number } = {}
+      for (const key of ['width', 'height'] as const) {
+        if (page[key] === undefined || page[key] === null) continue
+        const dimension = page[key]
+        if (typeof dimension !== 'number' || !Number.isFinite(dimension) || dimension <= 0 || dimension > 100_000)
+          throw new Error(`${label}: invalid page ${key}.`)
+        dimensions[key] = dimension
+      }
       return {
+        ...dimensions,
         legacyId: text(page.id, `${label} page ID`, 1000) || `page-${pageIndex + 1}`,
         title:
           entries[0] === item
@@ -90,7 +107,7 @@ export function parseLegacyZenUml(value: unknown): LegacyZenUmlDocument[] {
       ...(activePageId ? { activePageId } : {}),
     }
     if (sourceRecordId !== undefined) return { ...document, sourceRecordId }
-    const identity = JSON.stringify(document)
+    const identity = JSON.stringify(legacyIdentityDocument(document))
     const occurrence = occurrences.get(identity) ?? 0
     occurrences.set(identity, occurrence + 1)
     return occurrence ? { ...document, duplicateOrdinal: occurrence } : document

@@ -11,6 +11,7 @@ import { cn } from '../lib/utils'
 import { ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem } from './ui/context-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { useT } from '@/lib/i18n'
+import { newPageName } from '../lib/pages'
 
 /** The small grey sub-heading over a section of the Layers panel, shared with
  *  its "Layers" row: the two must read as one family (a browser test checks
@@ -190,7 +191,7 @@ export function PagesPanel({ fill = false }: { fill?: boolean }) {
       disabled={busy}
       onClick={() => {
         const id = nanoid(10)
-        void save((current) => [...current, { id, name: `Page ${current.length + 1}` }], id)
+        void save((current) => [...current, { id, name: newPageName(current.length + 1) }], id)
       }}
     >
       <PlusIcon className="size-3.5" />

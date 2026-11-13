@@ -105,3 +105,101 @@ it('retains editable preprocessor text and mode independently of the compiled st
   const edited = buildDiagramHtml({ ...readDiagramFrame(original)!, source: 'A->B.next()' })
   expect(readDiagramFrame(edited)).toMatchObject({ ...style, css: '.message {color:red}', source: 'A->B.next()' })
 })
+
+it('keeps all diagram pages while editing or switching the active page', async () => {
+  const { activateDiagramPage } = await import('../shared/diagramFrame')
+  const pages = [
+    {
+      id: 'one',
+      title: 'One',
+      kind: 'zenuml' as const,
+      source: 'A->B',
+      styleSource: '@x:red',
+      styleMode: 'less',
+      css: '.x{color:red}',
+    },
+    {
+      id: 'two',
+      title: 'Two',
+      kind: 'mermaid' as const,
+      source: 'flowchart TD\nA-->B',
+      styleConfig: 'legacy config',
+      styleHtml: '<p>legacy</p>',
+    },
+  ]
+  const diagram = { ...pages[0]!, pages, activePageId: 'one' }
+  const read = readDiagramFrame(buildDiagramHtml(diagram))!
+  const switched = activateDiagramPage({ ...read, source: 'A->B: edited' }, 'two')
+  const restored = readDiagramFrame(buildDiagramHtml(switched))!
+  expect(restored.activePageId).toBe('two')
+  expect(restored.pages?.[0]).toMatchObject({ source: 'A->B: edited', styleMode: 'less' })
+  expect(restored.pages?.[1]).toMatchObject({
+    kind: 'mermaid',
+    styleConfig: 'legacy config',
+    styleHtml: '<p>legacy</p>',
+  })
+  expect(activateDiagramPage(restored, 'one').source).toBe('A->B: edited')
+})
+
+it('refuses corrupted multipage metadata rather than silently dropping its pages', () => {
+  const pages = [
+    { id: 'a', title: 'A', kind: 'zenuml' as const, source: 'A->B' },
+    { id: 'b', title: 'B', kind: 'zenuml' as const, source: 'B->C' },
+  ]
+  const html = buildDiagramHtml({ ...pages[0]!, pages, activePageId: 'a' })
+  expect(readDiagramFrame(html.replace('"version":1', '"version":99'))).toBeNull()
+  expect(() => buildDiagramHtml({ ...pages[0]!, pages, activePageId: 'missing' })).toThrow(/page not found/)
+})
+
+it('rejects inconsistent active page metadata instead of overwriting a page', () => {
+  const pages = [
+    {
+      id: 'a',
+      title: 'A',
+      kind: 'zenuml' as const,
+      source: 'A->B',
+      css: '.x{color:red}',
+      styleSource: 'red',
+      styleMode: 'css',
+    },
+    { id: 'b', title: 'B', kind: 'mermaid' as const, source: 'flowchart TD\nA-->B' },
+  ]
+  const html = buildDiagramHtml({ ...pages[0]!, pages, activePageId: 'a' })
+  expect(readDiagramFrame(html)?.pages).toHaveLength(2)
+  expect(
+    readDiagramFrame(html.replace('data-doop-diagram-source>\nA-&gt;B', 'data-doop-diagram-source>\nchanged')),
+  ).toBeNull()
+  expect(readDiagramFrame(html.replace('data-doop-diagram="zenuml"', 'data-doop-diagram="mermaid"'))).toBeNull()
+  expect(
+    readDiagramFrame(html.replace('data-doop-diagram-style-source>\nred', 'data-doop-diagram-style-source>\nblue')),
+  ).toBeNull()
+  expect(readDiagramFrame(html.replace('"activePageId":"a"', '"activePageId":"b"'))).toBeNull()
+})
+
+it('round-trips an explicitly empty active page stylesheet', () => {
+  const pages = [
+    { id: 'a', title: 'A', kind: 'zenuml' as const, source: 'A->B', css: '', styleSource: '', styleMode: 'less' },
+  ]
+  const html = buildDiagramHtml({ ...pages[0]!, pages, activePageId: 'a' })
+  expect(readDiagramFrame(html)?.pages).toEqual(pages)
+  // Earlier v1 builders omitted the block for empty CSS.
+  const previousV1 = html.replace('<pre hidden data-doop-diagram-css>\n</pre>\n', '')
+  const parsed = readDiagramFrame(previousV1)!
+  expect(parsed.css).toBe('')
+  expect(parsed.pages).toEqual(pages)
+})
+
+it('rejects non-string or whitespace-only IDs and titles in inactive page metadata', () => {
+  const pages = [
+    { id: 'a', title: 'A', kind: 'zenuml' as const, source: 'A->B' },
+    { id: 'b', title: 'B', kind: 'zenuml' as const, source: 'B->C' },
+  ]
+  const html = buildDiagramHtml({ ...pages[0]!, pages, activePageId: 'a' })
+  for (const bad of [
+    html.replace('"id":"b"', '"id":42'),
+    html.replace('"title":"B"', '"title":42'),
+    html.replace('"id":"b"', '"id":"  "'),
+    html.replace('"title":"B"', '"title":"  "'),
+  ])
+    expect(readDiagramFrame(bad)).toBeNull()
+})

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Frame } from '../../shared/types'
 import type { DiagramFrame } from '../../shared/diagramFrame'
-import { useStore } from '../lib/store'
+import { receiveSavedDiagramFrame } from '../lib/diagramFrameSaves'
 import { recordUpdate } from '../lib/history'
 import { beginFrameSave, useFrameSaves } from '../lib/frameSaves'
 import { Button } from './ui/button'
@@ -42,10 +42,12 @@ export function DiagramStyleEditor({
   frame,
   diagram,
   onBusyChange,
+  onDirtyChange,
 }: {
   frame: Frame
   diagram: EditableDiagram
   onBusyChange?: (busy: boolean) => void
+  onDirtyChange?: (dirty: boolean) => void
 }) {
   const pendingSave = useFrameSaves((state) => (state.pending[frame.id] ?? 0) > 0)
   const [draft, setDraft] = useState(() => styleSource(diagram))
@@ -74,6 +76,11 @@ export function DiagramStyleEditor({
     return () => onBusyChange?.(false)
   }, [onBusyChange])
 
+  useEffect(() => {
+    onDirtyChange?.(dirty)
+    return () => onDirtyChange?.(false)
+  }, [dirty, onDirtyChange])
+
   async function applyStyles() {
     if (busy || pendingSave || !supportedMode) return
     setBusy(true)
@@ -84,7 +91,12 @@ export function DiagramStyleEditor({
       const response = await fetch(`/api/frames/${encodeURIComponent(frame.id)}/diagram-style`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: draft, mode, expectedUpdatedAt: draftRevision.current }),
+        body: JSON.stringify({
+          source: draft,
+          mode,
+          expectedUpdatedAt: draftRevision.current,
+          ...(diagram.activePageId ? { diagramPageId: diagram.activePageId } : {}),
+        }),
       })
       if (!response.ok) {
         const text = await response.text().catch(() => '')
@@ -92,7 +104,7 @@ export function DiagramStyleEditor({
       }
 
       const saved = (await response.json()) as Frame
-      useStore.getState().upsertFrame(saved)
+      receiveSavedDiagramFrame(saved)
       recordUpdate(frame.id, { html: frame.html }, { html: saved.html })
       setDraft(draft)
       setMode(mode)

@@ -242,3 +242,39 @@ describe('source-first MCP diagrams', () => {
     )
   })
 })
+
+it('edits an inactive inner page without switching it and rejects a stale revision', async () => {
+  const { id, call } = await connect()
+  const pages = [
+    { id: 'first', title: 'First', kind: 'zenuml' as const, source: 'A->B: one', css: '.message{color:red}' },
+    { id: 'second', title: 'Second', kind: 'mermaid' as const, source: 'flowchart TD\nA-->B' },
+  ]
+  const frame = store.createFrame(
+    id,
+    { name: 'Multi', html: buildDiagramHtml({ ...pages[0]!, pages, activePageId: 'first' }) },
+    'Human',
+  )!
+  const originalRevision = frame.updatedAt
+  const result = await call('update_diagram', {
+    frame_id: frame.id,
+    diagram_page_id: 'second',
+    source: 'flowchart TD\nB-->C',
+    expectedUpdatedAt: originalRevision,
+  })
+  expect(result.isError).toBeFalsy()
+  const current = readDiagramFrame(store.getFrame(frame.id)!.html)!
+  expect(current.activePageId).toBe('first')
+  expect(current.source).toBe('A->B: one')
+  expect(current.pages?.[1]?.source).toBe('flowchart TD\nB-->C')
+  expect(
+    (
+      await call('update_diagram', {
+        frame_id: frame.id,
+        diagram_page_id: 'second',
+        source: 'stale',
+        expectedUpdatedAt: originalRevision,
+      })
+    ).isError,
+  ).toBe(true)
+  expect((await call('get_diagram', { frame_id: frame.id, diagram_page_id: 'missing' })).isError).toBe(true)
+})

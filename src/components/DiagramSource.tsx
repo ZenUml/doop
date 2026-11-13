@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Frame } from '../../shared/types'
 import { buildDiagramHtml, readDiagramFrame, type DiagramFrame } from '../../shared/diagramFrame'
 import { useStore } from '../lib/store'
+import { receiveSavedDiagramFrame } from '../lib/diagramFrameSaves'
 import { api, errorMessage } from '../lib/api'
 import { beginFrameSave } from '../lib/frameSaves'
 import { recordUpdate } from '../lib/history'
@@ -21,7 +22,7 @@ const SAVE_DELAY_MS = 500
  * save to the server, and with it the broadcast to everyone else on the
  * canvas, follows when the typing pauses.
  *
- * Mount it with `key={frame.id}`: a draft belongs to one frame.
+ * Mount it with a frame + active page key: a draft belongs to one inner page.
  */
 export function DiagramSource({
   frame,
@@ -66,9 +67,16 @@ export function DiagramSource({
     [],
   )
 
-  const localDraft = userId ? readDiagramDraft(userId, frame.id) : null
+  // The first inner page is the original singleton. Keep its old draft reachable
+  // after promotion, including when the promotion is undone through history.
+  const originalPage = diagram.activePageId === 'page-1' && diagram.pages?.[0]?.id === diagram.activePageId
+  const legacyDraft = userId && originalPage ? readDiagramDraft(userId, frame.id) : null
+  const pageDraft = userId ? readDiagramDraft(userId, frame.id, diagram.activePageId) : null
+  const localDraft = pageDraft ?? legacyDraft
+  const recoveryPageId = pageDraft ? diagram.activePageId : undefined
   const activeForThisUser = draftActive && draftOwner === (userId ?? null)
-  const candidateKey = localDraft && userId ? JSON.stringify([userId, frame.id, localDraft.source]) : null
+  const candidateKey =
+    localDraft && userId ? JSON.stringify([userId, frame.id, diagram.activePageId, localDraft.source]) : null
   const recoverableDraft =
     localDraft && candidateKey !== dismissedDraftKey && !activeForThisUser && localDraft.source !== diagram.source
       ? { ...localDraft, baseChanged: localDraft.baseSource !== diagram.source }
@@ -79,13 +87,16 @@ export function DiagramSource({
     try {
       const saved = await api.updateFrame(frame.id, { html }, expectedUpdatedAt)
       const savedDiagram = readDiagramFrame(saved.html)
-      useStore.getState().upsertFrame(saved)
+      receiveSavedDiagramFrame(saved)
       recordUpdate(frame.id, { html: before }, { html: saved.html })
       committedHtml.current = saved.html
       latestUpdatedAt.current = Math.max(latestUpdatedAt.current, saved.updatedAt)
       if (savedDiagram) committedSource.current = savedDiagram.source
       if (savedDiagram?.source === source) {
-        if (userId) clearDiagramDraft(userId, frame.id, source)
+        if (userId) {
+          clearDiagramDraft(userId, frame.id, source, diagram.activePageId)
+          if (originalPage) clearDiagramDraft(userId, frame.id, source)
+        }
         if (currentDraftSource.current === source) {
           setDraft(source)
           setDraftActive(false)
@@ -107,7 +118,13 @@ export function DiagramSource({
     setDraftOwner(userId ?? null)
     const html = buildDiagramHtml({ ...diagram, source })
     if (userId) {
-      const stored = writeDiagramDraft(userId, frame.id, { source, baseSource: committedSource.current })
+      const stored = writeDiagramDraft(
+        userId,
+        frame.id,
+        { source, baseSource: committedSource.current },
+        diagram.activePageId,
+      )
+      if (stored && legacyDraft) clearDiagramDraft(userId, frame.id, legacyDraft.source)
       if (!stored && !storageFailureNotified.current) {
         storageFailureNotified.current = true
         useStore
@@ -161,7 +178,7 @@ export function DiagramSource({
               variant="bare"
               size="sm"
               onClick={() => {
-                if (userId) clearDiagramDraft(userId, frame.id, recoverableDraft.source)
+                if (userId) clearDiagramDraft(userId, frame.id, recoverableDraft.source, recoveryPageId)
                 setDismissedDraftKey(candidateKey)
               }}
             >

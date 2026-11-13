@@ -67,3 +67,41 @@ it('edits the whole diagram stylesheet locally, preserving source and rejecting 
   const current = await (await owner.get(`/api/canvases/${document.id}`)).json()
   expect(current.frames[0].html).toBe(styled.html)
 })
+
+it('styles a specified inner page without switching the active page and rejects stale writes', async () => {
+  const document = await (await owner.post('/api/canvases', { name: 'Inner styles' })).json()
+  expect(document.pages[0].name).toBe('Board 1')
+  const pages = [
+    { id: 'one', title: 'One', kind: 'zenuml' as const, source: 'A->B' },
+    { id: 'two', title: 'Two', kind: 'zenuml' as const, source: 'B->C' },
+  ]
+  const frame = await (
+    await owner.post(`/api/canvases/${document.id}/frames`, {
+      name: 'Diagram',
+      html: buildDiagramHtml({ ...pages[0]!, pages, activePageId: 'one' }),
+    })
+  ).json()
+  const apply = (expectedUpdatedAt: number) =>
+    owner.req(`/api/frames/${frame.id}/diagram-style`, {
+      method: 'POST',
+      headers: { Origin: server.base },
+      body: JSON.stringify({
+        diagramPageId: 'two',
+        source: '.message { color: blue; }',
+        mode: 'css',
+        expectedUpdatedAt,
+      }),
+    })
+  const result = await apply(frame.updatedAt)
+  expect(result.status).toBe(200)
+  const saved = await result.json()
+  const diagram = readDiagramFrame(saved.html)!
+  expect(diagram.activePageId).toBe('one')
+  expect(diagram.source).toBe('A->B')
+  expect(diagram.pages?.[1]).toMatchObject({
+    source: 'B->C',
+    styleMode: 'css',
+    styleSource: '.message { color: blue; }',
+  })
+  expect((await apply(frame.updatedAt)).status).toBe(409)
+})

@@ -3,6 +3,8 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { findBrowserPath } from '../server/screenshot'
+import { readDiagramFrame, type DiagramFrame } from '../shared/diagramFrame'
+import type { Canvas } from '../shared/types'
 import { pagePerTest, serveBuilt, type BuiltServer } from './browser'
 import { freePort, startServer, type Server } from './harness'
 
@@ -71,7 +73,7 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
     if (root) await rm(root, { recursive: true, force: true })
   })
 
-  it('reviews and imports the preserved library, then opens its previously active page', async () => {
+  it('keeps both legacy pages inside one diagram through editing, restart, backup and reimport', async () => {
     const page = await pages.open()
     await page.setViewport({ width: 1440, height: 1000 })
     await page.goto(web.origin)
@@ -87,43 +89,90 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
     await page.locator('button::-p-text(Review old ZenUML library)').click()
     await page.locator('button::-p-text(Review saved library)').click()
     await page.waitForFunction(() => document.body.innerText.includes('Existing desktop purchase'))
-    expect(await page.$('input[aria-label="ZenUML export file"]')).not.toBeNull()
     await page.locator('button::-p-text(Import 1 document)').click()
     await page.locator('button::-p-text(Open first document)').click()
     await page.waitForSelector('iframe[data-doop-frame]')
-    await page.waitForFunction(() => document.querySelector('[aria-current="page"]')?.textContent?.includes('Payment'))
-    const element = await page.$('iframe[data-doop-frame]')
-    const diagram = (await element!.contentFrame())!
-    await diagram.waitForFunction(() => document.documentElement.getAttribute('data-doop-diagram-state') === 'rendered')
-    expect(await diagram.$eval('[data-doop-diagram-mount]', (mount) => mount.textContent)).toContain('Payment')
 
+    const documentState = async () =>
+      (await page.evaluate(async () => {
+        const id = location.pathname.split('/')[2]
+        return (await fetch(`/api/canvases/${id}`)).json()
+      })) as Canvas
+    const imported = await documentState()
+    expect(imported.pages).toHaveLength(1)
+    expect(imported.pages![0]!.name).toBe('Board 1')
+    expect(imported.frames).toHaveLength(1)
+    expect(imported.frames[0]!.pageId).toBe(imported.pages![0]!.id)
+    const initial = readDiagramFrame(imported.frames[0]!.html)!
+    expect(initial.pages).toHaveLength(2)
+    expect(initial.pages!.map((item) => item.title)).toEqual(['Order', 'Payment'])
+    expect(initial.activePageId).toBe(initial.pages![1]!.id)
+    expect(await page.$$('[aria-label="Diagrams"] [role="listitem"]')).toHaveLength(1)
     await page.click('[data-frame-title]')
+    await page.waitForSelector('[aria-label="Diagram page"]')
+    expect(await page.$eval('[aria-label="Diagram page"]', (el) => el.textContent)).toContain('Payment')
+
+    async function selectInnerPage(title: string) {
+      await page.waitForFunction(
+        () => !document.querySelector<HTMLButtonElement>('[aria-label="Diagram page"]')?.disabled,
+      )
+      await page.click('[aria-label="Diagram page"]')
+      await page.locator(`[role="option"]::-p-text(${title})`).click()
+      await page.waitForFunction(
+        (name) => document.querySelector('[aria-label="Diagram page"]')?.textContent?.includes(name),
+        {},
+        title,
+      )
+      await page.waitForFunction(
+        () => !document.querySelector<HTMLButtonElement>('[aria-label="Diagram page"]')?.disabled,
+      )
+    }
     const source = 'Order->Payment: upgraded and still editable'
-    await page.click('textarea[aria-label="Diagram source"]')
-    const modifier = process.platform === 'darwin' ? 'Meta' : 'Control'
-    await page.keyboard.down(modifier)
-    await page.keyboard.press('a', { commands: process.platform === 'darwin' ? ['selectAll'] : undefined })
-    await page.keyboard.up(modifier)
-    await page.keyboard.type(source)
-    expect(
-      await page.$eval('textarea[aria-label="Diagram source"]', (element) => (element as HTMLTextAreaElement).value),
-    ).toBe(source)
-    await page.waitForResponse(
-      (response) => response.request().method() === 'PATCH' && response.url().includes('/api/frames/') && response.ok(),
+    await page.locator('textarea[aria-label="Diagram source"]').fill(source)
+    await page.waitForFunction(
+      () => !document.querySelector<HTMLButtonElement>('[aria-label="Diagram page"]')?.disabled,
     )
+    await expect.poll(async () => readDiagramFrame((await documentState()).frames[0]!.html)?.source).toBe(source)
     await page.locator('button::-p-text(Diagram styles)').click()
-    await page.locator('textarea[aria-label="Diagram styles"]').fill('.sequence-diagram { background: #dceeff; }')
+    const style = '.sequence-diagram { background: #dceeff; }'
+    await page.locator('textarea[aria-label="Diagram styles"]').fill(style)
+    await page.waitForFunction(() => document.querySelector<HTMLButtonElement>('[aria-label="Diagram page"]')?.disabled)
     await Promise.all([
       page.waitForResponse((response) => response.url().endsWith('/diagram-style') && response.ok()),
       page.locator('button::-p-text(Apply styles)').click(),
     ])
+    await selectInnerPage('Order')
+    expect(await page.$eval('textarea[aria-label="Diagram source"]', (el) => (el as HTMLTextAreaElement).value)).toBe(
+      'Customer->Order: create',
+    )
+    const beforeRestart = readDiagramFrame((await documentState()).frames[0]!.html)!
+    expect(beforeRestart.source).toBe('Customer->Order: create')
+    expect(beforeRestart.pages![0]!.styleSource).toContain('@ink: #3155aa')
+    expect(beforeRestart.pages![1]!.source).toBe(source)
+    expect(beforeRestart.pages![1]!.styleSource).toBe(style)
+
+    const dataDir = server.dataDir
+    const port = server.port
+    server.stop({ keepData: true })
+    await server.stopped
+    server = await startServer(
+      {
+        PORT: String(port),
+        BETTER_AUTH_URL: web.origin,
+        DOOP_PRODUCT: 'diagramly',
+        DOOP_LEGACY_LIBRARY_MANIFEST: path.join(root, 'legacy-library.json'),
+      },
+      dataDir,
+    )
     await page.reload()
     await page.waitForSelector('iframe[data-doop-frame]')
     await page.click('[data-frame-title]')
-    await page.waitForSelector('textarea[aria-label="Diagram source"]')
-    expect(
-      await page.$eval('textarea[aria-label="Diagram source"]', (element) => (element as HTMLTextAreaElement).value),
-    ).toBe(source)
+    await page.waitForSelector('[aria-label="Diagram page"]')
+    expect(await page.$eval('[aria-label="Diagram page"]', (el) => el.textContent)).toContain('Order')
+    await selectInnerPage('Payment')
+    expect(await page.$eval('textarea[aria-label="Diagram source"]', (el) => (el as HTMLTextAreaElement).value)).toBe(
+      source,
+    )
     const reloaded = (await (await page.$('iframe[data-doop-frame]'))!.contentFrame())!
     await reloaded.waitForFunction(
       () => document.documentElement.getAttribute('data-doop-diagram-state') === 'rendered',
@@ -132,7 +181,24 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
       () => getComputedStyle(document.querySelector('.sequence-diagram')!).backgroundColor === 'rgb(220, 238, 255)',
     )
 
-    // Retry must leave the edited document alone, including its styles.
+    const inner = 'section[aria-label="Diagram pages"]'
+    await page.locator(`${inner} button::-p-text(Add page)`).click()
+    await page.waitForFunction(
+      () => !document.querySelector<HTMLButtonElement>('[aria-label="Diagram page"]')?.disabled,
+    )
+    await expect.poll(async () => readDiagramFrame((await documentState()).frames[0]!.html)?.pages?.length).toBe(3)
+    await page.locator(`${inner} button::-p-text(Rename)`).click()
+    await page.locator('[aria-label="Page name"]').fill('Review')
+    await page.locator(`${inner} button::-p-text(Save)`).click()
+    await page.waitForFunction(() =>
+      document.querySelector('[aria-label="Diagram page"]')?.textContent?.includes('Review'),
+    )
+    await page.waitForFunction(
+      () => !document.querySelector<HTMLButtonElement>('[aria-label="Diagram page"]')?.disabled,
+    )
+    await page.locator(`${inner} button::-p-text(Delete)`).click()
+    await expect.poll(async () => readDiagramFrame((await documentState()).frames[0]!.html)?.pages?.length).toBe(2)
+
     const retry = await page.evaluate(async (library) => {
       const response = await fetch('/api/import/zenuml', {
         method: 'POST',
@@ -142,10 +208,18 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
       return response.json()
     }, items)
     expect(retry).toMatchObject({ imported: 0, skipped: 1 })
-    const backup = await page.evaluate(async () => (await fetch('/api/desktop/document-backup')).json())
-    expect(JSON.stringify(backup)).toContain(source)
-    expect(JSON.stringify(backup)).toContain('.sequence-diagram { background: #dceeff; }')
+    const backup = (await page.evaluate(async () => (await fetch('/api/desktop/document-backup')).json())) as {
+      documents: { frames: { diagram: DiagramFrame }[] }[]
+    }
+    expect(backup.documents).toHaveLength(1)
+    expect(backup.documents[0]!.frames).toHaveLength(1)
+    expect(backup.documents[0]!.frames[0]!.diagram.pages).toHaveLength(2)
+    expect(backup.documents[0]!.frames[0]!.diagram.pages!.map((item) => item.source)).toEqual([
+      'Customer->Order: create',
+      source,
+    ])
+    expect(backup.documents[0]!.frames[0]!.diagram.pages![1]!.styleSource).toBe(style)
     if (process.env.DIAGRAMLY_QA_SCREENSHOT)
       await page.screenshot({ path: process.env.DIAGRAMLY_QA_SCREENSHOT, fullPage: true })
-  }, 30_000)
+  }, 60_000)
 })

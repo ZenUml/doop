@@ -1,11 +1,11 @@
 import { z } from 'zod'
 import type { Canvas } from './types'
-import { buildDiagramHtml, readDiagramFrame } from './diagramFrame'
+import { buildDiagramHtml, readDiagramFrame, sameDiagramContent } from './diagramFrame'
 
 const coordinate = z.number().finite().min(-1_000_000).max(1_000_000)
 const size = z.number().finite().positive().max(100_000)
 const short = z.string().min(1).max(300)
-const diagramSchema = z.object({
+const diagramContentSchema = z.object({
   kind: z.enum(['zenuml', 'mermaid']),
   source: z.string().max(5_000_000),
   css: z.string().max(1_000_000).optional(),
@@ -14,6 +14,32 @@ const diagramSchema = z.object({
   styleConfig: z.string().max(1_000_000).optional(),
   styleHtml: z.string().max(1_000_000).optional(),
 })
+const diagramPageSchema = diagramContentSchema.extend({
+  id: short,
+  title: short,
+  width: size.optional(),
+  height: size.optional(),
+})
+const diagramSchema = diagramContentSchema
+  .extend({
+    pages: z.array(diagramPageSchema).min(1).max(1000).optional(),
+    activePageId: short.optional(),
+  })
+  .superRefine((diagram, ctx) => {
+    if (Boolean(diagram.pages) !== Boolean(diagram.activePageId)) {
+      ctx.addIssue({ code: 'custom', message: 'Diagram pages and active page must be supplied together.' })
+      return
+    }
+    if (!diagram.pages) return
+    const ids = diagram.pages.map((page) => page.id)
+    if (new Set(ids).size !== ids.length || !ids.includes(diagram.activePageId!)) {
+      ctx.addIssue({ code: 'custom', message: 'Diagram pages require distinct IDs and a valid active page.' })
+      return
+    }
+    const active = diagram.pages.find((page) => page.id === diagram.activePageId)!
+    if (!sameDiagramContent(diagram, active))
+      ctx.addIssue({ code: 'custom', message: 'Diagram content does not match its active page.' })
+  })
 const frameSchema = z
   .object({
     id: short,
