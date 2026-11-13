@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+// @vitest-environment-options {"url":"https://app.doop.design/"}
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 vi.mock('posthog-js/dist/posthog-recorder', () => ({}))
@@ -53,6 +54,7 @@ afterEach(() => {
   document.body.replaceChildren()
   vi.restoreAllMocks()
   vi.unstubAllEnvs()
+  vi.unstubAllGlobals()
 })
 
 it('opens from the canvas, hides on close, and can be opened again', async () => {
@@ -111,4 +113,22 @@ it('cancels a pending open when the route changes', async () => {
   await new Promise(requestAnimationFrame)
   expect(launcher()).not.toBeNull()
   expect(closeButton()).toBeNull()
+})
+
+it('keeps telemetry and support chat disabled on localhost', async () => {
+  vi.stubGlobal('location', { hostname: 'localhost', origin: 'http://localhost' })
+  vi.resetModules()
+  const local = await import('../src/lib/posthog')
+
+  expect(local.posthog.init).not.toHaveBeenCalled()
+  expect(local.openSupportChat()).toBe(false)
+})
+
+it('keeps telemetry disabled for Diagramly on a hosted origin', async () => {
+  vi.stubEnv('VITE_PRODUCT_MODE', 'diagramly')
+  vi.resetModules()
+  const diagramly = await import('../src/lib/posthog')
+
+  expect(diagramly.posthog.init).not.toHaveBeenCalled()
+  expect(diagramly.openSupportChat()).toBe(false)
 })

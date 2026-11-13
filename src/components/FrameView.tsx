@@ -49,7 +49,15 @@ import { ElementResizeHandles, type ElementGeometry } from './ElementResizeHandl
 import { selectionBox } from '../lib/elementRotate'
 import { FrameResizeHandles } from './FrameResizeHandles'
 import { keepAnchorTurned, keepRatioAfterSnap, resizeFrameRect } from '../lib/frameResize'
-import { pointerAngle, rotateVector, rotatedBounds, rotatedBy, unrotatePoint } from '../../shared/frameRotation'
+import {
+  pointerAngle,
+  rotateVector,
+  rotatedBounds,
+  rotatedBy,
+  turnedDropRect,
+  unrotatePoint,
+} from '../../shared/frameRotation'
+import { framePageId } from '../../shared/pages'
 import { sizeLabel, type ResizeHandle } from '../lib/elementResize'
 import { withFontFaces } from '../../shared/fonts'
 import { withWebFontLinks } from '../../shared/webFonts'
@@ -209,6 +217,18 @@ interface ProbeHit {
 
 /* what a surface click's probe is for; see `probeIntent` */
 type ProbeIntent = 'toolbar' | 'comment' | 'toggle'
+
+/* a key the frame runtime relays from its own document, over its port */
+interface KeyRelay {
+  event: 'keydown' | 'keyup'
+  key: string
+  code: string
+  ctrlKey: boolean
+  metaKey: boolean
+  shiftKey: boolean
+  altKey: boolean
+  repeat: boolean
+}
 
 /* a comment on the frame as a whole, anchored at the point clicked */
 function frameCommentHit(x: number, y: number): ProbeHit {
@@ -613,7 +633,9 @@ export const FrameView = memo(function FrameView({
         const into = drawingDropFrame(toWorld(last.x, last.y), frame.id)
         const current = live.find((x) => x.id === frame.id)
         if (into && current) {
-          const rect = { x: current.x, y: current.y, width: current.width, height: current.height }
+          const box = { x: current.x, y: current.y, width: current.width, height: current.height }
+          /* written into the frame's document, so carried through its turn */
+          const rect = turnedDropRect(box, box, current, into)
           /* the transfer starts from where the element was before the drag,
              so undo puts it back there rather than where it was let go */
           useStore.getState().patchFrameLocal(frame.id, orig)
@@ -663,6 +685,11 @@ export const FrameView = memo(function FrameView({
       /* a click (no drag) on the frame surface targets the element under
          the cursor: probe it and show the element toolbar */
       if (!moved && probeOnClick) probeAt(off.x, off.y, togglesElement ? 'toggle' : 'toolbar')
+      /* a moved frame carries its picked element along, so the pick (and
+         the panel showing it) stays; a press on a layer that cannot move
+         lands here too, and must not close the panel it was meant for. A
+         resize reflows the document under the outline, so it lets go. */
+      else if (moved && mode === 'move') closeElementPopovers()
       else if (moved) closePopovers()
       /* a click (no drag) on the frame name opens the details panel */
       if (!moved && panelOnClick) useStore.getState().setInspectorOpen(true)
@@ -699,11 +726,15 @@ export const FrameView = memo(function FrameView({
     setDragging(true)
     clearHover()
     let cancelled = false
+    const pageId = s.activePageId
+    const framePage = s.canvas ? framePageId(s.canvas, frame) : undefined
+    let unsubscribe = () => {}
     const stop = () => {
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerup', onUp)
       window.removeEventListener('pointercancel', cancel)
       window.removeEventListener('keydown', onKey, true)
+      unsubscribe()
       setDragging(false)
     }
     const cancel = () => {
@@ -735,7 +766,9 @@ export const FrameView = memo(function FrameView({
       if (cancelled) return
       stop()
       const live = useStore.getState().canvas?.frames.find((x) => x.id === frame.id)
-      const rotation = live?.rotation ?? 0
+      /* a frame gone from the store (deleted by a peer) has nothing to save */
+      if (!live) return
+      const rotation = live.rotation ?? 0
       /* a click leaves the frame as it was: nothing to save */
       if (rotation === startRotation) return
       trackSave(api.updateFrame(frame.id, { rotation }).catch(console.error))
@@ -746,6 +779,19 @@ export const FrameView = memo(function FrameView({
     window.addEventListener('pointerup', onUp)
     window.addEventListener('pointercancel', cancel)
     window.addEventListener('keydown', onKey, true)
+    /* leaving the page or the canvas, or the frame going (deleted, or moved
+       to another page by a peer), ends the turn unsaved: a release later
+       must not write to a frame no longer in view */
+    unsubscribe = useStore.subscribe((state) => {
+      const live = state.canvas?.frames.find((f) => f.id === frame.id)
+      if (
+        state.activePageId !== pageId ||
+        state.canvas?.id !== frame.canvasId ||
+        !live ||
+        framePageId(state.canvas, live) !== framePage
+      )
+        cancel()
+    })
   }
 
   const html = useThrottledValue(frame.html, 150)
@@ -764,14 +810,57 @@ export const FrameView = memo(function FrameView({
      flipped or shifted it away from a viewport edge */
   const menuAt = useRef({ x: 0, y: 0 })
   const [runtimeReady, setRuntimeReady] = useState(false)
+  /* the port the runtime relays keys over; see `replayKey` */
+  const keyPort = useRef<MessagePort | null>(null)
   useEffect(() => {
+    /* a key pressed while the focus sits in this frame's document: replay
+       it on the iframe, where it bubbles to the canvas shortcuts as if the
+       page had the focus. Keys arrive over a private port handed to the
+       runtime before any design script runs, so a script in the frame
+       cannot forge one; a frame without the focus is not heard anyway, and
+       the keys that remove things (⌫, Delete) never travel */
+    function replayKey(ev: MessageEvent) {
+      const iframe = iframeRef.current
+      if (!iframe || document.activeElement !== iframe || !document.hasFocus()) return
+      const relay = ev.data as Partial<KeyRelay> | undefined
+      if (!relay || (relay.event !== 'keydown' && relay.event !== 'keyup')) return
+      if (typeof relay.key !== 'string' || typeof relay.code !== 'string') return
+      const { event, key, code } = relay
+      if (key === 'Backspace' || key === 'Delete') return
+      iframe.dispatchEvent(
+        new KeyboardEvent(event, {
+          key,
+          code,
+          ctrlKey: relay.ctrlKey === true,
+          metaKey: relay.metaKey === true,
+          shiftKey: relay.shiftKey === true,
+          altKey: relay.altKey === true,
+          repeat: relay.repeat === true,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+    }
     function onMsg(ev: MessageEvent) {
-      if (ev.data?.type === 'doop:frame-ready' && ev.source === iframeRef.current?.contentWindow) {
+      const win = iframeRef.current?.contentWindow
+      if (ev.data?.type === 'doop:frame-ready' && win && ev.source === win) {
+        /* once per document: the ready signal arrives before the design's
+           HTML, so only the runtime can be listening for the port */
+        if (!keyPort.current) {
+          const channel = new MessageChannel()
+          channel.port1.onmessage = replayKey
+          keyPort.current = channel.port1
+          win.postMessage({ type: 'doop:key-port' }, '*', [channel.port2])
+        }
         setRuntimeReady(true)
       }
     }
     window.addEventListener('message', onMsg)
-    return () => window.removeEventListener('message', onMsg)
+    return () => {
+      window.removeEventListener('message', onMsg)
+      keyPort.current?.close()
+      keyPort.current = null
+    }
   }, [])
   /* once the runtime answers, the element panel may talk to this document */
   useEffect(() => {
@@ -1699,7 +1788,8 @@ export const FrameView = memo(function FrameView({
             </div>
           )}
 
-          {!isDiagramly() && dropTarget &&
+          {!isDiagramly() &&
+            dropTarget &&
             createPortal(
               <div className="pointer-events-none absolute inset-0 z-40">
                 <div
@@ -1788,14 +1878,15 @@ export const FrameView = memo(function FrameView({
             }}
             onPointerLeave={leaveHover}
           >
-            {!unsupportedDiagram ? <iframe
-              ref={iframeRef}
-              className="relative block border-none bg-transparent"
-              title={frame.name}
-              data-doop-frame=""
-              sandbox="allow-scripts"
-              srcDoc={FRAME_BOOTSTRAP}
-              /* The world is laid out at CSS zoom k (Stage), which an iframe
+            {!unsupportedDiagram ? (
+              <iframe
+                ref={iframeRef}
+                className="relative block border-none bg-transparent"
+                title={frame.name}
+                data-doop-frame=""
+                sandbox="allow-scripts"
+                srcDoc={FRAME_BOOTSTRAP}
+                /* The world is laid out at CSS zoom k (Stage), which an iframe
                  passes into its document. Chromium takes it as pixel density:
                  the document keeps its design-px viewport and rasterizes at
                  k×, even out of process, where a transform on this element
@@ -1803,21 +1894,22 @@ export const FrameView = memo(function FrameView({
                  document out at the zoomed width, so there the zoom is undone
                  here (keeping viewport, vh/vw, media queries and runtime rects
                  in design px) and the scale restores the box. */
-              style={{
-                width: frame.width,
-                height: frame.height,
-                ...(FRAME_DOCUMENTS_TAKE_ZOOM_AS_DENSITY
-                  ? null
-                  : { zoom: counterZoom(layoutZoom), transform: `scale(${layoutZoom})` }),
-                transformOrigin: '0 0',
-                /* Chromium paints an opaque backdrop behind an iframe whose
+                style={{
+                  width: frame.width,
+                  height: frame.height,
+                  ...(FRAME_DOCUMENTS_TAKE_ZOOM_AS_DENSITY
+                    ? null
+                    : { zoom: counterZoom(layoutZoom), transform: `scale(${layoutZoom})` }),
+                  transformOrigin: '0 0',
+                  /* Chromium paints an opaque backdrop behind an iframe whose
                    colour scheme differs from its document's; the page's dark
                    scheme reaches this element by inheritance while a
                    standalone element's document is light, so a shape on the
                    dark canvas sat on a white square */
-                ...(isCanvasElement(frame.html) ? { colorScheme: 'light' } : null),
-              }}
-            /> : (
+                  ...(isCanvasElement(frame.html) ? { colorScheme: 'light' } : null),
+                }}
+              />
+            ) : (
               <div className="absolute inset-0 grid place-items-center bg-[repeating-linear-gradient(45deg,transparent_0_10px,rgba(28,26,21,0.025)_10px_20px)] px-4 text-center text-[13px] text-ink-faint">
                 {translate('stage.diagramUnavailable')}
               </div>

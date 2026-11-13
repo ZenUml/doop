@@ -45,6 +45,8 @@ describe.skipIf(!findBrowserPath())('Diagramly canvas profile', { timeout: 30_00
     ).toContain('Browser -> Checkout')
     expect(await page.$$eval('[role="tree"], [role="treeitem"]', (items) => items.length)).toBe(0)
     expect(await page.$('button[aria-label="Tokens"]')).toBeNull()
+    expect(await page.$('button[aria-label="Components"]')).toBeNull()
+    expect(await page.$('[role="tab"][data-value="components"]')).toBeNull()
     expect(await page.$('button[aria-label="Pin as reference"]')).toBeNull()
     expect(await page.$('input[aria-label="Frame name"]')).toBeNull()
     expect(await page.$('button[aria-label="Frame"]')).toBeNull()

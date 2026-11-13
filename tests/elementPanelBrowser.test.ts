@@ -10,6 +10,7 @@ import type { ElementInfo, GeometryEdit } from '../src/lib/frameBridge'
 
 declare global {
   interface Window {
+    clearElementPanelHistory: () => void
     elementPanelHarness: {
       seed: (frame: Frame) => void
       remote: (frame: Frame) => void
@@ -703,7 +704,6 @@ describe.skipIf(!findBrowserPath())('element design controls', () => {
     )
     const sibling = await frame.$eval('#sibling', (el) => el.getBoundingClientRect().toJSON())
     const originalTransform = await frame.$eval('#box', (el) => getComputedStyle(el).transform)
-    const before = await frame.$eval('#box', (el) => (el as HTMLElement).style.translate)
     await number('X position', 40)
     await frame.waitForFunction(
       () =>
@@ -757,6 +757,9 @@ describe.skipIf(!findBrowserPath())('element design controls', () => {
     expect(await frame.$eval('#box', (el) => getComputedStyle(el).transform)).toBe(originalTransform)
     await expect.poll(() => saved.html).toContain('scale: 1.2 -0.8')
     const previousSave = saved.html
+    const before = await frame.$eval('#box', (el) => (el as HTMLElement).style.translate)
+    // Isolate this edit: earlier edits may span several time-based undo groups on a busy runner.
+    await page.evaluate(() => window.clearElementPanelHistory())
     await number('X position', 80)
     await expect.poll(() => saved.html).not.toBe(previousSave)
     await page.evaluate(() => window.elementPanelHarness.undo())
@@ -766,8 +769,9 @@ describe.skipIf(!findBrowserPath())('element design controls', () => {
       before,
     )
     await page.waitForFunction(
-      () => document.querySelector<HTMLInputElement>('[aria-label="Rotation"]')?.value === '20',
+      () => document.querySelector<HTMLInputElement>('[aria-label="Rotation"]')?.value === '45',
     )
+    await expect.poll(() => saved.html).toBe(previousSave)
     await page.screenshot({ path: '/tmp/narwhal-panel-controls.png' })
     await selectLayer('#sibling')
     await page.waitForSelector('[aria-label="X position"][disabled]')
@@ -1191,6 +1195,98 @@ describe.skipIf(!findBrowserPath())('element design controls', () => {
     const unit = (await page.$('label:has(input[aria-label="Minimum width"]) > span'))!
     expect(await unit.evaluate((el) => getComputedStyle(el).cursor)).not.toBe('ew-resize')
     await expect.poll(() => saved.html).toContain('min-width: auto')
+  }, 15_000)
+
+  it('lets an edit win over a stylesheet rule marked !important', async () => {
+    const frame = await seedScrubTarget(undefined, {
+      css: `#scrub { width: 80px !important; padding-top: 2px !important }
+        @media (min-width: 99999px) { #other { width: 10px !important } }`,
+    })
+    const inline = (selector: string, name: string) =>
+      frame.$eval(
+        selector,
+        (el, name) => {
+          const style = (el as HTMLElement).style
+          return [style.getPropertyValue(name), style.getPropertyPriority(name)]
+        },
+        name,
+      )
+    const computed = (name: string) =>
+      frame.$eval('#scrub', (el, name) => getComputedStyle(el).getPropertyValue(name), name)
+
+    await page.click('[aria-label="Width"]', { count: 3 })
+    await page.keyboard.type('200')
+    await page.keyboard.press('Enter')
+    await expect.poll(() => inline('#scrub', 'width')).toEqual(['200px', 'important'])
+    expect(await computed('width')).toBe('200px')
+    await expect.poll(() => saved.html).toContain('width: 200px !important')
+
+    // The rule marks one side of the shorthand the panel writes.
+    await page.click('[aria-label="Padding top"]', { count: 3 })
+    await page.keyboard.type('20')
+    await page.keyboard.press('Enter')
+    await expect.poll(() => computed('padding-top')).toBe('20px')
+
+    // A scrub previews through the same path, and Escape puts the rule's value back.
+    const point = await startScrub('Width')
+    await page.mouse.move(point.x + 20, point.y)
+    await expect.poll(() => computed('width')).toBe('220px')
+    await page.keyboard.press('Escape')
+    await page.mouse.up()
+    await expect.poll(() => inline('#scrub', 'width')).toEqual(['200px', 'important'])
+
+    // A rule that does not apply (its media query is off) leaves the edit plain.
+    await page.evaluate(() => window.elementPanelHarness.select('#other'))
+    await page.waitForFunction(() => document.querySelector<HTMLInputElement>('[aria-label="Width"]')?.value === '200')
+    await page.click('[aria-label="Width"]', { count: 3 })
+    await page.keyboard.type('150')
+    await page.keyboard.press('Enter')
+    await expect.poll(() => inline('#other', 'width')).toEqual(['150px', ''])
+  }, 15_000)
+
+  it('sees !important through logical properties, `all` and a sheet the design adopted', async () => {
+    const frame = await seedScrubTarget()
+    // The iframe outlives this test, so what the design adopts here is taken back at the end.
+    const adopt = (css: string) =>
+      frame.evaluate((css) => {
+        const sheet = new CSSStyleSheet()
+        sheet.replaceSync(css)
+        ;(sheet as CSSStyleSheet & { designs?: boolean }).designs = true
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]
+      }, css)
+    const dropAdopted = () =>
+      frame.evaluate(() => {
+        document.adoptedStyleSheets = document.adoptedStyleSheets.filter(
+          (sheet) => !(sheet as CSSStyleSheet & { designs?: boolean }).designs,
+        )
+      })
+    const inline = (name: string) =>
+      frame.$eval(
+        '#scrub',
+        (el, name) => {
+          const style = (el as HTMLElement).style
+          return [style.getPropertyValue(name), style.getPropertyPriority(name)]
+        },
+        name,
+      )
+    const type = async (label: string, value: string) => {
+      await page.click(`[aria-label="${label}"]`, { count: 3 })
+      await page.keyboard.type(value)
+      await page.keyboard.press('Enter')
+    }
+
+    try {
+      await adopt('#scrub { inline-size: 80px !important }')
+      await type('Width', '200')
+      await expect.poll(() => inline('width')).toEqual(['200px', 'important'])
+      expect(await frame.$eval('#scrub', (el) => getComputedStyle(el).width)).toBe('200px')
+
+      await adopt('#scrub { all: revert-layer !important }')
+      await type('Height', '90')
+      await expect.poll(() => inline('height')).toEqual(['90px', 'important'])
+    } finally {
+      await dropAdopted()
+    }
   }, 15_000)
 
   it('reconciles the displayed value with computed CSS after a drag finishes', async () => {

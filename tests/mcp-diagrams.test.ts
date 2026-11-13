@@ -92,8 +92,24 @@ describe('source-first MCP diagrams', () => {
     expect(names).not.toContain('import_webpage')
     expect(names).not.toContain('generate_image')
     expect(names).not.toContain('set_prototype_start')
-    const result = await call('import_webpage', { url: 'https://example.test' })
-    expect(result.isError).toBe(true)
+    for (const name of [
+      'import_webpage',
+      'list_components',
+      'get_component',
+      'create_component',
+      'update_component',
+      'insert_instance',
+      'update_instances',
+      'find_component_candidates',
+      'delete_component',
+      'restore_component_version',
+      'import_component',
+      'sync_component',
+      'get_component_preview',
+    ]) {
+      expect(names, name).not.toContain(name)
+      expect((await call(name, {})).isError, name).toBe(true)
+    }
   })
   it.each(['zenuml', 'mermaid'])('creates and reads %s source without exposing generated HTML', async (kind) => {
     const { id, canvas, call } = await connect()
@@ -219,6 +235,9 @@ describe('source-first MCP diagrams', () => {
         'create_diagram',
         'get_diagram',
         'update_diagram',
+        'list_components',
+        'create_component',
+        'get_component_preview',
       ]),
     )
   })

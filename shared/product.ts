@@ -14,6 +14,7 @@ export const DIAGRAMLY_DECISIONS = {
   developmentApproval: false,
   websiteImport: false,
   designTokens: false,
+  designComponents: false,
   designMemory: false,
   automations: false,
   integrations: false,
@@ -26,19 +27,31 @@ export const DIAGRAMLY_DECISIONS = {
 /** Deny unsupported entry points as well as hiding their navigation. Data is retained. */
 export function diagramlyApiAvailable(path: string): boolean {
   return !(
-    /^\/(?:automations|integrations|community|webhooks|billing|custom-providers|model-account|agent-runners|image-model|image-descriptions|local-agent)(?:\/|$)/.test(
+    /^\/(?:automations|integrations|community|webhooks|billing|custom-providers|model-account|agent-runners|image-model|image-descriptions|local-agent)(?:\/|$)/i.test(
       path,
     ) ||
-    /^\/canvases\/[^/]+\/(?:publish|sync-keys|github|tokens|token-themes|guidelines|references|proposals|tasks)(?:\/|$)/.test(
+    /^\/canvases\/[^/]+\/(?:publish|sync-keys|github|tokens|token-themes|guidelines|references|proposals|tasks|components|component-libraries|component-candidates)(?:\/|$)/i.test(
       path,
     ) ||
-    /^\/frames\/[^/]+\/approval(?:\/|$)/.test(path) ||
-    /^\/canvases\/[^/]+\/pages\/[^/]+\/flow-start$/.test(path)
+    /^\/frames\/[^/]+\/(?:approval|instances)(?:\/|$)/i.test(path) ||
+    /^\/canvases\/[^/]+\/pages\/[^/]+\/flow-start$/i.test(path)
   )
 }
 
 const WEB_DESIGN_TOOLS = new Set([
   'search_inspiration',
+  'list_components',
+  'get_component',
+  'create_component',
+  'update_component',
+  'insert_instance',
+  'update_instances',
+  'find_component_candidates',
+  'delete_component',
+  'restore_component_version',
+  'import_component',
+  'sync_component',
+  'get_component_preview',
   'list_guidelines',
   'get_guidelines',
   'set_guidelines',

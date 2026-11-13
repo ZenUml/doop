@@ -46,6 +46,15 @@
   something matches; six-hour in-memory cache for the free plan's 1,000 requests a day. Every
   result credits One Page Love and the authors with the entry's link (their terms). Tests:
   `inspiration.test.ts`.
+- Where frame CSS goes (`FRAME_STYLES` in `server/guide.ts`): agents are asked to style an element
+  in its own `style` attribute, which is what the editor reads and writes, and to keep a `<style>`
+  block for what an attribute cannot say (keyframes, font faces, `:root` custom properties, states,
+  pseudo-elements, media and container queries, a component's variant rules, the reset). A property
+  a state, variant or query changes sits in the stylesheet with its resting value too, since an
+  inline value outranks every rule. Guidance
+  only: nothing rejects or rewrites a stylesheet, and a frame already styled by classes keeps them.
+  The MCP guide, `create_frame`'s description and the resident agent's system prompt carry the same
+  text. Tests: `frameStyleGuidance.test.ts`.
 - Agent feedback (`server/agentFeedback.ts`, `shared/agentFeedback.ts`): agents talk to the Doop
   team through two MCP tools, which the resident agent has under the same names. `report_issue`
   (kind `issue`: `bug`, `tool_error`, `confusing`, `missing_capability`, `other`) is for where Doop
@@ -552,7 +561,9 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   its axes with the far corner held still (`keepAnchorTurned`) and do not snap while turned. MCP `update_frame`
   takes `rotation` through `server/pageTools.ts` (normalisation and page validation), and
   `get_canvas` lists it when set; copy, paste and duplicate
-  (`frameClipboard.ts`) carry it. Not yet turned: marquee selection,
+  (`frameClipboard.ts`) carry it. A drawing dragged in, out of or between turned frames lands
+  through `turnedDropRect` (its centre carried through each frame's turn), and a turn whose frame,
+  page or canvas goes mid-drag ends unsaved. Not yet turned: marquee selection,
   snapping and exports read the unrotated box. Tests: `frameRotation.test.ts`,
   `frameRotationHttp.test.ts`, `frameRotateBrowser.test.ts`.
 - Element rotation (`src/lib/elementRotate.ts`): an element inside a frame wears the same rotate
@@ -691,6 +702,20 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   re-anchors the root and its replies together and broadcasts each; a drop on the same anchor
   sends nothing, Esc mid-drag puts the pin back. Tests: `commentMove.test.ts`,
   `canvasCommentsRoute.test.ts`, `elementIds.test.ts`, the drag case in `drawingGeometryBrowser.test.ts`.
+- Components (`.context/specs/components.md`): a main is an element marked `data-doop-component`; an
+  instance is full markup marked `data-doop-instance`, so frame consumers need no changes. Every
+  frame write passes `prepareFrameHtml` (`server/components.ts`): `<doop-use>` expands, a changed main
+  becomes a revision, instances reconcile against the revision they were rendered from
+  (`server/componentEngine.ts`) and upgrade. `actions.propagateComponents` carries a change across the
+  canvas. The components pass runs first on every write, then `withLibraryFaces`, so an expanded
+  `<doop-use>` naming a library family gets its face. Agents read and write the short form
+  (`get_frame`, `edit_frame_html`); tools live once in `server/componentTools.ts` for MCP and the
+  resident agent. `src/lib/components.ts` and `ComponentsPanel.tsx` (the Layers panel's Components
+  tab, beside Tokens) / `ComponentSection.tsx` are the editor's side. A component is renamed from its card's menu
+  or a double-click on its name in that tab, or from its main's Layers row (`renameComponent`; instances are
+  linked by id, so they follow); an instance's row is not renamed on its own. Stored in `components`
+  (migration `0052_components`). Tests: `components.test.ts`, `componentsEdgeCases.test.ts`,
+  `componentTools.test.ts`, `componentsRoutes.test.ts`, `componentsBrowser.test.ts`.
 - Prototypes (`.context/specs/prototyping.md`): interactions are `data-doop-on` /
   `data-doop-action` (or the JSON `data-doop-interactions`) attributes in frame HTML, parsed by
   `shared/prototype.ts`, whose parser the frame runtime inlines by source. `PrototypePlayer.tsx`
@@ -885,3 +910,9 @@ The shared font library serves public font assets with CORS so sandboxed frames 
 Migrations 0040 (agent feedback) and 0041 (custom fonts) retain their shared timestamps; their OSS
 snapshots omit the deferred Figma `integrations.refresh_token` column, as does the credential
 encryption backfill. Desktop downloads use the platform-neutral `https://doop.design/download` page.
+
+## Desktop integration checks
+
+Diagramly retains its source-diagram capability profile when upstream features are integrated; see `docs/desktop-capability-decisions.md`. The Vitest project excludes `scripts/*.test.mjs`, which use Node's native test runner and run in the desktop workflow. Vite allows the resolved installed dependency directory as well as its workspace root, so a worktree can load asset imports from shared `node_modules` without disabling filesystem checks.
+
+Browser executable discovery lives in `server/browserDetection.ts` without loading native image-renderer dependencies. Rendering continues to use `server/screenshot.ts` and the desktop WebKit helper where configured. Browser geometry tests isolate the edit under undo validation, rather than relying on several preceding edits fitting inside the history coalescing window.

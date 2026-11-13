@@ -54,6 +54,7 @@
         undo,
         redo,
       }
+      window.clearElementPanelHistory = clearHistory
       function Fixture() {
         const frames = useStore((s) => s.canvas?.frames)
         const frame = frames?.[0]

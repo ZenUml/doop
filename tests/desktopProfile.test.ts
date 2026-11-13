@@ -22,6 +22,19 @@ it('enforces the product profile at API entry points and keeps local import avai
     items: [{ id: 'portable', title: 'Portable sequence', js: 'A->B.first()' }],
   })
   expect(imported.status).toBe(200)
+  const { canvases } = await imported.json()
+  const document = await (await owner.get(`/api/canvases/${canvases[0].id}`)).json()
+  for (const path of [
+    `/api/canvases/${document.id}/components`,
+    `/api/CANVASES/${document.id}/COMPONENTS`,
+    `/api/canvases/${document.id}/components/import`,
+    `/api/canvases/${document.id}/component-libraries`,
+    `/api/canvases/${document.id}/component-candidates`,
+    `/api/frames/${document.frames[0].id}/instances`,
+  ]) {
+    expect((await owner.get(path)).status, path).toBe(404)
+    expect((await owner.post(path, {})).status, path).toBe(404)
+  }
 })
 
 it('restores documents privately, keeps pages/source and skips duplicates without losing edits', async () => {

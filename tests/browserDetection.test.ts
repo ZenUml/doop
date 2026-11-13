@@ -39,7 +39,7 @@ function installBrowser(file: string): string {
 }
 
 async function detectBrowser(systemBrowser?: string): Promise<string | null> {
-  const { findBrowserPath } = await import('../server/screenshot.ts')
+  const { findBrowserPath } = await import('../server/browserDetection.ts')
   const access = fs.accessSync.bind(fs)
   vi.spyOn(fs, 'accessSync').mockImplementation((candidate, mode) => {
     if (candidate === systemBrowser) return

@@ -2,6 +2,8 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath } from 'node:url'
+import { realpathSync } from 'node:fs'
+import { searchForWorkspaceRoot } from 'vite'
 
 /* Dev ports. The defaults are the only ones anyone normally needs; the env
    overrides exist so a second worktree can run its own pair without fighting
@@ -26,7 +28,8 @@ export default defineConfig({
     setupFiles: ['tests/setup.ts'],
     globalSetup: ['tests/globalSetup.ts'],
     projects: [
-      { test: { name: 'parallel', exclude: clipboardTests } },
+      // Native Node test harnesses run separately in the desktop workflow.
+      { test: { name: 'parallel', exclude: [...clipboardTests, 'scripts/**/*.test.mjs'] } },
       // Browser contexts share the system clipboard, so these files must run one at a time.
       { test: { name: 'clipboard', include: clipboardTests, fileParallelism: false } },
     ],
@@ -48,6 +51,13 @@ export default defineConfig({
   },
   server: {
     port: webPort,
+    // Worktrees share installed dependencies; Vite also checks ?url asset imports.
+    fs: {
+      allow: [
+        searchForWorkspaceRoot(fileURLToPath(new URL('.', import.meta.url))),
+        realpathSync(fileURLToPath(new URL('./node_modules', import.meta.url))),
+      ],
+    },
     /* cargo's build output is huge and, on Windows, its binaries stay locked
        while the shell runs (EBUSY); nothing under it is ever served by vite */
     watch: {

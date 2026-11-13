@@ -15,6 +15,7 @@ vi.mock('../server/db/persist.ts', () => ({ saveCanvas: () => {}, saveFrame: () 
 const EQUIVALENT: Record<string, string[]> = {
   get_frame: ['get_frame_html', 'inspect_frame'],
   get_frame_screenshot: ['screenshot_frame'],
+  get_component_preview: ['screenshot_component'],
   append_frame_html: ['begin_frame_rewrite', 'append_frame_rewrite', 'commit_frame_rewrite'],
 }
 
@@ -33,6 +34,11 @@ const BY_CONTEXT = [
 /** Real gaps: MCP agents can do these and resident agents cannot yet. */
 const MISSING = [
   'get_canvas',
+  // External MCP has source-aware diagram operations and optimistic concurrency;
+  // resident HTML tools are not equivalent and cannot safely claim parity.
+  'create_diagram',
+  'get_diagram',
+  'update_diagram',
   'delete_frame',
   'list_frame_versions',
   'restore_frame_version',

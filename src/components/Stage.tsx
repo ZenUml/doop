@@ -1251,24 +1251,28 @@ export function Stage({
             {/* one fill slides between tools; the buttons themselves stay
                 transparent so the pill is the only thing that moves */}
             <ToolbarHighlight activeKey={tool} />
-            {TOOLS.filter((entry) => entry.id !== 'comment' && entry.id !== 'zoom' && toolAllowed(entry.id, role) && (!diagramly || entry.id === 'select' || entry.id === 'hand')).map(
-              (entry) => (
-                <Tooltip
-                  key={entry.id}
-                  label={t('stage.toolTooltip', { label: t(entry.label), key: entry.key })}
-                  side="right"
+            {TOOLS.filter(
+              (entry) =>
+                entry.id !== 'comment' &&
+                entry.id !== 'zoom' &&
+                toolAllowed(entry.id, role) &&
+                (!diagramly || entry.id === 'select' || entry.id === 'hand'),
+            ).map((entry) => (
+              <Tooltip
+                key={entry.id}
+                label={t('stage.toolTooltip', { label: t(entry.label), key: entry.key })}
+                side="right"
+              >
+                <ToolbarButton
+                  aria-label={t(entry.label)}
+                  aria-pressed={tool === entry.id}
+                  className="relative z-[1] hover:bg-transparent aria-pressed:text-ink"
+                  onClick={() => setTool(entry.id)}
                 >
-                  <ToolbarButton
-                    aria-label={t(entry.label)}
-                    aria-pressed={tool === entry.id}
-                    className="relative z-[1] hover:bg-transparent aria-pressed:text-ink"
-                    onClick={() => setTool(entry.id)}
-                  >
-                    {TOOL_ICONS[entry.id]}
-                  </ToolbarButton>
-                </Tooltip>
-              ),
-            )}
+                  {TOOL_ICONS[entry.id]}
+                </ToolbarButton>
+              </Tooltip>
+            ))}
             {diagramly ? (
               <>
                 <ToolbarDivider className="md:mx-0 md:my-1 md:h-px md:w-[18px]" />
@@ -1283,19 +1287,19 @@ export function Stage({
                   </ToolbarButton>
                 </Tooltip>
                 {toolAllowed('comment', role) && (
-                <>
-                  <ToolbarDivider className="md:mx-0 md:my-1 md:h-px md:w-[18px]" />
-                  <Tooltip label={t('canvas.toolComment')} side="right">
-                    <ToolbarButton
-                      aria-label={t('canvas.toolComment')}
-                      aria-pressed={tool === 'comment'}
-                      className="relative z-[1] hover:bg-transparent aria-pressed:text-ink"
-                      onClick={() => setTool('comment')}
-                    >
-                      <CommentIcon />
-                    </ToolbarButton>
-                  </Tooltip>
-                </>
+                  <>
+                    <ToolbarDivider className="md:mx-0 md:my-1 md:h-px md:w-[18px]" />
+                    <Tooltip label={t('canvas.toolComment')} side="right">
+                      <ToolbarButton
+                        aria-label={t('canvas.toolComment')}
+                        aria-pressed={tool === 'comment'}
+                        className="relative z-[1] hover:bg-transparent aria-pressed:text-ink"
+                        onClick={() => setTool('comment')}
+                      >
+                        <CommentIcon />
+                      </ToolbarButton>
+                    </Tooltip>
+                  </>
                 )}
               </>
             ) : (

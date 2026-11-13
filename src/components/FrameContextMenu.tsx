@@ -123,7 +123,9 @@ export function FrameContextMenu({
               {t('inspector.copyDiagramSourceTitle')}
             </ContextMenuItem>
           )}
-          {diagram && <ContextMenuItem onSelect={() => void copyFramePng(frame)}>{t('stage.copyAsPng')}</ContextMenuItem>}
+          {diagram && (
+            <ContextMenuItem onSelect={() => void copyFramePng(frame)}>{t('stage.copyAsPng')}</ContextMenuItem>
+          )}
           <ContextMenuItem onSelect={() => setHistoryOpen(true)}>{t('stage.versionHistory')}</ContextMenuItem>
           {!readOnly && (
             <>

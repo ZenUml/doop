@@ -17,3 +17,7 @@
 | #15    | Use Document → Page → Diagram in user-facing Diagramly surfaces. Internal Canvas/Frame and MCP identifiers remain compatible.                                                                       |
 
 The implementation and acceptance evidence determine issue completion; this record alone does not close implementation issues. Cloud generation must never fall back to another provider or payment channel. Apple account configuration and production submission remain distinct from local code completion.
+
+## Integration verification — 2026-11-13
+
+Upstream reusable HTML components remain available in the Doop profile. Diagramly keeps their panel, drag insertion, HTTP endpoints and MCP tools unavailable, consistent with its diagram-source editing scope. Stored component definitions are retained when duplicating a document, including after a restart. Legacy library imports still save every document in one database transaction; a failure on a later document rolls back the entire batch. Regression coverage exercises component duplication after restart, a real database constraint failure, HTTP entry points and MCP discovery/direct calls.

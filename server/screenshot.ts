@@ -1,46 +1,17 @@
-import { env, windowsBrowserDirectories } from './env.ts'
-import fs from 'node:fs'
-import path from 'node:path'
+import { env } from './env.ts'
 import puppeteer, { type Browser, type Page } from 'puppeteer-core'
 import type { Frame } from '../shared/types.ts'
 import { guardPublicPageRequests } from './publicUrl.ts'
 import { isDiagramVendorUrl } from './diagramVendor.ts'
 import { DIAGRAM_STATE_ATTR, readDiagramFrame } from '../shared/diagramFrame.ts'
 import { renderDesktopFrame } from './desktopScreenshot.ts'
+import { findBrowserPath } from './browserDetection.ts'
+export { findBrowserPath } from './browserDetection.ts'
 
 /**
  * Render a frame's HTML in headless Chrome so agents can *see* their work.
  * Uses the system browser via puppeteer-core — no bundled download.
  */
-
-const windowsDirectories = process.platform === 'win32' ? windowsBrowserDirectories() : []
-
-const CHROME_PATHS = [
-  env.CHROME_PATH,
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-  '/Applications/Chromium.app/Contents/MacOS/Chromium',
-  '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
-  '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
-  '/usr/bin/google-chrome',
-  '/usr/bin/chromium',
-  '/usr/bin/chromium-browser',
-  ...windowsDirectories.map((dir) => path.join(dir, 'Google', 'Chrome', 'Application', 'chrome.exe')),
-  ...windowsDirectories.map((dir) => path.join(dir, 'Microsoft', 'Edge', 'Application', 'msedge.exe')),
-  ...windowsDirectories.map((dir) => path.join(dir, 'BraveSoftware', 'Brave-Browser', 'Application', 'brave.exe')),
-].filter((p): p is string => !!p)
-
-/** The first usable local browser executable, or null when there is none. */
-export function findBrowserPath(): string | null {
-  for (const p of CHROME_PATHS) {
-    try {
-      fs.accessSync(p, fs.constants.X_OK)
-      return p
-    } catch {
-      /* keep looking */
-    }
-  }
-  return null
-}
 
 function findBrowser(): string {
   const path = findBrowserPath()
