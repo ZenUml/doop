@@ -134,7 +134,8 @@ export const workspace = {
   downloadExtension: 'Download extension',
   claudeManualOpen: ', then open it with Claude Desktop. Set',
   claudeManualTo: 'to',
-  claudeManualFallback: '. If the file doesn’t open, use Claude’s',
+  claudeManualFallback:
+    '. If this address changes, update it in Claude’s extension settings. If the file doesn’t open, use Claude’s',
 
   /* Cursor */
   cursorAdd: 'Add to Cursor',

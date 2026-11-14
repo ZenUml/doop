@@ -133,7 +133,8 @@ export const workspace: Catalog['workspace'] = {
   downloadExtension: 'Baixe a extensão',
   claudeManualOpen: ' e abra com o Claude Desktop. Defina',
   claudeManualTo: 'como',
-  claudeManualFallback: '. Se o arquivo não abrir, use no Claude',
+  claudeManualFallback:
+    '. Se o endereço mudar, atualize-o nas configurações da extensão no Claude. Se o arquivo não abrir, use no Claude',
 
   cursorAdd: 'Adicionar ao Cursor',
   connectionHelp: 'Ajuda com a conexão',

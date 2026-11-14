@@ -31,10 +31,10 @@ export const connect: Catalog['connect'] = {
   claudeCodeSignInThen: ' e depois ',
   claudeCodeSignInAfter: '. Uma aba do navegador se abre para você aprovar a conexão.',
 
-  claudeDesktopLede: 'Adicione o Doop pelo app desktop, confirme no Claude e comecem a desenhar juntos.',
+  claudeDesktopLede: 'Instale a extensão no Claude Desktop e conecte sua conta.',
   claudeDesktopAddTitle: 'Adicione o Doop ao Claude Desktop',
   claudeDesktopAddBody:
-    'Clique em Adicionar ao Claude no app desktop do Doop e confirme a instalação no Claude. O endereço do seu servidor Doop já vem preenchido.',
+    'Abra a extensão no Claude e confirme a instalação. Se solicitado, use a URL do servidor mostrada abaixo.',
   claudeDesktopConnectTitle: 'Conecte sua conta Doop',
   claudeDesktopConnectBody: 'Ative a extensão no Claude. Entre no Doop no navegador que se abrir e aprove a conexão.',
   claudeDesktopPointWithPrompt:

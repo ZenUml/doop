@@ -133,13 +133,14 @@ it('skips the canvas prompt and the arrival status when opened without a canvas'
   expect(text()).toContain('Open a canvas and tell the agent to work on it')
 })
 
-it('explains the local desktop path and keeps file installation as a collapsed fallback', async () => {
+it('shows manual installation directly when the native bridge is unavailable', async () => {
   await mount('desktop-canvas')
   await pickAgent('Add Doop to Claude')
   expect(button('Desktop app')?.getAttribute('aria-pressed')).toBe('true')
   const download = document.querySelector<HTMLAnchorElement>('a[download="doop.mcpb"]')
   expect(download?.getAttribute('href')).toBe('/claude-extension/doop.mcpb')
-  expect(download?.closest('[data-slot="disclosure"] > [data-state]')?.getAttribute('data-state')).toBe('closed')
+  expect(download?.closest('[data-slot="disclosure"]')).toBeNull()
+  expect(text()).not.toContain('Click Add to Claude in the Doop desktop app')
   expect(text()).toContain('Doop server URL')
   expect(text()).toContain(`${location.origin}/mcp`)
   expect(text()).toContain('Work on Doop canvas desktop-canvas.')

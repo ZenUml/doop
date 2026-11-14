@@ -130,7 +130,8 @@ NODE
   fi
   cd "$ROOT"
   bun install --frozen-lockfile
-  # Build the product frontend without packaging the upstream Claude extension.
+  # Include the self-contained Claude Desktop extension in the frontend assets.
+  bun run build:claude-extension
   VITE_PRODUCT_MODE=diagramly bunx vite build
   cd "$ROOT/desktop"
   bun install --frozen-lockfile
@@ -154,7 +155,6 @@ NODE
   # runtime peers (React, pg, zod) are already explicit production dependencies.
   (cd "$STAGE" && bun install --production --omit peer --frozen-lockfile --ignore-scripts)
   ditto "$STAGE/node_modules" "$LOCAL/app/node_modules"
-  rm -rf "$LOCAL/app/dist/claude-extension"
   xcrun swiftc -O -parse-as-library -target "$(uname -m)-apple-macosx13.5" "$ROOT/desktop/scripts/FrameSnapshot.swift" -o "$APP/Contents/Helpers/DoopFrameSnapshot"
   desktop_run_audit "$NODE_BINARY" "$ROOT/scripts/desktop-bundle-audit.mjs" "$APP" "$OUTPUT/provenance-before-signing.json"
   IDENTITY=-

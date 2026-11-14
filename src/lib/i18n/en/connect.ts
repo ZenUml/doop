@@ -29,10 +29,10 @@ export const connect = {
   claudeCodeSignInThen: ', then ',
   claudeCodeSignInAfter: '. A browser tab opens so you can approve the connection.',
 
-  claudeDesktopLede: 'Add Doop from the desktop app, confirm in Claude, and start designing together.',
+  claudeDesktopLede: 'Install the extension in Claude Desktop, then connect your account.',
   claudeDesktopAddTitle: 'Add Doop to Claude Desktop',
   claudeDesktopAddBody:
-    'Click Add to Claude in the Doop desktop app, then confirm the installation in Claude. Your Doop server address is filled in for you.',
+    'Open the extension in Claude and confirm the installation. If asked, use the server URL shown below.',
   claudeDesktopConnectTitle: 'Connect your Doop account',
   claudeDesktopConnectBody:
     'Enable the extension in Claude. Sign in to Doop in the browser that opens and approve the connection.',

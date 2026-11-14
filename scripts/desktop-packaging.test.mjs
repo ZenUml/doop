@@ -178,6 +178,8 @@ test('the packaging command stops before signing when an audit exits zero withou
       await writeFile(path.join(checkout, file), file === 'package.json' ? '{}' : 'fixture')
     for (const directory of ['server', 'shared', 'dist'])
       await writeFile(path.join(checkout, directory, 'fixture'), 'fixture')
+    await mkdir(path.join(checkout, 'dist/claude-extension'), { recursive: true })
+    await writeFile(path.join(checkout, 'dist/claude-extension/doop.mcpb'), 'extension fixture')
     git(checkout, 'add', '.')
     git(
       checkout,
@@ -226,6 +228,13 @@ test('the packaging command stops before signing when an audit exits zero withou
           stdio: ['ignore', 'pipe', 'pipe'],
         }),
       /audit did not produce a manifest/,
+    )
+    assert.equal(
+      await readFile(
+        path.join(output, 'ZenUML.app/Contents/Resources/local-server/app/dist/claude-extension/doop.mcpb'),
+        'utf8',
+      ),
+      'extension fixture',
     )
     await assert.rejects(readFile(signed), { code: 'ENOENT' })
   }))

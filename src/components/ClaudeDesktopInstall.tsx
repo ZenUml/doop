@@ -23,6 +23,18 @@ export function ClaudeDesktopInstall({ mcpUrl }: { mcpUrl: string }) {
     }
   }
 
+  const manual = (
+    <p>
+      <a className="underline underline-offset-2" href="/claude-extension/doop.mcpb" download="doop.mcpb">
+        {t('workspace.downloadExtension')}
+      </a>
+      {t('workspace.claudeManualOpen')} <strong>Doop server URL</strong> {t('workspace.claudeManualTo')}{' '}
+      <code className="break-all">{mcpUrl}</code>
+      {t('workspace.claudeManualFallback')}{' '}
+      <strong>Settings → Extensions → Advanced settings → Install Extension</strong>.
+    </p>
+  )
+
   return (
     <InstallBlock
       action={
@@ -35,23 +47,13 @@ export function ClaudeDesktopInstall({ mcpUrl }: { mcpUrl: string }) {
                 : t('workspace.claudeAdd')}
           </Button>
         ) : (
-          <p>{t('workspace.claudeNeedsDesktop')}</p>
+          manual
         )
       }
       status={state === 'opened' && t('workspace.claudeConfirm')}
       error={error}
       manualLabel={t('workspace.installManually')}
-      manual={
-        <p>
-          <a className="underline underline-offset-2" href="/claude-extension/doop.mcpb" download="doop.mcpb">
-            {t('workspace.downloadExtension')}
-          </a>
-          {t('workspace.claudeManualOpen')} <strong>Doop server URL</strong> {t('workspace.claudeManualTo')}{' '}
-          <code className="break-all">{mcpUrl}</code>
-          {t('workspace.claudeManualFallback')}{' '}
-          <strong>Settings → Extensions → Advanced settings → Install Extension</strong>.
-        </p>
-      }
+      manual={canAddToClaudeDesktop() ? manual : undefined}
     />
   )
 }
