@@ -70,7 +70,7 @@ it('waits for successful native setup before displaying configured, without clai
   await act(async () => finish())
   expect(button('Added to Codex')?.disabled).toBe(true)
   expect(text()).toContain('Doop is configured')
-  expect(text()).toContain('listening for Codex')
+  expect(text()).toContain('Waiting for agent activity on this canvas')
   expect(mocks.invoke).toHaveBeenCalledExactlyOnceWith('codex_add_mcp')
 })
 
@@ -105,7 +105,7 @@ it('opens a matching handoff as a review screen and requires a click to write co
   await act(async () => root.render(<DesktopCodexSetup />))
   expect(button('Add to Codex')).toBeDefined()
   expect(text()).toContain('Work on Doop canvas from-browser.')
-  expect(text()).not.toContain('listening for')
+  expect(text()).not.toContain('Waiting for agent activity')
   expect(mocks.invoke).not.toHaveBeenCalled()
   await act(async () => button('Done')!.click())
   expect(mocks.navigate).toHaveBeenCalledWith('/c/from-browser')

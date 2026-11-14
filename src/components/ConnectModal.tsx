@@ -507,7 +507,7 @@ function AgentSteps({
       </div>
 
       <ModalActions className={footer}>
-        {canvasId && showAgentStatus ? <AgentArrival name={name} /> : <ModalSpacer />}
+        {canvasId && showAgentStatus ? <AgentArrival /> : <ModalSpacer />}
         <button
           type="button"
           className="inline-flex items-center gap-1 rounded-sm px-2 py-2 text-xs font-medium text-ink-soft hover:text-ink"
@@ -561,10 +561,9 @@ function MethodSwitch<T extends string>({
   )
 }
 
-/** Live connection status: flips the moment an outside (non-resident) agent
- *  joins this canvas's presence, so nobody is left wondering whether the
- *  OAuth dance actually worked. */
-export function AgentArrival({ name }: { name?: string }) {
+/** Recent outside-agent activity on this canvas, not the connection state of
+ *  a particular client. Presence expires after a period without tool calls. */
+export function AgentArrival() {
   const t = useT()
   const presences = useStore((s) => s.presences)
   const arrived = useMemo(
@@ -578,8 +577,7 @@ export function AgentArrival({ name }: { name?: string }) {
     </span>
   ) : (
     <span className="mr-auto inline-flex items-center gap-[7px] text-body text-ink-faint">
-      <Dot className="animate-[arrival-pulse_1.6s_ease-in-out_infinite] bg-brand" />{' '}
-      {t('connect.listening', { name: name ?? t('connect.yourAgent') })}
+      <Dot className="animate-[arrival-pulse_1.6s_ease-in-out_infinite] bg-brand" /> {t('connect.listening')}
     </span>
   )
 }

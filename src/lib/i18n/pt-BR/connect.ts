@@ -126,8 +126,8 @@ export const connect: Catalog['connect'] = {
     'Adicione o servidor com sua chave como cabeçalho bearer, substituindo dpk_… por ela. O nó MCP Client do n8n, o MCPClient do Mastra e a maioria dos SDKs MCP aceitam cabeçalhos assim.',
   done: 'Concluído',
 
-  arrived: '{name} chegou — funcionou',
-  listening: 'aguardando {name}…',
+  arrived: 'Atividade recente nesta tela: {name}',
+  listening: 'Aguardando atividade de um agente nesta tela…',
   yourAgent: 'seu agente',
 
   codexSetupTitle: 'Abra o servidor Doop correspondente',

@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   native: false,
   desktop: false,
   addToDesktop: vi.fn(),
+  presences: {} as Record<string, { clientId: string; kind: string; name: string; color: string }>,
 }))
 vi.mock('../src/lib/shell', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../src/lib/shell')>()),
@@ -22,9 +23,9 @@ vi.mock('../src/lib/claudeConnection', async (importOriginal) => ({
 vi.mock('../src/App', () => ({ navigate: mocks.navigate }))
 vi.mock('../src/lib/posthog', () => ({ posthog: { capture: mocks.capture } }))
 vi.mock('../src/lib/store', () => ({
-  useStore: (select: (s: { presences: Record<string, never> }) => unknown) => select({ presences: {} }),
+  useStore: (select: (s: { presences: typeof mocks.presences }) => unknown) => select({ presences: mocks.presences }),
 }))
-import { ConnectModal } from '../src/components/ConnectModal'
+import { AgentArrival, ConnectModal } from '../src/components/ConnectModal'
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 let root: Root
@@ -58,6 +59,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mocks.native = false
   mocks.desktop = false
+  mocks.presences = {}
   vi.stubGlobal('location', new URL('http://localhost:4301'))
 })
 afterEach(() => {
@@ -77,7 +79,7 @@ it('opens on the agent picker and walks to an agent’s own steps and back', asy
   expect(text()).toContain('Connect Codex')
   expect(text()).toContain(`codex mcp add doop --url ${location.origin}/mcp`)
   expect(text()).toContain('Work on Doop canvas c1.')
-  expect(text()).toContain('listening for Codex')
+  expect(text()).toContain('Waiting for agent activity on this canvas')
 
   await click('Back')
   expect(text()).toContain('Choose your agent')
@@ -129,7 +131,7 @@ it('skips the canvas prompt and the arrival status when opened without a canvas'
   await mount()
   await pickAgent('Claude Code')
   expect(text()).not.toContain('Work on Doop canvas')
-  expect(text()).not.toContain('listening for')
+  expect(text()).not.toContain('Waiting for agent activity')
   expect(text()).toContain('Open a canvas and tell the agent to work on it')
 })
 
@@ -226,8 +228,23 @@ it.each(['https://doop.design', 'http://localhost:4301'])(
     expect(document.querySelector('[data-slot="collapsible-trigger"]')?.getAttribute('aria-expanded')).toBe('false')
     expect(text()).toContain('keeping any existing servers')
     expect(text()).toContain('Work on Doop canvas cursor-canvas.')
-    expect(text()).toContain('listening for Cursor')
+    expect(text()).toContain('Waiting for agent activity on this canvas')
     expect(text()).not.toContain('it worked')
     expect(document.querySelector('a[download]')).toBeNull()
   },
 )
+
+it('reports recent canvas activity without claiming that a selected client connected', async () => {
+  container = document.createElement('div')
+  document.body.append(container)
+  root = createRoot(container)
+  await act(async () => root.render(<AgentArrival />))
+  expect(text()).toContain('Waiting for agent activity on this canvas')
+  mocks.presences = { cursor: { clientId: 'agent:Cursor', kind: 'agent', name: 'Cursor', color: '#000' } }
+  await act(async () => root.render(<AgentArrival />))
+  expect(text()).toContain('Recent canvas activity: Cursor')
+  expect(text()).not.toContain('it worked')
+  mocks.presences = {}
+  await act(async () => root.render(<AgentArrival />))
+  expect(text()).toContain('Waiting for agent activity on this canvas')
+})

@@ -119,8 +119,8 @@ export const connect = {
     'Add the server with your key as a bearer header, replacing dpk_… with it. n8n’s MCP Client node, Mastra’s MCPClient and most MCP SDKs take headers like this.',
   done: 'Done',
 
-  arrived: '{name} is here — it worked',
-  listening: 'listening for {name}…',
+  arrived: 'Recent canvas activity: {name}',
+  listening: 'Waiting for agent activity on this canvas…',
   yourAgent: 'your agent',
 
   codexSetupTitle: 'Open the matching Doop server',

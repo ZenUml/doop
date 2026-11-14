@@ -232,3 +232,23 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod port_tests {
+    use super::*;
+
+    #[test]
+    fn reuses_a_free_saved_port_and_records_a_new_one_if_occupied() {
+        let data = std::env::temp_dir().join(format!("diagramly-port-test-{}", std::process::id()));
+        std::fs::create_dir_all(&data).unwrap();
+        let first = free_port(&data).unwrap();
+        assert_eq!(free_port(&data), Some(first));
+        let occupied = TcpListener::bind(("127.0.0.1", first)).unwrap();
+        let replacement = free_port(&data).unwrap();
+        assert_ne!(replacement, first);
+        assert_eq!(std::fs::read_to_string(data.join("port")).unwrap(), replacement.to_string());
+        drop(occupied);
+        assert_eq!(free_port(&data), Some(replacement));
+        std::fs::remove_dir_all(data).unwrap();
+    }
+}
