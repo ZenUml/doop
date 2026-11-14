@@ -1,4 +1,3 @@
-import { claudeExtensionDownload } from './claudeExtensionDownload'
 import { makeDiagramBackup, restoreDiagramBackup } from '../shared/diagramBackup.ts'
 import { createHash as backupHash } from 'node:crypto'
 import { diagramlyRouter, deliverApplePurchase } from './diagramlyRouter.ts'
@@ -3132,7 +3131,6 @@ app.get('/sitemap.xml', (_req, res) => {
 /* production: serve the built client */
 if (env.isProduction) {
   const dist = path.join(appRoot(), 'dist')
-  app.use(claudeExtensionDownload(dist))
   app.use(express.static(dist))
   /* a missing bundle or source map is a 404, not the app shell: HTML served
      as a .js or .map breaks module loads and source map resolution */

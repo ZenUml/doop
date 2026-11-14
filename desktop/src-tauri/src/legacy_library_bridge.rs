@@ -1,6 +1,6 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{AppHandle, Url, WebviewWindow};
-fn allowed_origin(label: &str, actual: &Url, expected: &Url) -> bool {
+pub(crate) fn allowed_origin(label: &str, actual: &Url, expected: &Url) -> bool {
     label == "main"
         && actual.origin() == expected.origin()
         && expected.scheme() == "http"

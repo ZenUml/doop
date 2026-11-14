@@ -9,6 +9,20 @@ export function ClaudeDesktopInstall({ mcpUrl }: { mcpUrl: string }) {
   const t = useT()
   const [state, setState] = useState<'idle' | 'opening' | 'opened'>('idle')
   const [error, setError] = useState('')
+  const [saved, setSaved] = useState(false)
+  const shell = globalThis as {
+    __DIAGRAMLY_APP_STORE__?: boolean
+    __TAURI__?: { core: { invoke: (command: string) => Promise<boolean> } }
+  }
+
+  async function saveExtension() {
+    setError('')
+    try {
+      setSaved(await shell.__TAURI__!.core.invoke('claude_save_bundled_extension'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    }
+  }
 
   async function connect() {
     setState('opening')
@@ -25,9 +39,15 @@ export function ClaudeDesktopInstall({ mcpUrl }: { mcpUrl: string }) {
 
   const manual = (
     <p>
-      <a className="underline underline-offset-2" href="/claude-extension/doop.mcpb" download="doop.mcpb">
-        {t('workspace.downloadExtension')}
-      </a>
+      {shell.__DIAGRAMLY_APP_STORE__ && shell.__TAURI__?.core ? (
+        <Button variant="link" size="inline" onClick={() => void saveExtension()}>
+          {t('workspace.downloadExtension')}
+        </Button>
+      ) : (
+        <a className="underline underline-offset-2" href="/claude-extension/doop.mcpb" download="doop.mcpb">
+          {t('workspace.downloadExtension')}
+        </a>
+      )}
       {t('workspace.claudeManualOpen')} <strong>Doop server URL</strong> {t('workspace.claudeManualTo')}{' '}
       <code className="break-all">{mcpUrl}</code>
       {t('workspace.claudeManualFallback')}{' '}
@@ -50,7 +70,7 @@ export function ClaudeDesktopInstall({ mcpUrl }: { mcpUrl: string }) {
           manual
         )
       }
-      status={state === 'opened' && t('workspace.claudeConfirm')}
+      status={state === 'opened' ? t('workspace.claudeConfirm') : saved ? t('workspace.claudeSaved') : undefined}
       error={error}
       manualLabel={t('workspace.installManually')}
       manual={canAddToClaudeDesktop() ? manual : undefined}

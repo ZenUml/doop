@@ -132,6 +132,7 @@ export const workspace = {
   claudeConfirm: 'Confirm the installation in Claude, then approve the Doop sign-in.',
   installManually: 'Install manually',
   downloadExtension: 'Download extension',
+  claudeSaved: 'Extension saved. Open the saved file with Claude Desktop.',
   claudeManualOpen: ', then open it with Claude Desktop. Set',
   claudeManualTo: 'to',
   claudeManualFallback:

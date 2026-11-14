@@ -50,6 +50,8 @@ mod app_menu;
 mod appimage;
 mod claude;
 mod claude_extension;
+#[cfg(feature = "app-store")]
+mod claude_extension_save;
 mod codex;
 mod commerce;
 mod fonts;
@@ -343,6 +345,7 @@ fn main() {
     #[cfg(feature = "app-store")]
     let builder = builder.invoke_handler(tauri::generate_handler![
         legacy_library_bridge::legacy_library_choose,
+        claude_extension_save::claude_save_bundled_extension,
         fonts::fonts_choose_local,
         fonts::fonts_read_local,
         view_menu::view_menu_state,

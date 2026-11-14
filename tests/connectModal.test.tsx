@@ -133,6 +133,17 @@ it('skips the canvas prompt and the arrival status when opened without a canvas'
   expect(text()).toContain('Open a canvas and tell the agent to work on it')
 })
 
+it('saves the bundled extension through the App Store shell', async () => {
+  const invoke = vi.fn().mockResolvedValue(true)
+  vi.stubGlobal('__DIAGRAMLY_APP_STORE__', true)
+  vi.stubGlobal('__TAURI__', { core: { invoke } })
+  await mount('desktop-canvas')
+  await pickAgent('Add Doop to Claude')
+  await click('Download extension')
+  expect(invoke).toHaveBeenCalledWith('claude_save_bundled_extension')
+  expect(text()).toContain('Doop server URL')
+})
+
 it('shows manual installation directly when the native bridge is unavailable', async () => {
   await mount('desktop-canvas')
   await pickAgent('Add Doop to Claude')

@@ -131,6 +131,7 @@ export const workspace: Catalog['workspace'] = {
   claudeConfirm: 'Confirme a instalação no Claude e depois aprove o login no Doop.',
   installManually: 'Instalar manualmente',
   downloadExtension: 'Baixe a extensão',
+  claudeSaved: 'Extensão salva. Abra o arquivo salvo com o Claude Desktop.',
   claudeManualOpen: ' e abra com o Claude Desktop. Defina',
   claudeManualTo: 'como',
   claudeManualFallback:

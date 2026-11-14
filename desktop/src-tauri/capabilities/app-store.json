@@ -14,6 +14,7 @@
     "allow-view-menu-state",
     "allow-app-menu-set",
     "allow-app-menu-state",
-    "allow-legacy-library-choose"
+    "allow-legacy-library-choose",
+    "allow-claude-save-bundled-extension"
   ]
 }

@@ -111,7 +111,7 @@ pub fn start(app: &AppHandle) -> Option<String> {
 /// The bundle's `Contents/Resources`, found from the executable. The first
 /// call comes while the menu is built, before the app's path resolver exists,
 /// so `app.path()` cannot be used here.
-fn resources() -> Option<PathBuf> {
+pub(crate) fn resources() -> Option<PathBuf> {
     let executable = std::env::current_exe().ok()?;
     Some(executable.parent()?.parent()?.join("Resources"))
 }
