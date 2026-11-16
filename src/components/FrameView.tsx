@@ -197,7 +197,7 @@ function useThrottledValue<T>(value: T, ms: number): T {
 
 interface ProbeHit {
   selector: string
-  /** the `data-doop-id` the element already wears, if something stamped one */
+  /** the `data-diagramly-id` the element already wears, if something stamped one */
   elementId?: string
   /** where the click landed, in design px, when the hit came from one */
   point?: { x: number; y: number }
@@ -239,7 +239,7 @@ function frameCommentHit(x: number, y: number): ProbeHit {
    top-left corner, under the name it was made from */
 const FRAME_NAME_COMMENT_AT = 12
 
-/* `doop:locate` request ids for the outlines of a multi-element pick */
+/* `diagramly:locate` request ids for the outlines of a multi-element pick */
 const PICK_REQ = '__pick__:'
 
 type DragRect = { id: string; x: number; y: number; width: number; height: number; rotation?: number }
@@ -643,7 +643,7 @@ export const FrameView = memo(function FrameView({
           /* a drawn shape's transform-aware geometry comes from its document,
              so it keeps its rotation and scale inside the frame; a lifted
              element has none and is placed by its box */
-          void requestFrame(frame.id, 'doop:drawing-hit', {
+          void requestFrame(frame.id, 'diagramly:drawing-hit', {
             /* probed at its centre: a rotated shape leaves its corners empty */
             x: current.width / 2,
             y: current.height / 2,
@@ -843,14 +843,14 @@ export const FrameView = memo(function FrameView({
     }
     function onMsg(ev: MessageEvent) {
       const win = iframeRef.current?.contentWindow
-      if (ev.data?.type === 'doop:frame-ready' && win && ev.source === win) {
+      if (ev.data?.type === 'diagramly:frame-ready' && win && ev.source === win) {
         /* once per document: the ready signal arrives before the design's
            HTML, so only the runtime can be listening for the port */
         if (!keyPort.current) {
           const channel = new MessageChannel()
           channel.port1.onmessage = replayKey
           keyPort.current = channel.port1
-          win.postMessage({ type: 'doop:key-port' }, '*', [channel.port2])
+          win.postMessage({ type: 'diagramly:key-port' }, '*', [channel.port2])
         }
         setRuntimeReady(true)
       }
@@ -878,7 +878,7 @@ export const FrameView = memo(function FrameView({
     const diagram = readDiagramFrame(html)
     /* Saved source survives renderer upgrades; execute this build's renderer. */
     const runtimeHtml = diagram ? buildDiagramHtml(diagram) : html
-    void requestFrame(frame.id, 'doop:html', { html: runtimeHtml }).then((reply) => {
+    void requestFrame(frame.id, 'diagramly:html', { html: runtimeHtml }).then((reply) => {
       if (!reply || request !== htmlRequest.current) return
       /* the runtime shows it whether or not this effect is still current */
       noteFrameDocument(frame.id, html)
@@ -909,7 +909,7 @@ export const FrameView = memo(function FrameView({
     )
       return
     let cancelled = false
-    void requestFrame(frame.id, 'doop:context-hit', { x: menuProbe.x, y: menuProbe.y }).then((reply) => {
+    void requestFrame(frame.id, 'diagramly:context-hit', { x: menuProbe.x, y: menuProbe.y }).then((reply) => {
       const store = useStore.getState()
       const live = store.canvas?.frames.find((f) => f.id === frame.id)
       if (cancelled || menuProbe.request !== menuRequest.current || store.ctxMenu?.frameId !== frame.id) return
@@ -964,7 +964,7 @@ export const FrameView = memo(function FrameView({
     if (!force && now - hoverLast.current < 40) return
     hoverLast.current = now
     hoverReq.current += 1
-    iframeRef.current?.contentWindow?.postMessage({ type: 'doop:hover', reqId: hoverReq.current, x, y }, '*')
+    iframeRef.current?.contentWindow?.postMessage({ type: 'diagramly:hover', reqId: hoverReq.current, x, y }, '*')
   }
 
   function clearHover() {
@@ -1007,7 +1007,7 @@ export const FrameView = memo(function FrameView({
 
   /* a Layers row under the pointer outlines its element here, the same as a
      hover over the frame: ask the runtime where the element is, and draw the
-     answer (the `doop:located` reply below) as the hover outline. A string
+     answer (the `diagramly:located` reply below) as the hover outline. A string
      selector keeps the selection identity-stable, so memo holds. */
   const layerHover = useStore((s) => (s.hoveredLayer?.frameId === frame.id ? s.hoveredLayer.selector : null))
   const [seenLayerHover, setSeenLayerHover] = useState(layerHover)
@@ -1025,7 +1025,7 @@ export const FrameView = memo(function FrameView({
 
   function requestCode(selector: string) {
     codeReq.current += 1
-    iframeRef.current?.contentWindow?.postMessage({ type: 'doop:code', reqId: codeReq.current, selector }, '*')
+    iframeRef.current?.contentWindow?.postMessage({ type: 'diagramly:code', reqId: codeReq.current, selector }, '*')
   }
 
   function cancelProbe() {
@@ -1078,7 +1078,7 @@ export const FrameView = memo(function FrameView({
       () => {
         probeTimer.current = null
         probeReq.current += 1
-        iframeRef.current?.contentWindow?.postMessage({ type: 'doop:probe', reqId: probeReq.current, x, y }, '*')
+        iframeRef.current?.contentWindow?.postMessage({ type: 'diagramly:probe', reqId: probeReq.current, x, y }, '*')
       },
       intent === 'toolbar' ? 250 : 0,
     )
@@ -1092,7 +1092,7 @@ export const FrameView = memo(function FrameView({
     for (const c of comments) {
       if (!isElementComment(c)) continue
       iframeRef.current?.contentWindow?.postMessage(
-        { type: 'doop:locate', reqId: c.id, selector: elementIdSelector(c.elementId) },
+        { type: 'diagramly:locate', reqId: c.id, selector: elementIdSelector(c.elementId) },
         '*',
       )
     }
@@ -1103,12 +1103,15 @@ export const FrameView = memo(function FrameView({
   const probeSel = probe?.selector ?? null
   useEffect(() => {
     if (!runtimeReady || !probeSel || probeSel === FRAME_COMMENT_SELECTOR) return
-    iframeRef.current?.contentWindow?.postMessage({ type: 'doop:locate', reqId: '__probe__', selector: probeSel }, '*')
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: 'diagramly:locate', reqId: '__probe__', selector: probeSel },
+      '*',
+    )
   }, [runtimeReady, html, probeSel])
   useEffect(() => {
     if (!runtimeReady || !layerHover) return
     iframeRef.current?.contentWindow?.postMessage(
-      { type: 'doop:locate', reqId: '__layer-hover__', selector: layerHover },
+      { type: 'diagramly:locate', reqId: '__layer-hover__', selector: layerHover },
       '*',
     )
   }, [runtimeReady, html, layerHover])
@@ -1237,7 +1240,7 @@ export const FrameView = memo(function FrameView({
     if (!runtimeReady) return
     for (const selector of JSON.parse(pickedKey) as string[]) {
       iframeRef.current?.contentWindow?.postMessage(
-        { type: 'doop:locate', reqId: `${PICK_REQ}${selector}`, selector },
+        { type: 'diagramly:locate', reqId: `${PICK_REQ}${selector}`, selector },
         '*',
       )
     }
@@ -1260,7 +1263,7 @@ export const FrameView = memo(function FrameView({
     if (live?.frameId !== frame.id || live.selector !== wantedSel) return
     selectSel.current = wantedSel
     iframeRef.current?.contentWindow?.postMessage(
-      { type: 'doop:select', reqId: selectReq.current, selector: wantedSel },
+      { type: 'diagramly:select', reqId: selectReq.current, selector: wantedSel },
       '*',
     )
   }, [runtimeReady, wantedSel, probeSel, frame.id, html, frame.html])
@@ -1268,7 +1271,7 @@ export const FrameView = memo(function FrameView({
   useEffect(() => {
     function onMsg(ev: MessageEvent) {
       if (ev.source !== iframeRef.current?.contentWindow) return
-      if (ev.data?.type === 'doop:probe-result' && ev.data.reqId === probeReq.current) {
+      if (ev.data?.type === 'diagramly:probe-result' && ev.data.reqId === probeReq.current) {
         const probed = (ev.data.hit ?? null) as ProbeHit | null
         /* the Comment tool on the frame's own background comments on the frame */
         const at = probePoint.current
@@ -1293,7 +1296,7 @@ export const FrameView = memo(function FrameView({
           setComposing(true)
         }
       }
-      if (ev.data?.type === 'doop:select-result' && ev.data.reqId === selectReq.current) {
+      if (ev.data?.type === 'diagramly:select-result' && ev.data.reqId === selectReq.current) {
         /* the answer is only acted on while the asked-for element is still
            the live selection — a surface click in the meantime has moved on */
         const live = useStore.getState().selectedElement
@@ -1315,7 +1318,7 @@ export const FrameView = memo(function FrameView({
           s.pushNotice(translate('stage.elementGone'))
         }
       }
-      if (ev.data?.type === 'doop:hover-result' && ev.data.reqId === hoverReq.current) {
+      if (ev.data?.type === 'diagramly:hover-result' && ev.data.reqId === hoverReq.current) {
         const hit = (ev.data.hit ?? null) as HoverHit | null
         /* only re-render when the outlined element actually changes */
         const key = hit ? hit.selector + JSON.stringify(hit.rect) : null
@@ -1324,8 +1327,8 @@ export const FrameView = memo(function FrameView({
           setHover(hit)
         }
       }
-      if (ev.data?.type === 'doop:text-state') setTextFormat(ev.data.state ?? {})
-      if (ev.data?.type === 'doop:active') {
+      if (ev.data?.type === 'diagramly:text-state') setTextFormat(ev.data.state ?? {})
+      if (ev.data?.type === 'diagramly:active') {
         const hit = (ev.data.hit ?? null) as ProbeHit | null
         /* rect refreshes for the same element keep the composer open;
            switching elements (or deselecting) closes it */
@@ -1343,10 +1346,10 @@ export const FrameView = memo(function FrameView({
            so it can't take back a pick made in Layers meanwhile. */
         if (hit) setProbe((p) => (moved || p?.selector === hit.selector ? hit : p))
       }
-      if (ev.data?.type === 'doop:code-result' && ev.data.reqId === codeReq.current) {
+      if (ev.data?.type === 'diagramly:code-result' && ev.data.reqId === codeReq.current) {
         setCodeView(typeof ev.data.html === 'string' ? ev.data.html : null)
       }
-      if (ev.data?.type === 'doop:located' && typeof ev.data.reqId === 'string') {
+      if (ev.data?.type === 'diagramly:located' && typeof ev.data.reqId === 'string') {
         if (ev.data.reqId === '__layer-hover__') {
           /* the pointer may have left the row while the runtime looked: a late
              reply must not paint an outline nobody is hovering */
@@ -1459,14 +1462,14 @@ export const FrameView = memo(function FrameView({
       probeIntent.current = 'toolbar'
       probeReq.current += 1
       iframeRef.current?.contentWindow?.postMessage(
-        { type: 'doop:probe', reqId: probeReq.current, x: at.x, y: at.y },
+        { type: 'diagramly:probe', reqId: probeReq.current, x: at.x, y: at.y },
         '*',
       )
     }
     setEditing(true)
     /* the point goes along so the runtime edits the text under it straight
        away, all of it selected, as a double-click does in Figma */
-    iframeRef.current?.contentWindow?.postMessage({ type: 'doop:edit', on: true, x: at?.x, y: at?.y }, '*')
+    iframeRef.current?.contentWindow?.postMessage({ type: 'diagramly:edit', on: true, x: at?.x, y: at?.y }, '*')
   }
   /* focus held by the frame's document (a text edit) comes back to the page,
      so the canvas's keyboard shortcuts hear the next key */
@@ -1475,7 +1478,7 @@ export const FrameView = memo(function FrameView({
     if (iframe && document.activeElement === iframe) iframe.blur()
   }
   function exitEdit() {
-    iframeRef.current?.contentWindow?.postMessage({ type: 'doop:edit', on: false }, '*')
+    iframeRef.current?.contentWindow?.postMessage({ type: 'diagramly:edit', on: false }, '*')
     reclaimFocus()
     setEditing(false)
     setActiveHit(null)
@@ -1498,7 +1501,7 @@ export const FrameView = memo(function FrameView({
   useEffect(() => {
     function onMsg(ev: MessageEvent) {
       if (ev.source !== iframeRef.current?.contentWindow) return
-      if (ev.data?.type === 'doop:diagram-size') {
+      if (ev.data?.type === 'diagramly:diagram-size') {
         const state = useStore.getState()
         const live = state.canvas?.frames.find((item) => item.id === frame.id)
         if (!live || live.locked || !canEditOpenCanvas(state)) return
@@ -1519,7 +1522,7 @@ export const FrameView = memo(function FrameView({
           }),
         )
       }
-      if (ev.data?.type === 'doop:edited' && typeof ev.data.html === 'string') {
+      if (ev.data?.type === 'diagramly:edited' && typeof ev.data.html === 'string') {
         // The runtime already has this document. Echoing it through the HTML
         // throttle can overwrite a newer style edit still waiting to save.
         localHtml.current = ev.data.html
@@ -1539,7 +1542,7 @@ export const FrameView = memo(function FrameView({
         trackSave(api.updateFrame(frame.id, { html }).catch(console.error))
         if (before !== undefined) recordUpdate(frame.id, { html: before }, { html }, ev.data.discrete === true)
       }
-      if (ev.data?.type === 'doop:edit-esc') {
+      if (ev.data?.type === 'diagramly:edit-esc') {
         setEditing(false)
         /* the keyboard was in the frame's document while the text was being
            edited; it stays there after Escape unless the frame lets go, and
@@ -1549,7 +1552,7 @@ export const FrameView = memo(function FrameView({
         setSuspendPost(true)
         window.setTimeout(() => setSuspendPost(false), 500)
       }
-      if (ev.data?.type === 'doop:context-menu') {
+      if (ev.data?.type === 'diagramly:context-menu') {
         const { x, y } = ev.data as { x: number; y: number }
         // Let the final text save and edit-mode exit render before opening.
         window.requestAnimationFrame(() => {
@@ -1883,7 +1886,7 @@ export const FrameView = memo(function FrameView({
                 ref={iframeRef}
                 className="relative block border-none bg-transparent"
                 title={frame.name}
-                data-doop-frame=""
+                data-diagramly-frame=""
                 sandbox="allow-scripts"
                 srcDoc={FRAME_BOOTSTRAP}
                 /* The world is laid out at CSS zoom k (Stage), which an iframe
@@ -2171,7 +2174,7 @@ export const FrameView = memo(function FrameView({
                                 state={textFormat}
                                 onFormat={(command) =>
                                   iframeRef.current?.contentWindow?.postMessage(
-                                    { type: 'doop:text-format', command },
+                                    { type: 'diagramly:text-format', command },
                                     '*',
                                   )
                                 }

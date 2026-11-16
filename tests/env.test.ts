@@ -41,7 +41,7 @@ describe('server/env.ts', () => {
     stubEnv('SMTP_SECURE', undefined)
     expect(() => stubEnv('BETTER_AUTH_URL', 'doop.example')).toThrow(/BETTER_AUTH_URL: Invalid URL/)
     stubEnv('BETTER_AUTH_URL', undefined)
-    expect(() => stubEnv('DOOP_AGENT_PROVIDER', 'openai')).toThrow(/DOOP_AGENT_PROVIDER/)
+    expect(() => stubEnv('DIAGRAMLY_AGENT_PROVIDER', 'openai')).toThrow(/DIAGRAMLY_AGENT_PROVIDER/)
   })
 
   it('reports every bad variable in one error', () => {

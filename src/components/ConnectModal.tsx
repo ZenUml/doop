@@ -134,7 +134,7 @@ interface StepOptions {
 /** An agent with no browser to sign in with: an agent key, sent as a bearer header. */
 function agentKeySteps(t: Translate, mcpUrl: string, pointAt: Step, openAgentKeys: () => void) {
   const config = JSON.stringify(
-    { mcpServers: { doop: { type: 'http', url: mcpUrl, headers: { Authorization: 'Bearer dpk_…' } } } },
+    { mcpServers: { diagramly: { type: 'http', url: mcpUrl, headers: { Authorization: 'Bearer dpk_…' } } } },
     null,
     2,
   )
@@ -163,7 +163,7 @@ function agentSteps(
   prompt: string,
   { claudeConnection, mcpConnection, canvasId, openAgentKeys }: StepOptions,
 ): { lede: string; steps: Step[] } {
-  const jsonConfig = JSON.stringify({ mcpServers: { doop: { type: 'http', url: mcpUrl } } }, null, 2)
+  const jsonConfig = JSON.stringify({ mcpServers: { diagramly: { type: 'http', url: mcpUrl } } }, null, 2)
   const pointAt: Step = {
     title: t('connect.pointAtTitle'),
     body: prompt ? t('connect.pointAtWithPrompt') : t('connect.pointAtNoPrompt'),
@@ -179,11 +179,11 @@ function agentSteps(
             body: (
               <>
                 {t('connect.claudeCodeAddBefore')}
-                <code>doop</code>
+                <code>diagramly</code>
                 {t('connect.claudeCodeAddAfter')}
               </>
             ),
-            code: `claude mcp add --transport http doop "${mcpUrl}"`,
+            code: `claude mcp add --transport http diagramly "${mcpUrl}"`,
           },
           {
             title: t('connect.claudeCodeSignInTitle'),
@@ -192,7 +192,7 @@ function agentSteps(
                 {t('connect.claudeCodeSignInBefore')}
                 <code>/mcp</code>
                 {t('connect.claudeCodeSignInPick')}
-                <strong>doop</strong>
+                <strong>diagramly</strong>
                 {t('connect.claudeCodeSignInThen')}
                 {/* Claude Code's own menu label, which it shows in English */}
                 <strong>Authenticate</strong>
@@ -346,7 +346,7 @@ function agentSteps(
           {
             title: t('connect.codexSignInTitle'),
             body: t('connect.codexSignInBody'),
-            code: 'codex mcp login doop',
+            code: 'codex mcp login diagramly',
           },
           pointAt,
         ],
@@ -382,7 +382,7 @@ function agentSteps(
             body: (
               <>
                 {t('connect.mcpConfigBefore')}
-                <code>doop</code>
+                <code>diagramly</code>
                 {t('connect.mcpConfigAfter')}
               </>
             ),
@@ -422,7 +422,7 @@ function AgentSteps({
      rest lives behind get_guide. The only thing this prompt knows that they don't is
      which canvas the human is looking at. */
   const prompt = canvasId
-    ? `${productCopy('Work on Doop canvas')} ${canvasId}. Start with get_guide({ topic: "doop-instructions" }) and follow it.`
+    ? `${productCopy('Work on Doop canvas')} ${canvasId}. Start with get_guide({ topic: "design-instructions" }) and follow it.`
     : ''
   const [mcpConnection, setMcpConnection] = useState<McpConnection>('browser')
   /* a browser keeps these steps open beside the new tab; the desktop shell's

@@ -18,7 +18,7 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     page = await pages.open()
     await page.goto(fixtureUrl('frameReplay.html'))
     await page.waitForFunction(() =>
-      (window as unknown as Fixture).messages?.some((m) => m.type === 'doop:frame-ready'),
+      (window as unknown as Fixture).messages?.some((m) => m.type === 'diagramly:frame-ready'),
     )
     frame = page.frames().find((f) => f !== page.mainFrame())!
   })
@@ -30,11 +30,13 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     )
   }
   async function render(html: string) {
-    await send({ type: 'doop:html', html, reqId: 'render' })
+    await send({ type: 'diagramly:html', html, reqId: 'render' })
     await frame.waitForSelector('#text')
-    await send({ type: 'doop:edit', on: true, x: 20, y: 20 })
+    await send({ type: 'diagramly:edit', on: true, x: 20, y: 20 })
     await frame.waitForSelector('#text[contenteditable]')
-    await page.waitForFunction(() => (window as unknown as Fixture).messages.some((m) => m.type === 'doop:text-state'))
+    await page.waitForFunction(() =>
+      (window as unknown as Fixture).messages.some((m) => m.type === 'diagramly:text-state'),
+    )
   }
   async function select(start: number, end: number) {
     await page.evaluate(() => {
@@ -52,17 +54,19 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     )
     await frame.waitForFunction(() => getSelection()!.toString().length > 0)
     // Wait for the selectionchange message before acting from the parent.
-    await page.waitForFunction(() => (window as unknown as Fixture).messages.some((m) => m.type === 'doop:text-state'))
+    await page.waitForFunction(() =>
+      (window as unknown as Fixture).messages.some((m) => m.type === 'diagramly:text-state'),
+    )
   }
   async function format(command: TextFormatCommand) {
     await page.evaluate(() => {
       ;(window as unknown as Fixture).messages = []
     })
-    await send({ type: 'doop:text-format', command })
-    await page.waitForFunction(() => (window as unknown as Fixture).messages.some((m) => m.type === 'doop:edited'))
+    await send({ type: 'diagramly:text-format', command })
+    await page.waitForFunction(() => (window as unknown as Fixture).messages.some((m) => m.type === 'diagramly:edited'))
   }
   let nextReq = 0
-  async function ask(type: 'doop:style' | 'doop:inspect', payload: Record<string, unknown>) {
+  async function ask(type: 'diagramly:style' | 'diagramly:inspect', payload: Record<string, unknown>) {
     const reqId = `req-${++nextReq}`
     await send({ ...payload, type, reqId })
     await page.waitForFunction(
@@ -72,11 +76,11 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     )
     return page.evaluate((reqId) => (window as unknown as Fixture).messages.find((m) => m.reqId === reqId)!.info, reqId)
   }
-  const style = (styles: StylePatch) => ask('doop:style', { selector: '#text', styles })
-  const inspect = () => ask('doop:inspect', { selector: '#text' })
+  const style = (styles: StylePatch) => ask('diagramly:style', { selector: '#text', styles })
+  const inspect = () => ask('diagramly:inspect', { selector: '#text' })
   async function savedHtml() {
     return page.evaluate(
-      () => (window as unknown as Fixture).messages.filter((m) => m.type === 'doop:edited').at(-1)!.html!,
+      () => (window as unknown as Fixture).messages.filter((m) => m.type === 'diagramly:edited').at(-1)!.html!,
     )
   }
 
@@ -112,13 +116,13 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     await format('insertUnorderedList')
     expect(await frame.$$eval('#text li', (items) => items.map((li) => li.textContent))).toEqual(['One', 'Two'])
     const html = await savedHtml()
-    await send({ type: 'doop:edit', on: false })
+    await send({ type: 'diagramly:edit', on: false })
     await frame.waitForFunction(() => !document.querySelector('[contenteditable]'))
     expect(await frame.$('div#text ul')).not.toBeNull()
-    await send({ type: 'doop:html', html, reqId: 'reload' })
+    await send({ type: 'diagramly:html', html, reqId: 'reload' })
     await frame.waitForSelector('div#text ul')
     expect(await frame.$$eval('#text li', (items) => items.map((li) => li.textContent))).toEqual(['One', 'Two'])
-    await send({ type: 'doop:edit', on: true, x: 50, y: 20 })
+    await send({ type: 'diagramly:edit', on: true, x: 50, y: 20 })
     await frame.waitForSelector('#text[contenteditable]')
     await format('insertOrderedList')
     expect(await frame.$('#text ol')).not.toBeNull()
@@ -128,7 +132,7 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
 
   it('preserves existing list styling when applying inline formatting', async () => {
     await render(
-      '<div id="text" data-doop-text style="margin:0;font:24px Arial"><ul style="list-style:square;margin:0;padding-left:20px"><li>Hello</li></ul></div>',
+      '<div id="text" data-diagramly-text style="margin:0;font:24px Arial"><ul style="list-style:square;margin:0;padding-left:20px"><li>Hello</li></ul></div>',
     )
     await format('bold')
     expect(await frame.$eval('#text ul', (el) => getComputedStyle(el).listStyleType)).toBe('square')
@@ -172,14 +176,18 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     // The list is saved as one discrete edit, not left to the typing debounce.
     await page.waitForFunction(
       (tag) =>
-        (window as unknown as Fixture).messages.some((m) => m.type === 'doop:edited' && m.html?.includes(`<${tag}`)),
+        (window as unknown as Fixture).messages.some(
+          (m) => m.type === 'diagramly:edited' && m.html?.includes(`<${tag}`),
+        ),
       {},
       tag,
     )
     // Past the typing debounce: the conversion was saved once, not again by the space that made it.
     await new Promise((resolve) => setTimeout(resolve, 500))
     expect(
-      await page.evaluate(() => (window as unknown as Fixture).messages.filter((m) => m.type === 'doop:edited').length),
+      await page.evaluate(
+        () => (window as unknown as Fixture).messages.filter((m) => m.type === 'diagramly:edited').length,
+      ),
     ).toBe(1)
     await page.keyboard.type('Two')
     expect(await frame.$$eval(`#text ${tag} li`, (items) => items.map((li) => li.textContent))).toEqual(['Two'])
@@ -244,11 +252,13 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
   })
 
   it('leaves a marker that takes in locked text alone', async () => {
-    await render('<p id="text" style="margin:0;font:24px Arial">One<br><span data-doop-locked>1</span><i>.</i></p>')
+    await render(
+      '<p id="text" style="margin:0;font:24px Arial">One<br><span data-diagramly-locked>1</span><i>.</i></p>',
+    )
     await caretAtEnd('#text i')
     await page.keyboard.type(' x')
     expect(await frame.$('#text ol')).toBeNull()
-    expect(await frame.$eval('#text [data-doop-locked]', (el) => el.textContent)).toBe('1')
+    expect(await frame.$eval('#text [data-diagramly-locked]', (el) => el.textContent)).toBe('1')
   })
 
   it('leaves a marker in a text root inside a list item as text', async () => {
@@ -311,7 +321,7 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     expect(await frame.$$eval('#text span', (runs) => runs.map((r) => r.getAttribute('style')))).toEqual([
       'font-size: 32px; color: rgb(255, 0, 0);',
     ])
-    await send({ type: 'doop:edit', on: false })
+    await send({ type: 'diagramly:edit', on: false })
     await frame.waitForFunction(() => !document.querySelector('[contenteditable]'))
     expect(await inspect()).toMatchObject({ hasText: true, textMixed: { fontSize: true, color: true } })
     await expect.poll(savedHtml).toContain('<span style="font-size: 32px; color: rgb(255, 0, 0);">Hello</span> world')
@@ -335,21 +345,21 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     await render('<p id="text" style="margin:0;font:24px Arial;white-space:pre-wrap">One\nTwo</p>')
     await format('insertUnorderedList')
     expect(await inspect()).toMatchObject({ hasText: true, fontSize: 24 })
-    await send({ type: 'doop:edit', on: false })
+    await send({ type: 'diagramly:edit', on: false })
     await frame.waitForFunction(() => !document.querySelector('[contenteditable]'))
     expect(await inspect()).toMatchObject({ hasText: true, textMixed: {} })
   })
 
   it('formats whole layers from the canvas: a mixed layer becomes uniform, a uniform one toggles off', async () => {
     await send({
-      type: 'doop:html',
+      type: 'diagramly:html',
       html: '<p id="text" style="margin:0;font:24px Arial">Hello <b>world</b></p><p>Keep</p>',
       reqId: 'render',
     })
     await frame.waitForSelector('#text')
     const formatLayers = async (selectors: string[], command: TextFormatCommand) => {
       const reqId = `layers-${++nextReq}`
-      await send({ type: 'doop:text-format', selectors, command, reqId })
+      await send({ type: 'diagramly:text-format', selectors, command, reqId })
       await page.waitForFunction(
         (reqId) => (window as unknown as Fixture).messages.some((m) => m.reqId === reqId),
         {},
@@ -378,8 +388,8 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     ])
     expect(await frame.$$eval('li', (items) => items.map((li) => li.textContent))).toEqual(['Hello world', 'Keep'])
     // Locked layers and edits in progress are left alone.
-    await send({ type: 'doop:html', html: '<p id="text" data-doop-locked>Hello</p>', reqId: 'locked' })
-    await frame.waitForSelector('#text[data-doop-locked]')
+    await send({ type: 'diagramly:html', html: '<p id="text" data-diagramly-locked>Hello</p>', reqId: 'locked' })
+    await frame.waitForSelector('#text[data-diagramly-locked]')
     expect((await formatLayers(['#text'], 'bold')).selectors).toEqual(['#text'])
     expect(await frame.$('#text b')).toBeNull()
   })
@@ -395,7 +405,9 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
       const text = document.querySelector('#text span')!.firstChild!
       getSelection()!.setBaseAndExtent(text, 0, text, 5)
     })
-    await page.waitForFunction(() => (window as unknown as Fixture).messages.some((m) => m.type === 'doop:text-state'))
+    await page.waitForFunction(() =>
+      (window as unknown as Fixture).messages.some((m) => m.type === 'diagramly:text-state'),
+    )
     await style({ 'font-size': '32px' })
     expect(await frame.$$eval('#text span', (runs) => runs.map((r) => r.getAttribute('style')))).toEqual([
       'font-family: Georgia; font-size: 32px;',
@@ -403,16 +415,16 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
   })
 
   it('takes the boldness of <b> runs along when a weight is set on the whole layer', async () => {
-    await render('<p id="text" style="margin:0;font:24px Arial">Hello <b data-doop-id="w">world</b></p>')
+    await render('<p id="text" style="margin:0;font:24px Arial">Hello <b data-diagramly-id="w">world</b></p>')
     expect((await inspect())?.textMixed).toEqual({ fontWeight: true })
     await style({ 'font-weight': '400' })
-    expect(await frame.$eval('#text', (el) => el.innerHTML)).toBe('Hello <span data-doop-id="w">world</span>')
+    expect(await frame.$eval('#text', (el) => el.innerHTML)).toBe('Hello <span data-diagramly-id="w">world</span>')
     expect((await inspect())?.textMixed).toEqual({})
   })
 
   it('copies the type of a layer formatted with ⌘B / ⌘I and pastes it over the formatting of another', async () => {
     await send({
-      type: 'doop:html',
+      type: 'diagramly:html',
       html:
         '<p id="source" style="margin:0;font:24px Arial;text-decoration:underline"><b><i><s>Bold</s></i></b></p>' +
         '<p id="text" style="margin:0;font:16px Arial;background:red">Plain <b>and</b> <u>marked</u></p>',
@@ -421,7 +433,7 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     await frame.waitForSelector('#source')
     const reqId = `computed-${++nextReq}`
     await send({
-      type: 'doop:computed',
+      type: 'diagramly:computed',
       selector: '#source',
       properties: ['font-weight', 'font-style', 'font-size', 'text-decoration-line'],
       fromTextRun: true,
@@ -449,7 +461,7 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
       'text-decoration-line': 'line-through underline',
     })
 
-    await ask('doop:style', {
+    await ask('diagramly:style', {
       selector: '#text',
       styles: {
         'background-color': 'blue',
@@ -479,13 +491,13 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     // Nothing of the stand-in used to match the rule stays behind.
     expect(await frame.$eval('#text', (el) => el.children.length)).toBe(1)
 
-    await send({ type: 'doop:edit', on: false })
+    await send({ type: 'diagramly:edit', on: false })
     await frame.waitForFunction(() => !document.querySelector('[contenteditable]'))
     await render(html)
     await frame.waitForFunction(() => !document.querySelector('#text span'))
     await select(0, 5)
     const gesture = (phase: 'begin' | 'commit') =>
-      ask('doop:style-gesture' as 'doop:style', { selector: '#text', phase })
+      ask('diagramly:style-gesture' as 'diagramly:style', { selector: '#text', phase })
     await gesture('begin')
     await style({ 'font-size': '40px' })
     expect((await run())[1]).toBe('40px')
@@ -498,7 +510,7 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     await render('<p id="text" style="margin:0;font:24px Arial">Hello world</p>')
     await select(0, 5)
     const gesture = (phase: 'begin' | 'commit' | 'cancel') =>
-      ask('doop:style-gesture' as 'doop:style', { selector: '#text', phase })
+      ask('diagramly:style-gesture' as 'diagramly:style', { selector: '#text', phase })
     await gesture('begin')
     await style({ 'font-size': '30px' })
     await style({ 'font-size': '36px' })
@@ -508,10 +520,10 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     })
     await gesture('cancel')
     expect(await frame.$eval('#text', (el) => el.innerHTML)).toBe('Hello world')
-    await send({ type: 'doop:settle', reqId: 'settled' })
+    await send({ type: 'diagramly:settle', reqId: 'settled' })
     await page.waitForFunction(() => (window as unknown as Fixture).messages.some((m) => m.reqId === 'settled'))
     expect(
-      await page.evaluate(() => (window as unknown as Fixture).messages.filter((m) => m.type === 'doop:edited')),
+      await page.evaluate(() => (window as unknown as Fixture).messages.filter((m) => m.type === 'diagramly:edited')),
     ).toEqual([])
     await select(0, 5)
     await gesture('begin')
@@ -528,10 +540,10 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
     })
     await page.keyboard.type('!')
     await select(0, 5)
-    await ask('doop:style-gesture' as 'doop:style', { selector: '#text', phase: 'begin' })
+    await ask('diagramly:style-gesture' as 'diagramly:style', { selector: '#text', phase: 'begin' })
     await style({ 'font-size': '36px' })
-    await ask('doop:style-gesture' as 'doop:style', { selector: '#text', phase: 'cancel' })
-    await send({ type: 'doop:settle', reqId: 'settled' })
+    await ask('diagramly:style-gesture' as 'diagramly:style', { selector: '#text', phase: 'cancel' })
+    await send({ type: 'diagramly:settle', reqId: 'settled' })
     await page.waitForFunction(() => (window as unknown as Fixture).messages.some((m) => m.reqId === 'settled'))
     await new Promise((r) => setTimeout(r, 500))
     const html = await savedHtml()
@@ -541,8 +553,8 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
 
   it('keeps editing scoped to the item when a list holds a locked item', async () => {
     await send({
-      type: 'doop:html',
-      html: '<ul><li id="text">Editable</li><li data-doop-locked>Locked</li></ul>',
+      type: 'diagramly:html',
+      html: '<ul><li id="text">Editable</li><li data-diagramly-locked>Locked</li></ul>',
       reqId: 'render',
     })
     await frame.waitForSelector('#text')
@@ -550,21 +562,21 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
       const r = el.getBoundingClientRect()
       return { x: r.x + r.width / 2, y: r.y + r.height / 2 }
     })
-    await send({ type: 'doop:edit', on: true, x: item.x, y: item.y })
+    await send({ type: 'diagramly:edit', on: true, x: item.x, y: item.y })
     await frame.waitForSelector('[contenteditable]')
     expect(await frame.$eval('[contenteditable]', (el) => el.id)).toBe('text')
   })
 
   it('answers every selector afresh when a retagged layer shifts its neighbours', async () => {
     await send({
-      type: 'doop:html',
+      type: 'diagramly:html',
       html: '<p style="margin:0">One</p><div style="margin:0">Two</div>',
       reqId: 'render',
     })
     await frame.waitForSelector('div')
     const reqId = 'shift'
     await send({
-      type: 'doop:text-format',
+      type: 'diagramly:text-format',
       selectors: ['body > p:nth-of-type(1)', 'body > div:nth-of-type(1)'],
       command: 'insertUnorderedList',
       reqId,
@@ -603,7 +615,7 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
 
   it('keeps what a paragraph owed to its rules when a list turns it into a div', async () => {
     await send({
-      type: 'doop:html',
+      type: 'diagramly:html',
       html:
         '<style>p.card{padding:10px;background:rgb(0, 128, 0);border:2px solid rgb(0, 0, 255)}</style>' +
         '<p id="text" class="card" style="font:24px Arial">One</p>',
@@ -614,10 +626,10 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
       const r = el.getBoundingClientRect()
       return { x: r.x + r.width / 2, y: r.y + r.height / 2 }
     })
-    await send({ type: 'doop:edit', on: true, x: at.x, y: at.y })
+    await send({ type: 'diagramly:edit', on: true, x: at.x, y: at.y })
     await frame.waitForSelector('#text[contenteditable]')
     await format('insertUnorderedList')
-    await send({ type: 'doop:edit', on: false })
+    await send({ type: 'diagramly:edit', on: false })
     await frame.waitForSelector('div#text')
     const styles = await frame.$eval('div#text', (el) => {
       const cs = getComputedStyle(el)
@@ -629,11 +641,11 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
   })
 
   it('formats an existing list layer whole and shows its text in the panel', async () => {
-    await send({ type: 'doop:html', html: '<ul id="text"><li>One</li><li>Two</li></ul>', reqId: 'render' })
+    await send({ type: 'diagramly:html', html: '<ul id="text"><li>One</li><li>Two</li></ul>', reqId: 'render' })
     await frame.waitForSelector('#text')
     expect(await inspect()).toMatchObject({ hasText: true, textMixed: {} })
     const reqId = 'list-layer'
-    await send({ type: 'doop:text-format', selectors: ['#text'], command: 'bold', reqId })
+    await send({ type: 'diagramly:text-format', selectors: ['#text'], command: 'bold', reqId })
     await page.waitForFunction(
       (reqId) => (window as unknown as Fixture).messages.some((m) => m.reqId === reqId),
       {},
@@ -644,14 +656,14 @@ describe.skipIf(!findBrowserPath())('rich text editing', { timeout: 30_000 }, ()
 
   it('ignores commands after editing ends and on locked text', async () => {
     await render('<p id="text" style="margin:0;font:24px Arial">Hello world</p>')
-    await send({ type: 'doop:edit', on: false })
+    await send({ type: 'diagramly:edit', on: false })
     await frame.waitForFunction(() => !document.querySelector('[contenteditable]'))
-    await send({ type: 'doop:text-format', command: 'bold' })
-    await send({ type: 'doop:html', html: '<p id="text" data-doop-locked>Hello world</p>' })
-    await frame.waitForSelector('#text[data-doop-locked]')
-    await send({ type: 'doop:edit', on: true, x: 20, y: 20 })
-    await send({ type: 'doop:text-format', command: 'bold' })
-    await send({ type: 'doop:settle', reqId: 'settled' })
+    await send({ type: 'diagramly:text-format', command: 'bold' })
+    await send({ type: 'diagramly:html', html: '<p id="text" data-diagramly-locked>Hello world</p>' })
+    await frame.waitForSelector('#text[data-diagramly-locked]')
+    await send({ type: 'diagramly:edit', on: true, x: 20, y: 20 })
+    await send({ type: 'diagramly:text-format', command: 'bold' })
+    await send({ type: 'diagramly:settle', reqId: 'settled' })
     await page.waitForFunction(() => (window as unknown as Fixture).messages.some((m) => m.reqId === 'settled'))
     expect(await frame.$('[contenteditable]')).toBeNull()
     expect(await frame.$('#text b')).toBeNull()

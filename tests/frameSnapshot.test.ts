@@ -20,11 +20,14 @@ it('carries the live document a mounted frame answers with', async () => {
   const posted = vi.spyOn(window, 'postMessage').mockImplementation((data: unknown) => {
     const { reqId } = data as { reqId: number }
     window.dispatchEvent(
-      new MessageEvent('message', { data: { type: 'doop:snapshot-result', reqId, html: '<html/>' }, source: window }),
+      new MessageEvent('message', {
+        data: { type: 'diagramly:snapshot-result', reqId, html: '<html/>' },
+        source: window,
+      }),
     )
   })
   expect(await snapshotFrame('mounted')).toEqual({ html: '<html/>' })
-  expect(posted).toHaveBeenCalledWith(expect.objectContaining({ type: 'doop:snapshot' }), '*')
+  expect(posted).toHaveBeenCalledWith(expect.objectContaining({ type: 'diagramly:snapshot' }), '*')
 })
 
 it('reports a mounted frame that could not read itself', async () => {
@@ -32,7 +35,7 @@ it('reports a mounted frame that could not read itself', async () => {
   vi.spyOn(window, 'postMessage').mockImplementation((data: unknown) => {
     const { reqId } = data as { reqId: number }
     window.dispatchEvent(
-      new MessageEvent('message', { data: { type: 'doop:snapshot-result', reqId, html: null }, source: window }),
+      new MessageEvent('message', { data: { type: 'diagramly:snapshot-result', reqId, html: null }, source: window }),
     )
   })
   expect(await snapshotFrame('mounted')).toEqual({ html: null })

@@ -525,7 +525,7 @@ export function findComment(commentId: string): ElementComment | undefined {
 }
 
 /** Where a new comment sits: on an element inside a frame (by its
- *  `data-doop-id`), on a frame as a whole at a design point, or at a world
+ *  `data-diagramly-id`), on a frame as a whole at a design point, or at a world
  *  point on one page of the canvas. */
 type CommentAnchor =
   | {
@@ -596,7 +596,7 @@ async function stampSaved(frameId: string, id: string): Promise<boolean> {
 }
 
 /** Make the element a positional selector names addressable by id: the id
- *  it already carries, or a fresh `data-doop-id` written into the frame's
+ *  it already carries, or a fresh `data-diagramly-id` written into the frame's
  *  HTML as an annotation (sign-off stands, no design-history version, no
  *  activity line). Whatever names the id (a comment, a copied link) is
  *  written after this returns, so the frame carrying it is on disk first.
@@ -1768,7 +1768,7 @@ function prepareWrite(canvasId: string, frameId: string, html: string, priorHtml
   else componentIssues.delete(frameId)
   /* no new revision, so no propagation either: only "Go to main" needs to hear of it */
   for (const def of prepared.moved) broadcastComponent(canvasId, def, resolveActor({ name: by, kind: 'user' }))
-  /* faces after the components: an expanded <doop-use> may name a library family */
+  /* faces after the components: an expanded <diagramly-use> may name a library family */
   return { ...prepared, html: withLibraryFaces(canvasId, prepared.html) }
 }
 
@@ -1882,7 +1882,7 @@ export function appendFrameHtml(
   const piece = escaped ? decodeEscapedHtml(chunk) : chunk
   const canvas = store.getCanvas(before.canvasId)
   const expanded = canvas ? prepareChunk(canvas, piece, opts.start ? '' : before.html) : piece
-  /* the last chunk settles the whole document: a <doop-use> split across
+  /* the last chunk settles the whole document: a <diagramly-use> split across
      chunks, the component stylesheets, a main written in the stream, the
      faces of the library fonts it names */
   const joined = opts.start ? expanded : before.html + expanded

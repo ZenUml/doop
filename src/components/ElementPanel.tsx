@@ -105,7 +105,7 @@ import {
 import { useT, type PlainMessageKey } from '../lib/i18n'
 import { isDiagramly } from '../lib/product'
 
-const TAB_KEY = 'doop:element-panel-tab'
+const TAB_KEY = 'diagramly:element-panel-tab'
 /* Only refreshes wait for streaming chunks to settle; a new selection is
    inspected immediately. */
 const INSPECT_DELAY_MS = 120

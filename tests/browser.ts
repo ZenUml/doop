@@ -189,9 +189,9 @@ export async function openBrowser(): Promise<TestBrowser> {
          focused, as it was alone in its own browser. */
       const session = await page.createCDPSession()
       await session.send('Emulation.setFocusEmulationEnabled', { enabled: true })
-      /* DOOP_TEST_CPU_THROTTLE=6 slows the page's main thread the way a busy
+      /* DIAGRAMLY_TEST_CPU_THROTTLE=6 slows the page's main thread the way a busy
          CI runner does, for chasing a race locally */
-      const rate = Number(process.env.DOOP_TEST_CPU_THROTTLE ?? '0')
+      const rate = Number(process.env.DIAGRAMLY_TEST_CPU_THROTTLE ?? '0')
       if (rate > 1) await session.send('Emulation.setCPUThrottlingRate', { rate })
       return page
     },

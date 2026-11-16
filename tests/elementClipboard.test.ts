@@ -43,7 +43,7 @@ afterEach(() => vi.restoreAllMocks())
 const shape: Frame = {
   ...frame,
   id: 'shape',
-  html: '<!doctype html><html><head></head><body data-doop-canvas-element="true"><div data-doop-drawing="rect" data-name="Rectangle"></div></body></html>',
+  html: '<!doctype html><html><head></head><body data-diagramly-canvas-element="true"><div data-diagramly-drawing="rect" data-name="Rectangle"></div></body></html>',
 }
 
 describe('standalone element copy', () => {
@@ -121,7 +121,7 @@ describe('element clipboard', () => {
     expect(pasteLayer(frame, null)).toBe(false)
     useStore
       .getState()
-      .patchFrameLocal(frame.id, { locked: false, html: '<div data-doop-locked><p id="target"></p></div>' })
+      .patchFrameLocal(frame.id, { locked: false, html: '<div data-diagramly-locked><p id="target"></p></div>' })
     expect(pasteLayer(frame, '#target')).toBe(false)
   })
 
@@ -156,11 +156,11 @@ describe('element clipboard', () => {
       ),
     ).toBe(true)
     const html = useStore.getState().canvas!.frames.find((f) => f.id === 'other')!.html
-    const scopes = [...html.matchAll(/<p class="hi" data-doop-carried-scope="(\w+)"/g)].map((m) => m[1])
+    const scopes = [...html.matchAll(/<p class="hi" data-diagramly-carried-scope="(\w+)"/g)].map((m) => m[1])
     expect(scopes).toHaveLength(2)
     expect(new Set(scopes).size).toBe(2)
     for (const scope of scopes)
-      expect(html).toContain(`[data-doop-carried-scope="${scope}"] *):is(.hi) { color: red; }`)
+      expect(html).toContain(`[data-diagramly-carried-scope="${scope}"] *):is(.hi) { color: red; }`)
   })
 
   it('gives each copied root its own scope, with the CSS collected for it alone', () => {
@@ -178,10 +178,10 @@ describe('element clipboard', () => {
     expect(copyLayers(styled, ['.red > .card', '.blue > .card'])).toBe(true)
     expect(pasteLayer(other, null)).toBe(true)
     const html = useStore.getState().canvas!.frames.find((f) => f.id === 'other')!.html
-    const scopes = [...html.matchAll(/<p class="card" data-doop-carried-scope="(\w+)">/g)].map((m) => m[1]!)
+    const scopes = [...html.matchAll(/<p class="card" data-diagramly-carried-scope="(\w+)">/g)].map((m) => m[1]!)
     expect(scopes).toHaveLength(2)
-    expect(html).toContain(`[data-doop-carried-scope="${scopes[0]}"] {\n  --ink: red;`)
-    expect(html).toContain(`[data-doop-carried-scope="${scopes[1]}"] {\n  --ink: blue;`)
+    expect(html).toContain(`[data-diagramly-carried-scope="${scopes[0]}"] {\n  --ink: red;`)
+    expect(html).toContain(`[data-diagramly-carried-scope="${scopes[1]}"] {\n  --ink: blue;`)
   })
 
   it('keeps SVG paint references inside the pasted artwork', () => {

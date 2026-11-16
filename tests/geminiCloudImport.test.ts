@@ -11,7 +11,7 @@ const env = {
   OPENAI_API_KEY: '',
   DATABASE_URL: '',
   SMTP_HOST: '',
-  DOOP_GEMINI_CLOUD_WORKERS: '',
+  DIAGRAMLY_GEMINI_CLOUD_WORKERS: '',
 }
 
 beforeAll(async () => {
@@ -26,7 +26,9 @@ beforeAll(async () => {
   server = await startServer(
     {
       ...env,
-      DOOP_GEMINI_CLOUD_WORKERS: JSON.stringify({ [userId]: { url: 'http://127.0.0.1:1', token: 'x'.repeat(32) } }),
+      DIAGRAMLY_GEMINI_CLOUD_WORKERS: JSON.stringify({
+        [userId]: { url: 'http://127.0.0.1:1', token: 'x'.repeat(32) },
+      }),
     },
     server.dataDir,
   )

@@ -15,7 +15,7 @@ describe.skipIf(!findBrowserPath())('layer visibility during text editing', () =
     page = await pages.open()
     await page.goto(fixtureUrl('frameReplay.html'))
     await page.waitForFunction(() =>
-      (window as unknown as Fixture).messages?.some((m) => m.type === 'doop:frame-ready'),
+      (window as unknown as Fixture).messages?.some((m) => m.type === 'diagramly:frame-ready'),
     )
   }, 60_000)
 
@@ -35,38 +35,40 @@ describe.skipIf(!findBrowserPath())('layer visibility during text editing', () =
     await page.evaluate(() => {
       ;(window as unknown as Fixture).messages = []
     })
-    await send({ type: 'doop:edit', on: false })
-    await page.waitForFunction(() => (window as unknown as Fixture).messages.some((m) => m.type === 'doop:edited'))
-    return page.evaluate(() => (window as unknown as Fixture).messages.find((m) => m.type === 'doop:edited')!.html!)
+    await send({ type: 'diagramly:edit', on: false })
+    await page.waitForFunction(() => (window as unknown as Fixture).messages.some((m) => m.type === 'diagramly:edited'))
+    return page.evaluate(
+      () => (window as unknown as Fixture).messages.find((m) => m.type === 'diagramly:edited')!.html!,
+    )
   }
 
   it('keeps hidden layers on the next text save and restores their original display when shown', async () => {
     await ask({
-      type: 'doop:html',
+      type: 'diagramly:html',
       html: '<section id="target" style="display:flex!important"><p>Text</p></section><p id="other">Other</p>',
     })
-    await send({ type: 'doop:edit', on: true })
+    await send({ type: 'diagramly:edit', on: true })
     const frame = page.frames().find((frame) => frame !== page.mainFrame())!
     await frame.click('#target p')
     await page.keyboard.type(' edited')
-    expect((await ask({ type: 'doop:visibility', selector: '#target', hidden: true })).ok).toBe(true)
+    expect((await ask({ type: 'diagramly:visibility', selector: '#target', hidden: true })).ok).toBe(true)
     expect(await frame.$eval('#target', (el) => getComputedStyle(el).display)).toBe('none')
     expect(await frame.$('[contenteditable]')).toBeNull()
     await frame.click('#other')
     await page.keyboard.type(' later')
     const hidden = await finishEdit()
-    expect(hidden).toContain('data-doop-hidden="true"')
-    expect(hidden).toContain('data-doop-display="flex !important"')
+    expect(hidden).toContain('data-diagramly-hidden="true"')
+    expect(hidden).toContain('data-diagramly-display="flex !important"')
     expect(hidden).toContain('display: none !important')
     expect(hidden).toContain('edited')
     expect(hidden).toContain('later')
 
-    await send({ type: 'doop:edit', on: true })
-    await ask({ type: 'doop:visibility', selector: '#target', hidden: true })
-    await ask({ type: 'doop:visibility', selector: '#target', hidden: false })
+    await send({ type: 'diagramly:edit', on: true })
+    await ask({ type: 'diagramly:visibility', selector: '#target', hidden: true })
+    await ask({ type: 'diagramly:visibility', selector: '#target', hidden: false })
     const shown = await finishEdit()
-    expect(shown).not.toContain('data-doop-hidden')
-    expect(shown).not.toContain('data-doop-display')
+    expect(shown).not.toContain('data-diagramly-hidden')
+    expect(shown).not.toContain('data-diagramly-display')
     expect(shown).toContain('display: flex !important')
     expect(shown).toContain('edited')
   })

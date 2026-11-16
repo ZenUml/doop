@@ -23,7 +23,7 @@ describe('component routes', () => {
     const frame = (await (
       await owner.post(`/api/canvases/${canvasId}/frames`, {
         name: 'Tags',
-        html: doc('<span class="tag" data-doop-id="tagone">One</span><span class="tag">Two</span>'),
+        html: doc('<span class="tag" data-diagramly-id="tagone">One</span><span class="tag">Two</span>'),
       })
     ).json()) as { id: string }
     frameId = frame.id
@@ -48,7 +48,7 @@ describe('component routes', () => {
       frames: { id: string; html: string }[]
     }
     expect(frame.components.map((def) => def.id)).toEqual([componentId])
-    expect(frame.frames.find((f) => f.id === frameId)!.html).toContain(`data-doop-instance="${componentId}"`)
+    expect(frame.frames.find((f) => f.id === frameId)!.html).toContain(`data-diagramly-instance="${componentId}"`)
   })
 
   it('reports errors as messages, not crashes', async () => {

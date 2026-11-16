@@ -31,8 +31,8 @@ created_at, last_status, last_at, last_error, failures`. Hydrated into memory at
 - Fan-out: on each event, every enabled hook subscribed to `event.type` whose owner has durable
   access to the canvas gets one POST. Body = envelope `{id, type, at, canvas}` + `payloadFor(event)`;
   frames never include HTML.
-- Signing: `X-Doop-Signature: sha256=HMAC(secret, "<timestamp>.<body>")`, with
-  `X-Doop-Timestamp`, `X-Doop-Event`, `X-Doop-Delivery`.
+- Signing: `X-Diagramly-Signature: sha256=HMAC(secret, "<timestamp>.<body>")`, with
+  `X-Diagramly-Timestamp`, `X-Diagramly-Event`, `X-Diagramly-Delivery`.
 - Retries: `RETRY_DELAYS_MS` = 10 s, 1 min, 5 min, in memory, then dropped. Each retry re-checks
   that the hook still exists, is on, and that its owner still has durable access to the canvas,
   so a revoked member's endpoint never receives a payload that was queued before the revoke. Health

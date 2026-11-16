@@ -379,10 +379,10 @@ backgrounded, run the updated server (including migration `0025_live_activities`
 and configure these server-only environment variables:
 
 ```sh
-DOOP_APNS_TEAM_ID=your_apple_team_id
-DOOP_APNS_KEY_ID=your_apns_key_id
-DOOP_APNS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
-DOOP_APNS_BUNDLE_ID=design.doop.ios
+DIAGRAMLY_APNS_TEAM_ID=your_apple_team_id
+DIAGRAMLY_APNS_KEY_ID=your_apns_key_id
+DIAGRAMLY_APNS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+DIAGRAMLY_APNS_BUNDLE_ID=design.doop.ios
 ```
 
 On iOS 17.2+ the app also registers a push-to-start token (`PUT
@@ -396,7 +396,7 @@ paths race. Sign-out retires the token.
 Use your Apple APNs signing key; keep it out of source control. Enable Push
 Notifications for the app's registered identifier and sign both app and widget
 extension with your team. If changing the app bundle ID, update the extension ID
-and `DOOP_APNS_BUNDLE_ID` too. The app reports `sandbox` or `production` from the
+and `DIAGRAMLY_APNS_BUNDLE_ID` too. The app reports `sandbox` or `production` from the
 `aps-environment` entitlement in its embedded provisioning profile (development-signed
 builds from Xcode get sandbox tokens whatever the build configuration; TestFlight and
 App Store builds get production tokens). The server checks durable canvas membership on registration and every

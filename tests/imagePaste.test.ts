@@ -52,7 +52,7 @@ describe('pasted images', () => {
     const img = body.firstElementChild as HTMLImageElement
     expect(img.tagName).toBe('IMG')
     expect(img.getAttribute('src')).toBe('/a/pasted.png')
-    expect(img.getAttribute('data-doop-drawing')).toBe('image')
+    expect(img.getAttribute('data-diagramly-drawing')).toBe('image')
     expect(img.getAttribute('data-name')).toBe('Hero shot')
   })
 

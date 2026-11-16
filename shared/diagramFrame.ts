@@ -41,7 +41,7 @@ export interface DiagramContent {
 export const DIAGRAM_VENDOR_PATH = '/vendor/diagram'
 
 /** Set on <html> by the renderer: `rendered` or `error`, once it has run. */
-export const DIAGRAM_STATE_ATTR = 'data-doop-diagram-state'
+export const DIAGRAM_STATE_ATTR = 'data-diagramly-diagram-state'
 
 export const DEFAULT_DIAGRAM_SOURCE: Record<DiagramKind, string> = {
   zenuml: `title Order Service
@@ -106,7 +106,7 @@ let renders = 0
 async function renderDiagram(mount, source) {
   if (!source.trim()) return void mount.replaceChildren()
   renders += 1
-  const { svg } = await mermaid.render('doop-diagram-' + renders, source)
+  const { svg } = await mermaid.render('diagramly-diagram-' + renders, source)
   mount.innerHTML = svg
 }`,
 }
@@ -115,7 +115,7 @@ const RENDERER_LOOP = `
 const root = document.documentElement
 // One style keeper per iframe survives head morphs and renderer switches.
 // Cache the original nodes: module imports execute only once per document.
-const runtime = window.__doopDiagramRuntime ||= { styles: {}, dispose: null }
+const runtime = window.__diagramlyDiagramRuntime ||= { styles: {}, dispose: null }
 runtime.dispose?.()
 const importedStyles = RENDERER_STYLE
   ? Array.from(document.head.querySelectorAll('style')).filter((style) => RENDERER_STYLE.test(style.textContent || ''))
@@ -123,7 +123,7 @@ const importedStyles = RENDERER_STYLE
 if (importedStyles.length) runtime.styles[RENDERER_KIND] = importedStyles
 if (!runtime.styleObserver) {
   runtime.restoreStyles = () => {
-    const kind = document.body.getAttribute('data-doop-diagram')
+    const kind = document.body.getAttribute('data-diagramly-diagram')
     for (const style of runtime.styles[kind] || []) if (!style.isConnected) document.head.appendChild(style)
   }
   runtime.styleObserver = new MutationObserver(runtime.restoreStyles)
@@ -131,17 +131,17 @@ if (!runtime.styleObserver) {
 }
 runtime.restoreStyles()
 
-const stale = root.querySelector(':scope > [data-doop-diagram-mount]')
+const stale = root.querySelector(':scope > [data-diagramly-diagram-mount]')
 if (stale) stale.remove()
 const mount = document.createElement('div')
-mount.setAttribute('data-doop-diagram-mount', '')
+mount.setAttribute('data-diagramly-diagram-mount', '')
 mount.id = 'diagram'
 root.appendChild(mount)
 
-const oldCustomStyle = root.querySelector(':scope > [data-doop-diagram-custom-style]')
+const oldCustomStyle = root.querySelector(':scope > [data-diagramly-diagram-custom-style]')
 if (oldCustomStyle) oldCustomStyle.remove()
 const customStyle = document.createElement('style')
-customStyle.setAttribute('data-doop-diagram-custom-style', '')
+customStyle.setAttribute('data-diagramly-diagram-custom-style', '')
 root.appendChild(customStyle)
 
 let shown = null
@@ -157,14 +157,14 @@ runtime.dispose = () => {
 }
 
 function current() {
-  return !disposed && mount.isConnected && document.body.getAttribute('data-doop-diagram') === RENDERER_KIND
+  return !disposed && mount.isConnected && document.body.getAttribute('data-diagramly-diagram') === RENDERER_KIND
 }
 
 function saveDiagramSource(source) {
   if (!current() || typeof source !== 'string') return
-  const holder = document.querySelector('[data-doop-diagram-source]')
+  const holder = document.querySelector('[data-diagramly-diagram-source]')
   if (!holder || holder.textContent === source) return
-  const pagesHolder = document.querySelector('[data-doop-diagram-pages]')
+  const pagesHolder = document.querySelector('[data-diagramly-diagram-pages]')
   if (pagesHolder) {
     const metadata = JSON.parse(pagesHolder.textContent)
     const page = metadata.pages.find((page) => page.id === metadata.activePageId)
@@ -176,14 +176,14 @@ function saveDiagramSource(source) {
   // the edit back into React while its contenteditable is committing.
   shown = source
   holder.textContent = source
-  document.dispatchEvent(new Event('doop:diagram-edited'))
+  document.dispatchEvent(new Event('diagramly:diagram-edited'))
 }
 
 async function sync() {
   if (busy || !current()) return
-  const holder = document.querySelector('[data-doop-diagram-source]')
+  const holder = document.querySelector('[data-diagramly-diagram-source]')
   const source = holder ? holder.textContent || '' : ''
-  const css = document.querySelector('[data-doop-diagram-css]')?.textContent || ''
+  const css = document.querySelector('[data-diagramly-diagram-css]')?.textContent || ''
   if (css !== shownCss) {
     customStyle.textContent = css
     shownCss = css
@@ -210,7 +210,7 @@ async function sync() {
     if (!current()) return
     const content = mount.querySelector('.sequence-diagram, svg') || mount
     const bounds = content.getBoundingClientRect()
-    parent.postMessage({ type: 'doop:diagram-size', source, width: Math.ceil(bounds.right + 16), height: Math.ceil(bounds.bottom + 16) }, '*')
+    parent.postMessage({ type: 'diagramly:diagram-size', source, width: Math.ceil(bounds.right + 16), height: Math.ceil(bounds.bottom + 16) }, '*')
   } catch (error) {
     if (!current()) return
     /* the last good diagram stays up while the source does not parse */
@@ -230,7 +230,7 @@ observer.observe(document.body, {
 void sync()`
 
 const BASE_STYLE =
-  'html,body{margin:0;background:#fff}body{height:0;overflow:hidden}[data-doop-diagram-mount]{padding:16px;box-sizing:border-box}'
+  'html,body{margin:0;background:#fff}body{height:0;overflow:hidden}[data-diagramly-diagram-mount]{padding:16px;box-sizing:border-box}'
 
 function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -342,23 +342,29 @@ export function buildDiagramHtml(diagram: DiagramFrame): string {
   return [
     '<!doctype html>',
     '<html>',
-    `<head><meta charset="utf-8"><style data-doop-diagram-base>${BASE_STYLE}</style></head>`,
-    `<body data-doop-diagram="${kind}">`,
-    `<pre hidden data-doop-diagram-source>\n${escapeHtml(source)}</pre>`,
+    `<head><meta charset="utf-8"><style data-diagramly-diagram-base>${BASE_STYLE}</style></head>`,
+    `<body data-diagramly-diagram="${kind}">`,
+    `<pre hidden data-diagramly-diagram-source>\n${escapeHtml(source)}</pre>`,
     ...(pages
       ? [
-          `<pre hidden data-doop-diagram-pages>\n${escapeHtml(JSON.stringify({ version: 1, activePageId: diagram.activePageId, pages }))}</pre>`,
+          `<pre hidden data-diagramly-diagram-pages>\n${escapeHtml(JSON.stringify({ version: 1, activePageId: diagram.activePageId, pages }))}</pre>`,
         ]
       : []),
-    ...(css || (pages && css !== undefined) ? [`<pre hidden data-doop-diagram-css>\n${escapeHtml(css!)}</pre>`] : []),
+    ...(css || (pages && css !== undefined)
+      ? [`<pre hidden data-diagramly-diagram-css>\n${escapeHtml(css!)}</pre>`]
+      : []),
     ...(styleSource !== undefined
-      ? [`<pre hidden data-doop-diagram-style-source>\n${escapeHtml(styleSource)}</pre>`]
+      ? [`<pre hidden data-diagramly-diagram-style-source>\n${escapeHtml(styleSource)}</pre>`]
       : []),
-    ...(styleMode !== undefined ? [`<pre hidden data-doop-diagram-style-mode>\n${escapeHtml(styleMode)}</pre>`] : []),
+    ...(styleMode !== undefined
+      ? [`<pre hidden data-diagramly-diagram-style-mode>\n${escapeHtml(styleMode)}</pre>`]
+      : []),
     ...(styleConfig !== undefined
-      ? [`<pre hidden data-doop-diagram-style-config>\n${escapeHtml(styleConfig)}</pre>`]
+      ? [`<pre hidden data-diagramly-diagram-style-config>\n${escapeHtml(styleConfig)}</pre>`]
       : []),
-    ...(styleHtml !== undefined ? [`<pre hidden data-doop-diagram-style-html>\n${escapeHtml(styleHtml)}</pre>`] : []),
+    ...(styleHtml !== undefined
+      ? [`<pre hidden data-diagramly-diagram-style-html>\n${escapeHtml(styleHtml)}</pre>`]
+      : []),
     `<script type="module">${RENDERER_PRELUDE[kind]}\n${RENDERER_LOOP}</script>`,
     '</body>',
     '</html>',
@@ -366,15 +372,15 @@ export function buildDiagramHtml(diagram: DiagramFrame): string {
 }
 
 export function readDiagramFrame(html: string): DiagramFrame | null {
-  const kind = /<body\b[^>]*\bdata-doop-diagram="([a-z]+)"/.exec(html)?.[1]
+  const kind = /<body\b[^>]*\bdata-diagramly-diagram="([a-z]+)"/.exec(html)?.[1]
   if (!kind || !isDiagramKind(kind)) return null
-  const source = /<pre\b[^>]*\bdata-doop-diagram-source\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
+  const source = /<pre\b[^>]*\bdata-diagramly-diagram-source\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
   if (source === undefined) return null
-  const css = /<pre\b[^>]*\bdata-doop-diagram-css\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
-  const styleSource = /<pre\b[^>]*\bdata-doop-diagram-style-source\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
-  const styleMode = /<pre\b[^>]*\bdata-doop-diagram-style-mode\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
-  const styleConfig = /<pre\b[^>]*\bdata-doop-diagram-style-config\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
-  const styleHtml = /<pre\b[^>]*\bdata-doop-diagram-style-html\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
+  const css = /<pre\b[^>]*\bdata-diagramly-diagram-css\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
+  const styleSource = /<pre\b[^>]*\bdata-diagramly-diagram-style-source\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
+  const styleMode = /<pre\b[^>]*\bdata-diagramly-diagram-style-mode\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
+  const styleConfig = /<pre\b[^>]*\bdata-diagramly-diagram-style-config\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
+  const styleHtml = /<pre\b[^>]*\bdata-diagramly-diagram-style-html\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
   const projection: DiagramFrame = {
     kind,
     source: unescapeHtml(source),
@@ -384,7 +390,7 @@ export function readDiagramFrame(html: string): DiagramFrame | null {
     ...(styleConfig !== undefined ? { styleConfig: unescapeHtml(styleConfig) } : {}),
     ...(styleHtml !== undefined ? { styleHtml: unescapeHtml(styleHtml) } : {}),
   }
-  const encodedPages = /<pre\b[^>]*\bdata-doop-diagram-pages\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
+  const encodedPages = /<pre\b[^>]*\bdata-diagramly-diagram-pages\b[^>]*>\n?([\s\S]*?)<\/pre>/.exec(html)?.[1]
   if (encodedPages === undefined) return projection
   try {
     const metadata: unknown = JSON.parse(unescapeHtml(encodedPages))

@@ -61,7 +61,9 @@ describe('iOS selection actions', () => {
 
   it('rejects missing targets, locked ancestors, document deletion and invalid paste fragments', () => {
     expect(() => edit(frame, '.missing', 'delete')).toThrow('changed')
-    expect(() => edit('<body><div data-doop-locked><span>A</span></div></body>', 'span', 'duplicate')).toThrow('Unlock')
+    expect(() => edit('<body><div data-diagramly-locked><span>A</span></div></body>', 'span', 'duplicate')).toThrow(
+      'Unlock',
+    )
     expect(() => edit(frame, 'body', 'delete')).toThrow('Select an element')
     expect(() => edit(frame, '.pill', 'paste', '<p>One</p><p>Two</p>')).toThrow('one element')
     expect(() => edit(frame, '.pill', 'paste', 'plain text')).toThrow('one element')

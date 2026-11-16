@@ -10,7 +10,7 @@ resident task queue supplies the prompt and system instructions. A temporary MCP
 only that run's canvas tools, including screenshots. Canvas mutations and tool-driven status updates
 use Doop's existing realtime channel; assistant text is collected at completion, not streamed.
 
-This is an operator-managed pilot, disabled unless `DOOP_GEMINI_CLOUD_WORKERS` is set. It does not
+This is an operator-managed pilot, disabled unless `DIAGRAMLY_GEMINI_CLOUD_WORKERS` is set. It does not
 include a browser terminal, a self-service Connect button, automatic worker provisioning, durable
 job recovery, or a model picker. The CLI selects its default model according to the signed-in
 account's access. Repository imports and subscription-backed image generation are outside this pilot.
@@ -57,11 +57,11 @@ dedicated volume per user. On the cloud host, create a private env file, outside
 
 ```dotenv
 GEMINI_WORKER_TOKEN=<at-least-32-random-characters>
-DOOP_ORIGIN=https://your-doop.example
+DIAGRAMLY_ORIGIN=https://your-doop.example
 ```
 
 Generate the worker secret with `openssl rand -hex 32`. Restrict the env file to its owner
-(`chmod 600 /secure/gemini-alice.env`). `DOOP_ORIGIN` must reach the Doop server process that owns
+(`chmod 600 /secure/gemini-alice.env`). `DIAGRAMLY_ORIGIN` must reach the Doop server process that owns
 the resident run; it cannot contain a path, query, credentials, or fragment.
 
 ```sh
@@ -98,7 +98,7 @@ Set the following secret on the **Doop server**, using the user's actual Doop ID
 origin reachable from that server:
 
 ```dotenv
-DOOP_GEMINI_CLOUD_WORKERS={"<doop-user-id>":{"url":"http://127.0.0.1:4401","token":"<same-worker-secret>"}}
+DIAGRAMLY_GEMINI_CLOUD_WORKERS={"<diagramly-user-id>":{"url":"http://127.0.0.1:4401","token":"<same-worker-secret>"}}
 ```
 
 Restart Doop, then create a canvas task as that user. The account status identifies the Gemini
@@ -132,7 +132,7 @@ Neither resumes the task automatically. Scale the dispatcher as a single process
 consistent with the resident queue's in-memory ownership. Configure any intervening proxies to allow
 the 30-minute dispatcher request and MCP calls. A failed run may have made partial canvas edits.
 
-To disconnect, remove the user from `DOOP_GEMINI_CLOUD_WORKERS`, restart Doop, stop/remove their
+To disconnect, remove the user from `DIAGRAMLY_GEMINI_CLOUD_WORKERS`, restart Doop, stop/remove their
 worker, and remove their dedicated credential volume/backups. Revoke the CLI's Google access in
 the account as appropriate. The normal account picker does not override this operator-managed
 pilot mapping; remove enrollment to restore normal provider selection.

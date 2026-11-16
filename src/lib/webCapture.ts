@@ -4,7 +4,7 @@ import { useStore } from './store'
 import { recordCreate } from './history'
 import { frameCenterPosition, stageViewportSize } from './framePlacement'
 
-export const CAPTURE_PREFIX = 'DOOP_CAPTURE_V1\n'
+export const CAPTURE_PREFIX = 'DIAGRAMLY_CAPTURE_V1\n'
 
 /** Clipboard content is untrusted, including content bearing our marker. */
 export function parseWebCapture(text: string) {

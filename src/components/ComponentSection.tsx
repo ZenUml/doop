@@ -169,8 +169,10 @@ function MainControls({ frame, context }: { frame: Frame; context: Extract<Compo
   }
   const instances = useStore(
     (s) =>
-      s.canvas?.frames.reduce((total, f) => total + (f.html.split(` data-doop-instance="${def.id}"`).length - 1), 0) ??
-      0,
+      s.canvas?.frames.reduce(
+        (total, f) => total + (f.html.split(` data-diagramly-instance="${def.id}"`).length - 1),
+        0,
+      ) ?? 0,
   )
   const save = () => {
     if (description === def.description) return

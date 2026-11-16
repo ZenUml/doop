@@ -163,7 +163,7 @@ Use request_files for this — batch what you need; you have a couple of rounds.
 
 Then produce a single COMPLETE, self-contained HTML document that faithfully renders this screen:
 - Translate the component structure and its styling into real inline <style> CSS, using the palette, fonts and tokens you found — not defaults, not guesses.
-- The document's width is given in the request. Choose the natural height for the content and declare it as the LAST line of your output, an HTML comment: <!-- doop-height: 900 -->
+- The document's width is given in the request. Choose the natural height for the content and declare it as the LAST line of your output, an HTML comment: <!-- diagramly-height: 900 -->
 - Dynamic data (user names, table rows, dates) gets realistic, specific placeholder values — never lorem ipsum or "Item 1". Static marketing copy comes from the source, verbatim.
 - Reproduce the ENTIRE page top to bottom — every section the source renders (hero, features, FAQ, footer, all of it). A truncated page is a failed reconstruction; declare the true height.
 - No <script> tags, no external CSS or JS. Google Fonts via <link> are allowed when the source names a font (check _document/layout for font loading).
@@ -234,7 +234,7 @@ export function extractHtml(blocks: { type: string; text?: string }[]): { html: 
   const raw = (fenced ? fenced[1]! : text).trim()
   const html = normalizeToDocument(raw)
   if (!html) throw new Error('the model returned no HTML document')
-  const height = Math.min(8000, Math.max(480, Number(html.match(/doop-height:\s*(\d+)/)?.[1]) || 900))
+  const height = Math.min(8000, Math.max(480, Number(html.match(/diagramly-height:\s*(\d+)/)?.[1]) || 900))
   return { html, height }
 }
 

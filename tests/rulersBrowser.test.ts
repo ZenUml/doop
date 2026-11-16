@@ -100,7 +100,7 @@ describe.skipIf(!findBrowserPath())('rulers and guides', { timeout: 30_000 }, ()
        every test starts with it unset (a sandboxed frame has no storage) */
     await page.evaluateOnNewDocument(() => {
       try {
-        localStorage.removeItem('doop:rulers')
+        localStorage.removeItem('diagramly:rulers')
       } catch {
         /* a frame's document */
       }
@@ -133,10 +133,10 @@ describe.skipIf(!findBrowserPath())('rulers and guides', { timeout: 30_000 }, ()
     await toggleRulers()
     await page.waitForSelector('[data-ruler="top"]')
     expect(await page.$('[data-ruler="left"]')).not.toBeNull()
-    expect(await page.evaluate(() => localStorage.getItem('doop:rulers'))).toBe('1')
+    expect(await page.evaluate(() => localStorage.getItem('diagramly:rulers'))).toBe('1')
     await toggleRulers()
     await page.waitForFunction(() => !document.querySelector('[data-ruler]'))
-    expect(await page.evaluate(() => localStorage.getItem('doop:rulers'))).toBe('0')
+    expect(await page.evaluate(() => localStorage.getItem('diagramly:rulers'))).toBe('0')
 
     /* the zoom menu carries the same switch */
     await page.click('[aria-label="Zoom level"]')

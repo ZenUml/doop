@@ -44,7 +44,7 @@ function setup() {
     mainFrame.id,
     {
       html: doc(
-        `<main class="page"><button class="btn" ${COMPONENT_ATTR}="${def.id}"><span class="icon" data-doop-if="icon">★</span><span class="label" data-doop-prop="label">Buy now</span></button></main>`,
+        `<main class="page"><button class="btn" ${COMPONENT_ATTR}="${def.id}"><span class="icon" data-diagramly-if="icon">★</span><span class="label" data-diagramly-prop="label">Buy now</span></button></main>`,
         BUTTON_CSS,
       ),
     },
@@ -63,7 +63,7 @@ describe('a main element', () => {
     const saved = current(canvas.id, def.id)
     expect(saved.rev).toBe(1)
     expect(saved.template).not.toContain(COMPONENT_ATTR)
-    expect(saved.template).toContain('data-doop-part')
+    expect(saved.template).toContain('data-diagramly-part')
     expect(saved.props.map((p) => p.name).sort()).toEqual(['icon', 'label', 'tone'])
     expect(saved.css).toContain('.btn')
     expect(saved.css).not.toContain('.other')
@@ -87,20 +87,20 @@ describe('a main element', () => {
   })
 })
 
-describe('<doop-use>', () => {
+describe('<diagramly-use>', () => {
   it('expands to full markup with props, enum on the root and CSS in the head', () => {
     const { def, page } = setup()
     actions.updateFrame(
       page.id,
-      { html: doc(`<doop-use component="button" label="Sign up" tone="ghost"/><p>after</p>`) },
+      { html: doc(`<diagramly-use component="button" label="Sign up" tone="ghost"/><p>after</p>`) },
       actor,
     )
     const html = framed(page.id)
     expect(html).toContain('Sign up')
     expect(html).toContain('data-tone="ghost"')
-    expect(html).toContain(`data-doop-component-css="${def.id}"`)
+    expect(html).toContain(`data-diagramly-component-css="${def.id}"`)
     expect(html).toContain('<p>after</p>')
-    expect(html).not.toContain('doop-use')
+    expect(html).not.toContain('diagramly-use')
     /* `icon` has no value here and defaults true: conditions see the default */
     expect(html).toContain('★')
     expect(actions.takeComponentIssues(page.id)).toEqual([])
@@ -112,7 +112,7 @@ describe('<doop-use>', () => {
       page.id,
       {
         html: doc(
-          `<doop-use component="Buton"></doop-use><doop-use component="Button" tone="neon" lable="x"></doop-use>`,
+          `<diagramly-use component="Buton"></diagramly-use><diagramly-use component="Button" tone="neon" lable="x"></diagramly-use>`,
         ),
       },
       actor,
@@ -132,14 +132,14 @@ describe('<doop-use>', () => {
       mainFrame.id,
       {
         html: doc(
-          `<table><tbody><tr ${COMPONENT_ATTR}="${row.id}"><td data-doop-prop="cell">x</td></tr></tbody></table>`,
+          `<table><tbody><tr ${COMPONENT_ATTR}="${row.id}"><td data-diagramly-prop="cell">x</td></tr></tbody></table>`,
         ),
       },
       actor,
     )
     actions.updateFrame(
       page.id,
-      { html: doc(`<table><tbody><doop-use component="Row" cell="A"></doop-use></tbody></table>`) },
+      { html: doc(`<table><tbody><diagramly-use component="Row" cell="A"></diagramly-use></tbody></table>`) },
       actor,
     )
     expect(framed(page.id)).toMatch(/<tbody><tr[^>]*><td[^>]*>A<\/td><\/tr><\/tbody>/)
@@ -149,13 +149,13 @@ describe('<doop-use>', () => {
     const { canvas, page } = setup()
     actions.updateFrame(
       page.id,
-      { html: doc(`<doop-use component="Button" label="One" tone="ghost" id="abc123"></doop-use>`) },
+      { html: doc(`<diagramly-use component="Button" label="One" tone="ghost" id="abc123"></diagramly-use>`) },
       actor,
     )
     const full = framed(page.id)
     const compact = compactDocument(full, contextFor(canvas.id))
-    expect(compact).toContain('<doop-use component="Button" id="abc123" label="One" tone="ghost"></doop-use>')
-    expect(compact).not.toContain('data-doop-part')
+    expect(compact).toContain('<diagramly-use component="Button" id="abc123" label="One" tone="ghost"></diagramly-use>')
+    expect(compact).not.toContain('data-diagramly-part')
     expect(compact).not.toContain('.btn')
     expect(compact.length).toBeLessThan(full.length / 2)
     actions.updateFrame(page.id, { html: compact }, actor)
@@ -168,7 +168,7 @@ describe('propagation', () => {
     const { canvas, def, mainFrame, page } = setup()
     actions.updateFrame(
       page.id,
-      { html: doc(`<doop-use component="Button" label="Keep me" id="abc123"></doop-use>`) },
+      { html: doc(`<diagramly-use component="Button" label="Keep me" id="abc123"></diagramly-use>`) },
       actor,
     )
     const edited = framed(page.id).replace('<button class="btn"', '<button class="btn" title="mine"')
@@ -186,12 +186,12 @@ describe('propagation', () => {
     expect(html).toContain('Keep me')
     expect(html).toContain('title="mine"')
     expect(html).toContain('rebeccapurple')
-    expect(html).toContain('data-doop-rev="2"')
+    expect(html).toContain('data-diagramly-rev="2"')
   })
 
   it('withdraws sign-off on a frame that changed', () => {
     const { mainFrame, page } = setup()
-    actions.updateFrame(page.id, { html: doc(`<doop-use component="Button"></doop-use>`) }, actor)
+    actions.updateFrame(page.id, { html: doc(`<diagramly-use component="Button"></diagramly-use>`) }, actor)
     actions.setFrameApproval(page.id, true, { id: 'u', name: 'Reviewer' })
     actions.updateFrame(mainFrame.id, { html: framed(mainFrame.id).replace('Buy now', 'Buy today') }, actor)
     expect(store.getFrame(page.id)!.approval?.status).toBe('needs_review')
@@ -199,7 +199,11 @@ describe('propagation', () => {
 
   it('does not treat a stale save as overrides: it merges', () => {
     const { mainFrame, page } = setup()
-    actions.updateFrame(page.id, { html: doc(`<doop-use component="Button" label="Mine"></doop-use>`) }, actor)
+    actions.updateFrame(
+      page.id,
+      { html: doc(`<diagramly-use component="Button" label="Mine"></diagramly-use>`) },
+      actor,
+    )
     /* a client still holding revision 1 ... */
     const stale = framed(page.id)
     /* ... while the main moves on */
@@ -213,8 +217,8 @@ describe('propagation', () => {
     const html = framed(page.id)
     expect(html).toContain('btn fresh')
     expect(html).toContain('<p>added</p>')
-    expect(html).toContain('data-doop-rev="2"')
-    expect(html).not.toContain('data-doop-overrides')
+    expect(html).toContain('data-diagramly-rev="2"')
+    expect(html).not.toContain('data-diagramly-overrides')
   })
 
   it('catches instances up when a nested component changes', () => {
@@ -226,12 +230,12 @@ describe('propagation', () => {
       cardFrame.id,
       {
         html: doc(
-          `<div class="card" ${COMPONENT_ATTR}="${card.id}"><h2>Title</h2><doop-use component="Button" label="Inside"></doop-use></div>`,
+          `<div class="card" ${COMPONENT_ATTR}="${card.id}"><h2>Title</h2><diagramly-use component="Button" label="Inside"></diagramly-use></div>`,
         ),
       },
       actor,
     )
-    actions.updateFrame(page.id, { html: doc(`<doop-use component="Card"></doop-use>`) }, actor)
+    actions.updateFrame(page.id, { html: doc(`<diagramly-use component="Card"></diagramly-use>`) }, actor)
     expect(framed(page.id)).toContain('Inside')
     actions.updateFrame(
       mainFrame.id,
@@ -246,31 +250,35 @@ describe('propagation', () => {
 describe('edits inside an instance', () => {
   function placed() {
     const made = setup()
-    actions.updateFrame(made.page.id, { html: doc(`<doop-use component="Button" id="abc123"></doop-use>`) }, actor)
+    actions.updateFrame(
+      made.page.id,
+      { html: doc(`<diagramly-use component="Button" id="abc123"></diagramly-use>`) },
+      actor,
+    )
     return made
   }
 
   it('route to the prop when the element is bound', () => {
     const { page } = placed()
     actions.updateFrame(page.id, { html: framed(page.id).replace('Buy now', 'Changed') }, actor)
-    expect(framed(page.id)).toMatch(/data-doop-props="[^"]*label[^"]*Changed/)
-    expect(framed(page.id)).not.toContain('data-doop-overrides')
+    expect(framed(page.id)).toMatch(/data-diagramly-props="[^"]*label[^"]*Changed/)
+    expect(framed(page.id)).not.toContain('data-diagramly-overrides')
   })
 
   it('route to the enum when its root attribute changes', () => {
     const { page } = placed()
     actions.updateFrame(page.id, { html: framed(page.id).replace('data-tone="primary"', 'data-tone="ghost"') }, actor)
-    expect(framed(page.id)).toMatch(/data-doop-props="[^"]*tone[^"]*ghost/)
+    expect(framed(page.id)).toMatch(/data-diagramly-props="[^"]*tone[^"]*ghost/)
   })
 
   it('keep style changes per property and drop one set back to the template', () => {
     const { page } = placed()
     const styled = framed(page.id).replace('<button class="btn"', '<button style="color: red; margin: 2px" class="btn"')
     actions.updateFrame(page.id, { html: styled }, actor)
-    expect(framed(page.id)).toContain('data-doop-overrides')
+    expect(framed(page.id)).toContain('data-diagramly-overrides')
     const back = framed(page.id).replace(/ style="[^"]*"/, '')
     actions.updateFrame(page.id, { html: back }, actor)
-    expect(framed(page.id)).not.toContain('data-doop-overrides')
+    expect(framed(page.id)).not.toContain('data-diagramly-overrides')
   })
 
   it('hide a deleted element instead of cutting the link', () => {
@@ -321,7 +329,7 @@ describe('slots', () => {
       cardFrame.id,
       {
         html: doc(
-          `<section ${COMPONENT_ATTR}="${card.id}"><h2 data-doop-prop="title">T</h2><div data-doop-slot="actions" data-doop-slot-suggest="Button"></div></section>`,
+          `<section ${COMPONENT_ATTR}="${card.id}"><h2 data-diagramly-prop="title">T</h2><div data-diagramly-slot="actions" data-diagramly-slot-suggest="Button"></div></section>`,
         ),
       },
       actor,
@@ -331,14 +339,14 @@ describe('slots', () => {
       page.id,
       {
         html: doc(
-          `<doop-use component="Card" title="Hi"><doop-use slot="actions" component="Button" label="In slot"></doop-use></doop-use>`,
+          `<diagramly-use component="Card" title="Hi"><diagramly-use slot="actions" component="Button" label="In slot"></diagramly-use></diagramly-use>`,
         ),
       },
       actor,
     )
     const html = framed(page.id)
     expect(html).toContain('In slot')
-    expect(html).not.toContain('doop-use')
+    expect(html).not.toContain('diagramly-use')
     const compact = compactDocument(html, contextFor(canvas.id))
     expect(compact).toContain('<template slot="actions">')
     expect(compact).toContain('label="In slot"')
@@ -353,7 +361,7 @@ describe('slots', () => {
 describe('losing things', () => {
   it('a main removed leaves its instances working, and undo gives it back', () => {
     const { canvas, def, mainFrame, page } = setup()
-    actions.updateFrame(page.id, { html: doc(`<doop-use component="Button"></doop-use>`) }, actor)
+    actions.updateFrame(page.id, { html: doc(`<diagramly-use component="Button"></diagramly-use>`) }, actor)
     const withMain = framed(mainFrame.id)
     actions.updateFrame(mainFrame.id, { html: doc('<p>gone</p>') }, actor)
     expect(current(canvas.id, def.id).mainFrameId).toBeNull()
@@ -371,7 +379,7 @@ describe('losing things', () => {
     const before = current(canvas.id, box.id).rev
     actions.updateFrame(
       frame.id,
-      { html: framed(frame.id).replace('</p>', `</p><doop-use component="Box"></doop-use>`) },
+      { html: framed(frame.id).replace('</p>', `</p><diagramly-use component="Box"></diagramly-use>`) },
       actor,
     )
     expect(current(canvas.id, box.id).rev).toBe(before)
@@ -380,7 +388,7 @@ describe('losing things', () => {
 
   it('tells an agent when a rewrite dropped instances', () => {
     const { page } = setup()
-    actions.updateFrame(page.id, { html: doc(`<doop-use component="Button"></doop-use>`) }, actor)
+    actions.updateFrame(page.id, { html: doc(`<diagramly-use component="Button"></diagramly-use>`) }, actor)
     actions.updateFrame(page.id, { html: doc('<button>flat</button>') }, actor)
     expect(actions.takeComponentIssues(page.id).some((i) => i.code === 'instance_removed')).toBe(true)
   })
@@ -391,7 +399,7 @@ describe('hostile markup', () => {
 
   it('saves markup nested past the call stack, around a component or inside a main', () => {
     const { canvas, def, page } = setup()
-    const around = doc(deep(20_000, `<doop-use component="Button"></doop-use>`))
+    const around = doc(deep(20_000, `<diagramly-use component="Button"></diagramly-use>`))
     expect(actions.updateFrame(page.id, { html: around }, actor)).toBeDefined()
     expect(lookalikesIn(store.getFrame(page.id)!)).toEqual([])
     expect(findComponentCandidates(store.getCanvas(canvas.id)!).length).toBeGreaterThanOrEqual(0)
@@ -409,12 +417,12 @@ describe('streaming', () => {
   it('renders instances chunk by chunk and settles the head at the end', () => {
     const { def, page } = setup()
     actions.appendFrameHtml(page.id, '<!doctype html><html><head><title>x</title></head><body>', actor, { start: true })
-    actions.appendFrameHtml(page.id, '<doop-use component="Button" label="Streamed"></doop-use>', actor)
+    actions.appendFrameHtml(page.id, '<diagramly-use component="Button" label="Streamed"></diagramly-use>', actor)
     expect(framed(page.id)).toContain('Streamed')
     actions.appendFrameHtml(page.id, '</body></html>', actor, { done: true })
     const html = framed(page.id)
-    expect(html.indexOf(`data-doop-component-css="${def.id}"`)).toBeLessThan(html.indexOf('</head>'))
-    expect(html.match(/data-doop-component-css=/g)).toHaveLength(1)
+    expect(html.indexOf(`data-diagramly-component-css="${def.id}"`)).toBeLessThan(html.indexOf('</head>'))
+    expect(html.match(/data-diagramly-component-css=/g)).toHaveLength(1)
   })
 })
 

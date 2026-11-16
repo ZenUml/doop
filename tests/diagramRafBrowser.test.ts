@@ -14,7 +14,7 @@ describe.skipIf(!findBrowserPath())('Diagram source updates while animation fram
       '/api': { target: `http://localhost:${port}` },
       '/vendor/diagram': { target: `http://localhost:${port}` },
     })
-    server = await startServer({ PORT: String(port), BETTER_AUTH_URL: web.origin, DOOP_PRODUCT: 'diagramly' })
+    server = await startServer({ PORT: String(port), BETTER_AUTH_URL: web.origin, DIAGRAMLY_PRODUCT: 'diagramly' })
   }, 60_000)
   afterAll(async () => {
     server?.stop()
@@ -41,7 +41,7 @@ describe.skipIf(!findBrowserPath())('Diagram source updates while animation fram
     const diagram = (await (await page.waitForSelector('#raf-diagram'))!.contentFrame())!
     await diagram.waitForFunction(
       () =>
-        document.documentElement.getAttribute('data-doop-diagram-state') === 'rendered' &&
+        document.documentElement.getAttribute('data-diagramly-diagram-state') === 'rendered' &&
         document.querySelector('.sequence-diagram')?.textContent?.includes('authorize'),
       { polling: 50 },
     )
@@ -69,23 +69,23 @@ describe.skipIf(!findBrowserPath())('Diagram source updates while animation fram
     })
     try {
       await diagram.evaluate(() => {
-        document.querySelector('[data-doop-diagram-source]')!.textContent = 'Order->Payment: editedPayment'
+        document.querySelector('[data-diagramly-diagram-source]')!.textContent = 'Order->Payment: editedPayment'
       })
       // The real library must finish the first render while rAF stays suspended.
       await diagram.waitForFunction(
         () =>
-          document.documentElement.getAttribute('data-doop-diagram-state') === 'rendered' &&
+          document.documentElement.getAttribute('data-diagramly-diagram-state') === 'rendered' &&
           document.querySelector('.sequence-diagram')?.textContent?.includes('editedPayment'),
         { polling: 50 },
       )
       await diagram.evaluate(() => {
-        document.querySelector('[data-doop-diagram-source]')!.textContent = 'Customer->Order: create'
-        document.querySelector('[data-doop-diagram-css]')!.textContent =
+        document.querySelector('[data-diagramly-diagram-source]')!.textContent = 'Customer->Order: create'
+        document.querySelector('[data-diagramly-diagram-css]')!.textContent =
           '.sequence-diagram {background: rgb(220, 238, 255)}'
       })
       await diagram.waitForFunction(
         () =>
-          document.documentElement.getAttribute('data-doop-diagram-state') === 'rendered' &&
+          document.documentElement.getAttribute('data-diagramly-diagram-state') === 'rendered' &&
           document.querySelector('.sequence-diagram')?.textContent?.includes('create') &&
           !document.querySelector('.sequence-diagram')?.textContent?.includes('editedPayment') &&
           getComputedStyle(document.querySelector('.sequence-diagram')!).backgroundColor === 'rgb(220, 238, 255)',

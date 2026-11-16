@@ -16,7 +16,7 @@ describe.skipIf(!findBrowserPath())('layer renames in the live frame', () => {
     page = await pages.open()
     await page.goto(fixtureUrl('frameReplay.html'))
     await page.waitForFunction(() =>
-      (window as unknown as Fixture).messages?.some((m) => m.type === 'doop:frame-ready'),
+      (window as unknown as Fixture).messages?.some((m) => m.type === 'diagramly:frame-ready'),
     )
   }, 60_000)
 
@@ -33,20 +33,23 @@ describe.skipIf(!findBrowserPath())('layer renames in the live frame', () => {
     page
       .frames()
       .find((frame) => frame !== page.mainFrame())!
-      .$eval(selector, (el) => ({ name: el.getAttribute('data-doop-name'), id: el.getAttribute('data-doop-id') }))
+      .$eval(selector, (el) => ({
+        name: el.getAttribute('data-diagramly-name'),
+        id: el.getAttribute('data-diagramly-id'),
+      }))
 
   it('stamps the id with the name, keeps one the element wears, and takes a rolled-back stamp off', async () => {
-    await ask({ type: 'doop:html', html: '<p id="a">Text</p><p id="b" data-doop-id="keep00">Other</p>' })
-    expect((await ask({ type: 'doop:rename', selector: '#a', name: 'Lead', elementId: 'abc123' })).ok).toBe(true)
+    await ask({ type: 'diagramly:html', html: '<p id="a">Text</p><p id="b" data-diagramly-id="keep00">Other</p>' })
+    expect((await ask({ type: 'diagramly:rename', selector: '#a', name: 'Lead', elementId: 'abc123' })).ok).toBe(true)
     expect(await attrs('#a')).toEqual({ name: 'Lead', id: 'abc123' })
     /* an element already carrying an id keeps it */
-    await ask({ type: 'doop:rename', selector: '#b', name: 'Aside', elementId: 'zzz999' })
+    await ask({ type: 'diagramly:rename', selector: '#b', name: 'Aside', elementId: 'zzz999' })
     expect(await attrs('#b')).toEqual({ name: 'Aside', id: 'keep00' })
     /* the failed first rename rolls its stamp back with the name */
-    await ask({ type: 'doop:rename', selector: '#a', name: null, elementId: null })
+    await ask({ type: 'diagramly:rename', selector: '#a', name: null, elementId: null })
     expect(await attrs('#a')).toEqual({ name: null, id: null })
     /* undo and redo reach the element by its id, without a stamp */
-    await ask({ type: 'doop:rename', selector: '[data-doop-id="keep00"]', name: null })
+    await ask({ type: 'diagramly:rename', selector: '[data-diagramly-id="keep00"]', name: null })
     expect(await attrs('#b')).toEqual({ name: null, id: 'keep00' })
   })
 })

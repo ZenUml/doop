@@ -105,7 +105,7 @@ const nonNegativeInt = int(0)
 const schema = {
   NODE_ENV: str({ choices: ['development', 'test', 'production'], default: 'development' }),
   PORT: port({ default: 4400 }),
-  DOOP_PRODUCT: str({ choices: ['doop', 'diagramly'], default: 'doop' }),
+  DIAGRAMLY_PRODUCT: str({ choices: ['doop', 'diagramly'], default: 'doop' }),
   DIAGRAMLY_ORIGIN: origin({ default: 'https://diagramly.ai' }),
   /* the interface language for anyone who has not picked one in Settings */
   DEFAULT_LOCALE: str({ choices: LOCALES, default: FALLBACK_LOCALE }),
@@ -113,12 +113,12 @@ const schema = {
   DATABASE_URL: str({ default: undefined }),
   /* where the embedded database and uploaded assets live; unset = ./data under the
      working directory. A packaged desktop app runs from a read-only bundle and sets it (spike) */
-  DOOP_DATA_DIR: str({ default: undefined }),
+  DIAGRAMLY_DATA_DIR: str({ default: undefined }),
   /* the interface to listen on; unset = all of them. A desktop app sets 127.0.0.1 (spike) */
   HOST: str({ default: undefined }),
-  DOOP_FRAME_SNAPSHOT_HELPER: str({ default: undefined }),
+  DIAGRAMLY_FRAME_SNAPSHOT_HELPER: str({ default: undefined }),
   /* Written by the native upgrade snapshotter, never supplied over HTTP. */
-  DOOP_LEGACY_LIBRARY_MANIFEST: str({ default: undefined }),
+  DIAGRAMLY_LEGACY_LIBRARY_MANIFEST: str({ default: undefined }),
 
   /* ---------------------------------------------------------- auth */
   BETTER_AUTH_SECRET: str({
@@ -162,7 +162,7 @@ const schema = {
   WEBHOOK_ALLOW_PRIVATE_URLS: bool({ default: false }),
 
   /* ------------------------------------------------ resident agents */
-  DOOP_AGENT_PROVIDER: str({ choices: ['anthropic', 'azure'], default: 'anthropic' }),
+  DIAGRAMLY_AGENT_PROVIDER: str({ choices: ['anthropic', 'azure'], default: 'anthropic' }),
   ANTHROPIC_API_KEY: str({ default: undefined }),
   AZURE_OPENAI_ENDPOINT: str({ default: undefined }),
   AZURE_OPENAI_API_KEY: str({ default: undefined }),
@@ -170,18 +170,18 @@ const schema = {
   AZURE_OPENAI_API_VERSION: str({ default: undefined }),
   AZURE_OPENAI_REASONING_EFFORT: str({ default: undefined }),
   RESIDENT_TASK_LIMIT: nonNegativeInt({ default: 0 }),
-  DOOP_AGENT_MODEL: str({ default: 'claude-opus-5' }),
-  DOOP_DISTILL_MODEL: str({ default: 'claude-haiku-4-5-20251001' }),
-  DOOP_AGENT_OPENAI_MODEL: str({ default: 'gpt-5.6-terra' }),
-  DOOP_AGENT_OPENAI_EFFORT: str({ default: 'medium' }),
-  DOOP_AGENT_OPENROUTER_MODEL: str({ default: DEFAULT_OPENROUTER_MODEL }),
-  DOOP_AGENT_GEMINI_MODEL: str({ default: DEFAULT_GEMINI_MODEL }),
-  DOOP_AGENT_DEEPSEEK_MODEL: str({ default: DEFAULT_DEEPSEEK_MODEL }),
-  DOOP_AGENT_KIMI_MODEL: str({ default: DEFAULT_KIMI_MODEL }),
-  DOOP_AGENT_KIMI_CODE_MODEL: str({ default: DEFAULT_KIMI_CODE_MODEL }),
+  DIAGRAMLY_AGENT_MODEL: str({ default: 'claude-opus-5' }),
+  DIAGRAMLY_DISTILL_MODEL: str({ default: 'claude-haiku-4-5-20251001' }),
+  DIAGRAMLY_AGENT_OPENAI_MODEL: str({ default: 'gpt-5.6-terra' }),
+  DIAGRAMLY_AGENT_OPENAI_EFFORT: str({ default: 'medium' }),
+  DIAGRAMLY_AGENT_OPENROUTER_MODEL: str({ default: DEFAULT_OPENROUTER_MODEL }),
+  DIAGRAMLY_AGENT_GEMINI_MODEL: str({ default: DEFAULT_GEMINI_MODEL }),
+  DIAGRAMLY_AGENT_DEEPSEEK_MODEL: str({ default: DEFAULT_DEEPSEEK_MODEL }),
+  DIAGRAMLY_AGENT_KIMI_MODEL: str({ default: DEFAULT_KIMI_MODEL }),
+  DIAGRAMLY_AGENT_KIMI_CODE_MODEL: str({ default: DEFAULT_KIMI_CODE_MODEL }),
   /* JSON; parsed and shape-checked where it is used so a parse error never
      echoes the worker secrets it contains */
-  DOOP_GEMINI_CLOUD_WORKERS: str({ default: undefined }),
+  DIAGRAMLY_GEMINI_CLOUD_WORKERS: str({ default: undefined }),
   CHATGPT_CONNECT_DISABLED: bool({ default: false }),
   CHATGPT_OAUTH_ISSUER: origin({ default: 'https://auth.openai.com' }),
   CHATGPT_OAUTH_CLIENT_ID: str({ default: 'app_EMoamEEZ73f0CkXaXp7hrann' }),
@@ -213,8 +213,8 @@ const schema = {
      off and takes existing ones out of use. Their URLs are user input, so they
      are reached only over public addresses unless PRIVATE_HOSTS is on, for a
      self-hosted instance whose models run on its own network */
-  DOOP_CUSTOM_PROVIDERS: bool({ default: true }),
-  DOOP_CUSTOM_PROVIDER_PRIVATE_HOSTS: bool({ default: false }),
+  DIAGRAMLY_CUSTOM_PROVIDERS: bool({ default: true }),
+  DIAGRAMLY_CUSTOM_PROVIDER_PRIVATE_HOSTS: bool({ default: false }),
 
   /* ------------------------------------------------ image generation */
   OPENAI_API_KEY: str({ default: undefined }),
@@ -222,8 +222,8 @@ const schema = {
   ARK_API_KEY: str({ default: undefined }),
   ARK_IMAGES_URL: str({ default: 'https://ark.ap-southeast.bytepluses.com/api/v3/images/generations' }),
   GEMINI_MODELS_URL: str({ default: 'https://generativelanguage.googleapis.com/v1beta/models' }),
-  DOOP_IMAGE_MODEL: str({ default: 'gpt-image-2' }),
-  DOOP_IMAGE_ROUTER_MODEL: str({ default: undefined }),
+  DIAGRAMLY_IMAGE_MODEL: str({ default: 'gpt-image-2' }),
+  DIAGRAMLY_IMAGE_ROUTER_MODEL: str({ default: undefined }),
 
   /* ------------------------------------------------------ integrations */
   META_APP_ID: str({ default: undefined }),
@@ -293,10 +293,10 @@ const schema = {
   SYNC_FREEZE_MS: nonNegativeInt({ default: 15 * 60_000 }),
 
   /* ------------------------------------------------------- iOS push */
-  DOOP_APNS_TEAM_ID: str({ default: undefined }),
-  DOOP_APNS_KEY_ID: str({ default: undefined }),
-  DOOP_APNS_PRIVATE_KEY: str({ default: undefined }),
-  DOOP_APNS_BUNDLE_ID: str({ default: 'design.doop.ios' }),
+  DIAGRAMLY_APNS_TEAM_ID: str({ default: undefined }),
+  DIAGRAMLY_APNS_KEY_ID: str({ default: undefined }),
+  DIAGRAMLY_APNS_PRIVATE_KEY: str({ default: undefined }),
+  DIAGRAMLY_APNS_BUNDLE_ID: str({ default: 'design.doop.ios' }),
 }
 
 /** Every declared variable name, for the .env.example coverage test. */

@@ -25,7 +25,7 @@ import type { AgentTask, Canvas, ElementComment, Frame } from '../shared/types.t
  * invited member, workspace member — the same rule as design-sync keys, so
  * a share-link visit never subscribes anyone to a canvas for good).
  *
- * Deliveries are signed (X-Doop-Signature, HMAC-SHA256 over
+ * Deliveries are signed (X-Diagramly-Signature, HMAC-SHA256 over
  * `<timestamp>.<body>` with the hook's secret) and retried a few times from
  * memory on failure. There is no durable queue: an event that fails every
  * retry is dropped, and a hook that fails DISABLE_AFTER_FAILURES times in a
@@ -390,10 +390,10 @@ async function post(
       headers: {
         'content-type': 'application/json',
         'user-agent': USER_AGENT,
-        'x-doop-event': String(payload.type),
-        'x-doop-delivery': String(payload.id),
-        'x-doop-timestamp': String(timestamp),
-        'x-doop-signature': sign(hook.secret, timestamp, body),
+        'x-diagramly-event': String(payload.type),
+        'x-diagramly-delivery': String(payload.id),
+        'x-diagramly-timestamp': String(timestamp),
+        'x-diagramly-signature': sign(hook.secret, timestamp, body),
       },
       body,
       redirect: 'manual',

@@ -147,7 +147,7 @@ describe.skipIf(!findBrowserPath())('element design controls', () => {
     await frame.waitForFunction(() => getComputedStyle(document.querySelector('#text')!).fontFamily === 'Lora, serif')
     await expect.poll(() => saved.html).toContain('font-family: Lora, serif')
     /* a hosted font rides along as its stylesheet link */
-    await expect.poll(() => saved.html).toContain('data-doop-webfonts')
+    await expect.poll(() => saved.html).toContain('data-diagramly-webfonts')
     expect(saved.html).toContain('family=Lora:')
     await page.evaluate(() => window.elementPanelHarness.undo())
     await page.waitForFunction(
@@ -699,7 +699,7 @@ describe.skipIf(!findBrowserPath())('element design controls', () => {
       #parent { display: flex; width: 400px; height: 240px; margin: 60px; transform: scale(.8); transform-origin: top left }
       #box { width: 120px; height: 80px; flex: none; background: #ddd; transform: rotate(20deg); scale: 1.2 .8; translate: 10% 5px }
       #sibling { width: 60px; height: 40px; flex: none }
-    </style></head><body><div id="parent"><div id="box">Move me</div><div id="sibling" data-doop-locked>Sibling</div></div><span id="inline">Inline text</span><canvas id="canvas" width="20" height="20"></canvas></body></html>`,
+    </style></head><body><div id="parent"><div id="box">Move me</div><div id="sibling" data-diagramly-locked>Sibling</div></div><span id="inline">Inline text</span><canvas id="canvas" width="20" height="20"></canvas></body></html>`,
       '#box',
     )
     const sibling = await frame.$eval('#sibling', (el) => el.getBoundingClientRect().toJSON())
@@ -1604,7 +1604,7 @@ describe.skipIf(!findBrowserPath())('element design controls', () => {
   })
 
   it('leaves a standalone canvas element in place', async () => {
-    saved = { ...saved, html: '<body data-doop-canvas-element="rect"><div id="shape"></div></body>' }
+    saved = { ...saved, html: '<body data-diagramly-canvas-element="rect"><div id="shape"></div></body>' }
     const handled = await page.evaluate((frame) => {
       window.elementPanelHarness.seed(frame)
       window.elementPanelHarness.select('#shape')

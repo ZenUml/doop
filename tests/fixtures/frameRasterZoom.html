@@ -25,7 +25,7 @@
 
       /* the runtime's iframe, as FrameView draws it */
       const frame = document.createElement('iframe')
-      frame.setAttribute('data-doop-frame', '')
+      frame.setAttribute('data-diagramly-frame', '')
       frame.sandbox = 'allow-scripts'
       frame.srcdoc = FRAME_BOOTSTRAP
       frame.style.cssText = `display:block;border:0;width:${DESIGN.width}px;height:${DESIGN.height}px;transform-origin:0 0`
@@ -58,8 +58,8 @@
       /** where a selector sits, in design px, as the runtime reports it */
       window.rect = async (selector) => {
         const reqId = `r${++req}`
-        frame.contentWindow.postMessage({ type: 'doop:locate', reqId, selector }, '*')
-        const m = await waitFor((d) => d?.type === 'doop:located' && d.reqId === reqId)
+        frame.contentWindow.postMessage({ type: 'diagramly:locate', reqId, selector }, '*')
+        const m = await waitFor((d) => d?.type === 'diagramly:located' && d.reqId === reqId)
         return m.rect
       }
       /** the plain iframe's view of its viewport and pixel density */
@@ -85,8 +85,8 @@
         return { width: box.width, height: box.height }
       }
 
-      await waitFor((d) => d?.type === 'doop:frame-ready', 60_000)
-      frame.contentWindow.postMessage({ type: 'doop:html', html: HTML }, '*')
+      await waitFor((d) => d?.type === 'diagramly:frame-ready', 60_000)
+      frame.contentWindow.postMessage({ type: 'diagramly:html', html: HTML }, '*')
       await new Promise((r) => (probe.contentWindow.document ? r() : (probe.onload = r)))
       await nextPaint()
       window.testReady = true

@@ -44,7 +44,7 @@ runs on **GPT, Claude, Gemini, DeepSeek, Kimi or Qwen** models
 - **Clickable prototypes** — wire elements to other frames (click, hover, press, key or delay;
   navigate, overlay, back, scroll or link, with transitions) in Prototype mode or straight in the
   HTML, then click through the flow with Play or share `/c/<id>/proto`. Agents use the same
-  `data-doop-*` attributes plus `get_prototype` / `set_prototype_start`.
+  `data-diagramly-*` attributes plus `get_prototype` / `set_prototype_start`.
 - **A real canvas editor** — draw frames, shapes, pen paths and text, edit any element's fill,
   type and flex layout, snap to rulers and guides, zoom from 8% to 1600%
   ([the editor](#the-canvas-editor)).
@@ -298,7 +298,9 @@ Interactions are plain attributes on the element in the frame HTML, so they sync
 export with the frame, and agents write them with the same tools they design with:
 
 ```html
-<button data-doop-on="click" data-doop-action="navigate:<frameId>" data-doop-transition="push-left">Book stay</button>
+<button data-diagramly-on="click" data-diagramly-action="navigate:<frameId>" data-diagramly-transition="push-left">
+  Book stay
+</button>
 ```
 
 Agents check their wiring with `get_prototype`, which flags links to missing frames, and set
@@ -380,7 +382,7 @@ The free tier can run on **Azure OpenAI** instead — useful when your organisat
 compliance rules live there:
 
 ```bash
-DOOP_AGENT_PROVIDER=azure
+DIAGRAMLY_AGENT_PROVIDER=azure
 AZURE_OPENAI_ENDPOINT=https://my-resource.openai.azure.com
 AZURE_OPENAI_API_KEY=...
 AZURE_OPENAI_DEPLOYMENT=my-deployment
@@ -447,8 +449,8 @@ Either way the user picks their **model tier** in Settings from that provider's 
 OpenAI, `gpt-6-astra` (the newest flagship; on a ChatGPT subscription it needs Plus or better and
 OpenAI is still rolling it out per account), `gpt-5.6-sol` (flagship), `gpt-5.6-terra` (the default
 workhorse) or `gpt-5.6-luna` (cheap and fast). They are paying for it, so the choice is theirs;
-`DOOP_AGENT_OPENAI_MODEL`, `DOOP_AGENT_OPENROUTER_MODEL`, `DOOP_AGENT_GEMINI_MODEL`,
-`DOOP_AGENT_DEEPSEEK_MODEL`, `DOOP_AGENT_KIMI_MODEL` and `DOOP_AGENT_KIMI_CODE_MODEL` only set the default they start on. Note that
+`DIAGRAMLY_AGENT_OPENAI_MODEL`, `DIAGRAMLY_AGENT_OPENROUTER_MODEL`, `DIAGRAMLY_AGENT_GEMINI_MODEL`,
+`DIAGRAMLY_AGENT_DEEPSEEK_MODEL`, `DIAGRAMLY_AGENT_KIMI_MODEL` and `DIAGRAMLY_AGENT_KIMI_CODE_MODEL` only set the default they start on. Note that
 `gpt-5.4` and `gpt-5.4-mini` retire from ChatGPT-authenticated Codex on **31 August 2026**, so
 pinning a 5.4 id via that env var will break the subscription path after that date.
 
@@ -486,26 +488,26 @@ authenticate over OAuth and drive the canvas from outside, on your own subscript
 Three paths, same canvas: the Doop Agent on our key (free tier), the Doop Agent on your key, or your
 own agent over MCP.
 
-| Variable                        | Default                     | What it does                                                                         |
-| ------------------------------- | --------------------------- | ------------------------------------------------------------------------------------ |
-| `DOOP_AGENT_PROVIDER`           | `anthropic`                 | What the free tier runs on: `anthropic` \| `azure`                                   |
-| `ANTHROPIC_API_KEY`             | _unset_                     | Pays for the free Doop Agent tier (default provider) and the distiller               |
-| `AZURE_OPENAI_ENDPOINT`         | _unset_                     | The free tier's Azure OpenAI resource, when `DOOP_AGENT_PROVIDER=azure`              |
-| `AZURE_OPENAI_API_KEY`          | _unset_                     | A key of that resource                                                               |
-| `AZURE_OPENAI_DEPLOYMENT`       | _unset_                     | The deployment the free tier runs on                                                 |
-| `AZURE_OPENAI_API_VERSION`      | _unset_                     | Pins an `api-version` query parameter; the v1 surface needs none                     |
-| `AZURE_OPENAI_REASONING_EFFORT` | _unset_                     | Reasoning effort on Azure runs; unset sends none (non-reasoning-safe)                |
-| `RESIDENT_TASK_LIMIT`           | `0`                         | Free Doop Agent tasks per account; `0` means a connected account from the first task |
-| `DOOP_AGENT_MODEL`              | `claude-opus-5`             | Model for the Doop Agent on the server's Anthropic key                               |
-| `DOOP_AGENT_OPENAI_MODEL`       | `gpt-5.6-terra`             | Default tier on a user's account; each user can pick another in Settings             |
-| `DOOP_AGENT_OPENAI_EFFORT`      | `medium`                    | Default reasoning effort on a user's OpenAI account; each user can pick low–xhigh    |
-| `DOOP_AGENT_OPENROUTER_MODEL`   | `moonshotai/kimi-k2.6`      | Default model on a connected OpenRouter key                                          |
-| `DOOP_AGENT_GEMINI_MODEL`       | `gemini-3.7-flash`          | Default model on a connected Gemini key                                              |
-| `DOOP_AGENT_DEEPSEEK_MODEL`     | `deepseek-flash`            | Default model on a connected DeepSeek key                                            |
-| `DOOP_AGENT_KIMI_MODEL`         | `kimi-k3.1-pro`             | Default model on a connected Kimi key                                                |
-| `DOOP_AGENT_KIMI_CODE_MODEL`    | `k3.1-pro`                  | Default model on a connected Kimi Code plan                                          |
-| `CHATGPT_CONNECT_DISABLED`      | _unset_                     | `1` hides the ChatGPT flow, leaving the API-key path                                 |
-| `DOOP_DISTILL_MODEL`            | `claude-haiku-4-5-20251001` | Model for the guideline distiller                                                    |
+| Variable                           | Default                     | What it does                                                                         |
+| ---------------------------------- | --------------------------- | ------------------------------------------------------------------------------------ |
+| `DIAGRAMLY_AGENT_PROVIDER`         | `anthropic`                 | What the free tier runs on: `anthropic` \| `azure`                                   |
+| `ANTHROPIC_API_KEY`                | _unset_                     | Pays for the free Doop Agent tier (default provider) and the distiller               |
+| `AZURE_OPENAI_ENDPOINT`            | _unset_                     | The free tier's Azure OpenAI resource, when `DIAGRAMLY_AGENT_PROVIDER=azure`         |
+| `AZURE_OPENAI_API_KEY`             | _unset_                     | A key of that resource                                                               |
+| `AZURE_OPENAI_DEPLOYMENT`          | _unset_                     | The deployment the free tier runs on                                                 |
+| `AZURE_OPENAI_API_VERSION`         | _unset_                     | Pins an `api-version` query parameter; the v1 surface needs none                     |
+| `AZURE_OPENAI_REASONING_EFFORT`    | _unset_                     | Reasoning effort on Azure runs; unset sends none (non-reasoning-safe)                |
+| `RESIDENT_TASK_LIMIT`              | `0`                         | Free Doop Agent tasks per account; `0` means a connected account from the first task |
+| `DIAGRAMLY_AGENT_MODEL`            | `claude-opus-5`             | Model for the Doop Agent on the server's Anthropic key                               |
+| `DIAGRAMLY_AGENT_OPENAI_MODEL`     | `gpt-5.6-terra`             | Default tier on a user's account; each user can pick another in Settings             |
+| `DIAGRAMLY_AGENT_OPENAI_EFFORT`    | `medium`                    | Default reasoning effort on a user's OpenAI account; each user can pick low–xhigh    |
+| `DIAGRAMLY_AGENT_OPENROUTER_MODEL` | `moonshotai/kimi-k2.6`      | Default model on a connected OpenRouter key                                          |
+| `DIAGRAMLY_AGENT_GEMINI_MODEL`     | `gemini-3.7-flash`          | Default model on a connected Gemini key                                              |
+| `DIAGRAMLY_AGENT_DEEPSEEK_MODEL`   | `deepseek-flash`            | Default model on a connected DeepSeek key                                            |
+| `DIAGRAMLY_AGENT_KIMI_MODEL`       | `kimi-k3.1-pro`             | Default model on a connected Kimi key                                                |
+| `DIAGRAMLY_AGENT_KIMI_CODE_MODEL`  | `k3.1-pro`                  | Default model on a connected Kimi Code plan                                          |
+| `CHATGPT_CONNECT_DISABLED`         | _unset_                     | `1` hides the ChatGPT flow, leaving the API-key path                                 |
+| `DIAGRAMLY_DISTILL_MODEL`          | `claude-haiku-4-5-20251001` | Model for the guideline distiller                                                    |
 
 `RESIDENT_TASK_LIMIT` is the free-tier meter. By default it is `0`: the Doop Agent only runs once
 the user connects a model account (any of the kinds above) — a connected
@@ -709,8 +711,8 @@ This is the short list a self-hoster usually touches:
 | Sign-in            | `OIDC_*`, `GOOGLE_*`, `MICROSOFT_*`, `APPLE_*`, `SIGNUP_EMAIL_DOMAINS`, `ADMIN_EMAILS` ([Accounts](#accounts))                                                       | Email/password only, open signup                                                   |
 | Email              | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SECURE`, `EMAIL_FROM`, `REQUIRE_EMAIL_VERIFICATION`                                                        | Emails print to the server log; no verification                                    |
 | Object storage     | `BUCKET`, `ACCESS_KEY_ID`, `SECRET_ACCESS_KEY`, `ENDPOINT`, `REGION` (any S3-compatible store)                                                                       | Uploaded assets stored under `data/assets`                                         |
-| Doop Agent         | `ANTHROPIC_API_KEY`, `RESIDENT_TASK_LIMIT`, `DOOP_AGENT_*`, `AZURE_OPENAI_*` ([The Doop Agent](#the-doop-agent))                                                     | Runs only on accounts users connect                                                |
-| Image generation   | `OPENAI_API_KEY`, `GEMINI_API_KEY`, `ARK_API_KEY` (Seedream), `DOOP_IMAGE_MODEL`                                                                                     | Runs only on accounts users connect; Seedream off                                  |
+| Doop Agent         | `ANTHROPIC_API_KEY`, `RESIDENT_TASK_LIMIT`, `DIAGRAMLY_AGENT_*`, `AZURE_OPENAI_*` ([The Doop Agent](#the-doop-agent))                                                | Runs only on accounts users connect                                                |
+| Image generation   | `OPENAI_API_KEY`, `GEMINI_API_KEY`, `ARK_API_KEY` (Seedream), `DIAGRAMLY_IMAGE_MODEL`                                                                                | Runs only on accounts users connect; Seedream off                                  |
 | Agent search tools | `PEXELS_API_KEY` (photos), `BRANDFETCH_CLIENT_ID` (logos), `BACKGROUNDS_ORIGIN`, `CONTEXT_DEV_API_KEY`                                                               | No photo search; open-source and favicon logos; local Chromium                     |
 | Screenshots        | `CHROME_PATH`, `CHROME_NO_SANDBOX` (the Docker image sets both up)                                                                                                   | Auto-detected Chrome/Chromium                                                      |
 | Integrations       | `META_APP_ID`/`_SECRET`, `LINEAR_*` ([setup](docs/linear.md)), `SLACK_*` ([setup](docs/slack.md)), `GITHUB_APP_*`                                                    | That integration is unavailable; GitHub import uses a personal token               |
@@ -718,8 +720,8 @@ This is the short list a self-hoster usually touches:
 | Rate limits        | `MCP_UPLOADS_PER_MIN`, `MCP_SEARCHES_PER_MIN`, `MCP_GENERATIONS_PER_MIN`, `MCP_IMPORTS_PER_MIN`, `SYNC_INGESTS_PER_MIN`, `PREVIEW_RENDERS_PER_MIN`, `SYNC_FREEZE_MS` | Defaults sized for the hosted service; requests over a cap get `429`               |
 | Webhooks           | `WEBHOOK_ALLOW_PRIVATE_URLS` ([webhooks](docs/webhooks.md))                                                                                                          | Webhook URLs on private networks are refused                                       |
 | Analytics          | `VITE_POSTHOG_KEY` (build time: a Docker build `ARG`), `POSTHOG_KEY`, `POSTHOG_*_HOST`                                                                               | No analytics; when set, the browser reports through the same-origin `/relay` proxy |
-| iOS push           | `DOOP_APNS_TEAM_ID`, `DOOP_APNS_KEY_ID`, `DOOP_APNS_PRIVATE_KEY`, `DOOP_APNS_BUNDLE_ID`                                                                              | No Live Activity pushes; the app polls                                             |
-| Gemini cloud pilot | `DOOP_GEMINI_CLOUD_WORKERS` ([pilot guide](docs/gemini-cloud-pilot.md))                                                                                              | Off                                                                                |
+| iOS push           | `DIAGRAMLY_APNS_TEAM_ID`, `DIAGRAMLY_APNS_KEY_ID`, `DIAGRAMLY_APNS_PRIVATE_KEY`, `DIAGRAMLY_APNS_BUNDLE_ID`                                                          | No Live Activity pushes; the app polls                                             |
+| Gemini cloud pilot | `DIAGRAMLY_GEMINI_CLOUD_WORKERS` ([pilot guide](docs/gemini-cloud-pilot.md))                                                                                         | Off                                                                                |
 
 ## Connect an AI agent
 
@@ -805,11 +807,11 @@ to the public page directly in Chromium.
 
 ### Design sync: push an app's live screens onto a canvas
 
-Server-side import can't reach apps behind SSO or a VPN. The **doop-sync snippet** flips the capture
+Server-side import can't reach apps behind SSO or a VPN. The **diagramly-sync snippet** flips the capture
 to the user's browser: mint a write-only key under a canvas's **Import → Live app**, drop one tag into the app —
 
 ```html
-<script async src="https://your-doop-origin/doop-sync.js?key=dk_…"></script>
+<script async src="https://your-doop-origin/diagramly-sync.js?key=dk_…"></script>
 ```
 
 — and every distinct screen people visit lands on that canvas as a frame (one row per app), imported
@@ -820,8 +822,8 @@ normalized (`/orders/8231` → `/orders/:id`) so each screen maps to one
 frame; captures are serialized from the CSSOM (so styled-components/emotion output survives), and
 same-origin webfonts and small images are inlined as data: URIs — fonts require CORS inside the
 sandboxed frame, and intranet URLs would never render for viewers outside the network. Scripts are
-stripped client- and server-side, input values are always dropped, and anything marked `data-doop-mask`
-is redacted before upload (`data-doop-sync-ignore` excludes an element entirely). The key is the whole
+stripped client- and server-side, input values are always dropped, and anything marked `data-diagramly-mask`
+is redacted before upload (`data-diagramly-sync-ignore` excludes an element entirely). The key is the whole
 credential: it can only write frames to its one canvas, so revoking it under Import → Live app cuts the
 app off instantly. Endpoint: `POST /ingest/<key>` (CORS-open, no cookies).
 
@@ -1088,7 +1090,7 @@ src/               React + Vite + zustand client on :4300
 desktop/           Tauri desktop app (macOS, Windows)
 ios/               SwiftUI iPhone and iPad app
 claude-extension/  Claude Desktop extension (.mcpb); cursor-plugin/ and chatgpt-plugin/ beside it
-public/doop-sync.js  The design-sync snippet
+public/diagramly-sync.js  The design-sync snippet
 ```
 
 ### Styling

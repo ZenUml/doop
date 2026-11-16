@@ -18,7 +18,7 @@ import type { EditablePath, PathEditSource, PathMatrix } from '../src/lib/pathEd
 import type { Point } from '../src/lib/drawing'
 
 const data = 'M 10 40 C 20 10 70 70 90 40'
-const markup = `<svg id="pen" data-doop-drawing="path" viewBox="0 0 100 80"><path d="${data}" fill="none" stroke="black"></path></svg>`
+const markup = `<svg id="pen" data-diagramly-drawing="path" viewBox="0 0 100 80"><path d="${data}" fill="none" stroke="black"></path></svg>`
 const frame: Frame = {
   id: 'f',
   canvasId: 'c',
@@ -28,7 +28,7 @@ const frame: Frame = {
   y: 200,
   width: 100,
   height: 80,
-  html: `<html><body data-doop-canvas-element="true">${markup}</body></html>`,
+  html: `<html><body data-diagramly-canvas-element="true">${markup}</body></html>`,
   createdAt: 0,
   updatedAt: 0,
   updatedBy: 'User',
@@ -219,13 +219,13 @@ describe('editable vector paths', () => {
   })
 
   /* an imported file's shape sits in a group, placed in percentages of it */
-  const shapeMarkup = `<svg id="shape" data-doop-drawing="path" data-name="Vector" viewBox="20 20 40 40" preserveAspectRatio="none" style="position:absolute;left:20%;top:20%;width:40%;height:40%;overflow:visible;"><path d="M 22 22 L 58 22 L 58 58 Z" fill="red"></path></svg>`
-  const siblingMarkup = `<svg id="other" data-doop-drawing="path" data-name="Other" viewBox="0 0 10 10" preserveAspectRatio="none" style="position:absolute;left:0%;top:0%;width:10%;height:10%;overflow:visible;"><path d="M 0 0 L 10 0 L 10 10 Z"></path></svg>`
+  const shapeMarkup = `<svg id="shape" data-diagramly-drawing="path" data-name="Vector" viewBox="20 20 40 40" preserveAspectRatio="none" style="position:absolute;left:20%;top:20%;width:40%;height:40%;overflow:visible;"><path d="M 22 22 L 58 22 L 58 58 Z" fill="red"></path></svg>`
+  const siblingMarkup = `<svg id="other" data-diagramly-drawing="path" data-name="Other" viewBox="0 0 10 10" preserveAspectRatio="none" style="position:absolute;left:0%;top:0%;width:10%;height:10%;overflow:visible;"><path d="M 0 0 L 10 0 L 10 10 Z"></path></svg>`
   const grouped: Frame = {
     ...frame,
     width: 100,
     height: 100,
-    html: `<html><body data-doop-canvas-element="true"><div data-doop-drawing="group" data-name="Icon" style="position:absolute;left:0;top:0;width:100%;height:100%;">${siblingMarkup}${shapeMarkup}</div></body></html>`,
+    html: `<html><body data-diagramly-canvas-element="true"><div data-diagramly-drawing="group" data-name="Icon" style="position:absolute;left:0;top:0;width:100%;height:100%;">${siblingMarkup}${shapeMarkup}</div></body></html>`,
   }
   const shapeSource: PathEditSource = {
     ...parseEditablePath('M 22 22 L 58 22 L 58 58 Z')!,
@@ -270,7 +270,7 @@ describe('editable vector paths', () => {
     const inFrame: Frame = {
       ...grouped,
       html: grouped.html
-        .replace('data-doop-canvas-element="true"', '')
+        .replace('data-diagramly-canvas-element="true"', '')
         .replace('left:0;top:0;width:100%;height:100%;', 'position:fixed;left:50px;top:60px;width:100px;height:100px;'),
     }
     const patch = updatePathFrame(
@@ -281,7 +281,7 @@ describe('editable vector paths', () => {
     expect(patch.width).toBeUndefined()
     const root = new DOMParser()
       .parseFromString(patch.html!, 'text/html')
-      .querySelector('[data-doop-drawing="group"]')! as HTMLElement
+      .querySelector('[data-diagramly-drawing="group"]')! as HTMLElement
     expect([root.style.left, root.style.top, root.style.width, root.style.height]).toEqual([
       '50px',
       '60px',

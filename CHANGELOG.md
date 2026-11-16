@@ -154,7 +154,7 @@
 
 * **agents:** stop Doop agent tasks mid-flight ([#262](https://github.com/kgoedecke/doop/issues/262)) ([f8ca5bb](https://github.com/kgoedecke/doop/commit/f8ca5bb4bdd7f3cb86a73e2a2f89b6b3ddd23c21))
 * **canvas:** add an Edit / Prototype / Comment mode switch to the tool rail ([#381](https://github.com/kgoedecke/doop/issues/381)) ([be87fb8](https://github.com/kgoedecke/doop/commit/be87fb8440fb75322f163603e27deec68e458983))
-* **comments:** anchor comments and element links by data-doop-id ([#398](https://github.com/kgoedecke/doop/issues/398)) ([18e3c39](https://github.com/kgoedecke/doop/commit/18e3c39e3dee62cfd62195802636a7c28e855f64))
+* **comments:** anchor comments and element links by data-diagramly-id ([#398](https://github.com/kgoedecke/doop/issues/398)) ([18e3c39](https://github.com/kgoedecke/doop/commit/18e3c39e3dee62cfd62195802636a7c28e855f64))
 * **comments:** move a comment pin by drag ([#393](https://github.com/kgoedecke/doop/issues/393)) ([e4d41c5](https://github.com/kgoedecke/doop/commit/e4d41c5e3c8c0c2b8d945a96ab85b72e2a8de0ff))
 * **desktop:** follow new Claude models by alias, and pick the effort ([#251](https://github.com/kgoedecke/doop/issues/251)) ([bfcec7d](https://github.com/kgoedecke/doop/commit/bfcec7d318cf03df440a852844fd0033a05e5e47))
 * **ios:** glass side panels beside the canvas on iPhone Duo ([d6fec6d](https://github.com/kgoedecke/doop/commit/d6fec6d58cdc727e1579f2a6dfa441a08b405de0))

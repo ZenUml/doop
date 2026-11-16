@@ -137,7 +137,7 @@ describe('backfillElementIds', () => {
     expect(k2!.elementId).not.toBe(k1!.elementId)
     expect(k5!.elementId).toBe(k4!.elementId)
     expect(store.getFrame('f1')!.html).toBe(
-      `<h1>Hi</h1><p data-doop-id="${k1!.elementId}">One</p><p data-doop-id="${k2!.elementId}">Two</p>`,
+      `<h1>Hi</h1><p data-diagramly-id="${k1!.elementId}">One</p><p data-diagramly-id="${k2!.elementId}">Two</p>`,
     )
     /* sign-off would have stood: an annotation, not a design change */
     expect(broadcast).toHaveBeenCalledWith('c1', expect.objectContaining({ type: 'frame:updated' }))
@@ -205,7 +205,7 @@ describe('stamping an element for a new comment', () => {
     const c = (await actions.addElementComment('f1', { selector: 'body > p:nth-of-type(1)', text: 'Bigger' }, 'bob'))!
     expect(c.elementId).toMatch(/^[a-z0-9]{6}$/)
     expect(writes).toEqual(['frame:f1', `comment:${c.id}`])
-    expect(store.getFrame('f1')!.html).toContain(`data-doop-id="${c.elementId}"`)
+    expect(store.getFrame('f1')!.html).toContain(`data-diagramly-id="${c.elementId}"`)
   })
 
   it('pins the comment to the frame at its point when the stamped frame cannot be written', async () => {
@@ -243,7 +243,7 @@ describe('stamping an element for a new comment', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     mocks.frameFails = true
     expect(await actions.ensureElementId('f1', 'body > p:nth-of-type(1)', 'bob')).toBeUndefined()
-    const id = /data-doop-id="(\w+)"/.exec(store.getFrame('f1')!.html)![1]!
+    const id = /data-diagramly-id="(\w+)"/.exec(store.getFrame('f1')!.html)![1]!
     /* still failing: neither path names the id */
     expect(await actions.ensureElementId('f1', 'body > p:nth-of-type(1)', 'bob')).toBeUndefined()
     const c = (await actions.addElementComment('f1', { elementId: id, text: 'Bigger', x: 1, y: 2 }, 'bob'))!

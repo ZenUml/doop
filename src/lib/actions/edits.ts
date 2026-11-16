@@ -512,7 +512,7 @@ const VISUAL_PROPERTIES = [
   'mix-blend-mode',
 ] as const
 
-const STYLE_CLIP_KEY = 'doop:style-clip'
+const STYLE_CLIP_KEY = 'diagramly:style-clip'
 
 interface StyleClip {
   visual: Record<string, string>

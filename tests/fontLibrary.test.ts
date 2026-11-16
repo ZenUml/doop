@@ -87,7 +87,7 @@ describe('personal font library', () => {
     expect(created.status).toBe(200)
     const frameId = (await created.json()).id
     const html = await savedHtml(owner, canvasId, frameId)
-    expect(html).toContain('<style data-doop-fonts>')
+    expect(html).toContain('<style data-diagramly-fonts>')
     expect(html).toContain(regular.url)
   })
 })
@@ -121,7 +121,7 @@ describe('workspace font library', () => {
         html: '<html><body><p>Hi</p></body></html>',
       })
     ).json()
-    expect(await savedHtml(owner, canvasId, frame.id)).not.toContain('data-doop-fonts')
+    expect(await savedHtml(owner, canvasId, frame.id)).not.toContain('data-diagramly-fonts')
 
     const patched = await owner.patch(`/api/frames/${frame.id}`, {
       html: '<html><body><p style="font-family: &quot;Brand Grotesk&quot;">Hi</p></body></html>',

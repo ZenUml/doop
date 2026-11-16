@@ -8,7 +8,7 @@
 export const DRAFT_OPTIONS = [1, 2, 3, 4] as const
 export type DraftCount = (typeof DRAFT_OPTIONS)[number]
 export const DEFAULT_DRAFTS: DraftCount = 3
-export const DRAFTS_STORAGE_KEY = 'doop-home-drafts'
+export const DRAFTS_STORAGE_KEY = 'diagramly-home-drafts'
 
 const MAX_CANVAS_NAME = 48
 

@@ -11,7 +11,7 @@ it('upgrades an existing OSS database without the deferred Figma migration', asy
   const journal = JSON.parse(await readFile(path.join(migrationsFolder, 'meta/_journal.json'), 'utf8')) as {
     entries: { tag: string; idx: number; when: number }[]
   }
-  const baseline = await mkdtemp(path.join(tmpdir(), 'doop-sync-migrations-'))
+  const baseline = await mkdtemp(path.join(tmpdir(), 'diagramly-sync-migrations-'))
   const client = new PGlite()
   try {
     await mkdir(path.join(baseline, 'meta'))

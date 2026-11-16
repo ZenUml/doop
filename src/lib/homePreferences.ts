@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 
 /** Like the theme, dashboard preferences belong to this browser. */
-export const PROMPT_BOX_STORAGE_KEY = 'doop.home.prompt-box-hidden'
+export const PROMPT_BOX_STORAGE_KEY = 'diagramly.home.prompt-box-hidden'
 
 let hidden: boolean | undefined
 const listeners = new Set<() => void>()

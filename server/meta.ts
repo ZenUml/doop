@@ -416,7 +416,7 @@ export async function fetchAds(token: string, accountId: string, filter: PullFil
 /* ------------------------------------------------------------------ */
 /* Frames                                                              */
 
-const MARKER = 'doop-meta-ad'
+const MARKER = 'diagramly-meta-ad'
 const FRAME_W = 480
 /** the copy block under the image; the image adds its own height */
 const COPY_H = 190

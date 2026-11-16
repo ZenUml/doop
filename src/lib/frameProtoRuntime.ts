@@ -4,8 +4,8 @@ import { parseInteractions, PROTO_SELECTOR } from '../../shared/prototype'
  * Prototype triggers, inside the sandboxed frame (spliced into
  * FRAME_BOOTSTRAP's scope, so `editing`, `cssPath` and `designRect` are the
  * runtime's own). Inert until the parent turns prototype mode on with
- * `doop:proto` — the canvas never does, so a click while editing still only
- * selects. Once on, a trigger posts `doop:proto-action` with the parsed
+ * `diagramly:proto` — the canvas never does, so a click while editing still only
+ * selects. Once on, a trigger posts `diagramly:proto-action` with the parsed
  * interaction and the player does the navigation; only scroll-to runs here.
  *
  * The parser is shared/prototype.ts's own, inlined by source: one definition
@@ -24,11 +24,11 @@ export const FRAME_PROTO_RUNTIME = `
 
   function protoList(el) {
     return parseInteractions({
-      on: el.getAttribute('data-doop-on'),
-      action: el.getAttribute('data-doop-action'),
-      transition: el.getAttribute('data-doop-transition'),
-      duration: el.getAttribute('data-doop-duration'),
-      interactions: el.getAttribute('data-doop-interactions'),
+      on: el.getAttribute('data-diagramly-on'),
+      action: el.getAttribute('data-diagramly-action'),
+      transition: el.getAttribute('data-diagramly-transition'),
+      duration: el.getAttribute('data-diagramly-duration'),
+      interactions: el.getAttribute('data-diagramly-interactions'),
     })
   }
 
@@ -55,7 +55,7 @@ export const FRAME_PROTO_RUNTIME = `
       return
     }
     if (press) protoPressing = true
-    parent.postMessage({ type: 'doop:proto-action', interaction: interaction, press: !!press }, '*')
+    parent.postMessage({ type: 'diagramly:proto-action', interaction: interaction, press: !!press }, '*')
   }
 
   function protoActive() {
@@ -67,9 +67,9 @@ export const FRAME_PROTO_RUNTIME = `
     try {
       protoSheet = new CSSStyleSheet()
       protoSheet.replaceSync(
-        '@keyframes doop-proto-flash{0%{outline-color:rgba(1,119,211,.9)}100%{outline-color:rgba(1,119,211,0)}}' +
+        '@keyframes diagramly-proto-flash{0%{outline-color:rgba(1,119,211,.9)}100%{outline-color:rgba(1,119,211,0)}}' +
         '[data-v-proto-flash]{outline:2px solid rgba(1,119,211,.9)!important;outline-offset:1px!important;' +
-        'animation:doop-proto-flash .9s ease-out forwards!important}'
+        'animation:diagramly-proto-flash .9s ease-out forwards!important}'
       )
       document.adoptedStyleSheets = document.adoptedStyleSheets.concat(protoSheet)
     } catch (e) {}
@@ -172,7 +172,7 @@ export const FRAME_PROTO_RUNTIME = `
   function protoRelease() {
     if (!protoActive() && !protoPressing) return
     protoPressing = false
-    parent.postMessage({ type: 'doop:proto-release' }, '*')
+    parent.postMessage({ type: 'diagramly:proto-release' }, '*')
   }
   document.addEventListener('pointerup', protoRelease, true)
   document.addEventListener('pointercancel', protoRelease, true)
@@ -192,7 +192,7 @@ export const FRAME_PROTO_RUNTIME = `
   /* registered before the runtime's own Escape relay: a key the design
      handles is not also an "exit the player". Escape is left to that relay:
      the player closes an open overlay first and only then offers the key
-     back through doop:proto-key, wherever the focus is. */
+     back through diagramly:proto-key, wherever the focus is. */
   document.addEventListener('keydown', function (ev) {
     if (!protoActive() || ev.repeat || ev.key === 'Escape') return
     if (protoKey(ev.key)) ev.preventDefault()
@@ -212,19 +212,19 @@ export const FRAME_PROTO_RUNTIME = `
     if (ev.source !== parent) return
     var d = ev.data
     if (!d) return
-    if (d.type === 'doop:proto') {
+    if (d.type === 'diagramly:proto') {
       setProto(!!d.on, d.hints !== false)
       /* answered once the switch has taken: a key the player lets through
          after this reply meets a runtime that is listening */
-      if (d.reqId) parent.postMessage({ type: 'doop:proto-result', reqId: d.reqId, on: protoOn }, '*')
+      if (d.reqId) parent.postMessage({ type: 'diagramly:proto-result', reqId: d.reqId, on: protoOn }, '*')
     }
-    if (d.type === 'doop:proto-hotspots') protoFlash()
-    if (d.type === 'doop:proto-key') {
+    if (d.type === 'diagramly:proto-hotspots') protoFlash()
+    if (d.type === 'diagramly:proto-key') {
       var handled = protoActive() && protoKey(d.key)
-      parent.postMessage({ type: 'doop:proto-key-result', reqId: d.reqId, handled: handled }, '*')
+      parent.postMessage({ type: 'diagramly:proto-key-result', reqId: d.reqId, handled: handled }, '*')
     }
-    if (d.type === 'doop:proto-scan') {
-      parent.postMessage({ type: 'doop:proto-scan-result', reqId: d.reqId, items: protoScan() }, '*')
+    if (d.type === 'diagramly:proto-scan') {
+      parent.postMessage({ type: 'diagramly:proto-scan-result', reqId: d.reqId, items: protoScan() }, '*')
     }
   })
 `

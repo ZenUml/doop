@@ -71,7 +71,7 @@ import { AGENT_IDEA_CATEGORIES, AGENT_ISSUE_CATEGORIES, type AgentFeedbackCatego
  *
  * Which model each run uses is server/agentModel.ts's decision: the server
  * tier (Anthropic by default, or an Azure OpenAI deployment via
- * DOOP_AGENT_PROVIDER) covers the free tasks, and past that the run moves onto
+ * DIAGRAMLY_AGENT_PROVIDER) covers the free tasks, and past that the run moves onto
  * the model account the requesting human connected (their ChatGPT
  * subscription or OpenAI key). With neither, the queue behaves as it always
  * did — the work waits for the next agent to connect over MCP.
@@ -158,7 +158,7 @@ Rules:
 - Each frame includes human approval metadata. Only ready_for_dev means the current design is approved for implementation; draft and needs_review are not approved. Content or size edits invalidate sign-off. Approval is context, not a new assignment: do only the requested work, and re-read the frame's approval before using it for implementation.
 - Choose a size-aware strategy. For documents over 60,000 characters, call inspect_frame before reading HTML. Use get_frame_html with a query or bounded range only when markup is needed.
 - For requests to copy, match, or borrow another frame's design: screenshot and inspect BOTH the target and reference before editing. Use the reference screenshot and computed design tokens as the source of visual truth. Read target HTML only when you need to preserve its content; do not load a large reference document just to learn its style. For a full redesign, use begin_frame_rewrite, append_frame_rewrite in chunks under 12,000 characters, and commit_frame_rewrite; then screenshot the changed frame.
-- Element comments are pinned to ONE element (you get its data-doop-id and an HTML excerpt at comment time). Change that element or its immediate context — never rework unrelated parts of the frame because of an element comment.
+- Element comments are pinned to ONE element (you get its data-diagramly-id and an HTML excerpt at comment time). Change that element or its immediate context — never rework unrelated parts of the frame because of an element comment.
 - Canvas comments are pinned to a point on the page, not to an element (you get the point and the frames nearest to it). The request is about what sits around that point: edit those frames in place, or add a new frame near the point when the comment asks for something new — never rework the whole page because of a canvas comment.
 - Frames are complete, self-contained HTML documents. Keep each frame's existing style and structure; change what the feedback requires.
 ${FRAME_STYLES}
@@ -371,7 +371,7 @@ export function describeCommentAnchor(c: ElementComment, canvas: Canvas | undefi
     if (c.elementId === undefined) {
       return `on frame ${c.frameId} "${fname}", an element that is no longer in the frame\n  element HTML at comment time: ${c.snippet}`
     }
-    return `on frame ${c.frameId} "${fname}", the element with data-doop-id="${c.elementId}"\n  element HTML at comment time: ${c.snippet}`
+    return `on frame ${c.frameId} "${fname}", the element with data-diagramly-id="${c.elementId}"\n  element HTML at comment time: ${c.snippet}`
   }
   const pageName = canvas ? canvasPages(canvas).find((page) => page.id === c.pageId)?.name : undefined
   const near = canvas ? framesAround(pageFrames(canvas, c.pageId), c.x, c.y) : []
@@ -613,7 +613,7 @@ async function runAgent(canvasId: string, agentName: string, stalled: Set<string
         : '') +
       `\n\nAddress everything above now.` +
       (comments.length > 0
-        ? ` For element comments, find the element by its data-doop-id attribute in the frame's HTML (get_frame); the HTML excerpt shows it as it was when the comment was left. Keep every data-doop-* attribute on the elements you rewrite — comments and links point at them. A canvas comment is about the frames around its point, not about one element.`
+        ? ` For element comments, find the element by its data-diagramly-id attribute in the frame's HTML (get_frame); the HTML excerpt shows it as it was when the comment was left. Keep every data-diagramly-* attribute on the elements you rewrite — comments and links point at them. A canvas comment is about the frames around its point, not about one element.`
         : '')
 
     console.log(
@@ -687,7 +687,7 @@ async function runAgent(canvasId: string, agentName: string, stalled: Set<string
           ? [
               {
                 text:
-                  `# Components on this canvas\nAnything these cover goes in through <doop-use>, never redrawn:\n\n` +
+                  `# Components on this canvas\nAnything these cover goes in through <diagramly-use>, never redrawn:\n\n` +
                   componentDocs
                     .map((def) => {
                       const entry = catalogEntry(canvas, def)
@@ -1497,7 +1497,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'set_token_themes',
     description:
-      'Replace this canvas\'s token themes (light, dark, …) and their order. A frame switches theme with data-doop-theme="<theme>" on its <html> or on a subtree; a theme that leaves takes its values with it.',
+      'Replace this canvas\'s token themes (light, dark, …) and their order. A frame switches theme with data-diagramly-theme="<theme>" on its <html> or on a subtree; a theme that leaves takes its values with it.',
     input_schema: {
       type: 'object',
       properties: {
@@ -1564,7 +1564,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'get_prototype',
     description:
-      'List the clickable-prototype wiring of this canvas: each page with its flow start frame, and every interaction (data-doop-on / data-doop-action attributes in frame HTML) with its trigger, action and target. Interactions whose target frame does not exist carry a problem; fix them with edit_frame_html. Call it after wiring a flow.',
+      'List the clickable-prototype wiring of this canvas: each page with its flow start frame, and every interaction (data-diagramly-on / data-diagramly-action attributes in frame HTML) with its trigger, action and target. Interactions whose target frame does not exist carry a problem; fix them with edit_frame_html. Call it after wiring a flow.',
     input_schema: { type: 'object', properties: {} },
   },
   {
@@ -1751,7 +1751,7 @@ export async function execTool(
         if (typeof f.html !== 'string') return fail('frame HTML is unavailable; retry after the frame reloads')
         const raw = block.input as { query?: string; offset?: number; limit?: number }
         const approval = `Approval: ${JSON.stringify(f.approval ?? { status: 'draft' })}`
-        /* instances read as <doop-use>: a long way down from their full markup */
+        /* instances read as <diagramly-use>: a long way down from their full markup */
         const source = compactFrameHtml(f)
         const query = String(raw.query || '').trim()
         const limit = Math.max(1000, Math.min(Number(raw.limit) || 20_000, MAX_HTML_READ_CHARS))

@@ -261,11 +261,11 @@ export function statusOf(account: ModelAccount): AccountStatus {
   }
 }
 
-const DEFAULT_OPENROUTER = env.DOOP_AGENT_OPENROUTER_MODEL
-const DEFAULT_GEMINI = env.DOOP_AGENT_GEMINI_MODEL
-const DEFAULT_DEEPSEEK = env.DOOP_AGENT_DEEPSEEK_MODEL
-const DEFAULT_KIMI = env.DOOP_AGENT_KIMI_MODEL
-const DEFAULT_KIMI_CODE = env.DOOP_AGENT_KIMI_CODE_MODEL
+const DEFAULT_OPENROUTER = env.DIAGRAMLY_AGENT_OPENROUTER_MODEL
+const DEFAULT_GEMINI = env.DIAGRAMLY_AGENT_GEMINI_MODEL
+const DEFAULT_DEEPSEEK = env.DIAGRAMLY_AGENT_DEEPSEEK_MODEL
+const DEFAULT_KIMI = env.DIAGRAMLY_AGENT_KIMI_MODEL
+const DEFAULT_KIMI_CODE = env.DIAGRAMLY_AGENT_KIMI_CODE_MODEL
 
 /* the kinds whose menu is a hand-checked roster and nothing else: the roster's
    vision flags are all the run-time check knows about their models */

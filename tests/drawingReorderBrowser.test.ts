@@ -20,7 +20,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
   it.each([false, true])(
     'drags a selected group from its child (drawing: %s) and constrains movement with Shift',
     async (drawing) => {
-      const child = drawing ? rectangle.replace('id="rect"', 'id="rect" data-doop-drawing="rectangle"') : rectangle
+      const child = drawing ? rectangle.replace('id="rect"', 'id="rect" data-diagramly-drawing="rectangle"') : rectangle
       const source = layerFrame(
         `<div id="group" style="position:absolute;left:40px;top:40px;width:250px;height:200px;background:#eee">${child}</div>`,
       )
@@ -148,7 +148,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     'does not commit a layout drop on %s',
     async (reason) => {
       const source = layerFrame(
-        reason === 'locked' ? flowBoxes.replace('id="into"', 'id="into" data-doop-locked') : flowBoxes,
+        reason === 'locked' ? flowBoxes.replace('id="into"', 'id="into" data-diagramly-locked') : flowBoxes,
       )
       await seedFrames([source])
       await page.evaluate(() => window.drawingHarness.viewport({ x: 0, y: 0, zoom: 1 }))
@@ -188,7 +188,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       window.addEventListener(
         'message',
         function delay(event) {
-          if (event.data?.type !== 'doop:move-target') return
+          if (event.data?.type !== 'diagramly:move-target') return
           event.stopImmediatePropagation()
           window.removeEventListener('message', delay, true)
           setTimeout(
@@ -278,7 +278,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     },
   )
 
-  it.each(['doop:move-hit', 'doop:style-gesture', 'doop:move-target'])(
+  it.each(['diagramly:move-hit', 'diagramly:style-gesture', 'diagramly:move-target'])(
     'keeps fast layer drags and cancellation correct while %s is delayed',
     async (message) => {
       for (const cancel of [false, true]) {
@@ -292,7 +292,10 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
           window.addEventListener(
             'message',
             function delay(event) {
-              if (event.data?.type !== message || (message === 'doop:style-gesture' && event.data.phase !== 'begin'))
+              if (
+                event.data?.type !== message ||
+                (message === 'diagramly:style-gesture' && event.data.phase !== 'begin')
+              )
                 return
               event.stopImmediatePropagation()
               window.removeEventListener('message', delay, true)

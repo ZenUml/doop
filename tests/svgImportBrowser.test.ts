@@ -89,7 +89,7 @@ describe.skipIf(!findBrowserPath())('importing SVG files', { timeout: 30_000 }, 
       ),
     )
     expect(result).not.toBeNull()
-    const [rect, circle] = await inspect(result!.html, 'svg[data-doop-drawing="path"] > path')
+    const [rect, circle] = await inspect(result!.html, 'svg[data-diagramly-drawing="path"] > path')
     expect(rect!.attrs).toMatchObject({ fill: 'rgb(255, 0, 0)', stroke: 'rgb(0, 255, 0)', 'stroke-width': '0.5' })
     expect(circle!.attrs['fill']).toBe('rgb(0, 0, 255)')
     /* the file's style block stayed in its shadow root and is gone with it */
@@ -116,13 +116,16 @@ describe.skipIf(!findBrowserPath())('importing SVG files', { timeout: 30_000 }, 
       ),
     )
     expect(result).not.toBeNull()
-    const [rect] = await inspect(result!.html, 'svg[data-doop-drawing="path"] > path')
+    const [rect] = await inspect(result!.html, 'svg[data-diagramly-drawing="path"] > path')
     expect(rect!.attrs['mask']).toMatch(/^url\(#k-m-mask-\d+\)$/)
     const [copy] = await inspect(result!.html, 'mask[id^="k-m-mask-"] > g')
     expect(copy!.attrs['transform']).toBe('matrix(1 0 0 1 20 0)')
-    const [text, image] = await inspect(result!.html, '[data-doop-drawing="svg"]')
+    const [text, image] = await inspect(result!.html, '[data-diagramly-drawing="svg"]')
     expect(text!.attrs['opacity']).toBe('0.5')
-    const [inner, img] = await inspect(result!.html, '[data-doop-drawing="svg"] text, [data-doop-drawing="svg"] image')
+    const [inner, img] = await inspect(
+      result!.html,
+      '[data-diagramly-drawing="svg"] text, [data-diagramly-drawing="svg"] image',
+    )
     expect(inner!.attrs['opacity']).toBeUndefined()
     expect(inner!.attrs['style']).toContain('filter:url(#k-f)')
     expect(image!.attrs['opacity']).toBeUndefined()
@@ -177,11 +180,11 @@ describe.skipIf(!findBrowserPath())('importing SVG files', { timeout: 30_000 }, 
     await page.mouse.up()
     await page.waitForFunction(() => window.drawingHarness.state().frames[0]!.updatedAt > 0)
     await page.waitForFunction(() => !document.querySelector('[data-path-editor] button:disabled'))
-    const [red, blue] = await inspect(saved[0]!.html, 'svg[data-doop-drawing="path"]')
+    const [red, blue] = await inspect(saved[0]!.html, 'svg[data-diagramly-drawing="path"]')
     expect(red!.style.left).toMatch(/%$/)
     expect(red!.style.width).toMatch(/%$/)
     expect(red!.style.transform).toBe('none')
-    const [redPath, bluePath] = await inspect(saved[0]!.html, 'svg[data-doop-drawing="path"] > path')
+    const [redPath, bluePath] = await inspect(saved[0]!.html, 'svg[data-diagramly-drawing="path"] > path')
     expect(redPath!.attrs['d']).toBe('M 10 10 L 40 0 L 40 40 L 0 40 Z')
     /* the group's shell did not move or grow: the anchor went inward */
     expect(saved[0]).toMatchObject({ x: frame.x, y: frame.y, width: frame.width, height: frame.height })

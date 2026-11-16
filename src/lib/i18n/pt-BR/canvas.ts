@@ -231,7 +231,7 @@ export const canvas: Catalog['canvas'] = {
   syncStep3Title: 'Navegue pelo app',
   syncStep3Detail: 'Cada nova tela que alguém visita chega como frame. Exclua um frame para reimportá-lo do zero.',
   syncNote:
-    'O conteúdo visível da página é enviado ao Doop como HTML estático. Valores de campos são descartados; marque qualquer coisa sensível com data-doop-mask.',
+    'O conteúdo visível da página é enviado ao Doop como HTML estático. Valores de campos são descartados; marque qualquer coisa sensível com data-diagramly-mask.',
 
   githubTitle: 'Conectar um repositório do GitHub',
   githubForbidden: 'Conexões de repositório são para membros do canvas — peça acesso permanente ao dono.',

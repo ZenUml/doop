@@ -69,7 +69,7 @@ in `.github/actions/setup-desktop`:
   approve it via System Settings -> Privacy & Security.
 - Windows signing: Azure Artifact Signing (account `Doop`, East US, profile `doop-public`). The
   `nsis-windows` job runs in the `desktop-release` environment, logs in through OIDC (app
-  registration `doop-desktop-signing`, federated on that environment; `AZURE_CLIENT_ID` /
+  registration `diagramly-desktop-signing`, federated on that environment; `AZURE_CLIENT_ID` /
   `AZURE_TENANT_ID` repo variables, no secret) and passes a CI-only `signCommand` to Tauri
   (`desktop/scripts/sign-windows.ps1`: signtool + the pinned `Microsoft.ArtifactSigning.Client`
   dlib), so the app exe, installer and uninstaller are signed; `signtool verify` gates the job. PR
@@ -79,16 +79,16 @@ in `.github/actions/setup-desktop`:
   finishes it under its own session (`shared/desktopConnect.ts`). This is web-only: shells from
   0.2.1 already deliver any `doop://` link, and older shells open Integrations in the browser.
 - The macOS menu bar is the page's (`desktop/src-tauri/src/app_menu.rs`, `src/lib/appMenu.ts`, gated
-  on `window.__DOOP_APP_MENU__`, macOS only): the page sends File, Edit, View, Object, Text, Arrange
+  on `window.__DIAGRAMLY_APP_MENU__`, macOS only): the page sends File, Edit, View, Object, Text, Arrange
   and Help from the action registry (`app_menu_set`, labels in its language, each chord as the key
   equivalent) and then only changed enabled/checked state (`app_menu_state`); the shell keeps the
   app menu, Close Tab, the system Undo/Cut/Copy/Paste/Select All that text fields need, Full Screen
   and Window. A pick returns as `app-menu` `{ id, key }`; the webview sees a key before the menu, and
   a key the menu does get keeps the canvas keyboard's rules (nothing while typing or presenting).
   Until a page sets it the bar is the old fixed one, whose View menu (`view_menu.rs`,
-  `src/lib/viewMenu.ts`, `__DOOP_VIEW_MENU__`) an older page still drives. Needs a desktop release.
+  `src/lib/viewMenu.ts`, `__DIAGRAMLY_VIEW_MENU__`) an older page still drives. Needs a desktop release.
 - Server choice (`desktop/src-tauri/src/server.rs`, `src/components/ServerSettings.tsx`): the
-  sign-in screen's cog (shells advertising `__DOOP_SERVER_CHOOSE__`) points an official build at a
+  sign-in screen's cog (shells advertising `__DIAGRAMLY_SERVER_CHOOSE__`) points an official build at a
   self-hosted server. `server_choose` normalizes the address to an origin (https, or http on loopback only),
   checks `/api/locale-config` answers and takes the origin any redirect lands on, confirms natively, writes `server.json` in the app data dir and
   restarts; at launch the chosen origin gets `capabilities/default.json` as a runtime capability
@@ -96,7 +96,7 @@ in `.github/actions/setup-desktop`:
   (`check_on_launch`, every platform); macOS also has "Use doop.design…" in the app menu. Official builds
   keep updating from the doop.design feed whatever server is chosen. Tests: the Rust unit tests in
   `server.rs`, `serverSettings.test.tsx`.
-- The shell tells the page its platform via `window.__DOOP_DESKTOP_PLATFORM__` (read in
+- The shell tells the page its platform via `window.__DIAGRAMLY_DESKTOP_PLATFORM__` (read in
   `src/lib/shell.ts`); only macOS gets the overlay title bar / traffic-light inset.
 - Desktop app version is tracked separately from the root `package.json` and bumped by
   release-please (see above); after the release PR merges, tag as `desktop-vX.Y.Z`.

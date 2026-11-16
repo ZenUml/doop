@@ -9,7 +9,7 @@
      2. The provider redirects the browser to /api/integrations/<id>/callback.
         A marked state never reaches the browser session: the server relays
         the whole query to DESKTOP_CONNECT_PATH, a page that opens
-        doop://integration/<id>?<query> without exchanging anything.
+        diagramly://integration/<id>?<query> without exchanging anything.
      3. The app receives the link and posts the query to
         /api/integrations/<id>/complete under its own session. The provider's
         usual check (the state belongs to this user) still decides, so a code

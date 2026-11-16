@@ -85,7 +85,7 @@ describe('listRunners', () => {
     mocks.accounts.mockResolvedValue([])
     expect(await listRunners('alice')).toEqual({ runners: [] })
     stubEnv(
-      'DOOP_GEMINI_CLOUD_WORKERS',
+      'DIAGRAMLY_GEMINI_CLOUD_WORKERS',
       JSON.stringify({ alice: { url: 'https://worker.example', token: 'x'.repeat(32) } }),
     )
     expect((await listRunners('alice')).default).toBe('gemini-cloud')

@@ -16,7 +16,7 @@ describe.skipIf(!findBrowserPath())('Diagramly product application', () => {
       '/ws': { target: `ws://localhost:${port}`, ws: true },
       '/vendor/diagram': { target: `http://localhost:${port}` },
     })
-    server = await startServer({ PORT: String(port), BETTER_AUTH_URL: web.origin, DOOP_PRODUCT: 'diagramly' })
+    server = await startServer({ PORT: String(port), BETTER_AUTH_URL: web.origin, DIAGRAMLY_PRODUCT: 'diagramly' })
   }, 60_000)
   afterAll(async () => {
     server?.stop()
@@ -47,7 +47,7 @@ describe.skipIf(!findBrowserPath())('Diagramly product application', () => {
     expect(home).not.toContain('Ask Doop')
     expect(home).not.toContain('Automations')
     await page.locator('button::-p-text(Flowchart)').click()
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
     const created = await page.evaluate(async () => {
       const docs = (await (await fetch('/api/canvases')).json()) as { id: string; name: string }[]
       const document = docs.find((item) => item.name === 'Untitled document')
@@ -72,7 +72,7 @@ describe.skipIf(!findBrowserPath())('Diagramly product application', () => {
     )
     expect(persisted).toContain('flowchart TD')
     await page.goto(`${web.origin}/c/${created.id}`)
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
   }, 30_000)
 
   it('keeps a compact home with previews, search, alternate views, imports and a deliberate cloud step', async () => {
@@ -162,6 +162,6 @@ describe.skipIf(!findBrowserPath())('Diagramly product application', () => {
     if (process.env.DIAGRAMLY_HOME_MOBILE_SCREENSHOT)
       await page.screenshot({ path: process.env.DIAGRAMLY_HOME_MOBILE_SCREENSHOT, fullPage: true })
     await page.click('button[aria-label="Open Payment service"]')
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
   }, 30_000)
 })

@@ -53,7 +53,7 @@ afterEach(unstubAllEnvs)
 
 describe('thumbs', () => {
   it('makes a small diagram readable and centred in a home tile instead of shrinking the whole empty artboard', async () => {
-    stubEnv('DOOP_PRODUCT', 'diagramly')
+    stubEnv('DIAGRAMLY_PRODUCT', 'diagramly')
     const png = await sharp(
       Buffer.from(
         '<svg width="1000" height="600"><rect width="1000" height="600" fill="white"/><rect x="12" y="12" width="180" height="80" fill="black"/></svg>',
@@ -80,7 +80,7 @@ describe('thumbs', () => {
     expect(mocks.putObject.mock.calls[0]?.[0]).toBe('thumb/diagramly-home-v1-small-diagram.jpg')
   })
   it('keeps coloured diagram paper and produces a valid preview for blank diagrams', async () => {
-    stubEnv('DOOP_PRODUCT', 'diagramly')
+    stubEnv('DIAGRAMLY_PRODUCT', 'diagramly')
     for (const background of ['#204060', '#ffffff']) {
       mocks.renderFrame.mockResolvedValue(
         await sharp({ create: { width: 400, height: 300, channels: 3, background } })

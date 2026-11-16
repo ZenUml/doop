@@ -1,6 +1,6 @@
 /**
  * The composer's pick: which of the person's connections the next task goes
- * to, and the model on it. It is this browser's choice (`doop:agent-runner`
+ * to, and the model on it. It is this browser's choice (`diagramly:agent-runner`
  * in localStorage), independent of the Settings default that comments and
  * automations run on, and resolved against what is connected whenever the
  * picker shows it, so a connection that was dropped falls back to the default.
@@ -11,7 +11,7 @@ import { useStore } from './store'
 import { parseRunnerPick, resolveRunnerPick, type AgentRunners, type RunnerPick } from '../../shared/agentRunner'
 import { useEffect } from 'react'
 
-export const RUNNER_PICK_KEY = 'doop:agent-runner'
+export const RUNNER_PICK_KEY = 'diagramly:agent-runner'
 
 export function readStoredPick(storage: Pick<Storage, 'getItem'> | undefined): RunnerPick | null {
   try {

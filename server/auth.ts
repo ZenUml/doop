@@ -440,7 +440,7 @@ function buildAuth() {
       enabled: true,
       requireEmailVerification: REQUIRE_VERIFICATION,
       sendResetPassword: async ({ user, url }) => {
-        const productName = env.DOOP_PRODUCT === 'diagramly' ? 'Diagramly' : 'doop'
+        const productName = env.DIAGRAMLY_PRODUCT === 'diagramly' ? 'Diagramly' : 'doop'
         await sendMail({
           to: user.email,
           subject: `Reset your ${productName} password`,
@@ -461,7 +461,7 @@ function buildAuth() {
         joinDefaultWorkspace(user.id, defaultWorkspaceId())
       },
       sendVerificationEmail: async ({ user, url }) => {
-        const productName = env.DOOP_PRODUCT === 'diagramly' ? 'Diagramly' : 'doop'
+        const productName = env.DIAGRAMLY_PRODUCT === 'diagramly' ? 'Diagramly' : 'doop'
         await sendMail({
           to: user.email,
           subject: `Verify your ${productName} email`,
@@ -489,7 +489,7 @@ function buildAuth() {
             assertSignupDomainAllowed(user.email)
           },
           after: async (user) => {
-            if (env.DOOP_PRODUCT !== 'diagramly') {
+            if (env.DIAGRAMLY_PRODUCT !== 'diagramly') {
               const first = (user.name || 'Your').split(/\s+/)[0]
               const canvas = store.createCanvas(`${first}'s first canvas`, user.id)
               demo.markPending(canvas.id)

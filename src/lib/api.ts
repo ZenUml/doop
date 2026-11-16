@@ -95,7 +95,7 @@ export interface CanvasMember {
   owner: boolean
 }
 
-/** A write-only design-sync key: apps embed its secret in the doop-sync
+/** A write-only design-sync key: apps embed its secret in the diagramly-sync
  *  snippet to push their live screens onto this canvas. */
 export interface SyncKeyInfo {
   id: string
@@ -793,7 +793,7 @@ export const api = {
     req(`/api/canvases/${canvasId}/cards/${cardId}/stop`, { method: 'POST' }),
   /** x/y: where the comment was left, in frame design px */
   /** a comment on an element (its positional selector, which the server turns into a stamped
-   *  data-doop-id, or the id it already carries) or, with neither, on the frame at the point */
+   *  data-diagramly-id, or the id it already carries) or, with neither, on the frame at the point */
   addComment: (
     frameId: string,
     input: {

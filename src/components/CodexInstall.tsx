@@ -28,7 +28,7 @@ export function CodexInstall({ mcpUrl, canvasId }: { mcpUrl: string; canvasId?: 
   const manual = (
     <>
       <p>{t('workspace.codexManual')}</p>
-      <CodeBlock text={`codex mcp add doop --url ${mcpUrl}`} className="mt-2" />
+      <CodeBlock text={`codex mcp add diagramly --url ${mcpUrl}`} className="mt-2" />
     </>
   )
 

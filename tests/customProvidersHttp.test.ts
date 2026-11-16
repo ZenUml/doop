@@ -48,7 +48,7 @@ beforeAll(async () => {
     OPENAI_API_KEY: '',
     DATABASE_URL: '',
     SMTP_HOST: '',
-    DOOP_CUSTOM_PROVIDER_PRIVATE_HOSTS: 'true',
+    DIAGRAMLY_CUSTOM_PROVIDER_PRIVATE_HOSTS: 'true',
   })
   alice = await new Client(server).signUp('custom-alice@example.test', 'Alice')
   bob = await new Client(server).signUp('custom-bob@example.test', 'Bob')

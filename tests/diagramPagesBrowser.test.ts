@@ -17,7 +17,7 @@ describe.skipIf(!findBrowserPath())('Diagram inner page renderer switching', () 
       '/ws': { target: `ws://localhost:${port}`, ws: true },
       '/vendor/diagram': { target: `http://localhost:${port}` },
     })
-    server = await startServer({ PORT: String(port), BETTER_AUTH_URL: web.origin, DOOP_PRODUCT: 'diagramly' })
+    server = await startServer({ PORT: String(port), BETTER_AUTH_URL: web.origin, DIAGRAMLY_PRODUCT: 'diagramly' })
   }, 60_000)
   afterAll(async () => {
     server?.stop()
@@ -41,14 +41,14 @@ describe.skipIf(!findBrowserPath())('Diagram inner page renderer switching', () 
         title: 'Sequence',
         kind: 'zenuml' as const,
         source: 'Buyer->Order: ConfirmOrder',
-        css: '[data-doop-diagram-mount] { background-color: rgb(245, 220, 220); }',
+        css: '[data-diagramly-diagram-mount] { background-color: rgb(245, 220, 220); }',
       },
       {
         id: 'flow',
         title: 'Flowchart',
         kind: 'mermaid' as const,
         source: 'flowchart LR\n A[StartPayment] --> B[PaymentReceived]',
-        css: '[data-doop-diagram-mount] { background-color: rgb(220, 235, 245); }',
+        css: '[data-diagramly-diagram-mount] { background-color: rgb(220, 235, 245); }',
       },
     ]
     const id = await page.evaluate(
@@ -80,18 +80,18 @@ describe.skipIf(!findBrowserPath())('Diagram inner page renderer switching', () 
       buildDiagramHtml({ ...innerPages[0]!, pages: innerPages, activePageId: 'sequence' }),
     )
     await page.goto(`${web.origin}/c/${id}`)
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
     await page.click('[data-frame-title]')
     await page.waitForSelector('[aria-label="Diagram page"]')
-    const iframe = (await page.$('iframe[data-doop-frame]'))!
+    const iframe = (await page.$('iframe[data-diagramly-frame]'))!
     const diagram = (await iframe.contentFrame())!
 
     async function assertRendered(label: string, absent: string, background: string, kind: 'zenuml' | 'mermaid') {
       await diagram.waitForFunction(
         (label) => {
-          const mount = document.querySelector('[data-doop-diagram-mount]')
+          const mount = document.querySelector('[data-diagramly-diagram-mount]')
           return (
-            document.documentElement.getAttribute('data-doop-diagram-state') === 'rendered' &&
+            document.documentElement.getAttribute('data-diagramly-diagram-state') === 'rendered' &&
             mount?.textContent?.includes(label)
           )
         },
@@ -99,14 +99,14 @@ describe.skipIf(!findBrowserPath())('Diagram inner page renderer switching', () 
         label,
       )
       const rendered = await diagram.evaluate(() => {
-        const mount = document.querySelector<HTMLElement>('[data-doop-diagram-mount]')!
+        const mount = document.querySelector<HTMLElement>('[data-diagramly-diagram-mount]')!
         const bounds = mount.getBoundingClientRect()
         return {
           text: mount.innerText,
           background: getComputedStyle(mount).backgroundColor,
           width: bounds.width,
           height: bounds.height,
-          mounts: document.querySelectorAll('[data-doop-diagram-mount]').length,
+          mounts: document.querySelectorAll('[data-diagramly-diagram-mount]').length,
           zenumlStyle: [...document.head.querySelectorAll('style')].some((style) =>
             /\.zenuml\b/.test(style.textContent ?? ''),
           ),
@@ -114,7 +114,7 @@ describe.skipIf(!findBrowserPath())('Diagram inner page renderer switching', () 
             ? getComputedStyle(mount.querySelector('.sequence-diagram')!).position
             : null,
           sequence: !!mount.querySelector('.sequence-diagram'),
-          mermaid: !!mount.querySelector('svg[id^="doop-diagram-"]'),
+          mermaid: !!mount.querySelector('svg[id^="diagramly-diagram-"]'),
         }
       })
       expect(rendered.text).toContain(label)

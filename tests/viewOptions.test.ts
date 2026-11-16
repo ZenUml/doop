@@ -21,9 +21,9 @@ describe('readViewOptions / writeViewOptions', () => {
   })
 
   it('falls back field by field on a damaged value', () => {
-    localStorage.setItem('doop:view-options', '{"cursors":false,"comments":"no"}')
+    localStorage.setItem('diagramly:view-options', '{"cursors":false,"comments":"no"}')
     expect(readViewOptions()).toEqual({ pixelGrid: true, cursors: false, comments: true })
-    localStorage.setItem('doop:view-options', 'not json')
+    localStorage.setItem('diagramly:view-options', 'not json')
     expect(readViewOptions()).toEqual(DEFAULT_VIEW_OPTIONS)
   })
 })

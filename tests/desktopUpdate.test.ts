@@ -19,7 +19,7 @@ function stubShell(waiting: unknown = null) {
     return Promise.resolve(unlisten)
   })
   vi.stubGlobal('__TAURI__', { core: { invoke }, event: { listen } })
-  vi.stubGlobal('__DOOP_UPDATE_CARD__', true)
+  vi.stubGlobal('__DIAGRAMLY_UPDATE_CARD__', true)
   return { handlers, unlisten, calls, invoke, listen }
 }
 
@@ -78,7 +78,7 @@ it('asks the shell to install and restart', async () => {
 
 it('does nothing in a shell older than the card, or outside one', async () => {
   const shell = stubShell()
-  vi.stubGlobal('__DOOP_UPDATE_CARD__', undefined)
+  vi.stubGlobal('__DIAGRAMLY_UPDATE_CARD__', undefined)
   listenForUpdates(vi.fn())
   await restartToUpdate()
   vi.unstubAllGlobals()

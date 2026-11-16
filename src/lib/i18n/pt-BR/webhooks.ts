@@ -40,7 +40,7 @@ export const webhooks: Catalog['webhooks'] = {
   signingSecretRow: 'Segredo de assinatura',
   copyNow: 'Copie agora — ele é mostrado uma única vez. Use-o para verificar as entregas do seu lado.',
   signatureFormula:
-    'signature = “sha256=” + HMAC-SHA256(secret, X-Doop-Timestamp + “.” + raw body). A documentação tem uma verificação pronta.',
+    'signature = “sha256=” + HMAC-SHA256(secret, X-Diagramly-Timestamp + “.” + raw body). A documentação tem uma verificação pronta.',
 
   sendTest: 'Enviar teste',
   rotateSecret: 'Trocar segredo',

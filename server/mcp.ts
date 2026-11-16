@@ -57,7 +57,7 @@ import {
   fitExportScale,
   parseExportScale,
 } from '../shared/exportScale.ts'
-import { DOOP_GUIDE, GUIDE_TOPICS } from './guide.ts'
+import { DESIGN_GUIDE, GUIDE_TOPICS } from './guide.ts'
 import {
   describeInspiration,
   INSPIRATION_NO_MATCH_NOTE,
@@ -111,22 +111,22 @@ You MUST call get_guide({ topic: "doop-instructions" }) once before using other 
 
 - Context first: call get_canvas before adding or editing frames.
 - Implementation handoff: get_canvas and get_frame expose approvalStatus (draft, ready_for_dev, needs_review) and human approval attribution. Use get_canvas with approval_status="ready_for_dev" to find approved screens. Re-read get_frame before implementing; only ready_for_dev is current sign-off. HTML or size edits invalidate approval. Approval does not automatically start an implementation task; follow the human's implementation request.
-- Element links: /c/<canvas_id>?frame=<frame_id>&element=<element_id> identifies one element: the one carrying data-doop-id="<element_id>" in that frame's HTML. Read get_canvas and get_frame and find that attribute before applying the feedback. If no element carries the id any more, ask for an updated reference.
-- Keep data-doop-* attributes on every element you rewrite: data-doop-id is how comments and links point at an element, data-doop-on / data-doop-action carry prototype wiring, data-doop-locked a layer lock. Drop one only together with its element.
+- Element links: /c/<canvas_id>?frame=<frame_id>&element=<element_id> identifies one element: the one carrying data-diagramly-id="<element_id>" in that frame's HTML. Read get_canvas and get_frame and find that attribute before applying the feedback. If no element carries the id any more, ask for an updated reference.
+- Keep data-diagramly-* attributes on every element you rewrite: data-diagramly-id is how comments and links point at an element, data-diagramly-on / data-diagramly-action carry prototype wiring, data-diagramly-locked a layer lock. Drop one only together with its element.
 - Identity: pick an agent_name and reuse the SAME name on every call — your presence and edits are attributed live.
 - Narrate: call set_status with a one-line summary when you start a task and whenever your focus shifts — people watching the canvas see it live next to your name.
 - Creating: create_frame, then stream the design with append_frame_html one complete section at a time (~1–4 KB chunks; start=true on the first, done=true on the last). Each chunk renders the moment it arrives — viewers watch you work.
 - Review: after every create or significant edit you MUST call get_frame_screenshot and fix what looks wrong before moving on.
 - Small edits: edit_frame_html (exact find/replace — the change morphs into the rendered frame in place). Full redesigns: set_frame_html or a new stream. Rename/move/resize: update_frame.
-- Components: anything reusable lives as a component (get_canvas lists them). Use it by writing <doop-use component="Button" label="Buy"></doop-use> in frame HTML, never by redrawing it: instances follow their main and read back in that short form. Repeating a block? create_component, then use that. Change every instance at once with update_component (guide → Components).
-- Clickable prototypes: wire screens with data-doop-on / data-doop-action attributes in frame HTML (guide → Prototypes), set the flow start with set_prototype_start, and check the wiring with get_prototype.
+- Components: anything reusable lives as a component (get_canvas lists them). Use it by writing <diagramly-use component="Button" label="Buy"></diagramly-use> in frame HTML, never by redrawing it: instances follow their main and read back in that short form. Repeating a block? create_component, then use that. Change every instance at once with update_component (guide → Components).
+- Clickable prototypes: wire screens with data-diagramly-on / data-diagramly-action attributes in frame HTML (guide → Prototypes), set the flow start with set_prototype_start, and check the wiring with get_prototype.
 - History: every replace and stream files the design it overwrote. list_frame_versions shows a frame's earlier states; restore_frame_version brings one back (HTML and size) when a human asks for the previous version or your rework turned out worse.
 - Images: real imagery makes designs. search_images finds stock photos (you SEE thumbnails and pick), search_icons finds 200k+ UI icons as hotlinkable SVGs, search_logos finds real company logos by brand name or domain — call it once per brand BEFORE writing any logo wall, integration row, press bar or testimonial, and never ship a placeholder tile, "LOGO" text or an invented wordmark in its place, list_backgrounds shows a page of curated hero/section/bento backgrounds (glows, grainy meshes, aurora, painterly scenes) as thumbnails — browse it when a section wants atmosphere rather than defaulting to a flat CSS gradient, judge by eye whether one fits the frame, and draw your own when none does, upload_asset stores your own file (remote file → source_url; local file → local_file=true, returns a curl command) and returns a permanent URL. generate_image makes a new image from a prompt (a full-bleed hero background in the frame's exact palette, illustration, a product render, brand-specific hero art that stock cannot supply) and stores it as a permanent asset — reach for it when search_images cannot deliver the exact visual, or when the human asks for a generated image; it costs the human money or quota, so one considered prompt beats five drafts. Never inline images as data: URIs.
 - Websites: when a request names an existing site or URL — a redesign of it, or "like acme.com" — call import_webpage FIRST so an editable HTML snapshot lands on the canvas. Leave that source frame unchanged and design in a separate frame. view_website is only for read-only inspection when the page should not be added. If Doop cannot capture the site, do not retry with view_website because it uses the same capture path. Use your own browser or web tool and work only from content you actually observe; if that is unavailable, ask the user for screenshots or an HTML export rather than inventing content.
 ${extensionGuideLines()}- Feedback: humans reply to your tasks; their notes arrive inside your tool results as HUMAN FEEDBACK blocks (read-only tools only announce them: claim those with get_feedback) — address them before continuing.
 - Comments: call get_comments to read comments and replies on a canvas — pinned to an element inside a frame, or to a point on the canvas (pageId, x, y) — optionally filtered by frame; reply_to_comment answers a thread and resolve_comment closes it. Reading does not claim feedback or comments. A reply that @mentions a resident role is metered like a comment left in the browser.
 - Guidelines: canvases can carry named style guides (brand rules, style recipes). get_canvas lists them with one-line summaries — read the relevant ones with get_guidelines BEFORE designing and follow them.
-- Design tokens: canvases can carry typed design tokens (colour, spacing, radius, type scale — CSS custom properties), each with a value per theme (light, dark, …) where it differs. get_canvas lists them; use one by writing var(--name) in CSS, never the literal, so a token change restyles every frame; switch a frame's theme with data-doop-theme="dark" on its <html>. create_tokens adds them when a brief names a palette or scale; set_tokens changes, renames or deletes; set_token_themes declares the themes; get_tokens exports them as JSON, CSS or a Tailwind @theme block.
+- Design tokens: canvases can carry typed design tokens (colour, spacing, radius, type scale — CSS custom properties), each with a value per theme (light, dark, …) where it differs. get_canvas lists them; use one by writing var(--name) in CSS, never the literal, so a token change restyles every frame; switch a frame's theme with data-diagramly-theme="dark" on its <html>. create_tokens adds them when a brief names a palette or scale; set_tokens changes, renames or deletes; set_token_themes declares the themes; get_tokens exports them as JSON, CSS or a Tailwind @theme block.
 - Memory: canvases can also carry pinned style references — exemplar designs humans marked as "more like this". get_canvas lists them; read the relevant one with get_reference and match its look. When your human gives you design feedback in conversation and you address it, record it with save_decision so the canvas remembers their taste.
 - Problems with Doop itself: when a Doop tool errors, misbehaves or lacks something you need, or the guide leaves you guessing, call report_issue with what you tried and what happened, then carry on. Ideas for making Doop better for agents, or something that worked well, go to share_feedback. Both reach the Doop team, not the humans on the canvas.`
 
@@ -434,7 +434,7 @@ export function buildMcpServer(
   const arrive = (canvasId: string, agent_name?: string) => {
     actions.heartbeatAgent(canvasId, actorFrom(agent_name))
   }
-  const diagramly = env.DOOP_PRODUCT === 'diagramly'
+  const diagramly = env.DIAGRAMLY_PRODUCT === 'diagramly'
   const server = new McpServer(
     { name: diagramly ? 'diagramly-canvas' : 'doop-canvas', version: packageJson.version },
     { instructions: diagramly ? DIAGRAMLY_INSTRUCTIONS : INSTRUCTIONS },
@@ -454,7 +454,7 @@ export function buildMcpServer(
         topic: z.enum([...GUIDE_TOPICS, 'diagramly-instructions']).describe('Guide topic to load'),
       },
     },
-    async ({ topic }) => text(diagramly || topic === 'diagramly-instructions' ? DIAGRAMLY_GUIDE : DOOP_GUIDE),
+    async ({ topic }) => text(diagramly || topic === 'diagramly-instructions' ? DIAGRAMLY_GUIDE : DESIGN_GUIDE),
   )
 
   server.registerTool(
@@ -639,7 +639,7 @@ export function buildMcpServer(
           : []),
         ...(c.components?.length
           ? [
-              'This canvas has components. Anything they cover goes in through <doop-use> as shown in each entry’s usage, never redrawn by hand.',
+              'This canvas has components. Anything they cover goes in through <diagramly-use> as shown in each entry’s usage, never redrawn by hand.',
             ]
           : []),
       ]
@@ -921,7 +921,7 @@ export function buildMcpServer(
     {
       title: 'Set the design token themes',
       description:
-        'Replace the canvas\'s token themes (light, dark, compact, …) and their order. A token carries a value per theme where it differs from its default (set them with create_tokens / set_tokens `themes`); a frame switches theme with data-doop-theme="<theme>" on its <html>, or on one subtree. A theme that leaves the list takes its values with it.',
+        'Replace the canvas\'s token themes (light, dark, compact, …) and their order. A token carries a value per theme where it differs from its default (set them with create_tokens / set_tokens `themes`); a frame switches theme with data-diagramly-theme="<theme>" on its <html>, or on one subtree. A theme that leaves the list takes its values with it.',
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
       inputSchema: {
         canvas_id: z.string(),
@@ -1057,7 +1057,7 @@ export function buildMcpServer(
     {
       title: 'Read comments',
       description:
-        'Read comments and replies on a canvas, newest first, including author, text, parentId thread links, and claim/failure/resolution metadata. An element comment carries its frameId, its elementId (the data-doop-id attribute of the element in the frame HTML) and an HTML snippet from when it was left; a comment on a frame as a whole has no elementId and x, y (design px from the frame top-left) where it was left; a canvas comment is pinned to a point on the canvas instead and carries pageId, x and y (world coordinates) with no frame. Includes resolved comments by default so complete conversations remain readable; set include_resolved to false for unresolved comments only. Returns the retained comment history (up to 100 entries per canvas), not an archive. Reading does not claim feedback or comments, or mark them resolved.',
+        'Read comments and replies on a canvas, newest first, including author, text, parentId thread links, and claim/failure/resolution metadata. An element comment carries its frameId, its elementId (the data-diagramly-id attribute of the element in the frame HTML) and an HTML snippet from when it was left; a comment on a frame as a whole has no elementId and x, y (design px from the frame top-left) where it was left; a canvas comment is pinned to a point on the canvas instead and carries pageId, x and y (world coordinates) with no frame. Includes resolved comments by default so complete conversations remain readable; set include_resolved to false for unresolved comments only. Returns the retained comment history (up to 100 entries per canvas), not an archive. Reading does not claim feedback or comments, or mark them resolved.',
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       inputSchema: {
         canvas_id: z.string(),
@@ -1367,7 +1367,7 @@ export function buildMcpServer(
     {
       title: 'Read a canvas prototype',
       description:
-        'List the clickable-prototype wiring of a canvas: each page with its flow start frame, and every interaction with its trigger, action and target. Interactions are attributes on the triggering element in frame HTML, written with edit_frame_html: data-doop-on (click | hover | press | delay:<ms> | key:<Key>) and data-doop-action (navigate:<frameId> | back | overlay:<frameId> | close-overlay | scroll-to:<selector> | url:<https url>), optionally data-doop-transition and data-doop-duration; the guide\'s "Prototypes" section has the full syntax. Interactions whose target frame does not exist are flagged with a problem; fix them with edit_frame_html.',
+        'List the clickable-prototype wiring of a canvas: each page with its flow start frame, and every interaction with its trigger, action and target. Interactions are attributes on the triggering element in frame HTML, written with edit_frame_html: data-diagramly-on (click | hover | press | delay:<ms> | key:<Key>) and data-diagramly-action (navigate:<frameId> | back | overlay:<frameId> | close-overlay | scroll-to:<selector> | url:<https url>), optionally data-diagramly-transition and data-diagramly-duration; the guide\'s "Prototypes" section has the full syntax. Interactions whose target frame does not exist are flagged with a problem; fix them with edit_frame_html.',
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       inputSchema: { canvas_id: z.string(), agent_name: agentName },
     },
@@ -1540,7 +1540,7 @@ export function buildMcpServer(
          has no card either). The review screenshot after the stream is the
          first card the person sees. */
       description:
-        'Create a new frame on a canvas with an HTML design. A frame is a rectangular artboard that renders a full HTML document (no external network access needed). Put the styles of an element in its style attribute; a <style> block is for what an attribute cannot say (keyframes, states, pseudo-elements, media queries, the reset), and <script> is allowed. If x/y are omitted the frame is auto-placed to the right of existing frames. Everyone viewing the canvas sees it appear live. Use <doop-use> for anything get_canvas lists under components.',
+        'Create a new frame on a canvas with an HTML design. A frame is a rectangular artboard that renders a full HTML document (no external network access needed). Put the styles of an element in its style attribute; a <style> block is for what an attribute cannot say (keyframes, states, pseudo-elements, media queries, the reset), and <script> is allowed. If x/y are omitted the frame is auto-placed to the right of existing frames. Everyone viewing the canvas sees it appear live. Use <diagramly-use> for anything get_canvas lists under components.',
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
       inputSchema: {
         canvas_id: z.string(),
@@ -1584,7 +1584,7 @@ export function buildMcpServer(
     {
       title: 'Get a frame and its HTML',
       description:
-        'Get a frame including its HTML. Component instances come back as <doop-use> (see the Components section of the guide), and `instances` lists each with its id, props and overridden parts. Write them back the same way.',
+        'Get a frame including its HTML. Component instances come back as <diagramly-use> (see the Components section of the guide), and `instances` lists each with its id, props and overridden parts. Write them back the same way.',
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       inputSchema: {
         frame_id: z.string(),
@@ -1619,7 +1619,7 @@ export function buildMcpServer(
       title: 'Replace a frame’s HTML',
       _meta: previewToolMeta('Redesigning the frame…', 'Frame redesigned'),
       description:
-        'Replace the HTML design of a frame in one shot. The change renders live for everyone viewing the canvas. For new or heavily reworked designs, prefer append_frame_html so viewers can watch the design stream in. Keep data-doop-* attributes on elements you carry over: comments and links point at data-doop-id, prototype wiring and locks ride on the others.',
+        'Replace the HTML design of a frame in one shot. The change renders live for everyone viewing the canvas. For new or heavily reworked designs, prefer append_frame_html so viewers can watch the design stream in. Keep data-diagramly-* attributes on elements you carry over: comments and links point at data-diagramly-id, prototype wiring and locks ride on the others.',
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
       inputSchema: { frame_id: z.string(), html: z.string(), agent_name: agentName },
     },
@@ -2318,7 +2318,7 @@ export function buildMcpServer(
     {
       title: 'Stream HTML into a frame',
       description:
-        'Stream a design into a frame section by section — every chunk renders for viewers the moment it arrives, so they watch the design build up live. Prefer this over set_frame_html when creating or reworking a whole design. Send the HTML in document order, ONE complete section per call (head+styles first, then the hero, then each following section), roughly 1–4 KB per chunk. Set start=true on the FIRST chunk (replaces any existing content and shows a live "designing…" badge) and done=true on the LAST chunk. End chunks at element boundaries — partial HTML is healed, but a complete section paints cleanly. When reworking, keep data-doop-* attributes on elements you carry over (comments and links point at data-doop-id).',
+        'Stream a design into a frame section by section — every chunk renders for viewers the moment it arrives, so they watch the design build up live. Prefer this over set_frame_html when creating or reworking a whole design. Send the HTML in document order, ONE complete section per call (head+styles first, then the hero, then each following section), roughly 1–4 KB per chunk. Set start=true on the FIRST chunk (replaces any existing content and shows a live "designing…" badge) and done=true on the LAST chunk. End chunks at element boundaries — partial HTML is healed, but a complete section paints cleanly. When reworking, keep data-diagramly-* attributes on elements you carry over (comments and links point at data-diagramly-id).',
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
       inputSchema: {
         frame_id: z.string(),
@@ -2362,7 +2362,7 @@ export function buildMcpServer(
       title: 'Edit a frame’s HTML in place',
       _meta: previewToolMeta('Editing the frame…', 'Frame edited'),
       description:
-        'Make a targeted edit to a frame: exact find-and-replace in its HTML, as get_frame returned it (a <doop-use> can be edited like any tag). Use this for small tweaks (copy, a color, spacing, one element) instead of resending the whole document — the change morphs into the rendered frame in place. old_str must appear EXACTLY ONCE in the current HTML (call get_frame first if unsure); include enough surrounding context to make it unique. Keep data-doop-* attributes on the element you edit: comments and links point at its data-doop-id.',
+        'Make a targeted edit to a frame: exact find-and-replace in its HTML, as get_frame returned it (a <diagramly-use> can be edited like any tag). Use this for small tweaks (copy, a color, spacing, one element) instead of resending the whole document — the change morphs into the rendered frame in place. old_str must appear EXACTLY ONCE in the current HTML (call get_frame first if unsure); include enough surrounding context to make it unique. Keep data-diagramly-* attributes on the element you edit: comments and links point at its data-diagramly-id.',
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
       inputSchema: {
         frame_id: z.string(),

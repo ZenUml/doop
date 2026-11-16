@@ -45,7 +45,7 @@ export function ClaudeDesktopInstall({ mcpUrl }: { mcpUrl: string }) {
           {t('workspace.downloadExtension')}
         </Button>
       ) : (
-        <a className="underline underline-offset-2" href="/claude-extension/doop.mcpb" download="doop.mcpb">
+        <a className="underline underline-offset-2" href="/claude-extension/diagramly.mcpb" download="diagramly.mcpb">
           {t('workspace.downloadExtension')}
         </a>
       )}

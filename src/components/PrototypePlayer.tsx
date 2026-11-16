@@ -63,7 +63,7 @@ const OVERLAY_FIT = 0.94
 /**
  * The prototype player: the frame fills the viewport (letterboxed, scaled to
  * fit) and its interactions run. Each frame's runtime reports triggers as
- * `doop:proto-action`; the player keeps the history stack, the overlays and
+ * `diagramly:proto-action`; the player keeps the history stack, the overlays and
  * the transitions, which animate two stacked iframes. Frames stay live: an
  * edit streaming into one re-renders here as it does on the canvas.
  *
@@ -342,7 +342,7 @@ export function PrototypePlayer({
       if (e.key === 'Escape') return handlers.current.escape()
       if (e.repeat || e.metaKey || e.ctrlKey) return
       const win = handlers.current.topWindow()
-      win?.postMessage({ type: 'doop:proto-key', key: e.key, reqId: `key-${e.timeStamp}` }, '*')
+      win?.postMessage({ type: 'diagramly:proto-key', key: e.key, reqId: `key-${e.timeStamp}` }, '*')
     }
     const onUp = () => handlers.current.release()
     window.addEventListener('keydown', onKey, true)
@@ -377,7 +377,7 @@ export function PrototypePlayer({
   )
 
   function flashHotspots() {
-    for (const win of windows.current.values()) win.postMessage({ type: 'doop:proto-hotspots' }, '*')
+    for (const win of windows.current.values()) win.postMessage({ type: 'diagramly:proto-hotspots' }, '*')
   }
 
   const current = stack.at(-1)!
@@ -414,12 +414,12 @@ export function PrototypePlayer({
     onMessage: (data: { type?: string; interaction?: unknown; press?: boolean }) => {
       /* a covered screen is switched off, but an action it sent before the
          switch reached it must not act over the screen on top */
-      if (data.type === 'doop:proto-action') {
+      if (data.type === 'diagramly:proto-action') {
         if (topEntry()?.key === entry.key) run(data.interaction, !!data.press)
-      } else if (data.type === 'doop:proto-release') release()
+      } else if (data.type === 'diagramly:proto-release') release()
       /* Escape with the focus in a screen: the same overlay-first path as a
          key pressed on the player itself */
-      else if (data.type === 'doop:esc') escape()
+      else if (data.type === 'diagramly:esc') escape()
     },
   })
 
@@ -617,7 +617,7 @@ function askKey(win: Window, key: string): Promise<boolean> {
     const timer = window.setTimeout(() => done(false), KEY_REPLY_MS)
     function onMsg(ev: MessageEvent) {
       const data = ev.data as { type?: string; reqId?: string; handled?: boolean } | null
-      if (ev.source === win && data?.type === 'doop:proto-key-result' && data.reqId === reqId) done(!!data.handled)
+      if (ev.source === win && data?.type === 'diagramly:proto-key-result' && data.reqId === reqId) done(!!data.handled)
     }
     function done(handled: boolean) {
       window.clearTimeout(timer)
@@ -625,7 +625,7 @@ function askKey(win: Window, key: string): Promise<boolean> {
       resolve(handled)
     }
     window.addEventListener('message', onMsg)
-    win.postMessage({ type: 'doop:proto-key', key, reqId }, '*')
+    win.postMessage({ type: 'diagramly:proto-key', key, reqId }, '*')
   })
 }
 
@@ -661,7 +661,7 @@ function ProtoScreen({
     latest.current = { onReady, onMessage, register, takeFocus }
   })
 
-  /* the `doop:proto` switch this screen is waiting on, when its reply is
+  /* the `diagramly:proto` switch this screen is waiting on, when its reply is
      also the moment the screen should take the focus */
   const focusOnSwitch = useRef<string | null>(null)
   useEffect(() => {
@@ -672,15 +672,15 @@ function ProtoScreen({
       if (!win || ev.source !== win) return
       const data = ev.data as { type?: string; reqId?: string } | null
       if (!data?.type) return
-      if (data.type === 'doop:frame-ready') {
+      if (data.type === 'diagramly:frame-ready') {
         latest.current.register(key, win)
         setBooted(true)
-      } else if (data.type === 'doop:html-result') {
+      } else if (data.type === 'diagramly:html-result') {
         if (!first) return
         first = false
         setShown(true)
         latest.current.onReady(key)
-      } else if (data.type === 'doop:proto-result') {
+      } else if (data.type === 'diagramly:proto-result') {
         if (data.reqId === focusOnSwitch.current) {
           focusOnSwitch.current = null
           iframeRef.current?.focus()
@@ -696,7 +696,7 @@ function ProtoScreen({
 
   const html = frame?.html ?? ''
   useEffect(() => {
-    if (booted) iframeRef.current?.contentWindow?.postMessage({ type: 'doop:html', html, reqId: 'proto' }, '*')
+    if (booted) iframeRef.current?.contentWindow?.postMessage({ type: 'diagramly:html', html, reqId: 'proto' }, '*')
   }, [booted, html])
 
   useEffect(() => {
@@ -712,7 +712,7 @@ function ProtoScreen({
     const focused = document.activeElement
     const takesFocus = interactive && ((screenHasFocus() && focused !== iframe) || latest.current.takeFocus())
     focusOnSwitch.current = takesFocus ? reqId : null
-    iframe.contentWindow?.postMessage({ type: 'doop:proto', on: interactive, reqId }, '*')
+    iframe.contentWindow?.postMessage({ type: 'diagramly:proto', on: interactive, reqId }, '*')
   }, [shown, interactive])
 
   if (!frame || !layout) return <div className="text-body text-code-ink/70">{t('panels.protoDeleted')}</div>
@@ -725,7 +725,7 @@ function ProtoScreen({
         ref={iframeRef}
         className="block border-none bg-white"
         title={frame.name}
-        data-doop-proto-frame={frame.id}
+        data-diagramly-proto-frame={frame.id}
         sandbox="allow-scripts"
         srcDoc={FRAME_BOOTSTRAP}
         style={{ width, height, transform: `scale(${scale})`, transformOrigin: '0 0' }}

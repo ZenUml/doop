@@ -94,7 +94,7 @@ describe.skipIf(!findBrowserPath())('Diagramly cloud UI with a fixture cloud (no
     local = await startServer({
       PORT: String(port),
       BETTER_AUTH_URL: web.origin,
-      DOOP_PRODUCT: 'diagramly',
+      DIAGRAMLY_PRODUCT: 'diagramly',
       DIAGRAMLY_ORIGIN: cloudOrigin,
     })
   }, 60_000)
@@ -168,7 +168,7 @@ describe.skipIf(!findBrowserPath())('Diagramly cloud UI with a fixture cloud (no
     })
     await page.reload()
     await page.locator('button::-p-text(Flowchart)').click()
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
     const savedDocument = await page.evaluate(async () => {
       const list = (await (await fetch('/api/canvases')).json()) as { id: string }[]
       const saved = (await (await fetch(`/api/canvases/${list[0]!.id}`)).json()) as {
@@ -248,7 +248,7 @@ describe.skipIf(!findBrowserPath())('Diagramly cloud UI with a fixture cloud (no
       )
       expect(retained).toBe(saved.html)
       await page.goto(`${web.origin}/c/${saved.id}`)
-      await page.waitForSelector('iframe[data-doop-frame]')
+      await page.waitForSelector('iframe[data-diagramly-frame]')
     },
     40_000,
   )

@@ -2,12 +2,12 @@ import { productCopy } from './product'
 import { canUsePublicMcpEndpoint } from './mcpConnection'
 
 type ClaudeExtensionBridge = {
-  __DOOP_CLAUDE_EXTENSION__?: boolean
+  __DIAGRAMLY_CLAUDE_EXTENSION__?: boolean
   __TAURI__?: { core: { invoke: (command: string, args: Record<string, unknown>) => Promise<void> } }
 }
 
 const bridge = globalThis as ClaudeExtensionBridge
-export const canAddToClaudeDesktop = () => bridge.__DOOP_CLAUDE_EXTENSION__ === true && !!bridge.__TAURI__?.core
+export const canAddToClaudeDesktop = () => bridge.__DIAGRAMLY_CLAUDE_EXTENSION__ === true && !!bridge.__TAURI__?.core
 
 /** Claude's cloud must be able to reach this URL. Don't offer a broken install
  * link for localhost, private IPs or the usual internal-only hostnames. */
@@ -22,7 +22,7 @@ export function claudeConnectorInstallUrl(mcpUrl: string): string | null {
 
 export async function addToClaudeDesktop(mcpUrl: string): Promise<void> {
   if (!canAddToClaudeDesktop()) throw new Error(productCopy('Update the Doop desktop app to add Claude directly.'))
-  const response = await fetch('/claude-extension/doop.mcpb')
+  const response = await fetch('/claude-extension/diagramly.mcpb')
   if (!response.ok) throw new Error('Could not prepare the Claude connection. Please try again.')
   const { default: JSZip } = await import('jszip')
   const bundle = await JSZip.loadAsync(await response.arrayBuffer())

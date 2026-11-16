@@ -11,7 +11,7 @@ export interface ExportSettings {
 
 /* Per browser, like the panel layout: someone who exports 3x posters
    wants 3x next time, on every canvas. */
-export const EXPORT_SETTINGS_STORAGE_KEY = 'doop:export-settings'
+export const EXPORT_SETTINGS_STORAGE_KEY = 'diagramly:export-settings'
 
 const DEFAULTS: ExportSettings = { scale: DEFAULT_EXPORT_SCALE, format: 'png' }
 

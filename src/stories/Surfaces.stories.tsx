@@ -223,8 +223,8 @@ export const Loading: Story = {
 export const Code: Story = {
   render: () => (
     <div className="flex max-w-[520px] flex-col gap-3">
-      <CodeBlock text="claude mcp add --transport http doop https://doop.design/mcp" />
-      <CodeBlock density="rail" text="claude mcp add --transport http doop https://doop.design/mcp" />
+      <CodeBlock text="claude mcp add --transport http diagramly https://doop.design/mcp" />
+      <CodeBlock density="rail" text="claude mcp add --transport http diagramly https://doop.design/mcp" />
     </div>
   ),
 }

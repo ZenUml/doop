@@ -18,7 +18,7 @@ afterEach(() => {
 })
 it('permits pilot tasks without spending free credits and keeps other users metered', async () => {
   stubEnv(
-    'DOOP_GEMINI_CLOUD_WORKERS',
+    'DIAGRAMLY_GEMINI_CLOUD_WORKERS',
     JSON.stringify({ alice: { url: 'https://worker.example', token: 'x'.repeat(32) } }),
   )
   expect(await consumeResidentTask('alice')).toMatchObject({

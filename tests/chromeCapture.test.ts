@@ -24,7 +24,7 @@ function capture(markup: string, width = 1200, height = 900) {
     return toolbar
   })
   const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue(undefined)
-  const captureWindow: { __doopCapture?: (mode: string) => void; __doopCaptureCleanup?: () => void } = {}
+  const captureWindow: { __diagramlyCapture?: (mode: string) => void; __diagramlyCaptureCleanup?: () => void } = {}
   const properties = ['color', '-webkit-user-modify', 'user-select']
   const values: Record<string, string> = {
     color: 'rgb(255, 0, 0)',
@@ -48,11 +48,11 @@ function capture(markup: string, width = 1200, height = 900) {
         getPropertyValue: (property: string) => values[property],
       }),
   })
-  captureWindow.__doopCapture!('page')
+  captureWindow.__diagramlyCapture!('page')
   const status = toolbar!.querySelector('span')!
   const button = status.querySelector('button')
   button?.click()
-  captureWindow.__doopCaptureCleanup!()
+  captureWindow.__diagramlyCaptureCleanup!()
   return { status: status.textContent, writeText }
 }
 

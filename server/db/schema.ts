@@ -224,7 +224,7 @@ export const frameVersions = pgTable(
 )
 
 /** Design-sync keys: the write-only capability behind the /ingest endpoint.
- *  An app embeds the doop-sync snippet with a key's secret, and its live
+ *  An app embeds the diagramly-sync snippet with a key's secret, and its live
  *  screens land on ONE canvas as frames — the secret grants no reads and no
  *  other writes, so shipping it in an internal app's bundle is safe. `id` is
  *  the public handle (stamped into synced frame HTML to match page → frame);
@@ -394,7 +394,7 @@ export const comments = pgTable(
   {
     id: text('id').primaryKey(),
     canvasId: text('canvas_id').notNull(),
-    /* element comment: the frame + the element's data-doop-id + snippet;
+    /* element comment: the frame + the element's data-diagramly-id + snippet;
        frame comment: the frame and a design point; canvas comment: no frame,
        a page and a world point instead. `selector` is the positional CSS path
        comments were anchored by before element ids: read once at boot to

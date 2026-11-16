@@ -88,7 +88,7 @@ describe('moving drawings between frames and canvas', () => {
   it('converts a standalone circle to a frame layer at the drop coordinates, as one undo step', async () => {
     await moveDrawing(shape, undefined, rect, base.id)
     expect(frames()).toHaveLength(1)
-    const el = parse(frames()[0]!.html).querySelector<HTMLElement>('[data-doop-drawing]')!
+    const el = parse(frames()[0]!.html).querySelector<HTMLElement>('[data-diagramly-drawing]')!
     expect(el.style.left).toBe('30px')
     expect(el.style.top).toBe('60px')
     expect(el.style.width).toBe('80px')
@@ -100,7 +100,7 @@ describe('moving drawings between frames and canvas', () => {
     expect(frames()[1]).toMatchObject({ x: 0, y: 0, width: 80, height: 80, html: shape.html })
     await redo()
     expect(frames()).toHaveLength(1)
-    expect(frames()[0]!.html).toContain('data-doop-drawing="circle"')
+    expect(frames()[0]!.html).toContain('data-diagramly-drawing="circle"')
     expect([...db.values()]).toHaveLength(1)
   })
 
@@ -109,7 +109,7 @@ describe('moving drawings between frames and canvas', () => {
       ...shape,
       id: 'lifted',
       name: 'h1',
-      html: '<!doctype html>\n<html style="width:100%;height:100%"><head><style data-doop-carried="">[data-doop-carried-scope="old"] { --ink: red; }\n:is([data-doop-carried-scope="old"], [data-doop-carried-scope="old"] *):is(#title) { color: var(--ink); }</style></head><body data-doop-canvas-element="true" style="margin:0"><h1 id="title" data-doop-carried-scope="old" style="position:absolute;left:0;top:0;width:100%;height:100%;margin:0">Hi</h1></body></html>',
+      html: '<!doctype html>\n<html style="width:100%;height:100%"><head><style data-diagramly-carried="">[data-diagramly-carried-scope="old"] { --ink: red; }\n:is([data-diagramly-carried-scope="old"], [data-diagramly-carried-scope="old"] *):is(#title) { color: var(--ink); }</style></head><body data-diagramly-canvas-element="true" style="margin:0"><h1 id="title" data-diagramly-carried-scope="old" style="position:absolute;left:0;top:0;width:100%;height:100%;margin:0">Hi</h1></body></html>',
     }
     db.set(lifted.id, { ...lifted })
     useStore.getState().upsertFrame({ ...lifted })
@@ -120,12 +120,12 @@ describe('moving drawings between frames and canvas', () => {
     expect(el.style.position).toBe('fixed')
     expect(el.style.left).toBe('30px')
     expect(el.style.width).toBe('80px')
-    const scope = el.getAttribute('data-doop-carried-scope')!
+    const scope = el.getAttribute('data-diagramly-carried-scope')!
     expect(scope).not.toBe('old')
-    const carried = doc.querySelector('style[data-doop-carried]')!.textContent!
-    expect(carried).toContain(`[data-doop-carried-scope="${scope}"] {\n  --ink: red;`)
+    const carried = doc.querySelector('style[data-diagramly-carried]')!.textContent!
+    expect(carried).toContain(`[data-diagramly-carried-scope="${scope}"] {\n  --ink: red;`)
     expect(carried).toContain(
-      `:is([data-doop-carried-scope="${scope}"], [data-doop-carried-scope="${scope}"] *):is(#title) {`,
+      `:is([data-diagramly-carried-scope="${scope}"], [data-diagramly-carried-scope="${scope}"] *):is(#title) {`,
     )
     /* the old scope as a value: a fresh random scope may contain the letters */
     expect(carried).not.toContain('"old"')
@@ -137,7 +137,7 @@ describe('moving drawings between frames and canvas', () => {
       ...shape,
       id: 'lifted',
       name: 'h1',
-      html: '<!doctype html>\n<html><head><style data-doop-carried="">:is([data-doop-carried-scope="old"], [data-doop-carried-scope="old"] *):is(#title) { color: red; }</style></head><body data-doop-canvas-element="true" style="margin:0"><h1 id="title" data-doop-carried-scope="old" style="position:absolute;left:0;top:0;width:100%;height:100%;margin:0">Hi</h1></body></html>',
+      html: '<!doctype html>\n<html><head><style data-diagramly-carried="">:is([data-diagramly-carried-scope="old"], [data-diagramly-carried-scope="old"] *):is(#title) { color: red; }</style></head><body data-diagramly-canvas-element="true" style="margin:0"><h1 id="title" data-diagramly-carried-scope="old" style="position:absolute;left:0;top:0;width:100%;height:100%;margin:0">Hi</h1></body></html>',
     }
     const taken: Frame = {
       ...base,
@@ -154,7 +154,7 @@ describe('moving drawings between frames and canvas', () => {
     expect(doc.querySelectorAll('#title')).toHaveLength(1)
     expect(doc.querySelector('b#title')).not.toBeNull()
     expect(doc.querySelector('h1#title-copy')).not.toBeNull()
-    expect(doc.querySelector('style[data-doop-carried]')!.textContent).toContain(':is(#title-copy) {')
+    expect(doc.querySelector('style[data-diagramly-carried]')!.textContent).toContain(':is(#title-copy) {')
   })
 
   it('preserves SVG curves and edited styles through frame-to-frame moves and detaching', async () => {
@@ -196,10 +196,10 @@ describe('moving drawings between frames and canvas', () => {
   it('repositions an existing layer within its own frame without duplicating it', async () => {
     await moveDrawing(shape, undefined, rect, base.id)
     const source = frames()[0]!
-    const id = parse(source.html).querySelector('[data-doop-drawing]')!.id
+    const id = parse(source.html).querySelector('[data-diagramly-drawing]')!.id
     await moveDrawing(source, `#${id}`, { ...rect, x: 260 }, source.id)
     const doc = parse(frames()[0]!.html)
-    expect(doc.querySelectorAll('[data-doop-drawing]')).toHaveLength(1)
+    expect(doc.querySelectorAll('[data-diagramly-drawing]')).toHaveLength(1)
     expect(doc.querySelector<HTMLElement>(`#${id}`)!.style.left).toBe('60px')
     await undo()
     expect(frames()[0]!.html).toBe(source.html)
@@ -218,7 +218,7 @@ describe('moving drawings between frames and canvas', () => {
     expect(
       movableDrawing({
         ...shape,
-        html: shape.html.replace('data-doop-drawing=', 'data-doop-locked="true" data-doop-drawing='),
+        html: shape.html.replace('data-diagramly-drawing=', 'data-diagramly-locked="true" data-diagramly-drawing='),
       }),
     ).toBeNull()
   })
@@ -253,7 +253,7 @@ describe('moving drawings between frames and canvas', () => {
     vi.mocked(api.createFrame).mockRejectedValueOnce(new Error('Offline'))
     await undo()
     expect(frames()).toHaveLength(1)
-    expect(frames()[0]!.html).toContain('data-doop-drawing')
+    expect(frames()[0]!.html).toContain('data-diagramly-drawing')
     await undo()
     expect(frames()).toHaveLength(2)
     expect(frames()[0]!.html).toBe(base.html)
@@ -269,7 +269,7 @@ describe('moving drawings between frames and canvas', () => {
     })
     await moveDrawing(shape, undefined, rect, base.id)
     expect(frames()[0]!.html).toContain('Remote edit')
-    expect(frames()[0]!.html).not.toContain('data-doop-drawing')
+    expect(frames()[0]!.html).not.toContain('data-diagramly-drawing')
     expect(frames()).toHaveLength(2)
   })
 
@@ -289,10 +289,10 @@ describe('moving drawings between frames and canvas', () => {
     expect(api.updateFrame).toHaveBeenCalledTimes(1)
     release()
     await Promise.all([creating, moving])
-    expect(parse(frames()[0]!.html).querySelectorAll('[data-doop-drawing]')).toHaveLength(2)
+    expect(parse(frames()[0]!.html).querySelectorAll('[data-diagramly-drawing]')).toHaveLength(2)
     await undo()
-    expect(frames()[0]!.html).toContain('data-doop-drawing="rectangle"')
-    expect(frames()[0]!.html).not.toContain('data-doop-drawing="circle"')
+    expect(frames()[0]!.html).toContain('data-diagramly-drawing="rectangle"')
+    expect(frames()[0]!.html).not.toContain('data-diagramly-drawing="circle"')
   })
 
   it.each([{ html: '<p>Later work</p>' }, { name: 'Renamed copy' }, { x: 999, width: 160 }, { pageId: 'second' }])(
@@ -300,7 +300,7 @@ describe('moving drawings between frames and canvas', () => {
     async (patch) => {
       await moveDrawing(shape, undefined, rect, base.id)
       const source = frames()[0]!
-      const selector = `#${parse(source.html).querySelector('[data-doop-drawing]')!.id}`
+      const selector = `#${parse(source.html).querySelector('[data-diagramly-drawing]')!.id}`
       vi.mocked(api.deleteFrame).mockClear()
       vi.mocked(api.updateFrame).mockImplementationOnce(async () => {
         const copy = frames().find((f) => f.id !== source.id)!
@@ -321,7 +321,7 @@ describe('moving drawings between frames and canvas', () => {
   it('checks the original canvas before rolling back a detached copy after navigation', async () => {
     await moveDrawing(shape, undefined, rect, base.id)
     const source = frames()[0]!
-    const selector = `#${parse(source.html).querySelector('[data-doop-drawing]')!.id}`
+    const selector = `#${parse(source.html).querySelector('[data-diagramly-drawing]')!.id}`
     const canvas = useStore.getState().canvas!
     vi.mocked(api.deleteFrame).mockClear()
     vi.mocked(api.getCanvas).mockImplementation(async () => ({ ...canvas, frames: [...db.values()] }))
@@ -341,7 +341,7 @@ describe('moving drawings between frames and canvas', () => {
   it('still removes an unchanged detached copy when its source save fails', async () => {
     await moveDrawing(shape, undefined, rect, base.id)
     const source = frames()[0]!
-    const selector = `#${parse(source.html).querySelector('[data-doop-drawing]')!.id}`
+    const selector = `#${parse(source.html).querySelector('[data-diagramly-drawing]')!.id}`
     vi.mocked(api.deleteFrame).mockClear()
     vi.mocked(api.updateFrame).mockRejectedValueOnce(new Error('Source save failed'))
     await moveDrawing(source, selector, { ...rect, x: -100 })
@@ -387,7 +387,7 @@ describe('moving drawings between frames and canvas', () => {
   it('keeps unseen edits to an embedded source when its removal conflicts', async () => {
     await moveDrawing(shape, undefined, rect, base.id)
     const source = frames()[0]!
-    const selector = `#${parse(source.html).querySelector('[data-doop-drawing]')!.id}`
+    const selector = `#${parse(source.html).querySelector('[data-diagramly-drawing]')!.id}`
     const remote = { ...source, html: source.html + '<p>Remote work</p>', updatedAt: source.updatedAt + 1 }
     db.set(source.id, remote)
     await moveDrawing(source, selector, { ...rect, x: -100 })
@@ -418,7 +418,7 @@ describe('moving drawings between frames and canvas', () => {
     await moveDrawing(shape, undefined, rect, base.id)
     clearHistory()
     const source = frames()[0]!
-    const selector = `#${parse(source.html).querySelector('[data-doop-drawing]')!.id}`
+    const selector = `#${parse(source.html).querySelector('[data-diagramly-drawing]')!.id}`
     const update = vi.mocked(api.updateFrame).getMockImplementation()!
     let remote!: Frame
     vi.mocked(api.updateFrame).mockImplementationOnce(async (...args) => {
@@ -438,7 +438,7 @@ describe('moving drawings between frames and canvas', () => {
   it('rejects a stale same-frame drawing move', async () => {
     await moveDrawing(shape, undefined, rect, base.id)
     const source = frames()[0]!
-    const selector = `#${parse(source.html).querySelector('[data-doop-drawing]')!.id}`
+    const selector = `#${parse(source.html).querySelector('[data-diagramly-drawing]')!.id}`
     const remote = { ...source, html: source.html + '<p>Remote work</p>', updatedAt: source.updatedAt + 1 }
     db.set(source.id, remote)
     await moveDrawing(source, selector, { ...rect, x: 260 }, source.id)

@@ -1,7 +1,7 @@
 ;(() => {
-  if (window.__doopCapture) return
-  window.__doopCapture = (mode) => {
-    window.__doopCaptureCleanup?.()
+  if (window.__diagramlyCapture) return
+  window.__diagramlyCapture = (mode) => {
+    window.__diagramlyCaptureCleanup?.()
     const host = document.createElement('div')
     host.style.cssText = 'position:fixed;inset:0;z-index:2147483647;pointer-events:none'
     const shadow = host.attachShadow({ mode: 'closed' })
@@ -17,7 +17,7 @@
       document.removeEventListener('click', click, true)
       document.removeEventListener('keydown', key, true)
     }
-    window.__doopCaptureCleanup = cleanup
+    window.__diagramlyCaptureCleanup = cleanup
     shadow.querySelector('button').onclick = cleanup
     const move = (event) => {
       if (event.target === host) return
@@ -125,7 +125,7 @@
         if (new TextEncoder().encode(html).length > 3000000)
           throw new Error('Capture exceeds 3 MB. Select a smaller section.')
         const payload =
-          'DOOP_CAPTURE_V1\n' + JSON.stringify({ name: document.title || 'Website capture', width, height, html })
+          'DIAGRAMLY_CAPTURE_V1\n' + JSON.stringify({ name: document.title || 'Website capture', width, height, html })
         // A visible copy button provides a fresh gesture after capture and keeps failure recoverable.
         label.textContent = 'Ready. '
         const button = document.createElement('button')

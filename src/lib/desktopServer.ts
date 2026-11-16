@@ -3,7 +3,7 @@
  * The sign-in screen's server settings read it with `server_status` and change
  * it with `server_choose`: the shell checks the address answers as a Doop
  * server, asks the person in a native dialog, saves it and restarts onto it.
- * Shells advertise this with `__DOOP_SERVER_CHOOSE__`; browsers and older
+ * Shells advertise this with `__DIAGRAMLY_SERVER_CHOOSE__`; browsers and older
  * shells never see the settings.
  */
 
@@ -17,12 +17,12 @@ export interface ServerStatus {
 }
 
 type Bridge = {
-  __DOOP_SERVER_CHOOSE__?: boolean
+  __DIAGRAMLY_SERVER_CHOOSE__?: boolean
   __TAURI__?: { core?: { invoke?: <T>(command: string, args?: Record<string, unknown>) => Promise<T> } }
 }
 const bridge = globalThis as Bridge
 
-export const canChooseServer = () => bridge.__DOOP_SERVER_CHOOSE__ === true && !!bridge.__TAURI__?.core?.invoke
+export const canChooseServer = () => bridge.__DIAGRAMLY_SERVER_CHOOSE__ === true && !!bridge.__TAURI__?.core?.invoke
 
 function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   const call = canChooseServer() ? bridge.__TAURI__?.core?.invoke : undefined

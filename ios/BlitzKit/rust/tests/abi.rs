@@ -550,7 +550,7 @@ fn rect_composes_nested_transforms_before_bounding() {
 fn pick_selects_the_text_layer_not_its_inline_runs() {
     let html = CString::new(concat!(
         "<body style=\"margin:0\">",
-        "<p data-doop-drawing=\"text\" id=\"t\" style=\"position:fixed;left:100px;top:100px;width:200px;height:120px;margin:0;font:24px/1.4 sans-serif\"><b>bold</b> run</p>",
+        "<p data-diagramly-drawing=\"text\" id=\"t\" style=\"position:fixed;left:100px;top:100px;width:200px;height:120px;margin:0;font:24px/1.4 sans-serif\"><b>bold</b> run</p>",
         "<div id=\"plain\" style=\"position:fixed;left:100px;top:300px;width:200px;height:60px;font:24px/1.4 sans-serif\"><b>bold</b></div>",
         "</body>",
     ))

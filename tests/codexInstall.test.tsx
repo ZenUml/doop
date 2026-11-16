@@ -37,8 +37,8 @@ async function mount() {
 }
 
 function native() {
-  vi.stubGlobal('__DOOP_DESKTOP__', '0.4.0')
-  vi.stubGlobal('__DOOP_CODEX_SETUP__', true)
+  vi.stubGlobal('__DIAGRAMLY_DESKTOP__', '0.4.0')
+  vi.stubGlobal('__DIAGRAMLY_CODEX_SETUP__', true)
   vi.stubGlobal('__TAURI__', { core: { invoke: mocks.invoke } })
 }
 
@@ -47,10 +47,10 @@ it('opens the desktop setup from the browser and keeps the manual command availa
   const link = Array.from(document.body.querySelectorAll('a')).find(
     (a) => a.textContent?.trim() === 'Open Doop Desktop',
   )!
-  expect(link.getAttribute('href')).toBe('doop://connect/codex?origin=https%3A%2F%2Fdoop.design&canvas=canvas-1')
+  expect(link.getAttribute('href')).toBe('diagramly://connect/codex?origin=https%3A%2F%2Fdoop.design&canvas=canvas-1')
   expect(document.querySelector('[data-slot="collapsible-trigger"]')?.getAttribute('aria-expanded')).toBe('false')
-  expect(text()).toContain('codex mcp add doop --url https://doop.design/mcp')
-  expect(text()).toContain('codex mcp login doop')
+  expect(text()).toContain('codex mcp add diagramly --url https://doop.design/mcp')
+  expect(text()).toContain('codex mcp login diagramly')
   expect(document.querySelector('a[download]')).toBeNull()
   expect(mocks.invoke).not.toHaveBeenCalled()
 })
@@ -88,11 +88,11 @@ it('shows a native config conflict and permits retry', async () => {
 })
 
 it('offers an update hint in older desktop shells instead of a broken command', async () => {
-  vi.stubGlobal('__DOOP_DESKTOP__', '0.3.0')
+  vi.stubGlobal('__DIAGRAMLY_DESKTOP__', '0.3.0')
   await mount()
   expect(text()).toContain('Update Doop Desktop')
   expect(button('Add to Codex')).toBeUndefined()
-  expect(document.querySelector('a[href^="doop:"]')).toBeNull()
+  expect(document.querySelector('a[href^="diagramly:"]')).toBeNull()
   expect(mocks.invoke).not.toHaveBeenCalled()
 })
 

@@ -1,7 +1,7 @@
 /**
  * An SVG file becomes editable vector layers, the way Figma imports one:
  * every shape (`path`, `rect`, `circle`, `ellipse`, `line`, `polyline`,
- * `polygon`) is baked, transforms and all, into one `svg[data-doop-drawing="path"]`
+ * `polygon`) is baked, transforms and all, into one `svg[data-diagramly-drawing="path"]`
  * the path editor opens; `<g>` nesting becomes groups; `<use>` is expanded;
  * fills, strokes, gradients and clips come along. Text and images stay as
  * they are, one layer each. The result is a standalone canvas element whose
@@ -630,7 +630,7 @@ class Writer {
     const doc = this.doc
     doc.documentElement.style.cssText = 'width:100%;height:100%;margin:0;'
     doc.body.style.cssText = 'width:100%;height:100%;margin:0;'
-    doc.body.setAttribute('data-doop-canvas-element', 'true')
+    doc.body.setAttribute('data-diagramly-canvas-element', 'true')
     const only = nodes[0]
     if (nodes.length === 1 && only?.kind === 'shape') {
       const svg = this.shape(only, true)
@@ -646,7 +646,7 @@ class Writer {
       )
       if (this.defs.childElementCount) {
         const host = doc.createElementNS(SVG_NS, 'svg')
-        host.setAttribute('data-doop-defs', '')
+        host.setAttribute('data-diagramly-defs', '')
         host.setAttribute('aria-hidden', 'true')
         host.setAttribute('style', 'position:absolute;width:0;height:0;overflow:hidden;')
         host.append(this.defs)
@@ -665,7 +665,7 @@ class Writer {
 
   private group(node: Extract<Node, { kind: 'group' }>): HTMLElement {
     const div = this.doc.createElement('div')
-    div.setAttribute('data-doop-drawing', 'group')
+    div.setAttribute('data-diagramly-drawing', 'group')
     div.setAttribute('data-name', node.name)
     let style = 'position:absolute;left:0;top:0;width:100%;height:100%;margin:0;'
     if (node.opacity !== 1) style += `opacity:${node.opacity};`
@@ -686,7 +686,7 @@ class Writer {
 
   private shape(node: Extract<Node, { kind: 'shape' }>, root: boolean): SVGSVGElement {
     const svg = this.doc.createElementNS(SVG_NS, 'svg') as SVGSVGElement
-    svg.setAttribute('data-doop-drawing', 'path')
+    svg.setAttribute('data-diagramly-drawing', 'path')
     svg.setAttribute('data-name', node.name)
     const { box } = node
     svg.setAttribute('viewBox', `${round(box.x)} ${round(box.y)} ${round(box.width)} ${round(box.height)}`)
@@ -714,7 +714,7 @@ class Writer {
 
   private raw(node: Extract<Node, { kind: 'raw' }>): SVGSVGElement {
     const svg = this.doc.createElementNS(SVG_NS, 'svg') as SVGSVGElement
-    svg.setAttribute('data-doop-drawing', 'svg')
+    svg.setAttribute('data-diagramly-drawing', 'svg')
     svg.setAttribute('data-name', node.name)
     const { content } = this
     svg.setAttribute(

@@ -21,7 +21,7 @@ export interface LayerNode {
   kind: LayerKind
   /** switched off through the Layers panel's eye (see setElementHidden) */
   hidden: boolean
-  /** carries `data-doop-locked`: the stage neither picks nor edits it */
+  /** carries `data-diagramly-locked`: the stage neither picks nor edits it */
   locked: boolean
   /** a component's main, or an instance of one */
   component?: 'main' | 'instance'
@@ -32,8 +32,8 @@ export interface LayerNode {
 
 /** The attribute a locked layer carries in the frame's HTML. It travels with
  *  the markup, so every collaborator (and agent) sees the same lock. */
-export const LOCK_ATTR = 'data-doop-locked'
-export const NAME_ATTR = 'data-doop-name'
+export const LOCK_ATTR = 'data-diagramly-locked'
+export const NAME_ATTR = 'data-diagramly-name'
 
 /* markup that renders nothing of its own has no place in a layer list */
 const HIDDEN_TAGS = new Set(['SCRIPT', 'STYLE', 'LINK', 'META', 'TITLE', 'NOSCRIPT', 'TEMPLATE', 'BR', 'WBR'])
@@ -155,7 +155,7 @@ function toNode(el: Element): LayerNode {
 
 function defaultNode(el: Element): LayerNode {
   const tag = el.tagName.toLowerCase()
-  const drawingName = el.hasAttribute('data-doop-drawing') ? el.getAttribute('data-name') : null
+  const drawingName = el.hasAttribute('data-diagramly-drawing') ? el.getAttribute('data-name') : null
   const base = {
     selector: elementPath(el),
     tag,
@@ -183,7 +183,7 @@ function layerChildren(el: Element): LayerNode[] {
   const out: LayerNode[] = []
   for (const child of el.children) {
     /* an imported file's gradients and clips ride in a hidden defs host */
-    if (!HIDDEN_TAGS.has(child.tagName) && !child.hasAttribute('data-doop-defs')) out.push(toNode(child))
+    if (!HIDDEN_TAGS.has(child.tagName) && !child.hasAttribute('data-diagramly-defs')) out.push(toNode(child))
   }
   return out
 }
@@ -244,7 +244,7 @@ export function htmlWithoutLayerNames(html: string): string {
   return serialize(doc)
 }
 
-/** The `data-doop-id` the element at `selector` carries, or null. */
+/** The `data-diagramly-id` the element at `selector` carries, or null. */
 export function elementIdAt(html: string, selector: string): string | null {
   return find(parse(html), selector)?.getAttribute(ELEMENT_ID_ATTR) ?? null
 }
@@ -256,7 +256,7 @@ export function freshElementId(html: string): string {
   return id
 }
 
-/** The frame's HTML with the element's `data-doop-id` taken off again: a
+/** The frame's HTML with the element's `data-diagramly-id` taken off again: a
  *  stamp rolled back with the write that made it. */
 export function clearElementId(html: string, selector: string): string | null {
   const doc = parse(html)
@@ -267,7 +267,7 @@ export function clearElementId(html: string, selector: string): string | null {
 }
 
 /** Store a layer caption without changing its text, alt text, id or styles.
- *  `stamp` is the `data-doop-id` the element gets if it has none yet, so a
+ *  `stamp` is the `data-diagramly-id` the element gets if it has none yet, so a
  *  later undo or redo finds it by identity rather than by position. */
 export function setElementName(html: string, selector: string, name: string | null, stamp?: string): string | null {
   const doc = parse(html)
@@ -328,7 +328,7 @@ function inDocumentOrder(els: Element[]): Element[] {
  *  later save of the same frame: `kept` or `gone` when that can be shown,
  *  `unsure` when it cannot. Its markup missing proves nothing (an edit to its
  *  text, style or attributes changes that too), so the element is followed
- *  by its `data-doop-id` when it has one. Without one, fewer elements of its
+ *  by its `data-diagramly-id` when it has one. Without one, fewer elements of its
  *  shape (its tag tree, which such an edit keeps) mean it went; the same
  *  number or more could be either, since another edit may have added one. */
 export function elementFate(before: string, after: string, selector: string): 'kept' | 'gone' | 'unsure' {
@@ -381,10 +381,10 @@ export function replaceElement(html: string, selector: string, outerHtml: string
    marked and switched off with an inline display — so the live frame, every
    export and an agent's screenshot agree it is not there, with no runtime
    rule to carry around. */
-export const HIDDEN_ATTR = 'data-doop-hidden'
+export const HIDDEN_ATTR = 'data-diagramly-hidden'
 /* the inline display it had before — value, and "!important" when it
    carried one — so showing it again puts exactly that back */
-const DISPLAY_ATTR = 'data-doop-display'
+const DISPLAY_ATTR = 'data-diagramly-display'
 
 /** Whether the element is hidden; null when the selector no longer resolves. */
 export function isElementHidden(html: string, selector: string): boolean | null {
@@ -837,7 +837,7 @@ export function ungroupElements(html: string, selectors: string[]): { html: stri
       !ownText(el) &&
       !IMAGE_TAGS.has(el.tagName) &&
       !el.closest(`[${LOCK_ATTR}]`) &&
-      !el.hasAttribute('data-doop-drawing') &&
+      !el.hasAttribute('data-diagramly-drawing') &&
       !(el.parentElement && UNWRAPPABLE_PARENTS.has(el.parentElement.tagName)),
   )
   if (!groups.length) return null

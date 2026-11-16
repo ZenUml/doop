@@ -18,7 +18,7 @@ function startConnect(provider: string, desktop: boolean) {
  * Begin connecting an OAuth integration (Meta, Linear, Slack).
  * In a browser this leaves for the provider and lands back on Integrations.
  * In the desktop shell the provider page opens in the system browser, and
- * the browser hands the outcome back over a doop:// link (see
+ * the browser hands the outcome back over a diagramly:// link (see
  * shared/desktopConnect.ts). Shells too old to receive that link open
  * Integrations in the browser instead, so the whole connection happens
  * there. Throws when the round trip cannot start; the caller shows why.

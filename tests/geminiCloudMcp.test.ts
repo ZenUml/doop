@@ -109,7 +109,7 @@ describe('Gemini cloud dispatch and run-scoped MCP', () => {
     })
     const workerUrl = await listen(worker)
     const config = { url: workerUrl, token: 'w'.repeat(32) }
-    stubEnv('DOOP_GEMINI_CLOUD_WORKERS', JSON.stringify({ alice: config }))
+    stubEnv('DIAGRAMLY_GEMINI_CLOUD_WORKERS', JSON.stringify({ alice: config }))
     const result = await geminiCloudRuns.start('alice', config, {
       canvasId: 'canvas-a',
       prompt: 'Verify',

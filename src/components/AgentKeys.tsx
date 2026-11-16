@@ -19,7 +19,7 @@ function headlessConfig(secret: string): string {
   return JSON.stringify(
     {
       mcpServers: {
-        doop: { type: 'http', url: `${location.origin}/mcp`, headers: { Authorization: `Bearer ${secret}` } },
+        diagramly: { type: 'http', url: `${location.origin}/mcp`, headers: { Authorization: `Bearer ${secret}` } },
       },
     },
     null,

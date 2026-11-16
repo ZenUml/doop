@@ -17,7 +17,7 @@ beforeAll(async () => {
     OPENAI_API_KEY: '',
     DATABASE_URL: '',
     SMTP_HOST: '',
-    DOOP_AGENT_OPENAI_EFFORT: 'medium',
+    DIAGRAMLY_AGENT_OPENAI_EFFORT: 'medium',
   })
   alice = await new Client(server).signUp('effort-alice@example.test', 'Alice')
 }, 60000)
@@ -66,7 +66,7 @@ it('reports a server default outside the four, which the pickers then show as it
     OPENAI_API_KEY: '',
     DATABASE_URL: '',
     SMTP_HOST: '',
-    DOOP_AGENT_OPENAI_EFFORT: 'max',
+    DIAGRAMLY_AGENT_OPENAI_EFFORT: 'max',
   })
   try {
     const bob = await new Client(strict).signUp('effort-bob@example.test', 'Bob')

@@ -13,16 +13,16 @@ Interactions live in the frame HTML as data attributes on the element that trigg
 persist, sync, version and export with the frame, and agents author them with the ordinary HTML
 tools; there is no interaction table or protocol message.
 
-| attribute              | values                                                                                                                           |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `data-doop-on`         | `click`, `hover` (pointer enters), `press` (pointer down; release reverts), `delay:<ms>` (after the frame is shown), `key:<Key>` |
-| `data-doop-action`     | `navigate:<frameId>`, `back`, `overlay:<frameId>`, `close-overlay`, `scroll-to:<css selector>`, `url:<http(s) url>` (new tab)    |
-| `data-doop-transition` | `instant` (default), `dissolve`, `slide-left`, `slide-right`, `slide-up`, `slide-down`, `push-left`, `push-right`                |
-| `data-doop-duration`   | milliseconds, default 300, capped at 5000                                                                                        |
+| attribute                   | values                                                                                                                           |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `data-diagramly-on`         | `click`, `hover` (pointer enters), `press` (pointer down; release reverts), `delay:<ms>` (after the frame is shown), `key:<Key>` |
+| `data-diagramly-action`     | `navigate:<frameId>`, `back`, `overlay:<frameId>`, `close-overlay`, `scroll-to:<css selector>`, `url:<http(s) url>` (new tab)    |
+| `data-diagramly-transition` | `instant` (default), `dissolve`, `slide-left`, `slide-right`, `slide-up`, `slide-down`, `push-left`, `push-right`                |
+| `data-diagramly-duration`   | milliseconds, default 300, capped at 5000                                                                                        |
 
 `key:` takes a `KeyboardEvent.key` (`ArrowRight`, `Escape`, `Enter`; `Space` means the space bar).
 Several interactions on one element use the JSON form,
-`data-doop-interactions='[{"on":"click","action":"navigate:abc","transition":"dissolve"}]'`
+`data-diagramly-interactions='[{"on":"click","action":"navigate:abc","transition":"dissolve"}]'`
 (`on`, `action`, optional `transition` and `duration`). An element may carry both forms; the
 single form is read first. `parseInteractions` drops every invalid entry rather than repairing it:
 an unknown trigger, action or frame-id shape, a `url:` that is not http or https. Unknown
@@ -44,7 +44,7 @@ through its old-to-new frame ids (`remapFrameTargets`), so the copied flow plays
 A page copy's links to frames on other pages keep their targets.
 
 **Inert outside the player.** The frame runtime ignores the attributes until the parent sends
-`doop:proto { on: true }`, which only the player does; text-edit mode also suppresses them. On the
+`diagramly:proto { on: true }`, which only the player does; text-edit mode also suppresses them. On the
 canvas a click therefore still selects. The attributes have no effect on PNG/JPG/PDF exports.
 
 ## Player
@@ -53,7 +53,7 @@ canvas a click therefore still selects. The attributes have no effect on PNG/JPG
 fit, and stays live (each screen re-posts its frame's HTML when the store updates it).
 
 - Each screen boots the frame runtime, renders the HTML, then turns prototype mode on. Triggers
-  post `doop:proto-action` with the parsed interaction; the player re-parses it
+  post `diagramly:proto-action` with the parsed interaction; the player re-parses it
   (`sanitizeInteraction`) before acting, since a frame script could post anything. `scroll-to`
   runs inside the frame (from a press too); `url` opens a new tab with `noopener`. A live edit
   restarts the screen's `delay:` timers from the new HTML.
@@ -71,7 +71,7 @@ fit, and stays live (each screen re-posts its frame's HTML when the store update
   while what it opened is still on top. The pressed screen reports that release even after the
   navigation has switched it off.
 - Keys go to the topmost screen's runtime. Escape, wherever the focus is (a screen relays it as
-  `doop:esc`), closes an open overlay, else runs the screen's `key:Escape` interaction, else exits the player when it was opened over the editor. While the
+  `diagramly:esc`), closes an open overlay, else runs the screen's `key:Escape` interaction, else exits the player when it was opened over the editor. While the
   player is open no key reaches the editor.
 - A click that hits no interaction flashes every hotspot of that screen (as Figma's hotspot
   hints do); the toolbar's hotspot button flashes them on demand. The toolbar also has Back,
@@ -98,7 +98,7 @@ have room for Comment only in the strip; Prototype mode toggles from the Canvas 
   Locked layers and frames are read-only; script-created elements, which have no markup, say so.
   The Flow row makes the frame its page's start.
 - **Connectors** (`PrototypeOverlay`, world space): every live frame on the page reports its
-  hotspots through `doop:proto-scan` (script-created ones included); each interaction that opens
+  hotspots through `diagramly:proto-scan` (script-created ones included); each interaction that opens
   a frame on the page gets a connector into that frame, others a short label (Back, Close
   overlay, scroll target, link, a frame on another page, or a missing frame). The start frame
   wears a Start flag.

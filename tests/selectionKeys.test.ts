@@ -37,7 +37,9 @@ const {
 } = await import('../src/lib/selectionKeys')
 
 const page = (body: string) => `<!doctype html>\n<html><head></head><body>${body}</body></html>`
-const BODY = page('<header><h1>Hi</h1><nav>n</nav></header><main><p>a</p><p data-doop-locked="">b</p><p>c</p></main>')
+const BODY = page(
+  '<header><h1>Hi</h1><nav>n</nav></header><main><p>a</p><p data-diagramly-locked="">b</p><p>c</p></main>',
+)
 const HEADER = 'body:nth-of-type(1) > header:nth-of-type(1)'
 const H1 = `${HEADER} > h1:nth-of-type(1)`
 const NAV = `${HEADER} > nav:nth-of-type(1)`
@@ -61,12 +63,12 @@ function frameWith(id: string, createdAt: number, html = BODY, extra: Partial<Fr
   }
 }
 
-const shape = page('<div data-doop-drawing="rect" style="position:absolute">x</div>').replace(
+const shape = page('<div data-diagramly-drawing="rect" style="position:absolute">x</div>').replace(
   '<body>',
-  '<body data-doop-canvas-element="true">',
+  '<body data-diagramly-canvas-element="true">',
 )
 const SHAPE = 'body:nth-of-type(1) > div:nth-of-type(1)'
-const lockedShape = shape.replace('<div ', '<div data-doop-locked="" ')
+const lockedShape = shape.replace('<div ', '<div data-diagramly-locked="" ')
 
 const picked = () => useStore.getState().selectedElement?.selector ?? null
 const selected = () => useStore.getState().selectedIds
@@ -227,13 +229,13 @@ describe('against the store', () => {
     useStore.getState().select('f1')
     useStore.getState().pickElement({ frameId: 'f1', selector: P(1) })
     expect(reorderSelection('forward')).toBe(true)
-    expect(html('f1')).toContain('<main><p data-doop-locked="">b</p><p>a</p><p>c</p></main>')
+    expect(html('f1')).toContain('<main><p data-diagramly-locked="">b</p><p>a</p><p>c</p></main>')
     expect(picked()).toBe(P(2))
     expect(reorderSelection('front')).toBe(true)
-    expect(html('f1')).toContain('<main><p data-doop-locked="">b</p><p>c</p><p>a</p></main>')
+    expect(html('f1')).toContain('<main><p data-diagramly-locked="">b</p><p>c</p><p>a</p></main>')
     expect(reorderSelection('front')).toBe(false)
     expect(reorderSelection('back')).toBe(true)
-    expect(html('f1')).toContain('<main><p>a</p><p data-doop-locked="">b</p><p>c</p></main>')
+    expect(html('f1')).toContain('<main><p>a</p><p data-diagramly-locked="">b</p><p>c</p></main>')
     expect(reorderSelection('backward')).toBe(false)
     expect(updateFrame).toHaveBeenCalledTimes(3)
   })
@@ -242,16 +244,16 @@ describe('against the store', () => {
     useStore.getState().select('f1')
     useStore.getState().pickElements('f1', [P(1), P(3)])
     expect(reorderSelection('backward')).toBe(true)
-    expect(html('f1')).toContain('<main><p>a</p><p>c</p><p data-doop-locked="">b</p></main>')
+    expect(html('f1')).toContain('<main><p>a</p><p>c</p><p data-diagramly-locked="">b</p></main>')
     expect(useStore.getState().selectedElements).toEqual([P(1), P(2)])
     expect(picked()).toBe(P(2))
     expect(reorderSelection('backward')).toBe(false)
     expect(reorderSelection('front')).toBe(true)
-    expect(html('f1')).toContain('<main><p data-doop-locked="">b</p><p>a</p><p>c</p></main>')
+    expect(html('f1')).toContain('<main><p data-diagramly-locked="">b</p><p>a</p><p>c</p></main>')
     expect(useStore.getState().selectedElements).toEqual([P(2), P(3)])
     expect(reorderSelection('front')).toBe(false)
     expect(reorderSelection('back')).toBe(true)
-    expect(html('f1')).toContain('<main><p>a</p><p>c</p><p data-doop-locked="">b</p></main>')
+    expect(html('f1')).toContain('<main><p>a</p><p>c</p><p data-diagramly-locked="">b</p></main>')
     expect(updateFrame).toHaveBeenCalledTimes(3)
   })
 
@@ -260,13 +262,13 @@ describe('against the store', () => {
     useStore.getState().pickElement({ frameId: 'f1', selector: P(1) })
     useStore.getState().toggleElement({ frameId: 'f1', selector: P(3) })
     expect(reorderSelection('front')).toBe(true)
-    expect(html('f1')).toContain('<main><p data-doop-locked="">b</p><p>a</p><p>c</p></main>')
+    expect(html('f1')).toContain('<main><p data-diagramly-locked="">b</p><p>a</p><p>c</p></main>')
     expect(useStore.getState().selectedElements).toEqual([P(2), P(3)])
     expect(reorderSelection('front')).toBe(false)
     /* a and c again (b, in front of them now, is locked) */
     useStore.getState().pickElements('f1', [P(2), P(3)])
     expect(reorderSelection('back')).toBe(true)
-    expect(html('f1')).toContain('<main><p>a</p><p>c</p><p data-doop-locked="">b</p></main>')
+    expect(html('f1')).toContain('<main><p>a</p><p>c</p><p data-diagramly-locked="">b</p></main>')
     expect(useStore.getState().selectedElements).toEqual([P(1), P(2)])
     expect(reorderSelection('back')).toBe(false)
   })

@@ -56,12 +56,12 @@ export const Install: Story = {
     <div className="flex max-w-[420px] flex-col gap-8">
       <InstallBlock
         action={<Button variant="solid">Add to Codex</Button>}
-        manual={<CodeBlock text="codex mcp add doop --url https://doop.design/mcp" />}
+        manual={<CodeBlock text="codex mcp add diagramly --url https://doop.design/mcp" />}
       />
       <InstallBlock
         action={<Button variant="solid">Added to Codex</Button>}
         status="Doop is configured. Open a new Codex chat, then sign in to Doop when prompted."
-        manual={<CodeBlock text="codex mcp add doop --url https://doop.design/mcp" />}
+        manual={<CodeBlock text="codex mcp add diagramly --url https://doop.design/mcp" />}
       />
       <InstallBlock
         action={<Button variant="solid">Add to Claude</Button>}

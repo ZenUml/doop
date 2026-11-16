@@ -18,7 +18,7 @@ describe('panel layout preference', () => {
   })
 
   it('ignores a value it does not know', async () => {
-    localStorage.setItem('doop:panel-layout', 'sideways')
+    localStorage.setItem('diagramly:panel-layout', 'sideways')
     const { getPanelLayout } = await import('../src/lib/panelLayout')
     expect(getPanelLayout()).toBe('floating')
   })
@@ -26,12 +26,12 @@ describe('panel layout preference', () => {
   it('picks up a choice another tab stored while nothing here listened', async () => {
     const { getPanelLayout } = await import('../src/lib/panelLayout')
     expect(getPanelLayout()).toBe('floating')
-    localStorage.setItem('doop:panel-layout', 'docked')
+    localStorage.setItem('diagramly:panel-layout', 'docked')
     expect(getPanelLayout()).toBe('docked')
   })
 
   it('keeps a pick storage would not take for this session', async () => {
-    localStorage.setItem('doop:panel-layout', 'docked')
+    localStorage.setItem('diagramly:panel-layout', 'docked')
     const { getPanelLayout, setPanelLayout } = await import('../src/lib/panelLayout')
     const setItem = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
       throw new Error('QuotaExceededError')
@@ -39,7 +39,7 @@ describe('panel layout preference', () => {
     try {
       setPanelLayout('floating')
       /* the write really failed: storage still holds the old pick */
-      expect(localStorage.getItem('doop:panel-layout')).toBe('docked')
+      expect(localStorage.getItem('diagramly:panel-layout')).toBe('docked')
       expect(getPanelLayout()).toBe('floating')
     } finally {
       setItem.mockRestore()

@@ -213,8 +213,8 @@ export async function inspectFrame(frame: Frame): Promise<FrameInspection> {
       }
 
       function selectorFor(el: Element): string {
-        const doopId = el.getAttribute('data-doop-id')
-        if (doopId) return `[data-doop-id="${doopId}"]`
+        const doopId = el.getAttribute('data-diagramly-id')
+        if (doopId) return `[data-diagramly-id="${doopId}"]`
         if (el.id && el.id.length < 80) return `#${CSS.escape(el.id)}`
         const parts: string[] = []
         let node: Element | null = el
@@ -368,8 +368,8 @@ export async function renderFrame(
   scale: number = 1,
   opts: { type?: 'png' | 'jpeg'; quality?: number; maxHeight?: number; transparent?: boolean } = {},
 ): Promise<Buffer> {
-  if (env.DOOP_FRAME_SNAPSHOT_HELPER) {
-    return renderDesktopFrame(env.DOOP_FRAME_SNAPSHOT_HELPER, frame, scale, opts)
+  if (env.DIAGRAMLY_FRAME_SNAPSHOT_HELPER) {
+    return renderDesktopFrame(env.DIAGRAMLY_FRAME_SNAPSHOT_HELPER, frame, scale, opts)
   }
   const loaded = await loadFramePage(frame)
   const { page } = loaded

@@ -487,7 +487,7 @@ export interface ImportedPage {
   }
 }
 
-const IMPORT_SOURCE_META = 'doop-import-source'
+const IMPORT_SOURCE_META = 'diagramly-import-source'
 
 /** Identify snapshots created from a particular requested URL. The value is
  *  encoded so an arbitrary query string cannot break the HTML attribute. */
@@ -645,7 +645,7 @@ export async function importPage(rawUrl: string, options: { includePreview?: boo
       `<meta name="${IMPORT_SOURCE_META}" content="${encodeURIComponent(requestedUrl.href)}">` +
       `<meta http-equiv="Content-Security-Policy" content="${IMPORT_CSP}">` +
       `<base href="${documentBase.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">` +
-      (css.trim() ? `<style data-doop-import>\n${css.replace(/<\/style/gi, '<\\/style')}\n</style>` : '')
+      (css.trim() ? `<style data-diagramly-import>\n${css.replace(/<\/style/gi, '<\\/style')}\n</style>` : '')
     const headMatch = html.match(/<head[^>]*>/i)
     if (headMatch) html = html.replace(headMatch[0], headMatch[0] + inject)
     else html = inject + html

@@ -2,7 +2,7 @@
  * https://cursor.com/docs/mcp/install-links */
 export function cursorMcpInstallUrl(mcpUrl: string): string {
   const link = new URL('cursor://anysphere.cursor-deeplink/mcp/install')
-  link.searchParams.set('name', 'doop')
+  link.searchParams.set('name', 'diagramly')
   link.searchParams.set('config', btoa(JSON.stringify({ url: new URL(mcpUrl).href })))
   return link.href
 }

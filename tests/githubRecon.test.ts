@@ -41,7 +41,10 @@ describe('resolveImport', () => {
 describe('extractHtml', () => {
   it('takes the document from plain text and reads the height comment', () => {
     const { html, height } = extractHtml([
-      { type: 'text', text: 'Here it is:\n<!doctype html><html><body>x</body></html>\n<!-- doop-height: 1240 -->' },
+      {
+        type: 'text',
+        text: 'Here it is:\n<!doctype html><html><body>x</body></html>\n<!-- diagramly-height: 1240 -->',
+      },
     ])
     expect(html.startsWith('<!doctype html>')).toBe(true)
     expect(height).toBe(1240)
@@ -49,7 +52,7 @@ describe('extractHtml', () => {
 
   it('unwraps markdown fences, clamps silly heights, defaults sans comment', () => {
     const fenced = extractHtml([
-      { type: 'text', text: '```html\n<!doctype html><p>x</p>\n<!-- doop-height: 99999 -->\n```' },
+      { type: 'text', text: '```html\n<!doctype html><p>x</p>\n<!-- diagramly-height: 99999 -->\n```' },
     ])
     expect(fenced.height).toBe(8000)
     expect(extractHtml([{ type: 'text', text: '<!doctype html><p>x</p>' }]).height).toBe(900)
@@ -68,7 +71,7 @@ describe('extractHtml', () => {
 
   it('adds a doctype to an <html> document that is missing one', () => {
     const { html, height } = extractHtml([
-      { type: 'text', text: '<html><body>x</body></html>\n<!-- doop-height: 500 -->' },
+      { type: 'text', text: '<html><body>x</body></html>\n<!-- diagramly-height: 500 -->' },
     ])
     expect(html.startsWith('<!doctype html>\n<html>')).toBe(true)
     expect(height).toBe(500)
@@ -76,7 +79,7 @@ describe('extractHtml', () => {
 
   it('wraps a component fragment (no <html>, no doctype) into a minimal document', () => {
     const { html, height } = extractHtml([
-      { type: 'text', text: '<div class="card">x</div>\n<!-- doop-height: 300 -->' },
+      { type: 'text', text: '<div class="card">x</div>\n<!-- diagramly-height: 300 -->' },
     ])
     expect(html.startsWith('<!doctype html>')).toBe(true)
     expect(html).toContain('<div class="card">x</div>')
@@ -148,7 +151,7 @@ describe('repo asset references', () => {
   })
 
   it('extractHtml raises the height ceiling for full pages', () => {
-    const { height } = extractHtml([{ type: 'text', text: '<!doctype html><p>x</p>\n<!-- doop-height: 6600 -->' }])
+    const { height } = extractHtml([{ type: 'text', text: '<!doctype html><p>x</p>\n<!-- diagramly-height: 6600 -->' }])
     expect(height).toBe(6600)
   })
 })

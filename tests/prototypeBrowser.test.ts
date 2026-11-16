@@ -43,12 +43,16 @@ const CANVAS: Canvas = {
   frames: [
     frame(
       'home',
-      `<button id="go" data-doop-on="click" data-doop-action="navigate:detail" data-doop-transition="push-left" data-doop-duration="120">Open</button>
-       <button id="help" data-doop-on="click" data-doop-action="overlay:menu">Help</button>
+      `<button id="go" data-diagramly-on="click" data-diagramly-action="navigate:detail" data-diagramly-transition="push-left" data-diagramly-duration="120">Open</button>
+       <button id="help" data-diagramly-on="click" data-diagramly-action="overlay:menu">Help</button>
        <p id="blank" style="height:100px">Nothing here</p>`,
     ),
-    frame('detail', `<button id="back" data-doop-on="click" data-doop-action="back">Back</button>`, 500),
-    frame('menu', `<button id="close" data-doop-on="click" data-doop-action="close-overlay">Close</button>`, 1000),
+    frame('detail', `<button id="back" data-diagramly-on="click" data-diagramly-action="back">Back</button>`, 500),
+    frame(
+      'menu',
+      `<button id="close" data-diagramly-on="click" data-diagramly-action="close-overlay">Close</button>`,
+      1000,
+    ),
   ],
   createdAt: 0,
   updatedAt: 0,
@@ -61,23 +65,23 @@ const FLOW: Canvas = {
   frames: [
     frame(
       'home',
-      `<button id="go" data-doop-on="click" data-doop-action="navigate:detail">Open</button>
-       <button id="hold" data-doop-on="press" data-doop-action="navigate:detail" data-doop-transition="dissolve" data-doop-duration="3000">Hold</button>
-       <button id="help" data-doop-on="click" data-doop-action="overlay:menu">Help</button>
- <button id="peek" data-doop-on="press" data-doop-action="overlay:menu">Peek</button>
-       <button id="jump" data-doop-on="press" data-doop-action="scroll-to:#end" data-doop-transition="instant">Jump</button>
+      `<button id="go" data-diagramly-on="click" data-diagramly-action="navigate:detail">Open</button>
+       <button id="hold" data-diagramly-on="press" data-diagramly-action="navigate:detail" data-diagramly-transition="dissolve" data-diagramly-duration="3000">Hold</button>
+       <button id="help" data-diagramly-on="click" data-diagramly-action="overlay:menu">Help</button>
+ <button id="peek" data-diagramly-on="press" data-diagramly-action="overlay:menu">Peek</button>
+       <button id="jump" data-diagramly-on="press" data-diagramly-action="scroll-to:#end" data-diagramly-transition="instant">Jump</button>
        <div style="height:2000px"></div><p id="end">End</p>`,
     ),
     frame(
       'detail',
-      `<button id="again" data-doop-on="click" data-doop-action="navigate:home">Home again</button>`,
+      `<button id="again" data-diagramly-on="click" data-diagramly-action="navigate:home">Home again</button>`,
       500,
     ),
     frame(
       'menu',
-      `<button id="close" data-doop-on="click" data-doop-action="close-overlay">Close</button>
-       <div data-doop-on="key:Escape" data-doop-action="navigate:detail"></div>
-       <div data-doop-on="key:Enter" data-doop-action="navigate:gone"></div>`,
+      `<button id="close" data-diagramly-on="click" data-diagramly-action="close-overlay">Close</button>
+       <div data-diagramly-on="key:Escape" data-diagramly-action="navigate:detail"></div>
+       <div data-diagramly-on="key:Enter" data-diagramly-action="navigate:gone"></div>`,
       1000,
     ),
   ],
@@ -101,7 +105,7 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
   async function screen(frameId: string): Promise<PuppeteerFrame> {
     /* the iframe is in the page before its document is: wait for a live one */
     for (let attempt = 0; attempt < 40; attempt++) {
-      const handle = await page.waitForSelector(`iframe[data-doop-proto-frame="${frameId}"]`)
+      const handle = await page.waitForSelector(`iframe[data-diagramly-proto-frame="${frameId}"]`)
       const content = await handle?.contentFrame()
       if (content && !content.detached && (await content.$('button').catch(() => null))) return content
       await new Promise((resolve) => setTimeout(resolve, 50))
@@ -137,11 +141,11 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
     await clickUntil(home, '#go', async () => (await current()) === 'DETAIL')
     const detail = await screen('detail')
     /* the push transition settles and the outgoing screen unmounts */
-    await page.waitForFunction(() => !document.querySelector('iframe[data-doop-proto-frame="home"]'))
-    expect(await page.$$('iframe[data-doop-proto-frame]')).toHaveLength(1)
+    await page.waitForFunction(() => !document.querySelector('iframe[data-diagramly-proto-frame="home"]'))
+    expect(await page.$$('iframe[data-diagramly-proto-frame]')).toHaveLength(1)
 
     await clickUntil(detail, '#back', async () => (await current()) === 'HOME')
-    await page.waitForFunction(() => !document.querySelector('iframe[data-doop-proto-frame="detail"]'))
+    await page.waitForFunction(() => !document.querySelector('iframe[data-diagramly-proto-frame="detail"]'))
 
     const back = await screen('home')
     await clickUntil(back, '#help', async () => !!(await page.$('[data-proto-overlay="menu"]')))
@@ -161,7 +165,7 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
     await page.evaluate(() =>
       (window as unknown as Fixture).editFrame(
         'home',
-        '<!doctype html><html><head></head><body><button id="go" data-doop-on="click" data-doop-action="navigate:detail">Edited</button><p id="blank" style="height:100px">x</p></body></html>',
+        '<!doctype html><html><head></head><body><button id="go" data-diagramly-on="click" data-diagramly-action="navigate:detail">Edited</button><p id="blank" style="height:100px">x</p></body></html>',
       ),
     )
     await home.waitForFunction(() => document.querySelector('#go')?.textContent === 'Edited')
@@ -193,7 +197,7 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
       /* the menu's keys stayed with the menu: the player is still up */
       expect(await page.evaluate(() => (window as unknown as Fixture).playerClosed)).toBe(false)
       /* and the keys are the screen's again: a keyboard user is not left nowhere */
-      await page.waitForFunction(() => document.activeElement?.matches('iframe[data-doop-proto-frame="home"]'))
+      await page.waitForFunction(() => document.activeElement?.matches('iframe[data-diagramly-proto-frame="home"]'))
       await page.waitForFunction(
         () => document.querySelector('[data-proto-screen="home"] > div')?.getBoundingClientRect().width === 400,
       )
@@ -207,7 +211,7 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
         () => document.querySelector('[data-proto-screen="home"] > div')?.getBoundingClientRect().width === 1000,
       )
     } finally {
-      await page.evaluate(() => localStorage.removeItem('doop:proto-scaling'))
+      await page.evaluate(() => localStorage.removeItem('diagramly:proto-scaling'))
     }
   })
 
@@ -220,7 +224,7 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
               ...f,
               html: f.html.replace(
                 '</body>',
-                '<div data-doop-on="key:ArrowDown" data-doop-action="navigate:detail"></div></body>',
+                '<div data-diagramly-on="key:ArrowDown" data-diagramly-action="navigate:detail"></div></body>',
               ),
             }
           : f,
@@ -259,7 +263,7 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
         }
       })
     const playAt = async (scaling: string) => {
-      await page.evaluate((s) => localStorage.setItem('doop:proto-scaling', s), scaling)
+      await page.evaluate((s) => localStorage.setItem('diagramly:proto-scaling', s), scaling)
       await page.evaluate(() => (window as unknown as Fixture).play('big'))
       await screen('big')
       return measure()
@@ -276,7 +280,7 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
       /* 0.5× covers 1000 × 600: 100px cropped, 50 each side, nothing to scroll */
       expect(await playAt('fill')).toEqual({ scrolled: false, right: 0, bottom: 50, left: 0, top: -50 })
     } finally {
-      await page.evaluate(() => localStorage.removeItem('doop:proto-scaling'))
+      await page.evaluate(() => localStorage.removeItem('diagramly:proto-scaling'))
     }
   })
 
@@ -293,7 +297,7 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
     const pages = [{ id: 'p', name: 'Flow', startFrameId: 'home' }]
     await page.evaluate((canvas) => (window as unknown as Fixture).seed(canvas), { ...CANVAS, pages })
     await page.evaluate(() => (window as unknown as Fixture).mountStage(false))
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
     await new Promise((resolve) => setTimeout(resolve, 300))
     expect(await page.$('[data-prototype-overlay]')).toBeNull()
 
@@ -307,18 +311,22 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
     await page.evaluate(() => (window as unknown as Fixture).addRawFrame())
     const handle = await page.waitForSelector('iframe#raw')
     const raw = (await handle!.contentFrame())!
-    await page.waitForFunction(() => (window as unknown as Fixture).messages.some((m) => m.type === 'doop:frame-ready'))
-    const html = doc('<button id="go" data-doop-on="click" data-doop-action="navigate:detail">Go</button>')
+    await page.waitForFunction(() =>
+      (window as unknown as Fixture).messages.some((m) => m.type === 'diagramly:frame-ready'),
+    )
+    const html = doc('<button id="go" data-diagramly-on="click" data-diagramly-action="navigate:detail">Go</button>')
     await page.evaluate((html) => {
       ;(window as unknown as Fixture).messages = []
       ;(document.querySelector('iframe#raw') as HTMLIFrameElement).contentWindow!.postMessage(
-        { type: 'doop:html', html },
+        { type: 'diagramly:html', html },
         '*',
       )
     }, html)
     await raw.waitForSelector('#go')
     const actions = () =>
-      page.evaluate(() => (window as unknown as Fixture).messages.filter((m) => m.type === 'doop:proto-action').length)
+      page.evaluate(
+        () => (window as unknown as Fixture).messages.filter((m) => m.type === 'diagramly:proto-action').length,
+      )
 
     /* canvas mode: the runtime never turned prototype mode on */
     await raw.click('#go')
@@ -332,21 +340,21 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
           (document.querySelector('iframe#raw') as HTMLIFrameElement).contentWindow!.postMessage(message, '*'),
         message,
       )
-    await post({ type: 'doop:proto', on: true })
-    await post({ type: 'doop:edit', on: true })
+    await post({ type: 'diagramly:proto', on: true })
+    await post({ type: 'diagramly:edit', on: true })
     await raw.click('#go')
     await new Promise((resolve) => setTimeout(resolve, 250))
     expect(await actions()).toBe(0)
 
     /* the player's mode: the same click navigates */
-    await post({ type: 'doop:edit', on: false })
+    await post({ type: 'diagramly:edit', on: false })
     await raw.click('#go')
     await page.waitForFunction(() =>
-      (window as unknown as Fixture).messages.some((m) => m.type === 'doop:proto-action'),
+      (window as unknown as Fixture).messages.some((m) => m.type === 'diagramly:proto-action'),
     )
     expect(
       await page.evaluate(
-        () => (window as unknown as Fixture).messages.find((m) => m.type === 'doop:proto-action')!.interaction,
+        () => (window as unknown as Fixture).messages.find((m) => m.type === 'diagramly:proto-action')!.interaction,
       ),
     ).toMatchObject({ action: 'navigate', target: 'detail' })
   })
@@ -442,28 +450,28 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
       frames: [
         frame(
           'home',
-          `<button id="help" data-doop-on="click" data-doop-action="overlay:menu">Help</button>
-           <div data-doop-on="delay:800" data-doop-action="navigate:detail"></div>
-           <div data-doop-on="key:k" data-doop-action="navigate:detail"></div>`,
+          `<button id="help" data-diagramly-on="click" data-diagramly-action="overlay:menu">Help</button>
+           <div data-diagramly-on="delay:800" data-diagramly-action="navigate:detail"></div>
+           <div data-diagramly-on="key:k" data-diagramly-action="navigate:detail"></div>`,
         ),
-        frame('detail', `<button id="back" data-doop-on="click" data-doop-action="back">Back</button>`, 500),
+        frame('detail', `<button id="back" data-diagramly-on="click" data-diagramly-action="back">Back</button>`, 500),
         frame(
           'menu',
-          `<button id="close" data-doop-on="click" data-doop-action="close-overlay">Close</button>
-           <button id="more" data-doop-on="click" data-doop-action="overlay:sheet">More</button>
-           <div data-doop-on="key:k" data-doop-action="close-overlay"></div>`,
+          `<button id="close" data-diagramly-on="click" data-diagramly-action="close-overlay">Close</button>
+           <button id="more" data-diagramly-on="click" data-diagramly-action="overlay:sheet">More</button>
+           <div data-diagramly-on="key:k" data-diagramly-action="close-overlay"></div>`,
           1000,
         ),
         frame(
           'sheet',
-          `<button id="done" data-doop-on="click" data-doop-action="close-overlay">Done</button>
-           <div data-doop-on="key:k" data-doop-action="close-overlay"></div>`,
+          `<button id="done" data-diagramly-on="click" data-diagramly-action="close-overlay">Done</button>
+           <div data-diagramly-on="key:k" data-diagramly-action="close-overlay"></div>`,
           1500,
         ),
       ],
     }
     const focusedScreen = () =>
-      page.evaluate(() => (document.activeElement as HTMLElement | null)?.dataset.doopProtoFrame)
+      page.evaluate(() => (document.activeElement as HTMLElement | null)?.dataset.diagramlyProtoFrame)
     /* a wait that, when it never comes true, says where the focus and the overlays are */
     async function waitFor(label: string, check: () => boolean) {
       try {
@@ -512,13 +520,13 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
       const menu = await screen('menu')
       await waitFor(
         'menu focused',
-        () => (document.activeElement as HTMLElement | null)?.dataset.doopProtoFrame === 'menu',
+        () => (document.activeElement as HTMLElement | null)?.dataset.diagramlyProtoFrame === 'menu',
       )
       await clickUntil(menu, '#more', async () => !!(await page.$('[data-proto-overlay="sheet"]')))
       await screen('sheet')
       await waitFor(
         'sheet focused',
-        () => (document.activeElement as HTMLElement | null)?.dataset.doopProtoFrame === 'sheet',
+        () => (document.activeElement as HTMLElement | null)?.dataset.diagramlyProtoFrame === 'sheet',
       )
       await page.keyboard.press('k')
       await waitFor('sheet closed', () => !document.querySelector('[data-proto-overlay="sheet"]'))
@@ -538,7 +546,7 @@ describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () 
       await page.evaluate(() =>
         (window as unknown as Fixture).editFrame(
           'home',
-          '<!doctype html><html><head></head><body><button id="wait" data-doop-on="delay:100" data-doop-action="navigate:detail">Wait</button></body></html>',
+          '<!doctype html><html><head></head><body><button id="wait" data-diagramly-on="delay:100" data-diagramly-action="navigate:detail">Wait</button></body></html>',
         ),
       )
       await page.waitForFunction(() => document.querySelector('[data-proto-current]')?.textContent === 'DETAIL')

@@ -239,7 +239,7 @@ export const canvas = {
   syncStep3Title: 'Browse the app',
   syncStep3Detail: 'Every new screen someone visits lands as a frame. Delete a frame to re-import it fresh.',
   syncNote:
-    'Visible page content uploads to Doop as static HTML. Input values are dropped; mark anything sensitive with data-doop-mask.',
+    'Visible page content uploads to Doop as static HTML. Input values are dropped; mark anything sensitive with data-diagramly-mask.',
 
   /* import: GitHub */
   githubTitle: 'Connect a GitHub repo',

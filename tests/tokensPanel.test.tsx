@@ -134,8 +134,8 @@ describe('TokensSection', () => {
     pickTheme('dark')
     expect(themeRow('dark').getAttribute('aria-checked')).toBe('true')
     /* and the page's frames wear it: the design switches, one save per frame */
-    expect(useStore.getState().canvas?.frames[0]?.html).toContain('data-doop-theme="dark"')
-    expect(updateFrame).toHaveBeenCalledWith('f1', { html: expect.stringContaining('data-doop-theme="dark"') })
+    expect(useStore.getState().canvas?.frames[0]?.html).toContain('data-diagramly-theme="dark"')
+    expect(updateFrame).toHaveBeenCalledWith('f1', { html: expect.stringContaining('data-diagramly-theme="dark"') })
     expect(text()).toContain('#eee')
     expect(container.querySelector<HTMLElement>('[style*="background"]')?.style.background).toBe('#eee')
     /* a token without a dark value shows its default, marked as inherited */
@@ -144,7 +144,7 @@ describe('TokensSection', () => {
     ) /* the tick follows the frames: an undo elsewhere puts them back on the default */
     act(() => {
       const frame = useStore.getState().canvas!.frames[0]!
-      useStore.getState().patchFrameLocal(frame.id, { html: frame.html.replace(' data-doop-theme="dark"', '') })
+      useStore.getState().patchFrameLocal(frame.id, { html: frame.html.replace(' data-diagramly-theme="dark"', '') })
     })
     expect(themeRow('default').getAttribute('aria-checked')).toBe('true')
   })

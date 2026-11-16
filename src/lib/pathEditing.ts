@@ -38,7 +38,7 @@ export function shapePath(svg: Element): SVGPathElement | null {
 }
 
 export async function loadPathEdit(frame: Frame, where: Record<string, unknown>): Promise<PathEditSource | null> {
-  const reply = await requestFrame(frame.id, 'doop:path', where)
+  const reply = await requestFrame(frame.id, 'diagramly:path', where)
   const hit = reply?.hit as (Omit<PathEditSource, 'subpaths' | 'markup'> & { data: string }) | undefined
   if (!hit) return null
   const parsed = parseEditablePath(hit.data)
@@ -109,10 +109,10 @@ function placeInGroup(el: HTMLElement | SVGElement, box: Box, group: Box) {
 /** When a group's box moves or grows, every layer laid out in percentages of
  *  it (an imported file's shapes) is re-placed so it stays where it was. */
 function relayoutGroup(root: Element, from: Box, to: Box) {
-  for (const el of root.querySelectorAll<HTMLElement | SVGElement>('[data-doop-drawing]')) {
+  for (const el of root.querySelectorAll<HTMLElement | SVGElement>('[data-diagramly-drawing]')) {
     const style = el.style
     const values = [style.left, style.top, style.width, style.height]
-    if (el.getAttribute('data-doop-drawing') === 'group' || !values.every((value) => value.endsWith('%'))) continue
+    if (el.getAttribute('data-diagramly-drawing') === 'group' || !values.every((value) => value.endsWith('%'))) continue
     const [left, top, width, height] = values.map(parseFloat) as [number, number, number, number]
     placeInGroup(
       el,
@@ -130,7 +130,7 @@ function relayoutGroup(root: Element, from: Box, to: Box) {
 /** The outermost group a nested shape belongs to: the import's root. */
 function groupRoot(svg: Element): Element | null {
   let root: Element | null = null
-  for (let el = svg.parentElement; el && el.getAttribute('data-doop-drawing') === 'group'; el = el.parentElement)
+  for (let el = svg.parentElement; el && el.getAttribute('data-diagramly-drawing') === 'group'; el = el.parentElement)
     root = el
   return root
 }
@@ -140,7 +140,7 @@ export function updatePathFrame(frame: Frame, source: PathEditSource, path: Edit
   const doc = new DOMParser().parseFromString(frame.html, 'text/html')
   const svg = doc.querySelector<SVGSVGElement>(source.selector)
   const element = svg && shapePath(svg)
-  if (!svg || !element || svg.outerHTML !== source.markup || svg.closest('[data-doop-locked]')) return null
+  if (!svg || !element || svg.outerHTML !== source.markup || svg.closest('[data-diagramly-locked]')) return null
   const bounds = paddedBounds(path.subpaths, strokePad(source.paint.strokeWidth))
   const standalone = isCanvasElement(frame.html)
   const nested = svg.parentElement !== doc.body

@@ -72,9 +72,9 @@ it('runs the extracted download and forwards real Doop tools, instructions and r
   )
   const transport = new StdioClientTransport({
     command: process.execPath,
-    args: [...args, '--header', 'Authorization:Bearer ${DOOP_EXTENSION_TEST_KEY}'],
+    args: [...args, '--header', 'Authorization:Bearer ${DIAGRAMLY_EXTENSION_TEST_KEY}'],
     cwd: directory,
-    env: { DOOP_EXTENSION_TEST_KEY: secret, MCP_REMOTE_CONFIG_DIR: join(directory, 'auth') },
+    env: { DIAGRAMLY_EXTENSION_TEST_KEY: secret, MCP_REMOTE_CONFIG_DIR: join(directory, 'auth') },
     stderr: 'pipe',
   })
   const client = new McpClient({ name: 'Claude extension test', version: '1.0.0' })
@@ -114,7 +114,7 @@ it('completes OAuth with Doop and reuses the sign-in after restarting the extens
     `
     import { spawn } from 'node:child_process'
     export default async function(url) {
-      process.stderr.write('DOOP_TEST_AUTHORIZE ' + url + '\\n')
+      process.stderr.write('DIAGRAMLY_TEST_AUTHORIZE ' + url + '\\n')
       return spawn(process.execPath, ['-e', ''], { stdio: 'ignore' })
     }
   `,
@@ -166,8 +166,8 @@ it('completes OAuth with Doop and reuses the sign-in after restarting the extens
       let authorization: Promise<void> | undefined
       lines.on('line', (line) => {
         diagnostics += `${line}\n`
-        if (line.startsWith('DOOP_TEST_AUTHORIZE ')) {
-          authorizationUrl = new URL(line.slice('DOOP_TEST_AUTHORIZE '.length))
+        if (line.startsWith('DIAGRAMLY_TEST_AUTHORIZE ')) {
+          authorizationUrl = new URL(line.slice('DIAGRAMLY_TEST_AUTHORIZE '.length))
         }
         if (line.includes('Waiting for authorization')) callbackReady = true
         if (authorizationUrl && callbackReady) {

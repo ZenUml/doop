@@ -66,7 +66,7 @@ describe('library faces on frame writes', () => {
     const frame = actions.createFrame(canvasId, { name: 'Hero', html }, agent)!
     const saved = store.getFrame(frame.id)!.html
     expect(saved).toContain(BRAND.url)
-    expect(saved).toContain('data-doop-webfonts')
+    expect(saved).toContain('data-diagramly-webfonts')
     expect(saved).toContain('family=Space+Grotesk:')
     /* an uploaded family is never also linked from Google Fonts */
     expect(saved).not.toContain('family=Brand+Sans')

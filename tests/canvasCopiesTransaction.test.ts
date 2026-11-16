@@ -8,7 +8,7 @@ import type { Canvas } from '../shared/types.ts'
 it('rolls back every copied canvas when the second canvas has a database constraint failure', async () => {
   const dir = await mkdtemp(path.join(tmpdir(), 'doop-copies-transaction-'))
   vi.stubEnv('DATABASE_URL', '')
-  vi.stubEnv('DOOP_DATA_DIR', dir)
+  vi.stubEnv('DIAGRAMLY_DATA_DIR', dir)
   vi.resetModules()
   let client: PGlite | undefined
   try {
