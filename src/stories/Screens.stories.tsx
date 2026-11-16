@@ -22,7 +22,7 @@ export const SignedOutCard: Story = {
     <div className="flex flex-col gap-6">
       <AuthScreen className="h-auto min-h-0">
         <AuthCard title="Connect Claude Code?">
-          <AuthCardText className="break-all">Signed in as ada@example.com</AuthCardText>
+          <AuthCardText className="break-all">Signed in as ada@example.invalid</AuthCardText>
           <AuthCardText>
             This agent will be able to read your profile and read, create, edit and delete designs on the canvases you
             can access.
@@ -56,12 +56,12 @@ export const Install: Story = {
     <div className="flex max-w-[420px] flex-col gap-8">
       <InstallBlock
         action={<Button variant="solid">Add to Codex</Button>}
-        manual={<CodeBlock text="codex mcp add diagramly --url https://doop.design/mcp" />}
+        manual={<CodeBlock text="codex mcp add diagramly --url https://example.invalid/mcp" />}
       />
       <InstallBlock
         action={<Button variant="solid">Added to Codex</Button>}
         status="Diagramly is configured. Open a new Codex chat, then sign in to Diagramly when prompted."
-        manual={<CodeBlock text="codex mcp add diagramly --url https://doop.design/mcp" />}
+        manual={<CodeBlock text="codex mcp add diagramly --url https://example.invalid/mcp" />}
       />
       <InstallBlock
         action={<Button variant="solid">Add to Claude</Button>}

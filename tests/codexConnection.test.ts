@@ -20,15 +20,13 @@ it.each(['https://doop.design', 'https://design.example.com:8443', 'http://local
   },
 )
 
-it('accepts the production www alias and strips unsupported handoff parameters', () => {
+it('rejects a different origin and strips unsupported handoff parameters', () => {
   const target = codexSetupTarget(
     `${codexDesktopLink('https://www.doop.design')}\u0026command=evil\u0026canvas=../auth`,
   )!
   expect(target).not.toContain('command')
   expect(target).not.toContain('canvas')
-  expect(parseCodexSetup(new URL(target, 'https://doop.design').search, 'https://doop.design')).toEqual({
-    canvasId: undefined,
-  })
+  expect(parseCodexSetup(new URL(target, 'https://doop.design').search, 'https://doop.design')).toBeNull()
 })
 
 it.each([

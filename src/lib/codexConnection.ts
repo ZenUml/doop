@@ -71,7 +71,6 @@ export function parseCodexSetup(search: string, currentOrigin: string): { canvas
   const requested = serverOrigin(params.get('origin'))
   const current = serverOrigin(currentOrigin)
   if (!requested || !current) return null
-  const canonical = (origin: string) => (origin === 'https://www.doop.design' ? 'https://doop.design' : origin)
-  if (canonical(requested) !== canonical(current)) return null
+  if (requested !== current) return null
   return { canvasId: canvasFrom(params) }
 }

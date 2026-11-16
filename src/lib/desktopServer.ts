@@ -10,7 +10,7 @@
 export interface ServerStatus {
   /** the server this window opened, as an origin */
   url: string
-  /** the one the app opens with nothing chosen (doop.design) */
+  /** the one the app opens with nothing chosen */
   defaultUrl: string
   /** another server than the default is chosen */
   custom: boolean

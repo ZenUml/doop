@@ -332,7 +332,7 @@ function reporter({ errors }: ReporterOptions<unknown>): void {
 function parse() {
   const source = presentVars(process.env)
   /* envalid applies devDefault only when NODE_ENV is explicitly set to
-     something other than production; doop treats an unset NODE_ENV as
+     something other than production; Diagramly treats an unset NODE_ENV as
      development (bun run dev, the test harness), so say so */
   source.NODE_ENV ??= 'development'
   return cleanEnv(source, schema, { reporter })

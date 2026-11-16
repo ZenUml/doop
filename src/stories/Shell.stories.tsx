@@ -37,7 +37,7 @@ const canvases: CanvasMeta[] = [
   },
   {
     id: 'c2',
-    name: 'doop.design website',
+    name: 'Diagramly marketing site',
     ownerId: 'u1',
     createdAt: now - 864e5 * 4,
     updatedAt: now - 12e4,

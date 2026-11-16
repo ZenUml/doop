@@ -28,14 +28,14 @@ export const People: Story = {
         className="py-1.5"
         avatar={<Avatar name="Kevin Goedecke" color={colorFor('kevin')} size={28} />}
         name="Kevin Goedecke (you)"
-        detail="kevin@doop.design"
+        detail="kevin@example.invalid"
         trailing={<span className="text-label text-ink-faint">Owner</span>}
       />
       <PersonRow
         className="py-1.5"
         avatar={<Avatar name="Mia Chen" color={colorFor('mia')} size={28} />}
         name="Mia Chen"
-        detail="mia@example.com · joined 3d ago"
+        detail="mia@example.invalid · joined 3d ago"
         trailing={
           <>
             <Badge>member</Badge>

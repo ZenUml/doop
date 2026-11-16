@@ -110,8 +110,8 @@ export const Notices: Story = {
         </Badge>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Badge shape="pill">kgoedecke/doop@main</Badge>
-        <Badge shape="pill">doop.design</Badge>
+        <Badge shape="pill">diagramly/example@main</Badge>
+        <Badge shape="pill">Diagramly</Badge>
         <Badge shape="pill">A Figma file with a name long enough to truncate at the pill’s limit</Badge>
       </div>
       <div className="flex flex-wrap items-center gap-4">
@@ -224,8 +224,8 @@ export const Loading: Story = {
 export const Code: Story = {
   render: () => (
     <div className="flex max-w-[520px] flex-col gap-3">
-      <CodeBlock text="claude mcp add --transport http diagramly https://doop.design/mcp" />
-      <CodeBlock density="rail" text="claude mcp add --transport http diagramly https://doop.design/mcp" />
+      <CodeBlock text="claude mcp add --transport http diagramly https://example.invalid/mcp" />
+      <CodeBlock density="rail" text="claude mcp add --transport http diagramly https://example.invalid/mcp" />
     </div>
   ),
 }
