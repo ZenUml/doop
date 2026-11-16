@@ -194,7 +194,7 @@ export function Webhooks() {
         <CardTitle>{t('webhooks.title')}</CardTitle>
         <CardDescription>
           {t('webhooks.descriptionBefore')}
-          <code className="font-mono text-label">X-Doop-Signature</code>
+          <code className="font-mono text-label">X-Diagramly-Signature</code>
           {t('webhooks.descriptionAfter')}
         </CardDescription>
       </CardHeader>

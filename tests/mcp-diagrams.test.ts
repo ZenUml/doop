@@ -14,7 +14,7 @@ vi.mock('../server/env.ts', async (original) => {
     ...module,
     env: {
       ...module.env,
-      get DOOP_PRODUCT() {
+      get DIAGRAMLY_PRODUCT() {
         return state.product
       },
     },

@@ -107,19 +107,19 @@ describe('parseInteractions', () => {
 describe('interactionAttributes', () => {
   it('writes one interaction as single attributes and clears the JSON form', () => {
     expect(interactionAttributes([click('navigate:abc', { transition: 'dissolve' })])).toEqual({
-      'data-doop-on': 'click',
-      'data-doop-action': 'navigate:abc',
-      'data-doop-transition': 'dissolve',
-      'data-doop-duration': null,
-      'data-doop-interactions': null,
+      'data-diagramly-on': 'click',
+      'data-diagramly-action': 'navigate:abc',
+      'data-diagramly-transition': 'dissolve',
+      'data-diagramly-duration': null,
+      'data-diagramly-interactions': null,
     })
   })
 
   it('writes several as JSON that parses back to the same list', () => {
     const list = [click('navigate:a'), { ...click('back'), trigger: 'key' as const, key: ' ' }]
     const attrs = interactionAttributes(list)
-    expect(attrs['data-doop-on']).toBeNull()
-    expect(parseInteractions({ interactions: attrs['data-doop-interactions'] })).toEqual(list)
+    expect(attrs['data-diagramly-on']).toBeNull()
+    expect(parseInteractions({ interactions: attrs['data-diagramly-interactions'] })).toEqual(list)
   })
 
   it('clears every attribute for no interactions', () => {
@@ -130,11 +130,11 @@ describe('interactionAttributes', () => {
 describe('scanInteractions', () => {
   it('finds interactive elements in raw HTML, decoding entities and skipping scripts', () => {
     const html = `<!doctype html><body>
-      <button id="go" data-doop-on="click" data-doop-action="navigate:f2">Go</button>
-      <a class="cta big" data-doop-interactions="[{&quot;on&quot;:&quot;hover&quot;,&quot;action&quot;:&quot;overlay:f3&quot;}]">Menu &gt;</a>
-      <div data-doop-on='key:Escape' data-doop-action=back>x</div>
-      <script>const s = '<p data-doop-on="click" data-doop-action="back">'</script>
-      <p data-doop-on="click" data-doop-action="url:javascript:alert(1)">bad</p>
+      <button id="go" data-diagramly-on="click" data-diagramly-action="navigate:f2">Go</button>
+      <a class="cta big" data-diagramly-interactions="[{&quot;on&quot;:&quot;hover&quot;,&quot;action&quot;:&quot;overlay:f3&quot;}]">Menu &gt;</a>
+      <div data-diagramly-on='key:Escape' data-diagramly-action=back>x</div>
+      <script>const s = '<p data-diagramly-on="click" data-diagramly-action="back">'</script>
+      <p data-diagramly-on="click" data-diagramly-action="url:javascript:alert(1)">bad</p>
     </body>`
     const found = scanInteractions(html)
     expect(found.map((f) => f.label)).toEqual(['#go', '"Menu >"', '"x"', '"bad"'])
@@ -145,10 +145,10 @@ describe('scanInteractions', () => {
 
   it('skips script and style bodies whatever the letter case of their tags', () => {
     const html = `<body>
-      <SCRIPT type="text/x-template"><button data-doop-on="click" data-doop-action="back">in a script</button></script>
-      <Style>/* <a data-doop-on="click" data-doop-action="back"> */</STYLE>
-      <script-host data-doop-on="click" data-doop-action="back">custom</script-host>
-      <BUTTON ID="real" data-doop-on="click" data-doop-action="back">Real</BUTTON>
+      <SCRIPT type="text/x-template"><button data-diagramly-on="click" data-diagramly-action="back">in a script</button></script>
+      <Style>/* <a data-diagramly-on="click" data-diagramly-action="back"> */</STYLE>
+      <script-host data-diagramly-on="click" data-diagramly-action="back">custom</script-host>
+      <BUTTON ID="real" data-diagramly-on="click" data-diagramly-action="back">Real</BUTTON>
     </body>`
     expect(scanInteractions(html).map((f) => f.label)).toEqual(['"custom"', '#real'])
   })
@@ -175,8 +175,8 @@ describe('flows and targets', () => {
     name: 'C',
     pages: [{ id: 'p1', name: 'One' }],
     frames: [
-      frame('b', 200, 0, '<button data-doop-on="click" data-doop-action="navigate:a">A</button>'),
-      frame('a', 0, 0, '<i data-doop-on="click" data-doop-action="overlay:gone">?</i>'),
+      frame('b', 200, 0, '<button data-diagramly-on="click" data-diagramly-action="navigate:a">A</button>'),
+      frame('a', 0, 0, '<i data-diagramly-on="click" data-diagramly-action="overlay:gone">?</i>'),
     ],
     createdAt: 0,
     updatedAt: 0,
@@ -204,16 +204,16 @@ describe('editor writes', () => {
 
   it('round-trips an element’s interactions through the frame HTML', () => {
     const one = withElementInteractions(html, selector, [click('navigate:f2')])!
-    expect(one).toContain('data-doop-on="click"')
-    expect(one).toContain('data-doop-action="navigate:f2"')
+    expect(one).toContain('data-diagramly-on="click"')
+    expect(one).toContain('data-diagramly-action="navigate:f2"')
     expect(elementInteractions(one, selector)).toEqual([click('navigate:f2')])
 
     const two = withElementInteractions(one, selector, [click('navigate:f2'), click('back')])!
-    expect(two).not.toContain('data-doop-on=')
+    expect(two).not.toContain('data-diagramly-on=')
     expect(elementInteractions(two, selector)).toHaveLength(2)
 
     const none = withElementInteractions(two, selector, [])!
-    expect(none).not.toContain('data-doop')
+    expect(none).not.toContain('data-diagramly')
     expect(withElementInteractions(html, 'body > nav', [])).toBeNull()
   })
 })
@@ -255,8 +255,8 @@ describe('player helpers', () => {
   it('reads back only the history entries the player wrote', () => {
     expect(readProtoHistory(protoHistoryState('a', 0))).toEqual({ frameId: 'a', depth: 0 })
     expect(readProtoHistory(null)).toBeNull()
-    expect(readProtoHistory({ doopProto: true })).toBeNull()
-    expect(readProtoHistory({ doopProto: true, frameId: 'a', depth: -1 })).toBeNull()
+    expect(readProtoHistory({ diagramlyProto: true })).toBeNull()
+    expect(readProtoHistory({ diagramlyProto: true, frameId: 'a', depth: -1 })).toBeNull()
   })
 
   it('sizes a screen by the picked scaling', () => {
@@ -276,17 +276,17 @@ describe('remapFrameTargets', () => {
 
   it('rewrites frame targets in both interaction attribute forms', () => {
     const json = JSON.stringify([{ on: 'click', action: 'overlay:old' }]).replaceAll('"', '&quot;')
-    const html = `<a data-doop-on="click" data-doop-action="navigate:old">Go</a><b data-doop-interactions="${json}"></b><i data-doop-action='navigate:other'></i>`
+    const html = `<a data-diagramly-on="click" data-diagramly-action="navigate:old">Go</a><b data-diagramly-interactions="${json}"></b><i data-diagramly-action='navigate:other'></i>`
     const out = remapFrameTargets(html, ids)
-    expect(out).toContain('data-doop-action="navigate:new"')
+    expect(out).toContain('data-diagramly-action="navigate:new"')
     expect(out).toContain('overlay:new')
-    expect(out).toContain("data-doop-action='navigate:other'")
+    expect(out).toContain("data-diagramly-action='navigate:other'")
     expect(out).not.toContain(':old')
   })
 
   it('leaves text, URLs and longer ids alone', () => {
     const html =
-      '<p>Use navigate:old to link</p><a href="https://x.test/?q=overlay:old">x</a><a data-doop-action="navigate:old-two"></a>'
+      '<p>Use navigate:old to link</p><a href="https://x.test/?q=overlay:old">x</a><a data-diagramly-action="navigate:old-two"></a>'
     expect(remapFrameTargets(html, ids)).toBe(html)
   })
 })

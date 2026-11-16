@@ -70,7 +70,7 @@ describe('moveElement', () => {
   })
 
   it('refuses locked destinations, cycles, and invalid HTML on canvas drops', () => {
-    const locked = page('<div data-doop-locked><section><p>Child</p></section></div><img>')
+    const locked = page('<div data-diagramly-locked><section><p>Child</p></section></div><img>')
     expect(moveElement(locked, 'img', { selector: 'section', place: 'inside' }, { order: '0' })).toBeNull()
     expect(moveElement(locked, 'img', { selector: 'p', place: 'before' }, { order: '0' })).toBeNull()
     expect(

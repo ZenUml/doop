@@ -119,7 +119,7 @@ describe('design tokens on frame writes', () => {
     )!
     expect(actions.setTokenThemes(canvasId, ['night'], human, [{ from: 'dark', to: 'night' }])).toEqual(['night'])
     expect(store.getTokens(canvasId).find((t) => t.name === '--color-ink')!.themes).toEqual({ night: '#eee' })
-    expect(store.getFrame(frame.id)!.html).toContain('[data-doop-theme="night"]{--color-ink:#eee}')
+    expect(store.getFrame(frame.id)!.html).toContain('[data-diagramly-theme="night"]{--color-ink:#eee}')
     expect(() => actions.setTokenThemes(canvasId, ['default'], human)).toThrow(/invalid theme name/)
     expect(() => actions.setTokenThemes(canvasId, ['night'], human, [{ from: 'nope', to: 'x' }])).toThrow(/no theme/)
   })
@@ -131,7 +131,7 @@ describe('design tokens on frame writes', () => {
       canvasId,
       {
         name: 'Dark',
-        html: '<html data-doop-theme="dark"><head></head><body style="color:var(--color-ink)"></body></html>',
+        html: '<html data-diagramly-theme="dark"><head></head><body style="color:var(--color-ink)"></body></html>',
       },
       human,
     )!
@@ -140,8 +140,8 @@ describe('design tokens on frame writes', () => {
     expect(store.getTokenThemes(canvasId)).toEqual(['dark'])
     actions.setTokenThemes(canvasId, ['night'], human, [{ from: 'dark', to: 'night' }])
     const html = store.getFrame(frame.id)!.html
-    expect(html).toContain('<html data-doop-theme="night">')
-    expect(html).toContain('[data-doop-theme="night"]{--color-ink:#eee}')
+    expect(html).toContain('<html data-diagramly-theme="night">')
+    expect(html).toContain('[data-diagramly-theme="night"]{--color-ink:#eee}')
   })
 
   it('declares no theme for an edit it refuses', () => {

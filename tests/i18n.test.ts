@@ -93,8 +93,8 @@ describe('translateIn', () => {
     expect(i18n.translateIn('pt-BR', 'settings.agentTitle')).toBe('Diagramly Agent')
     expect(i18n.translateIn('en', 'canvas.cardsQueued', { count: 2 })).toBe('2 cards queued — Diagramly is on it')
     expect(i18n.translateIn('en', 'automations.slackPitch')).toBe('Mention @Doop with a design brief')
-    expect(product.productCopy('doop://auth https://doop.design X-Doop-Signature @Doop')).toBe(
-      'doop://auth https://doop.design X-Doop-Signature @Doop',
+    expect(product.productCopy('diagramly://auth https://doop.design X-Diagramly-Signature @Doop')).toBe(
+      'diagramly://auth https://doop.design X-Diagramly-Signature @Doop',
     )
     expect(product.productCopy('Doop Desktop. doop. Doop.design')).toBe('Diagramly Desktop. Diagramly. Doop.design')
     expect(i18n.translateIn('en', 'auth.openDoop')).toBe('Open Diagramly')

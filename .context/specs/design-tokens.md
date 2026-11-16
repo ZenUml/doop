@@ -26,7 +26,7 @@ fontSize | lineHeight | letterSpacing` (`TOKEN_TYPES`, grouped for menus by `TOK
   token names it, and `set_token_themes` / `PUT /token-themes` replaces the list, applying any
   `renames` (`{ from, to }`, every token's value follows) first; a theme that leaves takes its
   values with it. Every check runs before anything is written, so a bad request changes
-  nothing; a theme rename also rewrites `data-doop-theme` in frames. `frameTheme` /
+  nothing; a theme rename also rewrites `data-diagramly-theme` in frames. `frameTheme` /
   `withFrameTheme` read and set a frame root's theme; the Tokens tab's theme rows are the editor control.
 - Storage: `design_tokens` (migration 0044, PK canvas + name, `themes` jsonb) and
   `canvases.token_themes` jsonb. Hydrated with the canvas like guidelines; duplicates copy both.
@@ -36,8 +36,8 @@ fontSize | lineHeight | letterSpacing` (`TOKEN_TYPES`, grouped for menus by `TOK
 `withTokenBlock(html, tokens, themeOrder)` runs before the font injection, so a family named only
 through a font token is seen by the font scan. It writes the values of the tokens a document names
 (`var(--name)` or `var(--name,` outside the block itself, alias targets included) into one
-managed `<style data-doop-tokens>` at the top of `<head>`: a `:root{…}` block, then
-`:root[data-doop-theme="x"],[data-doop-theme="x"]{…}` per theme with its overrides and, again,
+managed `<style data-diagramly-tokens>` at the top of `<head>`: a `:root{…}` block, then
+`:root[data-diagramly-theme="x"],[data-diagramly-theme="x"]{…}` per theme with its overrides and, again,
 every alias (a custom property's `var()` is substituted where it is declared, so an alias left on
 `:root` would keep the default under a themed subtree). Alias chains are checked per theme, and a
 delete is refused while any value, default or themed, aliases the token. The block is
@@ -45,7 +45,7 @@ replaced when the values differ and removed when the document names no token; th
 returns the input string itself when nothing changes. It runs wherever `withFontFaces` runs:
 `withLibraryFaces` in `server/actions.ts` on every frame write (create, update, the final append
 chunk, an idle stream close) and `FrameView`'s browser save path. A frame switches theme with
-`data-doop-theme="dark"` on its `<html>`, or on one subtree.
+`data-diagramly-theme="dark"` on its `<html>`, or on one subtree.
 
 ## Propagation
 

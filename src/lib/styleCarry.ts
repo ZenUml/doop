@@ -3,15 +3,15 @@
  *  unstyled in the destination. The carried sheet holds what the subtree
  *  uses — rules whose selector matches something in it, the @keyframes and
  *  @font-face those name, the custom properties they read — and every rule
- *  is scoped to the moved markup through a `data-doop-carried-scope` mark on
+ *  is scoped to the moved markup through a `data-diagramly-carried-scope` mark on
  *  its root, so a `.card` rule carried in cannot restyle the destination's
  *  own cards. Group rules (@media and the like) stay around what they
- *  enclosed. It travels as one `<style data-doop-carried>` in the
+ *  enclosed. It travels as one `<style data-diagramly-carried>` in the
  *  destination head, deduplicated by content. External stylesheets are not
  *  carried: nothing can say which of their rules the layer needs. */
 
-export const CARRIED_ATTR = 'data-doop-carried'
-export const SCOPE_ATTR = 'data-doop-carried-scope'
+export const CARRIED_ATTR = 'data-diagramly-carried'
+export const SCOPE_ATTR = 'data-diagramly-carried-scope'
 
 const GENERIC_FONTS = new Set([
   'serif',
@@ -249,9 +249,9 @@ function resolvePositional(pseudo: string, root: Element): string {
 /* a selector scoped by an earlier move: the wrapper comes off before the
    rule is judged and scoped again, or the new wrapper would demand both marks */
 const SCOPED =
-  /^:is\(\[data-doop-carried-scope="[^"]*"\], \[data-doop-carried-scope="[^"]*"\] \*\):is\((.*)\)((?:::?[\w-]+(?:\([^)]*\))?)?)$/
+  /^:is\(\[data-diagramly-carried-scope="[^"]*"\], \[data-diagramly-carried-scope="[^"]*"\] \*\):is\((.*)\)((?:::?[\w-]+(?:\([^)]*\))?)?)$/
 /* the root block of an earlier move's custom properties */
-const SCOPE_MARK = /^\[data-doop-carried-scope="[^"]*"\]$/
+const SCOPE_MARK = /^\[data-diagramly-carried-scope="[^"]*"\]$/
 
 /* the selector's parts with an earlier move's wrapper taken off — only
    where that move's mark is on the subtree or above it; a part scoped to
@@ -261,7 +261,7 @@ function unscope(selector: string, marks: Set<string>): string[] {
   for (const part of splitSelectors(selector)) {
     const m = SCOPED.exec(part)
     if (!m) parts.push(part)
-    else if (marks.has(/data-doop-carried-scope="([^"]*)"/.exec(part)?.[1] ?? '')) parts.push(`${m[1]}${m[2]}`)
+    else if (marks.has(/data-diagramly-carried-scope="([^"]*)"/.exec(part)?.[1] ?? '')) parts.push(`${m[1]}${m[2]}`)
   }
   return parts
 }
@@ -317,7 +317,7 @@ function specificity(compound: string): Specificity {
    tag of these names, and :not() of a selector that matches nothing matches
    everything */
 function padding([ids, classes, types]: [number, number, number]): string {
-  return ':not(#\\0)'.repeat(ids) + ':not(.\\0)'.repeat(classes) + ':not(doop-nil)'.repeat(types)
+  return ':not(#\\0)'.repeat(ids) + ':not(.\\0)'.repeat(classes) + ':not(diagramly-nil)'.repeat(types)
 }
 
 /* a complex selector's compounds and the combinators between them, split

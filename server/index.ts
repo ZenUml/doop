@@ -737,8 +737,8 @@ app.get('/api/oidc-config', (req, res) => {
    client asks before its first render, so sign-in already speaks it. */
 app.get('/api/product-config', (_req, res) => {
   res.json({
-    mode: env.DOOP_PRODUCT,
-    ...(env.DOOP_PRODUCT === 'diagramly' ? { capabilities: DIAGRAMLY_DECISIONS } : {}),
+    mode: env.DIAGRAMLY_PRODUCT,
+    ...(env.DIAGRAMLY_PRODUCT === 'diagramly' ? { capabilities: DIAGRAMLY_DECISIONS } : {}),
   })
 })
 
@@ -748,7 +748,7 @@ app.get('/api/locale-config', (_req, res) => {
 })
 
 /* ------------------------------------------------------------------ */
-/* Design sync ingest: the doop-sync snippet on a foreign origin posts */
+/* Design sync ingest: the diagramly-sync snippet on a foreign origin posts */
 /* DOM snapshots here. The canvas-scoped write-only secret in the path */
 /* is the whole credential (no cookies), so this stays outside the     */
 /* /api session gate and answers its own CORS preflight. The route-    */
@@ -793,7 +793,7 @@ declare global {
 app.get('/api/integrations/:provider/callback', relayDesktopCallback)
 app.use('/api/live-activities', logLiveActivityRequests)
 app.use('/api', async (req, res, next) => {
-  if (env.DOOP_PRODUCT === 'diagramly' && !diagramlyApiAvailable(req.path)) {
+  if (env.DIAGRAMLY_PRODUCT === 'diagramly' && !diagramlyApiAvailable(req.path)) {
     return res.status(404).json({ error: 'This feature is not part of Diagramly Desktop.' })
   }
   try {
@@ -1486,7 +1486,7 @@ app.post('/api/desktop/document-backup', async (req, res) => {
   }
 })
 
-const legacyLibrary = new LegacyLibrary(env.DOOP_LEGACY_LIBRARY_MANIFEST)
+const legacyLibrary = new LegacyLibrary(env.DIAGRAMLY_LEGACY_LIBRARY_MANIFEST)
 app.get('/api/desktop/legacy-library', async (_req, res) => {
   res.setHeader('Cache-Control', 'no-store')
   res.json(await legacyLibrary.status())
@@ -2357,7 +2357,7 @@ app.put('/api/canvases/:id/stack', (req, res) => {
 })
 
 app.post('/api/frames/:id/diagram-style', async (req, res) => {
-  if (env.DOOP_PRODUCT !== 'diagramly') return res.status(404).json({ error: 'Not available.' })
+  if (env.DIAGRAMLY_PRODUCT !== 'diagramly') return res.status(404).json({ error: 'Not available.' })
   if (req.get('origin') !== new URL(env.BETTER_AUTH_URL).origin)
     return res.status(403).json({ error: 'Apply diagram styles from the application.' })
   const { source, mode, expectedUpdatedAt, diagramPageId } = req.body ?? {}
@@ -2710,7 +2710,7 @@ app.post('/api/frames/:id/comments', async (req, res) => {
   res.json(comment)
 })
 
-/* the stable id of an element inside a frame — stamped as data-doop-id into
+/* the stable id of an element inside a frame — stamped as data-diagramly-id into
    the frame HTML if it has none yet — for a link that outlives edits around
    it. Anyone who may comment may stamp: the write is an annotation, not a
    design change, so it leaves sign-off alone. */

@@ -85,7 +85,7 @@ export function isProtoScaling(value: unknown): value is ProtoScaling {
 }
 
 /* Per browser, like the panel layout: it is how this device plays prototypes. */
-const PROTO_SCALING_STORAGE_KEY = 'doop:proto-scaling'
+const PROTO_SCALING_STORAGE_KEY = 'diagramly:proto-scaling'
 
 export function readProtoScaling(): ProtoScaling {
   try {
@@ -140,15 +140,15 @@ export interface ProtoPlace {
   depth: number
 }
 
-export function protoHistoryState(frameId: string, depth: number): { doopProto: true } & ProtoPlace {
-  return { doopProto: true, frameId, depth }
+export function protoHistoryState(frameId: string, depth: number): { diagramlyProto: true } & ProtoPlace {
+  return { diagramlyProto: true, frameId, depth }
 }
 
 /** The place a popstate landed on; null for an entry the player did not write. */
 export function readProtoHistory(state: unknown): ProtoPlace | null {
   if (!state || typeof state !== 'object') return null
-  const s = state as Partial<{ doopProto: unknown } & ProtoPlace>
-  if (s.doopProto !== true || typeof s.frameId !== 'string') return null
+  const s = state as Partial<{ diagramlyProto: unknown } & ProtoPlace>
+  if (s.diagramlyProto !== true || typeof s.frameId !== 'string') return null
   if (typeof s.depth !== 'number' || !Number.isInteger(s.depth) || s.depth < 0) return null
   return { frameId: s.frameId, depth: s.depth }
 }

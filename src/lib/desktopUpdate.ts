@@ -3,7 +3,7 @@
    `update_card_ready`, and from then on a downloaded update is offered here
    instead of in a native dialog; one already waiting comes back as its answer,
    and a `null` payload withdraws the offer (the feed dropped the release). Outside the shell, and in shells older than
-   the card (no __DOOP_UPDATE_CARD__), nothing is listened for or sent. */
+   the card (no __DIAGRAMLY_UPDATE_CARD__), nothing is listened for or sent. */
 
 export const UPDATE_READY_EVENT = 'update-ready'
 
@@ -11,7 +11,7 @@ export const UPDATE_READY_EVENT = 'update-ready'
 export type UpdateOffer = { version: string; current: string }
 
 type UpdateBridge = {
-  __DOOP_UPDATE_CARD__?: boolean
+  __DIAGRAMLY_UPDATE_CARD__?: boolean
   __TAURI__?: {
     core?: { invoke?: (command: string) => Promise<unknown> }
     event?: { listen?: <T>(name: string, handler: (event: { payload: T }) => void) => Promise<() => void> }
@@ -21,7 +21,7 @@ type UpdateBridge = {
 const bridge = globalThis as UpdateBridge
 
 function shellTauri() {
-  return bridge.__DOOP_UPDATE_CARD__ === true ? bridge.__TAURI__ : undefined
+  return bridge.__DIAGRAMLY_UPDATE_CARD__ === true ? bridge.__TAURI__ : undefined
 }
 
 export function isUpdateOffer(value: unknown): value is UpdateOffer {

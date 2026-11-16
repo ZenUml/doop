@@ -33,16 +33,16 @@ it('accepts the production www alias and strips unsupported handoff parameters',
 
 it.each([
   'https://connect/codex?origin=https://doop.design',
-  'doop://connect/other?origin=https://doop.design',
-  'doop://auth?origin=https://doop.design',
-  'doop://connect:123/codex?origin=https://doop.design',
-  'doop://user@connect/codex?origin=https://doop.design',
-  'doop://connect/codex?origin=https://doop.design#fragment',
-  'doop://connect/codex',
-  'doop://connect/codex?origin=file:///tmp',
-  'doop://connect/codex?origin=https://doop.design/mcp',
-  'doop://connect/codex?origin=https://user:secret@doop.design',
-  'doop://connect/codex?origin=https://doop.design?token=secret',
+  'diagramly://connect/other?origin=https://doop.design',
+  'diagramly://auth?origin=https://doop.design',
+  'diagramly://connect:123/codex?origin=https://doop.design',
+  'diagramly://user@connect/codex?origin=https://doop.design',
+  'diagramly://connect/codex?origin=https://doop.design#fragment',
+  'diagramly://connect/codex',
+  'diagramly://connect/codex?origin=file:///tmp',
+  'diagramly://connect/codex?origin=https://doop.design/mcp',
+  'diagramly://connect/codex?origin=https://user:secret@doop.design',
+  'diagramly://connect/codex?origin=https://doop.design?token=secret',
   'not a url',
 ])('ignores malformed or unrelated deep links: %s', (link) => {
   expect(codexSetupTarget(link)).toBeNull()
@@ -50,7 +50,7 @@ it.each([
 
 it('only calls the native installer with no externally selected server or command', async () => {
   const invoke = vi.fn().mockResolvedValue(undefined)
-  vi.stubGlobal('__DOOP_CODEX_SETUP__', true)
+  vi.stubGlobal('__DIAGRAMLY_CODEX_SETUP__', true)
   vi.stubGlobal('__TAURI__', { core: { invoke } })
   expect(canAddToCodex()).toBe(true)
   await addToCodex()

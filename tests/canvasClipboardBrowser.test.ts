@@ -40,7 +40,7 @@ const FRAME: Frame = {
 /* These tests go through the real system clipboard. On macOS headless Chromium
    shares the OS pasteboard with everything else on the machine and its reads
    race its writes, so the file is skipped there unless asked for. */
-const CLIPBOARD_IS_RELIABLE = process.platform !== 'darwin' || !!process.env.DOOP_CLIPBOARD_TESTS
+const CLIPBOARD_IS_RELIABLE = process.platform !== 'darwin' || !!process.env.DIAGRAMLY_CLIPBOARD_TESTS
 
 describe.skipIf(!findBrowserPath() || !CLIPBOARD_IS_RELIABLE)('canvas clipboard shortcuts', { timeout: 20_000 }, () => {
   const pages = pagePerTest({ permissions: ['clipboard-read', 'clipboard-sanitized-write'] })
@@ -104,7 +104,7 @@ describe.skipIf(!findBrowserPath() || !CLIPBOARD_IS_RELIABLE)('canvas clipboard 
   }
 
   async function editText() {
-    const doc = (await (await page.$('iframe[data-doop-frame]'))!.contentFrame())!
+    const doc = (await (await page.$('iframe[data-diagramly-frame]'))!.contentFrame())!
     await doc.click('h1')
     const edit = await page.waitForFunction(() =>
       [...document.querySelectorAll('button')].find((el) => el.textContent?.trim() === 'Edit text'),
@@ -166,8 +166,8 @@ describe.skipIf(!findBrowserPath() || !CLIPBOARD_IS_RELIABLE)('canvas clipboard 
       localStorage.clear()
       window.canvasClipboardHarness.seed([frame])
     }, FRAME)
-    await page.waitForSelector('iframe[data-doop-frame]')
-    const doc = (await (await page.$('iframe[data-doop-frame]'))!.contentFrame())!
+    await page.waitForSelector('iframe[data-diagramly-frame]')
+    const doc = (await (await page.$('iframe[data-diagramly-frame]'))!.contentFrame())!
     await doc.waitForSelector('#card')
     await page.evaluate(() => navigator.clipboard.writeText('external text'))
   })
@@ -182,7 +182,7 @@ describe.skipIf(!findBrowserPath() || !CLIPBOARD_IS_RELIABLE)('canvas clipboard 
     await chord('c')
     await chord('v')
     await expect.poll(() => count('section')).toBe(2)
-    const doc = (await (await page.$('iframe[data-doop-frame]'))!.contentFrame())!
+    const doc = (await (await page.$('iframe[data-diagramly-frame]'))!.contentFrame())!
     await doc.waitForSelector('#card-copy')
     expect(await count('#card-copy h1, #card-copy button')).toBe(2)
     expect(uploads).toBe(0)
@@ -256,7 +256,7 @@ describe.skipIf(!findBrowserPath() || !CLIPBOARD_IS_RELIABLE)('canvas clipboard 
 
   it('copies through the element menu and pastes with the keyboard', async () => {
     await copyImage()
-    const doc = (await (await page.$('iframe[data-doop-frame]'))!.contentFrame())!
+    const doc = (await (await page.$('iframe[data-diagramly-frame]'))!.contentFrame())!
     await doc.click('h1', { button: 'right' })
     await choose('Copy')
     await chord('v')
@@ -270,7 +270,7 @@ describe.skipIf(!findBrowserPath() || !CLIPBOARD_IS_RELIABLE)('canvas clipboard 
     await choose('Copy')
     /* the menu's copy writes the clipboard asynchronously: paste once the
        token has replaced the image, or the paste lands the image instead */
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('doop:clipboard:')
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('diagramly:clipboard:')
     await chord('v')
     await expect.poll(() => created.length).toBe(1)
     expect(created[0]).toMatchObject({ html: HTML, width: 400, height: 300 })
@@ -299,7 +299,7 @@ describe.skipIf(!findBrowserPath() || !CLIPBOARD_IS_RELIABLE)('canvas clipboard 
     )
     if (kind === 'frame') await clickFrameTitle('right')
     else {
-      const doc = (await (await page.$('iframe[data-doop-frame]'))!.contentFrame())!
+      const doc = (await (await page.$('iframe[data-diagramly-frame]'))!.contentFrame())!
       await doc.click('#other', { button: 'right' })
     }
     await choose('Copy')
@@ -376,7 +376,9 @@ describe.skipIf(!findBrowserPath() || !CLIPBOARD_IS_RELIABLE)('canvas clipboard 
               ...frame,
               locked: lock === 'frame',
               html:
-                lock === 'element' ? frame.html.replace('id="card"', 'id="card" data-doop-locked="true"') : frame.html,
+                lock === 'element'
+                  ? frame.html.replace('id="card"', 'id="card" data-diagramly-locked="true"')
+                  : frame.html,
             },
           ],
           lock === 'view' ? 'view' : 'edit',

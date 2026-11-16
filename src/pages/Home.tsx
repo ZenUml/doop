@@ -165,7 +165,14 @@ export function Home() {
     try {
       const canvas = await api.createCanvas(canvasNameFromPrompt(text), workspaceId)
       try {
-        await api.addCard(canvas.id, draftsCardTitle(text, drafts), ['doop'], undefined, undefined, currentRunnerPick())
+        await api.addCard(
+          canvas.id,
+          draftsCardTitle(text, drafts),
+          ['diagramly'],
+          undefined,
+          undefined,
+          currentRunnerPick(),
+        )
         posthog.capture('home_prompt_submitted', { drafts, workspace: !!workspaceId })
       } catch (error) {
         /* the brief — with its draft count — rides along as the canvas

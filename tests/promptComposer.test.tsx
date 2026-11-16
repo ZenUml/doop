@@ -116,7 +116,7 @@ describe('the Agents tab composer', () => {
     expect(mocks.addCard).toHaveBeenCalledWith(
       'c1',
       'a hero for the pricing page',
-      ['doop'],
+      ['diagramly'],
       [],
       undefined,
       /* nothing connected: no pick, so the card runs on the default */
@@ -139,7 +139,7 @@ describe('the Agents tab composer', () => {
     await render()
     await type('make it bolder')
     await press('Enter')
-    expect(mocks.addCard).toHaveBeenCalledWith('c1', 'make it bolder', ['doop'], [], { frameId: 'f1' }, undefined)
+    expect(mocks.addCard).toHaveBeenCalledWith('c1', 'make it bolder', ['diagramly'], [], { frameId: 'f1' }, undefined)
   })
 
   it('takes the keyboard on a focus request', async () => {

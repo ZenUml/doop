@@ -172,7 +172,7 @@ describe('model menu', () => {
   })
 
   it('defaults to Terra when no override is set, whatever this shell exports', async () => {
-    vi.stubEnv('DOOP_AGENT_OPENAI_MODEL', '')
+    vi.stubEnv('DIAGRAMLY_AGENT_OPENAI_MODEL', '')
     vi.resetModules()
     const fresh = await import('../server/openaiAgent.ts')
     expect(fresh.DEFAULT_OPENAI_MODEL).toBe('gpt-5.6-terra')

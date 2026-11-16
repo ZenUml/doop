@@ -9,9 +9,9 @@ let stranger: Client
 let canvasId: string
 beforeAll(async () => {
   server = await startServer({
-    DOOP_APNS_TEAM_ID: 'test',
-    DOOP_APNS_KEY_ID: 'test',
-    DOOP_APNS_PRIVATE_KEY: 'not-a-real-key',
+    DIAGRAMLY_APNS_TEAM_ID: 'test',
+    DIAGRAMLY_APNS_KEY_ID: 'test',
+    DIAGRAMLY_APNS_PRIVATE_KEY: 'not-a-real-key',
   })
   owner = await new Client(server).signUp('activity-owner@test.local', 'Owner')
   stranger = await new Client(server).signUp('activity-other@test.local', 'Other')
@@ -94,7 +94,7 @@ describe('agent badge state', () => {
   })
   it('shows actual pipeline stages and bounds user content for APNs', () => {
     const state = agentActivityState('📐'.repeat(500), [
-      task({ status: '🪄'.repeat(1000), pipeline: ['doop', 'brand'], stage: 1 }),
+      task({ status: '🪄'.repeat(1000), pipeline: ['diagramly', 'brand'], stage: 1 }),
     ])
     expect(state).toMatchObject({ stage: 2, stageCount: 2 })
     expect(Buffer.byteLength(JSON.stringify({ aps: { 'content-state': state } }))).toBeLessThan(4096)

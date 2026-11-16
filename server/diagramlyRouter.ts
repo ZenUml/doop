@@ -4,7 +4,7 @@ import { env } from './env.ts'
 import { DiagramlyConnection, DiagramlyError } from './diagramlyConnection.ts'
 
 const connections = new DiagramlyConnection(
-  path.resolve(env.DOOP_DATA_DIR ?? 'data', 'diagramly-accounts'),
+  path.resolve(env.DIAGRAMLY_DATA_DIR ?? 'data', 'diagramly-accounts'),
   env.BETTER_AUTH_SECRET,
   env.DIAGRAMLY_ORIGIN,
 )
@@ -28,7 +28,7 @@ const handle = (action: (req: Request) => Promise<unknown> | unknown) => (req: R
 /** Native StoreKit owns signed data; a short-lived, one-use ticket replaces
  * cookie credentials on URLSession. This single route precedes the session gate. */
 export const deliverApplePurchase = handle((req) => {
-  if (env.DOOP_PRODUCT !== 'diagramly') throw new DiagramlyError(404, 'Not available.')
+  if (env.DIAGRAMLY_PRODUCT !== 'diagramly') throw new DiagramlyError(404, 'Not available.')
   const { deliveryTicket, transactionId, signedTransaction } = req.body ?? {}
   if (
     typeof deliveryTicket !== 'string' ||
@@ -43,7 +43,7 @@ export const deliverApplePurchase = handle((req) => {
 export const diagramlyRouter = Router()
 diagramlyRouter.use((req, res, next) => {
   res.setHeader('Cache-Control', 'no-store')
-  if (env.DOOP_PRODUCT !== 'diagramly') return res.status(404).json({ error: 'Not available.' })
+  if (env.DIAGRAMLY_PRODUCT !== 'diagramly') return res.status(404).json({ error: 'Not available.' })
   if (req.method !== 'GET' && req.get('origin') !== new URL(env.BETTER_AUTH_URL).origin)
     return res.status(403).json({ error: 'Use the Diagramly application to change its cloud connection.' })
   next()

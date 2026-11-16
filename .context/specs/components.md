@@ -8,7 +8,7 @@ through tools, and read them back in a short form.
 | Problem                                             | Decision                                                                            |
 | --------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | Agents redraw components                            | Catalog in `get_canvas` and the resident prompt; a note when a write has lookalikes |
-| Component payloads are expensive to read            | `get_frame` returns `<doop-use>`; the full form is opt-in                           |
+| Component payloads are expensive to read            | `get_frame` returns `<diagramly-use>`; the full form is opt-in                      |
 | Override ID paths are intricate                     | Attributes are props; part-keyed overrides are there when needed                    |
 | Agents read pre-override values                     | Instances read back with their real props and overridden parts                      |
 | Errors found only in a screenshot                   | Unknown names and values come back in the write's result, with what is valid        |
@@ -25,24 +25,24 @@ Instances are **materialized**: the frame's HTML holds the full markup. Everythi
 (iframes, thumbnails, PDF and image export, comments, Layers) works unchanged, and a deleted
 component loses nothing visually.
 
-- **Main**: an element with `data-doop-component="<id>"`. Editing it with any tool edits the component.
+- **Main**: an element with `data-diagramly-component="<id>"`. Editing it with any tool edits the component.
   A copy of a main elsewhere becomes an instance. If it disappears the component lives on with no main;
   a marker coming back (undo, restore) reclaims the role, and an update writes a new main.
 - **Definition** (`components` table, mirrored on `canvas.components`, keyed per canvas so a copied
   canvas's markers stay valid): `template`, scoped `css`, `rawCss`, `head`, `props`, `slots`, `rev`,
   `mainFrameId`, `code`, `source`, and the last 20 revisions inline.
-- **Instance**: root attributes `data-doop-instance`, `data-doop-rev`, `data-doop-id`, and when needed
-  `data-doop-props` / `data-doop-overrides` as JSON. Every element keeps its `data-doop-part` key.
+- **Instance**: root attributes `data-diagramly-instance`, `data-diagramly-rev`, `data-diagramly-id`, and when needed
+  `data-diagramly-props` / `data-diagramly-overrides` as JSON. Every element keeps its `data-diagramly-part` key.
   Slot content and nested instances are read from the DOM, not repeated in the marker.
   A nested instance's id is derived from its owner's id and part key, so it stays the same across
-  renders and through the short form without being stored. Detaching leaves `data-doop-detached-from`
+  renders and through the short form without being stored. Detaching leaves `data-diagramly-detached-from`
   on the root and a frozen copy of the component's CSS scoped to it, one per revision per frame.
-- **Template markup**: `data-doop-prop` binds text, attributes, styles and custom properties;
-  `data-doop-if` makes elements conditional; `data-doop-slot` / `data-doop-slot-suggest` declare slots.
+- **Template markup**: `data-diagramly-prop` binds text, attributes, styles and custom properties;
+  `data-diagramly-if` makes elements conditional; `data-diagramly-slot` / `data-diagramly-slot-suggest` declare slots.
   Enum props exist only in the definition and set `data-<name>` on the root. Nested components are
-  `<doop-use>` by id, so a rename cannot break them.
+  `<diagramly-use>` by id, so a rename cannot break them.
 - **CSS**: the server has no CSSOM, so rules are matched on what their selectors name, over-keeping
-  occasionally. Rules are scoped with `:where([data-doop-instance="<id>"])`, which adds no specificity.
+  occasionally. Rules are scoped with `:where([data-diagramly-instance="<id>"])`, which adds no specificity.
   Inherited declarations and used custom properties from `html` / `body` / `:root` land on the instance
   root. Stylesheet links and the Tailwind CDN script are carried as `head`.
 
@@ -50,7 +50,7 @@ component loses nothing visually.
 
 `prepareFrameHtml` runs synchronously inside every `actions.ts` write:
 
-1. Expand `<doop-use>` at string level (a parser would foster-parent one out of a `<table>`).
+1. Expand `<diagramly-use>` at string level (a parser would foster-parent one out of a `<table>`).
 2. Fold a changed main into its definition: a new revision, reported as `changed`.
 3. Reconcile each outermost instance: render its own `rev` with its marker's state, diff against the
    incoming markup, record differences as overrides, render at the current revision. Unchanged input

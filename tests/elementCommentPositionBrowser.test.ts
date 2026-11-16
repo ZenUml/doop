@@ -11,7 +11,7 @@ declare global {
 }
 
 const html = (left: number) =>
-  `<body style="margin:0"><div data-doop-id="aaaaaa" style="position:absolute;left:${left}px;top:50px;width:200px;height:100px;background:#ddd">Target</div></body>`
+  `<body style="margin:0"><div data-diagramly-id="aaaaaa" style="position:absolute;left:${left}px;top:50px;width:200px;height:100px;background:#ddd">Target</div></body>`
 const frame: Frame = {
   id: 'f',
   canvasId: 'c',

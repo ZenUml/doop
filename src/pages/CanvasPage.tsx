@@ -161,7 +161,7 @@ const FLOAT_GAP = 10
 /* the narrowest stage docked panels squeeze it to, while their minimums allow */
 const DOCKED_STAGE_MIN = 320
 const AGENTS_W = 280
-const PANEL_WIDTH_KEY = 'doop:canvas-panel-widths'
+const PANEL_WIDTH_KEY = 'diagramly:canvas-panel-widths'
 
 function readPanelWidths(): { layers: number; agents: number } {
   try {
@@ -2022,7 +2022,7 @@ function SyncKeysSection({ canvasId, onBack }: { canvasId: string; onBack: () =>
 
   /* key in the src query string — the one attribute tag managers never strip */
   const snippetFor = (secret: string) =>
-    `<script async src="${location.origin}/doop-sync.js?key=${secret}"></` + `script>`
+    `<script async src="${location.origin}/diagramly-sync.js?key=${secret}"></` + `script>`
 
   async function create() {
     if (busy || !name.trim()) return

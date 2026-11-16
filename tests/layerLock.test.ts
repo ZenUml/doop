@@ -43,7 +43,7 @@ function liveHtml(): string {
 }
 
 describe('the layer lock attribute', () => {
-  it('toggles data-doop-locked on the element and nothing else', () => {
+  it('toggles data-diagramly-locked on the element and nothing else', () => {
     const html = page('<section><p>A</p></section><p>B</p>')
     const locked = setElementLocked(html, SECTION, true)
     expect(locked).toContain(`<section ${LOCK_ATTR}="true"><p>A</p></section>`)
@@ -117,10 +117,10 @@ describe('setLayerLocked', () => {
     expect(setLayerLocked(frame(liveHtml()), SECTION, true)).toBe(true)
     expect(isElementLocked(liveHtml(), SECTION, true)).toBe(true)
     expect(updateFrame).toHaveBeenCalledWith('f1', { html: liveHtml() })
-    expect(requestFrame).toHaveBeenCalledWith('f1', 'doop:lock', { selector: SECTION, locked: true })
+    expect(requestFrame).toHaveBeenCalledWith('f1', 'diagramly:lock', { selector: SECTION, locked: true })
 
     expect(setLayerLocked(frame(liveHtml()), SECTION, false)).toBe(true)
-    expect(requestFrame).toHaveBeenLastCalledWith('f1', 'doop:lock', { selector: SECTION, locked: false })
+    expect(requestFrame).toHaveBeenLastCalledWith('f1', 'diagramly:lock', { selector: SECTION, locked: false })
   })
 
   it('touches nothing when the selector no longer resolves', () => {

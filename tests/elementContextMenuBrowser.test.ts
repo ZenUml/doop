@@ -6,7 +6,7 @@ import type { Frame } from '../shared/types'
 
 declare global {
   interface Window {
-    delayContextMessage?: 'doop:html' | 'doop:context-hit'
+    delayContextMessage?: 'diagramly:html' | 'diagramly:context-hit'
     releaseContextMessage?: () => void
     contextMenuHarness: {
       seed: (frames: Frame[], zoom?: number) => void
@@ -22,7 +22,7 @@ declare global {
 const HTML = `<html><head><style>body { margin: 0; padding: 20px }</style></head><body>
   <div id="box" style="width:200px;height:80px;background:#ddd">First</div>
   <p id="text" style="width:200px;height:50px">Second element</p>
-  <div id="locked" data-doop-locked="true" style="width:200px;height:50px">Locked</div>
+  <div id="locked" data-diagramly-locked="true" style="width:200px;height:50px">Locked</div>
   <svg id="art" width="80" height="50"><rect width="80" height="50" fill="red" /></svg>
 </body></html>`
 
@@ -35,14 +35,14 @@ describe.skipIf(!findBrowserPath())('frame and element context menus', () => {
   const errors: string[] = []
 
   async function frameDoc() {
-    return (await page.$('iframe[data-doop-frame]'))!.contentFrame()
+    return (await page.$('iframe[data-diagramly-frame]'))!.contentFrame()
   }
 
   async function rightClick(selector: string, wait = true) {
     const doc = (await frameDoc())!
     await doc.waitForSelector(selector, { visible: true })
     const inner = await doc.$eval(selector, (el) => el.getBoundingClientRect().toJSON())
-    const outer = await page.$eval('iframe[data-doop-frame]', (el) => el.getBoundingClientRect().toJSON())
+    const outer = await page.$eval('iframe[data-diagramly-frame]', (el) => el.getBoundingClientRect().toJSON())
     const zoom = outer.width / saved.width
     await page.mouse.click(outer.x + (inner.x + 5) * zoom, outer.y + (inner.y + 5) * zoom, { button: 'right' })
     if (wait)
@@ -98,7 +98,7 @@ describe.skipIf(!findBrowserPath())('frame and element context menus', () => {
         if (request.method() === 'DELETE') deletedFrames++
         await request.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(saved) })
       } else if (pathname === '/api/frames/f/element-id') {
-        /* the server stamps a data-doop-id onto the element and answers with it */
+        /* the server stamps a data-diagramly-id onto the element and answers with it */
         stamped.push(JSON.parse(request.postData()!).selector)
         await request.respond({
           status: 200,
@@ -138,7 +138,7 @@ describe.skipIf(!findBrowserPath())('frame and element context menus', () => {
     if (kind === 'image') {
       saved = {
         ...saved,
-        html: '<body data-doop-canvas-element="true"><img id="photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" /></body>',
+        html: '<body data-diagramly-canvas-element="true"><img id="photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" /></body>',
       }
       await page.evaluate((frame) => window.contextMenuHarness.seed([frame]), saved)
     }
@@ -185,9 +185,9 @@ describe.skipIf(!findBrowserPath())('frame and element context menus', () => {
       await page.waitForSelector(editor)
       await page.keyboard.type('Nested label')
       await page.keyboard.press('Enter')
-      await expect.poll(() => saved.html).toContain('data-doop-name="Nested label"')
+      await expect.poll(() => saved.html).toContain('data-diagramly-name="Nested label"')
       const doc = (await frameDoc())!
-      await doc.waitForSelector(`${selector}[data-doop-name="Nested label"]`)
+      await doc.waitForSelector(`${selector}[data-diagramly-name="Nested label"]`)
       expect(await doc.$eval('#text', (el) => el.textContent)).toBe('Second element')
       expect(await doc.$eval('#photo', (el) => el.getAttribute('alt'))).toBe('Original alt')
 
@@ -196,7 +196,7 @@ describe.skipIf(!findBrowserPath())('frame and element context menus', () => {
       await page.waitForFunction((selector) => document.activeElement === document.querySelector(selector), {}, editor)
       await page.keyboard.type('Saved label')
       await page.keyboard.press('Enter')
-      await expect.poll(() => saved.html).toContain('data-doop-name="Saved label"')
+      await expect.poll(() => saved.html).toContain('data-diagramly-name="Saved label"')
       await page.reload()
       await page.waitForFunction(() => !!window.contextMenuHarness)
       await page.evaluate((frame) => window.contextMenuHarness.seed([frame]), saved)
@@ -249,13 +249,13 @@ describe.skipIf(!findBrowserPath())('frame and element context menus', () => {
       ),
     ).toBe('true')
     await choose('Unlock')
-    await expect.poll(() => saved.html).not.toContain('data-doop-locked')
+    await expect.poll(() => saved.html).not.toContain('data-diagramly-locked')
     await rightClick('#text')
     await choose('Hide')
-    await expect.poll(() => saved.html).toContain('data-doop-hidden')
+    await expect.poll(() => saved.html).toContain('data-diagramly-hidden')
     await page.click('[data-row-key="f|#text"]', { button: 'right' })
     await choose('Show')
-    await expect.poll(() => saved.html).not.toContain('data-doop-hidden')
+    await expect.poll(() => saved.html).not.toContain('data-diagramly-hidden')
     await rightClick('#text')
     await choose('Copy link to element')
     /* the copy waits for the stamp, so the clipboard is read once it has landed */
@@ -282,7 +282,7 @@ describe.skipIf(!findBrowserPath())('frame and element context menus', () => {
     await rightClick('#art rect')
     expect(await page.evaluate(() => window.contextMenuHarness.selection())).toEqual({ frameId: 'f', selector: '#art' })
     await choose('Lock')
-    await expect.poll(() => saved.html).toContain('<svg id="art" width="80" height="50" data-doop-locked="true">')
+    await expect.poll(() => saved.html).toContain('<svg id="art" width="80" height="50" data-diagramly-locked="true">')
   })
 
   it('keeps rename undo and redo in sync with an actively edited text layer', async () => {
@@ -295,11 +295,11 @@ describe.skipIf(!findBrowserPath())('frame and element context menus', () => {
     await page.waitForSelector('input[aria-label="Item name"]')
     await page.keyboard.type('Renamed text')
     await page.keyboard.press('Enter')
-    await expect.poll(() => saved.html).toContain('data-doop-name="Renamed text"')
+    await expect.poll(() => saved.html).toContain('data-diagramly-name="Renamed text"')
     await page.evaluate(() => window.contextMenuHarness.undo())
-    expect(await doc.$eval('#text', (el) => el.getAttribute('data-doop-name'))).toBeNull()
+    expect(await doc.$eval('#text', (el) => el.getAttribute('data-diagramly-name'))).toBeNull()
     await page.evaluate(() => window.contextMenuHarness.redo())
-    expect(await doc.$eval('#text', (el) => el.getAttribute('data-doop-name'))).toBe('Renamed text')
+    expect(await doc.$eval('#text', (el) => el.getAttribute('data-diagramly-name'))).toBe('Renamed text')
     await page.evaluate(() => window.contextMenuHarness.undo())
     expect(await doc.$('style[data-v-edit]')).not.toBeNull()
     await doc.$eval('#text', (el) => {
@@ -307,7 +307,7 @@ describe.skipIf(!findBrowserPath())('frame and element context menus', () => {
       el.dispatchEvent(new Event('input', { bubbles: true }))
     })
     await expect.poll(() => saved.html).toContain('Typed after undo')
-    expect(saved.html).not.toContain('data-doop-name')
+    expect(saved.html).not.toContain('data-diagramly-name')
   })
 
   it('opens the element menu during inline text editing and preserves the final text', async () => {
@@ -327,7 +327,7 @@ describe.skipIf(!findBrowserPath())('frame and element context menus', () => {
   it('ignores a delayed hit from a dismissed menu when another element is right-clicked', async () => {
     const doc = (await frameDoc())!
     await doc.evaluate(() => {
-      window.delayContextMessage = 'doop:context-hit'
+      window.delayContextMessage = 'diagramly:context-hit'
     })
     await rightClick('#box', false)
     await page.waitForSelector('[role="menu"]')
@@ -368,7 +368,7 @@ describe.skipIf(!findBrowserPath())('frame and element context menus', () => {
     const doc = (await frameDoc())!
     await doc.waitForFunction(() => document.querySelector('main')?.textContent === 'KeepTarget')
     await doc.evaluate(() => {
-      window.delayContextMessage = 'doop:html'
+      window.delayContextMessage = 'diagramly:html'
     })
     const updated = original.replace('<main>', '<main><div style="position:absolute;top:200px">Inserted</div>')
     await page.evaluate((html) => window.contextMenuHarness.updateHtml(html), updated)

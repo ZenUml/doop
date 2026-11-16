@@ -2,7 +2,7 @@ import type { Frame } from '../../shared/types'
 import { api } from './api'
 import { useStore } from './store'
 
-/** An element link names the element by its `data-doop-id`, which lives in the
+/** An element link names the element by its `data-diagramly-id`, which lives in the
  *  frame HTML: `/c/<canvas>?frame=<frame>&element=<id>`. Agents find the
  *  attribute in get_frame's HTML; the editor resolves it in the live iframe. */
 export function elementLink(frame: Pick<Frame, 'id' | 'canvasId'>, elementId: string): string {

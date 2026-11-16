@@ -36,10 +36,10 @@ over MCP.
 POST /your/url HTTP/1.1
 Content-Type: application/json
 User-Agent: doop-webhooks/1
-X-Doop-Event: comment.created
-X-Doop-Delivery: evt_8f1Kq2pZ0mVt
-X-Doop-Timestamp: 1791216000000
-X-Doop-Signature: sha256=5d41402abc4b2a76b9719d911017c592…
+X-Diagramly-Event: comment.created
+X-Diagramly-Delivery: evt_8f1Kq2pZ0mVt
+X-Diagramly-Timestamp: 1791216000000
+X-Diagramly-Signature: sha256=5d41402abc4b2a76b9719d911017c592…
 ```
 
 ```json
@@ -78,7 +78,7 @@ that fails 100 deliveries in a row pauses itself — turn it back on in Settings
 
 ## Verifying the signature
 
-The signature is HMAC-SHA256 over `<X-Doop-Timestamp>.<raw request body>` with
+The signature is HMAC-SHA256 over `<X-Diagramly-Timestamp>.<raw request body>` with
 the webhook's secret, hex-encoded and prefixed with `sha256=`. Verify against
 the raw bytes, before any JSON parsing, and reject timestamps older than a few
 minutes to shut out replays.
@@ -87,16 +87,16 @@ minutes to shut out replays.
 import { createHmac, timingSafeEqual } from 'node:crypto'
 
 function verify(secret, headers, rawBody) {
-  const timestamp = headers['x-doop-timestamp']
+  const timestamp = headers['x-diagramly-timestamp']
   if (Math.abs(Date.now() - Number(timestamp)) > 5 * 60_000) return false
   const expected = 'sha256=' + createHmac('sha256', secret).update(`${timestamp}.${rawBody}`).digest('hex')
-  const given = headers['x-doop-signature'] ?? ''
+  const given = headers['x-diagramly-signature'] ?? ''
   return given.length === expected.length && timingSafeEqual(Buffer.from(given), Buffer.from(expected))
 }
 ```
 
 In n8n, a **Webhook** node with _Raw body_ on, followed by a **Crypto** node
-(HMAC, SHA256, your secret, input `{{ $headers['x-doop-timestamp'] }}.{{ $rawBody }}`)
+(HMAC, SHA256, your secret, input `{{ $headers['x-diagramly-timestamp'] }}.{{ $rawBody }}`)
 and an **IF** comparing it with the header, is the whole pipeline.
 
 ## Private addresses

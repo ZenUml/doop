@@ -4,12 +4,12 @@ import { DESKTOP_SCHEME } from './desktopAuth'
 export const CODEX_SETUP_PATH = '/desktop/connect/codex'
 
 type CodexBridge = {
-  __DOOP_CODEX_SETUP__?: boolean
+  __DIAGRAMLY_CODEX_SETUP__?: boolean
   __TAURI__?: { core?: { invoke: (command: string) => Promise<void> } }
 }
 
 const bridge = globalThis as CodexBridge
-export const canAddToCodex = () => bridge.__DOOP_CODEX_SETUP__ === true && !!bridge.__TAURI__?.core
+export const canAddToCodex = () => bridge.__DIAGRAMLY_CODEX_SETUP__ === true && !!bridge.__TAURI__?.core
 
 export async function addToCodex(): Promise<void> {
   if (!canAddToCodex())

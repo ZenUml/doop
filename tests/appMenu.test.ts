@@ -193,7 +193,7 @@ describe('the shell bridge', () => {
   })
 
   it('sends the menus, then only the items whose state moved', () => {
-    vi.stubGlobal('__DOOP_APP_MENU__', true)
+    vi.stubGlobal('__DIAGRAMLY_APP_MENU__', true)
     initAppMenu()
     expect(invoke.mock.calls[0]).toEqual(['app_menu_set', { menus: nativeMenus() }])
     expect(invoke.mock.calls[1]).toEqual(['app_menu_state', { items: nativeStates() }])
@@ -208,7 +208,7 @@ describe('the shell bridge', () => {
   })
 
   it('runs what the menu picks', () => {
-    vi.stubGlobal('__DOOP_APP_MENU__', true)
+    vi.stubGlobal('__DIAGRAMLY_APP_MENU__', true)
     initAppMenu()
     const [event, handler] = listen.mock.calls[0] as [string, (e: { payload: unknown }) => void]
     expect(event).toBe('app-menu')

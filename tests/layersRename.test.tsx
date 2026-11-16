@@ -39,7 +39,7 @@ const image: Frame = {
   ...frame,
   id: 'image',
   name: 'photo.png',
-  html: '<body data-doop-canvas-element="true"><img src="/photo.png" /></body>',
+  html: '<body data-diagramly-canvas-element="true"><img src="/photo.png" /></body>',
 }
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -171,7 +171,7 @@ describe('renaming in the Layers panel', () => {
     act(() => {
       useStore.getState().patchFrameLocal('f1', { locked: true })
       useStore.getState().patchFrameLocal('image', {
-        html: image.html.replace('<img ', '<img data-doop-locked="true" '),
+        html: image.html.replace('<img ', '<img data-diagramly-locked="true" '),
       })
     })
     doubleClick('f1')
@@ -218,22 +218,22 @@ describe('renaming in the Layers panel', () => {
       input().value = 'Custom label'
       press('Enter')
       expect(row(key).textContent).toContain('Custom label')
-      expect(savedDocument().querySelector(selector)?.getAttribute('data-doop-name')).toBe('Custom label')
+      expect(savedDocument().querySelector(selector)?.getAttribute('data-diagramly-name')).toBe('Custom label')
       expect(savedDocument().querySelector('#text')?.textContent).toBe('Visible text')
       expect(savedDocument().querySelector('#photo')?.getAttribute('alt')).toBe('Original alt')
       expect(savedDocument().querySelector('#photo')?.getAttribute('src')).toBe('/photo.png')
-      expect(requestFrame).toHaveBeenCalledWith('f1', 'doop:rename', {
+      expect(requestFrame).toHaveBeenCalledWith('f1', 'diagramly:rename', {
         selector,
         name: 'Custom label',
         elementId: expect.stringMatching(/^[a-z0-9]{6}$/),
       })
       /* the rename stamps the element's id, which is what undo and redo find it by */
-      const elementId = savedDocument().querySelector(selector)?.getAttribute('data-doop-id')
+      const elementId = savedDocument().querySelector(selector)?.getAttribute('data-diagramly-id')
       expect(elementId).toMatch(/^[a-z0-9]{6}$/)
       expect(updateFrame.mock.calls[0]?.[1]).toHaveProperty('html')
       await act(async () => undo())
-      expect(savedDocument().querySelector(selector)?.hasAttribute('data-doop-name')).toBe(false)
-      expect(savedDocument().querySelector(selector)?.getAttribute('data-doop-id')).toBe(elementId)
+      expect(savedDocument().querySelector(selector)?.hasAttribute('data-diagramly-name')).toBe(false)
+      expect(savedDocument().querySelector(selector)?.getAttribute('data-diagramly-id')).toBe(elementId)
       await act(async () => redo())
       expect(row(key).textContent).toContain('Custom label')
 
@@ -255,25 +255,27 @@ describe('renaming in the Layers panel', () => {
     doubleClick('f1|body:nth-of-type(1) > p:nth-of-type(1)')
     input().value = 'Lead'
     press('Enter')
-    const first = savedDocument().querySelector('p[data-doop-name="Lead"]')!
-    const id = first.getAttribute('data-doop-id')!
+    const first = savedDocument().querySelector('p[data-diagramly-name="Lead"]')!
+    const id = first.getAttribute('data-diagramly-id')!
     /* a teammate's paragraph arrives in front of the named one */
     act(() => {
       useStore.getState().patchFrameLocal('f1', {
-        html: `<body><p>Newer</p><p data-doop-name="Lead" data-doop-id="${id}">First</p><p>Second</p></body>`,
+        html: `<body><p>Newer</p><p data-diagramly-name="Lead" data-diagramly-id="${id}">First</p><p>Second</p></body>`,
       })
     })
     await act(async () => undo())
     const paragraphs = [...savedDocument().querySelectorAll('p')]
     expect(paragraphs.map((p) => p.textContent)).toEqual(['Newer', 'First', 'Second'])
-    expect(paragraphs.map((p) => p.getAttribute('data-doop-name'))).toEqual([null, null, null])
-    expect(requestFrame).toHaveBeenLastCalledWith('f1', 'doop:rename', {
-      selector: `[data-doop-id="${id}"]`,
+    expect(paragraphs.map((p) => p.getAttribute('data-diagramly-name'))).toEqual([null, null, null])
+    expect(requestFrame).toHaveBeenLastCalledWith('f1', 'diagramly:rename', {
+      selector: `[data-diagramly-id="${id}"]`,
       name: null,
     })
     await act(async () => redo())
-    expect(savedDocument().querySelector(`[data-doop-id="${id}"]`)?.getAttribute('data-doop-name')).toBe('Lead')
-    expect(savedDocument().querySelector('p')?.hasAttribute('data-doop-name')).toBe(false)
+    expect(savedDocument().querySelector(`[data-diagramly-id="${id}"]`)?.getAttribute('data-diagramly-name')).toBe(
+      'Lead',
+    )
+    expect(savedDocument().querySelector('p')?.hasAttribute('data-diagramly-name')).toBe(false)
   })
 
   it('refuses the undo when the renamed layer is gone rather than renaming its neighbour', async () => {
@@ -288,25 +290,25 @@ describe('renaming in the Layers panel', () => {
     expect(updateFrame).toHaveBeenCalledTimes(1)
     const paragraphs = [...savedDocument().querySelectorAll('p')]
     expect(paragraphs.map((p) => p.textContent)).toEqual(['Second'])
-    expect(paragraphs[0]?.hasAttribute('data-doop-name')).toBe(false)
-    expect(paragraphs[0]?.hasAttribute('data-doop-id')).toBe(false)
+    expect(paragraphs[0]?.hasAttribute('data-diagramly-name')).toBe(false)
+    expect(paragraphs[0]?.hasAttribute('data-diagramly-id')).toBe(false)
   })
 
   it('keeps the id an element already wears instead of stamping another', async () => {
-    showLayers('<body><p data-doop-id="abc123">Hello</p></body>')
+    showLayers('<body><p data-diagramly-id="abc123">Hello</p></body>')
     doubleClick('f1|body:nth-of-type(1) > p:nth-of-type(1)')
     input().value = 'Greeting'
     press('Enter')
-    expect(savedDocument().querySelectorAll('[data-doop-id]')).toHaveLength(1)
-    expect(savedDocument().querySelector('p')?.getAttribute('data-doop-id')).toBe('abc123')
-    expect(requestFrame).toHaveBeenLastCalledWith('f1', 'doop:rename', {
+    expect(savedDocument().querySelectorAll('[data-diagramly-id]')).toHaveLength(1)
+    expect(savedDocument().querySelector('p')?.getAttribute('data-diagramly-id')).toBe('abc123')
+    expect(requestFrame).toHaveBeenLastCalledWith('f1', 'diagramly:rename', {
       selector: 'body:nth-of-type(1) > p:nth-of-type(1)',
       name: 'Greeting',
     })
   })
 
   it('does not rename a child of a locked layer', async () => {
-    showLayers(nestedHtml.replace('id="box"', 'id="box" data-doop-locked="true"'))
+    showLayers(nestedHtml.replace('id="box"', 'id="box" data-diagramly-locked="true"'))
     doubleClick('f1|#photo')
     expect(input()).toBeNull()
     expect((await openMenu('f1|#photo')).getAttribute('aria-disabled')).toBe('true')
@@ -322,13 +324,13 @@ describe('renaming in the Layers panel', () => {
     await act(async () => {
       await Promise.resolve()
     })
-    expect(savedDocument().querySelector('#photo')?.hasAttribute('data-doop-name')).toBe(false)
-    expect(requestFrame).toHaveBeenLastCalledWith('f1', 'doop:rename', {
+    expect(savedDocument().querySelector('#photo')?.hasAttribute('data-diagramly-name')).toBe(false)
+    expect(requestFrame).toHaveBeenLastCalledWith('f1', 'diagramly:rename', {
       selector: '#photo',
       name: null,
       elementId: null,
     })
-    expect(savedDocument().querySelector('#photo')?.hasAttribute('data-doop-id')).toBe(false)
+    expect(savedDocument().querySelector('#photo')?.hasAttribute('data-diagramly-id')).toBe(false)
     await act(async () => undo())
     expect(updateFrame).toHaveBeenCalledTimes(1)
   })
@@ -360,7 +362,7 @@ describe('renaming in the Layers panel', () => {
       const currentName = () =>
         kind === 'frame'
           ? useStore.getState().canvas!.frames.find((f) => f.id === 'f1')!.name
-          : savedDocument().querySelector('#photo')?.getAttribute('data-doop-name')
+          : savedDocument().querySelector('#photo')?.getAttribute('data-diagramly-name')
       act(() => {
         rename('A')
         rename('B')
@@ -395,7 +397,7 @@ describe('renaming in the Layers panel', () => {
       })
       await act(async () => finishFirst())
       expect(updateFrame).toHaveBeenCalledTimes(1)
-      expect(savedDocument().querySelector('[data-doop-name]')).toBeNull()
+      expect(savedDocument().querySelector('[data-diagramly-name]')).toBeNull()
       expect(savedDocument().querySelector('p')?.textContent).toBe('Second')
       expect(useStore.getState().notice?.text).toBe('The layer changed before it could be renamed. Try again.')
     },
@@ -416,7 +418,7 @@ describe('renaming in the Layers panel', () => {
     })
     await act(async () => finishFirst())
     expect(updateFrame).toHaveBeenCalledTimes(2)
-    expect(savedDocument().querySelector('#text')?.getAttribute('data-doop-name')).toBe('Caption')
-    expect(savedDocument().querySelector('#photo')?.getAttribute('data-doop-name')).toBe('Photo')
+    expect(savedDocument().querySelector('#text')?.getAttribute('data-diagramly-name')).toBe('Caption')
+    expect(savedDocument().querySelector('#photo')?.getAttribute('data-diagramly-name')).toBe('Photo')
   })
 })

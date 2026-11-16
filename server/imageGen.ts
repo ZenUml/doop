@@ -45,9 +45,9 @@ import {
  */
 
 /* the registry entry used when a user never picked one */
-const DEFAULT_IMAGE_MODEL = env.DOOP_IMAGE_MODEL
+const DEFAULT_IMAGE_MODEL = env.DIAGRAMLY_IMAGE_MODEL
 /* the text model that fronts OpenAI's hosted tool; unset = the account's own tier */
-const ROUTER_MODEL = env.DOOP_IMAGE_ROUTER_MODEL
+const ROUTER_MODEL = env.DIAGRAMLY_IMAGE_ROUTER_MODEL
 const FETCH_TIMEOUT_MS = 5 * 60 * 1000
 const PREVIEW_PX = 512
 
@@ -388,7 +388,7 @@ async function chosenImageModel(
   if (!fallback && !warnedDefault) {
     warnedDefault = true
     console.warn(
-      `[image-gen] DOOP_IMAGE_MODEL="${DEFAULT_IMAGE_MODEL}" is not on the image-model registry — ignoring it`,
+      `[image-gen] DIAGRAMLY_IMAGE_MODEL="${DEFAULT_IMAGE_MODEL}" is not on the image-model registry — ignoring it`,
     )
   }
   if (fallback && available(fallback, accounts)) return fallback

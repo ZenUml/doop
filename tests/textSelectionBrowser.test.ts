@@ -14,12 +14,12 @@ describe.skipIf(!findBrowserPath())('text selection while editing', () => {
     page = await pages.open()
     await page.goto(fixtureUrl('frameReplay.html'))
     await page.waitForFunction(() =>
-      (window as unknown as Fixture).messages?.some((m) => m.type === 'doop:frame-ready'),
+      (window as unknown as Fixture).messages?.some((m) => m.type === 'diagramly:frame-ready'),
     )
     await page.evaluate(() =>
       document.querySelector('iframe')!.contentWindow!.postMessage(
         {
-          type: 'doop:html',
+          type: 'diagramly:html',
           reqId: 'selection-html',
           html: '<p id="text" style="font:24px/1.4 Arial;margin:0;white-space:pre-wrap">Live counter of requests</p>',
         },
@@ -28,7 +28,7 @@ describe.skipIf(!findBrowserPath())('text selection while editing', () => {
     )
     await page.waitForFunction(() => (window as unknown as Fixture).messages.some((m) => m.reqId === 'selection-html'))
     await page.evaluate(() =>
-      document.querySelector('iframe')!.contentWindow!.postMessage({ type: 'doop:edit', on: true }, '*'),
+      document.querySelector('iframe')!.contentWindow!.postMessage({ type: 'diagramly:edit', on: true }, '*'),
     )
     frame = page.frames().find((f) => f !== page.mainFrame())!
   })

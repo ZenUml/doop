@@ -30,6 +30,6 @@ describe('home composer', () => {
     expect(readStoredDrafts(store('9'))).toBe(DEFAULT_DRAFTS)
     expect(readStoredDrafts(store(null))).toBe(DEFAULT_DRAFTS)
     expect(readStoredDrafts(undefined)).toBe(DEFAULT_DRAFTS)
-    expect(DRAFTS_STORAGE_KEY).toBe('doop-home-drafts')
+    expect(DRAFTS_STORAGE_KEY).toBe('diagramly-home-drafts')
   })
 })

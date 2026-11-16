@@ -5,7 +5,7 @@ import { productCopy } from './product'
  * reads each picked file once by the path the panel returned and uploads it
  * through the ordinary font upload, so a local font becomes a library font
  * every viewer and renderer gets. Shells advertise this with
- * `__DOOP_LOCAL_FONTS__`; browsers and older shells never see the button.
+ * `__DIAGRAMLY_LOCAL_FONTS__`; browsers and older shells never see the button.
  */
 
 export interface PickedLocalFont {
@@ -26,12 +26,12 @@ export interface LocalFontPick {
 }
 
 type Bridge = {
-  __DOOP_LOCAL_FONTS__?: boolean
+  __DIAGRAMLY_LOCAL_FONTS__?: boolean
   __TAURI__?: { core: { invoke: <T>(command: string, args?: Record<string, unknown>) => Promise<T> } }
 }
 const bridge = globalThis as Bridge
 
-export const canAddLocalFonts = () => bridge.__DOOP_LOCAL_FONTS__ === true && !!bridge.__TAURI__?.core
+export const canAddLocalFonts = () => bridge.__DIAGRAMLY_LOCAL_FONTS__ === true && !!bridge.__TAURI__?.core
 
 function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   if (!canAddLocalFonts())

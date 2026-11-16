@@ -66,8 +66,8 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
     server = await startServer({
       PORT: String(port),
       BETTER_AUTH_URL: web.origin,
-      DOOP_PRODUCT: 'diagramly',
-      DOOP_LEGACY_LIBRARY_MANIFEST: manifestPath,
+      DIAGRAMLY_PRODUCT: 'diagramly',
+      DIAGRAMLY_LEGACY_LIBRARY_MANIFEST: manifestPath,
     })
   }, 60_000)
 
@@ -96,7 +96,7 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
     await page.waitForFunction(() => document.body.innerText.includes('Existing desktop purchase'))
     await page.locator('button::-p-text(Import 1 document)').click()
     await page.locator('button::-p-text(Open first document)').click()
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
 
     const documentState = async () =>
       (await page.evaluate(async () => {
@@ -133,7 +133,7 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
       )
     }
     async function assertCanvas(label: string, absent: string, background?: string, messageColor?: string) {
-      const iframe = (await page.$('iframe[data-doop-frame]'))!
+      const iframe = (await page.$('iframe[data-diagramly-frame]'))!
       const rendered = (await iframe.contentFrame())!
       try {
         await rendered.waitForFunction(
@@ -141,7 +141,7 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
             const sequence = document.querySelector<HTMLElement>('.sequence-diagram')
             const message = sequence?.querySelector('.message')
             return (
-              document.documentElement.getAttribute('data-doop-diagram-state') === 'rendered' &&
+              document.documentElement.getAttribute('data-diagramly-diagram-state') === 'rendered' &&
               sequence?.innerText.includes(label) &&
               !sequence.innerText.includes(absent) &&
               (!background || getComputedStyle(sequence).backgroundColor === background) &&
@@ -156,9 +156,9 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
         )
       } catch (error) {
         const diagnostic = await rendered.evaluate(() => ({
-          state: document.documentElement.getAttribute('data-doop-diagram-state'),
+          state: document.documentElement.getAttribute('data-diagramly-diagram-state'),
           body: document.body.outerHTML,
-          mount: document.querySelector('[data-doop-diagram-mount]')?.outerHTML,
+          mount: document.querySelector('[data-diagramly-diagram-mount]')?.outerHTML,
           head: document.head.outerHTML,
         }))
         const artifact = `/tmp/diagramly-same-kind-${Date.now()}.json`
@@ -217,13 +217,13 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
       {
         PORT: String(port),
         BETTER_AUTH_URL: web.origin,
-        DOOP_PRODUCT: 'diagramly',
-        DOOP_LEGACY_LIBRARY_MANIFEST: path.join(root, 'legacy-library.json'),
+        DIAGRAMLY_PRODUCT: 'diagramly',
+        DIAGRAMLY_LEGACY_LIBRARY_MANIFEST: path.join(root, 'legacy-library.json'),
       },
       dataDir,
     )
     await page.reload()
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
     await page.click('[data-frame-title]')
     await page.waitForSelector('[aria-label="Diagram page"]')
     expect(await page.$eval('[aria-label="Diagram page"]', (el) => el.textContent)).toContain('Order')
@@ -233,9 +233,9 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
     expect(await page.$eval('textarea[aria-label="Diagram source"]', (el) => (el as HTMLTextAreaElement).value)).toBe(
       source,
     )
-    const reloaded = (await (await page.$('iframe[data-doop-frame]'))!.contentFrame())!
+    const reloaded = (await (await page.$('iframe[data-diagramly-frame]'))!.contentFrame())!
     await reloaded.waitForFunction(
-      () => document.documentElement.getAttribute('data-doop-diagram-state') === 'rendered',
+      () => document.documentElement.getAttribute('data-diagramly-diagram-state') === 'rendered',
     )
     await reloaded.waitForFunction(
       () => getComputedStyle(document.querySelector('.sequence-diagram')!).backgroundColor === 'rgb(220, 238, 255)',

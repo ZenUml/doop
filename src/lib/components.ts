@@ -219,7 +219,7 @@ export async function placeComponent(def: ComponentDef) {
     const created = await api.createFrame(s.canvas.id, {
       name: def.name,
       ...(s.activePageId ? { pageId: s.activePageId } : {}),
-      html: `<!doctype html><html><head></head><body style="margin:0"><doop-use component="${def.id}"></doop-use></body></html>`,
+      html: `<!doctype html><html><head></head><body style="margin:0"><diagramly-use component="${def.id}"></diagramly-use></body></html>`,
     })
     useStore.getState().upsertFrame(created)
     recordCreate(created)
@@ -230,7 +230,7 @@ export async function placeComponent(def: ComponentDef) {
 }
 
 /** The drag payload a component card carries; the canvas drop reads the component id from it. */
-export const COMPONENT_DRAG_TYPE = 'application/x-doop-component'
+export const COMPONENT_DRAG_TYPE = 'application/x-diagramly-component'
 
 /** A component card let go over the canvas: into the frame under the pointer,
  *  or as a new frame at that point when it lands on the paper. */
@@ -258,7 +258,7 @@ export async function dropComponent(componentId: string, client: { x: number; y:
       x: Math.round(point.x),
       y: Math.round(point.y),
       ...(main ? { width: main.width, height: main.height } : {}),
-      html: `<!doctype html><html><head></head><body style="margin:0"><doop-use component="${def.id}"></doop-use></body></html>`,
+      html: `<!doctype html><html><head></head><body style="margin:0"><diagramly-use component="${def.id}"></diagramly-use></body></html>`,
     })
     useStore.getState().upsertFrame(created)
     recordCreate(created)

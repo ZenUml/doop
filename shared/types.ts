@@ -480,7 +480,7 @@ export interface TaskFeedback {
  *  routed to the resident agent; others are notes for the humans in the room.
  *
  *  Three anchors (`shared/comments.ts` tells them apart): an element comment
- *  carries `frameId` + `elementId` (the element's `data-doop-id` in the frame
+ *  carries `frameId` + `elementId` (the element's `data-diagramly-id` in the frame
  *  HTML) + `snippet`; a frame comment carries `frameId` + `x` + `y` (design
  *  px) and no `elementId`; a canvas comment carries `pageId` + `x` + `y`
  *  (world coordinates) and no `frameId`. An element comment whose element
@@ -490,7 +490,7 @@ export interface ElementComment {
   canvasId: string
   /** the frame the element lives in; absent on a canvas comment */
   frameId?: string
-  /** the anchored element's `data-doop-id`; absent on frame and canvas comments */
+  /** the anchored element's `data-diagramly-id`; absent on frame and canvas comments */
   elementId?: string
   /** outerHTML excerpt of the element, for agent context and dead-anchor display ('' off an element) */
   snippet: string

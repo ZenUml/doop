@@ -39,7 +39,7 @@ export const webhooks = {
   signingSecretRow: 'Signing secret',
   copyNow: 'Copy it now — it is shown once. Verify deliveries with it on your side.',
   signatureFormula:
-    'signature = “sha256=” + HMAC-SHA256(secret, X-Doop-Timestamp + “.” + raw body). The docs have a ready-made check.',
+    'signature = “sha256=” + HMAC-SHA256(secret, X-Diagramly-Timestamp + “.” + raw body). The docs have a ready-made check.',
 
   sendTest: 'Send test',
   rotateSecret: 'Rotate secret',

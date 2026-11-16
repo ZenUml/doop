@@ -220,7 +220,7 @@ export function AutomationEditor({ automationId }: { automationId: string }) {
   /* the runs panel remembers whether it was open, like the canvas side panel */
   const [runsOpen, setRunsOpen] = useState(() => {
     try {
-      return localStorage.getItem('doop.automations.runs') !== 'closed'
+      return localStorage.getItem('diagramly.automations.runs') !== 'closed'
     } catch {
       return true
     }
@@ -228,7 +228,7 @@ export function AutomationEditor({ automationId }: { automationId: string }) {
   function toggleRuns(open: boolean) {
     setRunsOpen(open)
     try {
-      localStorage.setItem('doop.automations.runs', open ? 'open' : 'closed')
+      localStorage.setItem('diagramly.automations.runs', open ? 'open' : 'closed')
     } catch {
       /* private mode */
     }
@@ -363,7 +363,7 @@ export function AutomationEditor({ automationId }: { automationId: string }) {
           ? { id, type: 'linear', canvasId, teamId: '', title: 'Follow up on approved designs', description: '' }
           : kind === 'pull'
             ? { id, type: 'pull', provider: 'meta', accountId: '', filter: 'active', canvasId }
-            : { id, type: 'agent', title: '', prompt: '', roles: ['doop'], canvasId }
+            : { id, type: 'agent', title: '', prompt: '', roles: ['diagramly'], canvasId }
     setDraft({ ...draft, steps: [...draft.steps, step] })
     setAdding(false)
   }
@@ -1099,7 +1099,7 @@ function StepPicker({ onPick, onCancel }: { onPick: (kind: string) => void; onCa
       <div className="mt-3 grid grid-cols-2 gap-2">
         {AUTOMATION_EXAMPLES.filter((e) => e.trigger === 'approval').map((e) => (
           <button type="button" key={e.id} className={tile} onClick={() => onPick(e.id)}>
-            <RoleMark role={roleById('doop')} size={22} />
+            <RoleMark role={roleById('diagramly')} size={22} />
             <b className="text-body font-medium">{exampleName(t, e)}</b>
             <span className="text-caption text-ink-soft">{exampleBlurb(t, e)}</span>
           </button>
@@ -1325,7 +1325,7 @@ function duration(t: Translate, ms: number): string {
 
 /* a role's one-liner in the app's language; the role's name is its identity */
 const ROLE_BLURB: Record<string, PlainMessageKey> = {
-  doop: 'automations.roleBlurbDoop',
+  diagramly: 'automations.roleBlurbDoop',
   ux: 'automations.roleBlurbUx',
   copy: 'automations.roleBlurbCopy',
   brand: 'automations.roleBlurbBrand',

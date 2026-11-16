@@ -3,13 +3,13 @@
  * person's own for their personal canvases) and used in frames by family
  * name. A frame stays self-contained: the @font-face rules for the library
  * families it uses live in its own HTML, in one managed
- * `<style data-doop-fonts>` block, so every renderer that reads frame HTML
+ * `<style data-diagramly-fonts>` block, so every renderer that reads frame HTML
  * (the canvas, screenshots, PDF/PSD/Figma export, the iOS app) gets the font
  * without knowing about libraries. `withFontFaces` adds that block; the
  * browser runs it on its saves, the server on every frame write.
  */
 
-export const FONT_BLOCK_ATTR = 'data-doop-fonts'
+export const FONT_BLOCK_ATTR = 'data-diagramly-fonts'
 
 export const FONT_FORMATS = ['woff2', 'woff', 'truetype', 'opentype'] as const
 export type FontFormat = (typeof FONT_FORMATS)[number]
@@ -171,7 +171,7 @@ export function libraryBrief(library: readonly CustomFont[]): string {
     `This canvas has custom fonts uploaded by its team: ${families}. Prefer them for type — they are the brand's. ` +
     `Use one by naming it in CSS (font-family: "Family", sans-serif — a custom property works too); Doop adds the ` +
     `@font-face rules to the frame by itself. Do not load these families from Google Fonts or write their ` +
-    `@font-face yourself, and keep the <style data-doop-fonts> block Doop adds. Stick to the weights listed.`
+    `@font-face yourself, and keep the <style data-diagramly-fonts> block Doop adds. Stick to the weights listed.`
   )
 }
 

@@ -148,9 +148,9 @@ function imageElementHtml(url: string, name: string): string {
   const doc = new DOMParser().parseFromString('<!doctype html><html><head></head><body></body></html>', 'text/html')
   doc.documentElement.style.cssText = 'width:100%;height:100%;margin:0;'
   doc.body.style.cssText = 'width:100%;height:100%;margin:0;'
-  doc.body.setAttribute('data-doop-canvas-element', 'true')
+  doc.body.setAttribute('data-diagramly-canvas-element', 'true')
   const img = doc.createElement('img')
-  img.setAttribute('data-doop-drawing', 'image')
+  img.setAttribute('data-diagramly-drawing', 'image')
   img.setAttribute('data-name', name)
   img.src = url
   img.alt = name

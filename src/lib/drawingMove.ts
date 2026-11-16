@@ -42,12 +42,14 @@ export function movableDrawing(frame: Frame, selector?: string): HTMLElement | S
   const doc = parse(frame.html)
   let el: Element | null
   try {
-    el = selector ? (doc.querySelector(selector)?.closest('[data-doop-drawing]') ?? null) : doc.body.firstElementChild
+    el = selector
+      ? (doc.querySelector(selector)?.closest('[data-diagramly-drawing]') ?? null)
+      : doc.body.firstElementChild
   } catch {
     return null
   }
-  if (!el || el.closest('[data-doop-locked], [data-doop-hidden]')) return null
-  if (selector) return el.matches('[data-doop-drawing]') ? (el as HTMLElement | SVGSVGElement) : null
+  if (!el || el.closest('[data-diagramly-locked], [data-diagramly-hidden]')) return null
+  if (selector) return el.matches('[data-diagramly-drawing]') ? (el as HTMLElement | SVGSVGElement) : null
   if (!isCanvasElement(frame.html) || doc.body.children.length !== 1) return null
   return el as HTMLElement | SVGSVGElement
 }
@@ -187,7 +189,7 @@ export function moveDrawing(
     // Keep the original markup, styling and SVG geometry when changing parents.
     const sourceDoc = parse(source.html)
     const original = selector
-      ? sourceDoc.querySelector(selector)?.closest('[data-doop-drawing]')
+      ? sourceDoc.querySelector(selector)?.closest('[data-diagramly-drawing]')
       : sourceDoc.body.firstElementChild
     if (!original) return
     if (target?.id === source.id) {
@@ -210,12 +212,12 @@ export function moveDrawing(
     const destinationDoc = target ? parse(target.html) : parse(drawingDocument({ tool: 'frame', ...rect }))
     if (!target) {
       destinationDoc.body.style.background = ''
-      destinationDoc.body.setAttribute('data-doop-canvas-element', 'true')
+      destinationDoc.body.setAttribute('data-diagramly-canvas-element', 'true')
     }
     /* an element with an id of its own keeps it (its carried rules name it)
        unless the destination already uses it; then it, and any descendant
        id the destination uses, take a fresh name, references included */
-    if (!el.id) el.id = `doop-drawing-${crypto.randomUUID()}`
+    if (!el.id) el.id = `diagramly-drawing-${crypto.randomUUID()}`
     css = renameInCss(css, uniqueIdsIn(destinationDoc, el))
     destinationDoc.body.append(el)
     const html = withCarriedCss(serialize(destinationDoc), css, scope)

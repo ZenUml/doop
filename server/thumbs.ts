@@ -30,7 +30,7 @@ const MIN_REVALIDATE_MS = 30_000
 const dead = new Set<string>()
 
 const keyFor = (frameId: string) =>
-  `thumb/${env.DOOP_PRODUCT === 'diagramly' ? 'diagramly-home-v1-' : ''}${frameId}.jpg`
+  `thumb/${env.DIAGRAMLY_PRODUCT === 'diagramly' ? 'diagramly-home-v1-' : ''}${frameId}.jpg`
 
 /* Global bound on concurrent preview renders. Per-frame dedupe caps repeat
    requests but not breadth: a post-restart dashboard of 50 stale canvases
@@ -54,7 +54,7 @@ async function render(frame: Frame): Promise<Buffer> {
     const { renderFrame } = await loadScreenshot()
     /* the html is read when the render starts, not when it was queued */
     const source = await store.renderSource(frame)
-    if (env.DOOP_PRODUCT === 'diagramly' && readDiagramFrame(source.html)) {
+    if (env.DIAGRAMLY_PRODUCT === 'diagramly' && readDiagramFrame(source.html)) {
       // A diagram may occupy a small corner of a large imported artboard.
       // Fit its painted content into the card; editor and export sizes stay intact.
       const png = await renderFrame(source, Math.min(1, 1280 / frame.width), {

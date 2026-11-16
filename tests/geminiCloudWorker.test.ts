@@ -185,16 +185,19 @@ describe('Gemini cloud worker', () => {
   })
 
   it('rejects shared workers and hides configuration secrets in errors', () => {
-    stubEnv('DOOP_GEMINI_CLOUD_WORKERS', JSON.stringify({ alice: { url: 'https://worker.example', token: secret } }))
+    stubEnv(
+      'DIAGRAMLY_GEMINI_CLOUD_WORKERS',
+      JSON.stringify({ alice: { url: 'https://worker.example', token: secret } }),
+    )
     expect(geminiCloudWorkerFor('bob')).toBeUndefined()
     expect(geminiCloudWorkerFor('alice')?.url).toBe('https://worker.example')
     stubEnv(
-      'DOOP_GEMINI_CLOUD_WORKERS',
+      'DIAGRAMLY_GEMINI_CLOUD_WORKERS',
       JSON.stringify({
         alice: { url: 'https://worker.example', token: secret },
         bob: { url: 'https://worker.example', token: secret },
       }),
     )
-    expect(() => geminiCloudWorkerFor('alice')).toThrow('Invalid DOOP_GEMINI_CLOUD_WORKERS configuration')
+    expect(() => geminiCloudWorkerFor('alice')).toThrow('Invalid DIAGRAMLY_GEMINI_CLOUD_WORKERS configuration')
   })
 })

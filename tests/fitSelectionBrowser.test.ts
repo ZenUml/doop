@@ -19,7 +19,7 @@ describe.skipIf(!findBrowserPath())('zoom to selection with the panels open', ()
        tests leave their layout in it; it is cleared on the fixture's origin
        before the page that reads it loads */
     await page.goto(fixtureUrl('canvasPage.html'))
-    await page.evaluate(() => localStorage.removeItem('doop:panel-layout'))
+    await page.evaluate(() => localStorage.removeItem('diagramly:panel-layout'))
     await showCanvasPage(page, [WIDE])
   })
 
@@ -69,7 +69,7 @@ describe.skipIf(!findBrowserPath())('zoom to selection with the panels open', ()
   })
 
   it('docked: the stage fills the gap between the columns and fits there', async () => {
-    await page.evaluate(() => localStorage.setItem('doop:panel-layout', 'docked'))
+    await page.evaluate(() => localStorage.setItem('diagramly:panel-layout', 'docked'))
     await showCanvasPage(page, [WIDE])
     const frame = await fitWithPanelsOpen()
     const area = await openArea()
@@ -87,7 +87,7 @@ describe.skipIf(!findBrowserPath())('zoom to selection with the panels open', ()
   })
 
   it('docked: fits a linked frame inside the stage the Inspector narrows', async () => {
-    await page.evaluate(() => localStorage.setItem('doop:panel-layout', 'docked'))
+    await page.evaluate(() => localStorage.setItem('diagramly:panel-layout', 'docked'))
     await showCanvasPage(page, [WIDE], '?frame=wide')
     await page.waitForSelector('[aria-label="Account"]')
     await page.waitForFunction(() => document.querySelectorAll('[data-slot="panel"]').length >= 2)

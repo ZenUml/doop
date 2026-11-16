@@ -2,7 +2,7 @@ import { parse, parseFragment, type DefaultTreeAdapterTypes as Tree } from 'pars
 import { ELEMENT_ID_ATTR, elementIdOf, isElementId, newElementId } from '../shared/elementId.ts'
 
 /**
- * Stamping `data-doop-id` into a frame's source. The browser hands us the
+ * Stamping `data-diagramly-id` into a frame's source. The browser hands us the
  * positional CSS path of the element someone commented on or linked to (the
  * runtime's cssPath: `body:nth-of-type(1) > main:nth-of-type(1) > …`, or
  * `#id > …` from the nearest id); we resolve it against the stored HTML the
@@ -126,7 +126,7 @@ function parseDocument(html: string): Tree.Document {
   return parse(html, { sourceCodeLocationInfo: true })
 }
 
-/** The `data-doop-id` already on the element a selector names, if any. */
+/** The `data-diagramly-id` already on the element a selector names, if any. */
 export function elementIdAt(html: string, selector: string): string | undefined {
   const el = resolve(parseDocument(html), selector)
   const id = el ? attr(el, ELEMENT_ID_ATTR) : undefined

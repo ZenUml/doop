@@ -125,7 +125,7 @@ function agent(): Step {
     canvasId: canvas.id,
     title: 'Make sizes',
     prompt: 'Make 1080×1080 and 1080×1920 drafts.',
-    roles: ['doop'],
+    roles: ['diagramly'],
   }
 }
 function slack(): Step {

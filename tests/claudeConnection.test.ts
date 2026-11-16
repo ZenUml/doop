@@ -55,10 +55,10 @@ it('prefills the local server and hands the complete bundle to the shell without
   const fetcher = vi.fn().mockResolvedValue(new Response(await zip.generateAsync({ type: 'arraybuffer' })))
   const invoke = vi.fn().mockResolvedValue(undefined)
   vi.stubGlobal('fetch', fetcher)
-  vi.stubGlobal('__DOOP_CLAUDE_EXTENSION__', true)
+  vi.stubGlobal('__DIAGRAMLY_CLAUDE_EXTENSION__', true)
   vi.stubGlobal('__TAURI__', { core: { invoke } })
   await addToClaudeDesktop('http://localhost:4301/mcp')
-  expect(fetcher).toHaveBeenCalledExactlyOnceWith('/claude-extension/doop.mcpb')
+  expect(fetcher).toHaveBeenCalledExactlyOnceWith('/claude-extension/diagramly.mcpb')
   expect(invoke).toHaveBeenCalledOnce()
   const [command, payload] = invoke.mock.calls[0] as [string, { bundle: number[] }]
   expect(command).toBe('claude_add_extension')
@@ -70,7 +70,7 @@ it('prefills the local server and hands the complete bundle to the shell without
 
 it('does not invoke the shell when preparing the bundle fails', async () => {
   const invoke = vi.fn()
-  vi.stubGlobal('__DOOP_CLAUDE_EXTENSION__', true)
+  vi.stubGlobal('__DIAGRAMLY_CLAUDE_EXTENSION__', true)
   vi.stubGlobal('__TAURI__', { core: { invoke } })
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('Unavailable', { status: 503 })))
   await expect(addToClaudeDesktop('https://doop.design/mcp')).rejects.toThrow('Could not prepare')
@@ -78,7 +78,7 @@ it('does not invoke the shell when preparing the bundle fails', async () => {
 })
 
 it('keeps older shells from invoking an unavailable native command', async () => {
-  vi.stubGlobal('__DOOP_CLAUDE_EXTENSION__', undefined)
+  vi.stubGlobal('__DIAGRAMLY_CLAUDE_EXTENSION__', undefined)
   const fetcher = vi.fn()
   vi.stubGlobal('fetch', fetcher)
   await expect(addToClaudeDesktop('https://doop.design/mcp')).rejects.toThrow('Update the Doop desktop app')

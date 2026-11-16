@@ -49,9 +49,9 @@ function frameWith(id: string, createdAt: number, html = page('<p>x</p>')): Fram
   }
 }
 
-const shape = page('<div data-doop-drawing="rect" style="position:absolute">x</div>').replace(
+const shape = page('<div data-diagramly-drawing="rect" style="position:absolute">x</div>').replace(
   '<body>',
-  '<body data-doop-canvas-element="true">',
+  '<body data-diagramly-canvas-element="true">',
 )
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -172,7 +172,10 @@ describe('LayersPanel stacking', () => {
   it('leaves a locked frame or shape where it is', () => {
     act(() => useStore.getState().patchFrameLocal('f1', { locked: true }))
     dragRow('f1', 's1', 2)
-    const lockedShape = shape.replace('data-doop-drawing="rect"', 'data-doop-drawing="rect" data-doop-locked=""')
+    const lockedShape = shape.replace(
+      'data-diagramly-drawing="rect"',
+      'data-diagramly-drawing="rect" data-diagramly-locked=""',
+    )
     act(() => useStore.getState().patchFrameLocal('s1', { html: lockedShape }))
     act(() => useStore.getState().select('s1'))
     const tree = container.querySelector<HTMLElement>('[role="tree"]')!

@@ -63,7 +63,7 @@ describe.skipIf(!findBrowserPath())('Diagramly canvas profile', { timeout: 30_00
   it('does not execute legacy HTML stored in an unsupported diagram item', async () => {
     await page.evaluate(() => window.seedUnsupportedDiagram())
     await page.waitForSelector('[data-frame-surface]')
-    expect(await page.$('iframe[data-doop-frame]')).toBeNull()
+    expect(await page.$('iframe[data-diagramly-frame]')).toBeNull()
     expect(await page.$$eval('body', (items) => items[0]?.textContent)).toContain(
       'This item is not a supported diagram',
     )
@@ -85,7 +85,7 @@ describe.skipIf(!findBrowserPath())('Diagramly canvas profile', { timeout: 30_00
     await page.mouse.click(surface!.x + 30, surface!.y + 30)
     await page.waitForFunction(() => window.diagramlyState().selectedId === 'diagram-a')
     expect(await page.evaluate(() => window.diagramlyState().selectedElement)).toBeNull()
-    expect(await page.evaluate(() => window.diagramlyMessages)).not.toContain('doop:probe-result')
+    expect(await page.evaluate(() => window.diagramlyMessages)).not.toContain('diagramly:probe-result')
     expect(await page.$$eval('textarea', (items) => items.length)).toBe(1)
   })
 })

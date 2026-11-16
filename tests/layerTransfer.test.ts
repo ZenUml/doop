@@ -93,7 +93,11 @@ describe('placeElement', () => {
   it('refuses a target that cannot hold it, sits under a lock, or is gone', () => {
     expect(placeElement(page('<input>'), { selector: 'input', place: 'inside' }, '<p>B</p>')).toBeNull()
     expect(
-      placeElement(page('<div data-doop-locked="true"><i></i></div>'), { selector: 'i', place: 'after' }, '<p>B</p>'),
+      placeElement(
+        page('<div data-diagramly-locked="true"><i></i></div>'),
+        { selector: 'i', place: 'after' },
+        '<p>B</p>',
+      ),
     ).toBeNull()
     expect(placeElement(page('<section></section>'), { selector: 'nav', place: 'inside' }, '<p>B</p>')).toBeNull()
   })
@@ -104,7 +108,7 @@ describe('placeElement', () => {
 })
 
 const STANDALONE = (inner: string) =>
-  page(inner).replace('<body>', '<body style="width:100%;height:100%;margin:0" data-doop-canvas-element="true">')
+  page(inner).replace('<body>', '<body style="width:100%;height:100%;margin:0" data-diagramly-canvas-element="true">')
 const SHAPE = 'body:nth-of-type(1) > div:nth-of-type(1)'
 
 describe('transferLayer', () => {
@@ -115,13 +119,13 @@ describe('transferLayer', () => {
   })
 
   it('takes a standalone element into a frame and removes its shell, undone together', async () => {
-    const shape = frameWith('f1', STANDALONE('<div data-doop-drawing="rect" style="position:absolute">x</div>'))
+    const shape = frameWith('f1', STANDALONE('<div data-diagramly-drawing="rect" style="position:absolute">x</div>'))
     const dest = frameWith('f2', page('<section></section>'))
     holdCanvas(shape, dest)
     expect(standaloneSelector(shape)).toBe(SHAPE)
     expect(transferLayer(shape, SHAPE, dest, { selector: SECTION, place: 'inside' })).toBe(true)
     expect(html('f2')).toMatch(
-      /<section><div data-doop-drawing="rect" style="position: ?absolute" data-doop-carried-scope="\w+">x<\/div><\/section>/,
+      /<section><div data-diagramly-drawing="rect" style="position: ?absolute" data-diagramly-carried-scope="\w+">x<\/div><\/section>/,
     )
     expect(useStore.getState().canvas?.frames.map((f) => f.id)).toEqual(['f2'])
     await Promise.resolve()
@@ -166,9 +170,9 @@ describe('transferLayer', () => {
     holdCanvas(source, dest)
     expect(transferLayer(source, P_B, dest, { selector: SECTION, place: 'inside' })).toBe(true)
     expect(html('f2')).toMatch(
-      /<style data-doop-carried="">:is\(\[data-doop-carried-scope="(\w+)"\], \[data-doop-carried-scope="\1"\] \*\):is\(\.hi\) \{ color: red; \}<\/style>/,
+      /<style data-diagramly-carried="">:is\(\[data-diagramly-carried-scope="(\w+)"\], \[data-diagramly-carried-scope="\1"\] \*\):is\(\.hi\) \{ color: red; \}<\/style>/,
     )
-    expect(html('f2')).toMatch(/<p class="hi" data-doop-carried-scope="\w+">B<\/p>/)
+    expect(html('f2')).toMatch(/<p class="hi" data-diagramly-carried-scope="\w+">B<\/p>/)
     expect(html('f2')).not.toContain('.no')
   })
 
@@ -183,7 +187,7 @@ describe('transferLayer', () => {
   })
 
   it('refuses a locked element, a locked destination and a standalone drawing', () => {
-    const locked = frameWith('f1', page('<div><p>A</p><p data-doop-locked="true">B</p></div>'))
+    const locked = frameWith('f1', page('<div><p>A</p><p data-diagramly-locked="true">B</p></div>'))
     const dest = frameWith('f2', page('<section></section>'))
     holdCanvas(locked, dest)
     expect(transferLayer(locked, P_B, dest, { selector: SECTION, place: 'inside' })).toBe(false)
@@ -194,7 +198,7 @@ describe('transferLayer', () => {
 
     const drawing = frameWith(
       'f2',
-      page('<section></section>').replace('<body>', '<body data-doop-canvas-element="true">'),
+      page('<section></section>').replace('<body>', '<body data-diagramly-canvas-element="true">'),
     )
     holdCanvas(source, drawing)
     expect(transferLayer(source, P_B, drawing, { selector: SECTION, place: 'inside' })).toBe(false)
@@ -203,16 +207,18 @@ describe('transferLayer', () => {
 
   it('takes a layer back into a standalone drawing left behind empty', () => {
     const source = frameWith('f1', page('<div><p>A</p><p>B</p></div>'))
-    const emptied = frameWith('f2', page('').replace('<body>', '<body data-doop-canvas-element="true">'))
+    const emptied = frameWith('f2', page('').replace('<body>', '<body data-diagramly-canvas-element="true">'))
     holdCanvas(source, emptied)
     expect(transferLayer(source, P_B, emptied, { selector: 'body', place: 'inside' })).toBe(true)
-    expect(html('f2')).toMatch(/<body data-doop-canvas-element="true"><p[^>]*>B<\/p><\/body>/)
+    expect(html('f2')).toMatch(/<body data-diagramly-canvas-element="true"><p[^>]*>B<\/p><\/body>/)
   })
 
   it('sizes a standalone shape to its shell when it enters a frame', () => {
     const shape = frameWith(
       'f1',
-      STANDALONE('<div data-doop-drawing="rect" style="position:absolute;left:0;top:0;width:100%;height:100%">x</div>'),
+      STANDALONE(
+        '<div data-diagramly-drawing="rect" style="position:absolute;left:0;top:0;width:100%;height:100%">x</div>',
+      ),
       { width: 40, height: 20 },
     )
     const dest = frameWith('f2', page('<section></section>'))
@@ -360,7 +366,7 @@ describe('transferLayer', () => {
   })
 
   it('follows an element with an id through an edit, and lets the move stand once it is gone', async () => {
-    const source = frameWith('f1', page('<div><p>A</p><p data-doop-id="ab12cd">B</p></div>'))
+    const source = frameWith('f1', page('<div><p>A</p><p data-diagramly-id="ab12cd">B</p></div>'))
     const dest = frameWith('f2', page('<section></section>'))
     const conflict = (remoteHtml: string) => {
       updateFrame
@@ -376,7 +382,7 @@ describe('transferLayer', () => {
     }
     holdCanvas(source, dest)
     /* edited in place, and a same-shaped sibling added: still there by its id */
-    conflict(page('<div><p>A</p><p data-doop-id="ab12cd">Bee</p><p>C</p></div>'))
+    conflict(page('<div><p>A</p><p data-diagramly-id="ab12cd">Bee</p><p>C</p></div>'))
     expect(transferLayer(source, P_B, dest, { selector: SECTION, place: 'inside' })).toBe(true)
     for (let i = 0; i < 6; i++) await Promise.resolve()
     expect(html('f2')).toBe(dest.html)
@@ -469,10 +475,10 @@ describe('detachLayer', () => {
     expect(input).toMatchObject({ name: 'B', x: 110, y: 220, width: 50, height: 30, pageId: 'p2' })
     /* a transform, inline or carried, would apply a second time on the measured box */
     expect(input.html).toContain('transform: none !important')
-    expect(input.html).toContain('data-doop-canvas-element="true"')
-    expect(input.html).toMatch(/<style data-doop-carried="">:is\(\[data-doop-carried-scope="\w+"\]/)
+    expect(input.html).toContain('data-diagramly-canvas-element="true"')
+    expect(input.html).toMatch(/<style data-diagramly-carried="">:is\(\[data-diagramly-carried-scope="\w+"\]/)
     expect(input.html).toMatch(
-      /<p class="hi" data-doop-carried-scope="\w+" style="[^"]*position: absolute[^"]*width: 100%[^"]*">B<\/p>/,
+      /<p class="hi" data-diagramly-carried-scope="\w+" style="[^"]*position: absolute[^"]*width: 100%[^"]*">B<\/p>/,
     )
     expect(html('f1')).toContain('<div><p>A</p></div>')
     const created = useStore.getState().canvas?.frames.find((f) => f.id === 'new')

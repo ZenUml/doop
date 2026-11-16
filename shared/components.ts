@@ -1,37 +1,37 @@
 /**
  * Components: one design used in many places. A component's main is an ordinary
- * element in a frame, marked `data-doop-component`. An instance is that markup
- * written out in full in the frame that uses it, marked `data-doop-instance`, so
+ * element in a frame, marked `data-diagramly-component`. An instance is that markup
+ * written out in full in the frame that uses it, marked `data-diagramly-instance`, so
  * everything that reads frame HTML (the iframe, exports, screenshots, comments,
  * the Layers panel) needs no idea components exist. Agents read and write the
- * short form, `<doop-use component="Button" label="Buy"></doop-use>`.
+ * short form, `<diagramly-use component="Button" label="Buy"></diagramly-use>`.
  * Spec: .context/specs/components.md.
  */
 
-export const COMPONENT_ATTR = 'data-doop-component'
-export const INSTANCE_ATTR = 'data-doop-instance'
-export const REV_ATTR = 'data-doop-rev'
-export const PROPS_ATTR = 'data-doop-props'
-export const OVERRIDES_ATTR = 'data-doop-overrides'
+export const COMPONENT_ATTR = 'data-diagramly-component'
+export const INSTANCE_ATTR = 'data-diagramly-instance'
+export const REV_ATTR = 'data-diagramly-rev'
+export const PROPS_ATTR = 'data-diagramly-props'
+export const OVERRIDES_ATTR = 'data-diagramly-overrides'
 /** A template element's stable key: what an override is pinned to. */
-export const PART_ATTR = 'data-doop-part'
-export const SLOT_ATTR = 'data-doop-slot'
-export const SLOT_SUGGEST_ATTR = 'data-doop-slot-suggest'
+export const PART_ATTR = 'data-diagramly-part'
+export const SLOT_ATTR = 'data-diagramly-slot'
+export const SLOT_SUGGEST_ATTR = 'data-diagramly-slot-suggest'
 /** `label` binds the text; `href:link,--accent:accent,style.color:ink` bind attributes and styles. */
-export const BIND_ATTR = 'data-doop-prop'
+export const BIND_ATTR = 'data-diagramly-prop'
 /** `showIcon`, `!showIcon`, `tone=ghost` or `tone!=ghost`: the element exists only when this holds. */
-export const IF_ATTR = 'data-doop-if'
+export const IF_ATTR = 'data-diagramly-if'
 /** The component's scoped CSS in the head of a frame that uses it. */
-export const CSS_ATTR = 'data-doop-component-css'
+export const CSS_ATTR = 'data-diagramly-component-css'
 /** A stylesheet link or framework script a component brought into a frame's head: never the frame's own. */
-export const HEAD_ATTR = 'data-doop-component-head'
+export const HEAD_ATTR = 'data-diagramly-component-head'
 /** The stylesheet update_component writes in the frame holding the main. */
-export const SOURCE_CSS_ATTR = 'data-doop-component-source'
-export const USE_TAG = 'doop-use'
+export const SOURCE_CSS_ATTR = 'data-diagramly-component-source'
+export const USE_TAG = 'diagramly-use'
 /** A detached instance's root: `<component id>.<rev>`, what its own frozen stylesheet is scoped to. */
-export const DETACHED_ATTR = 'data-doop-detached-from'
+export const DETACHED_ATTR = 'data-diagramly-detached-from'
 /** That stylesheet, in the head of the frame holding the detached element. Nothing regenerates it. */
-export const DETACHED_CSS_ATTR = 'data-doop-detached-css'
+export const DETACHED_CSS_ATTR = 'data-diagramly-detached-css'
 
 export const MAX_COMPONENTS = 500
 export const MAX_COMPONENT_HISTORY = 20
@@ -46,7 +46,7 @@ export const PROP_TYPES = ['text', 'image', 'link', 'enum', 'boolean'] as const
 export type ComponentPropType = (typeof PROP_TYPES)[number]
 
 export interface ComponentProp {
-  /** lowercase, since it doubles as an HTML attribute on `<doop-use>` */
+  /** lowercase, since it doubles as an HTML attribute on `<diagramly-use>` */
   name: string
   type: ComponentPropType
   /** enum and boolean only: text-like defaults are the template's own content */
@@ -86,7 +86,7 @@ export interface ComponentDef {
   id: string
   name: string
   description: string
-  /** compact main markup: the root and every element keyed, nested instances as `<doop-use>` */
+  /** compact main markup: the root and every element keyed, nested instances as `<diagramly-use>` */
   template: string
   /** scoped to the instance root; goes in the head of every frame using this */
   css: string
@@ -155,7 +155,7 @@ export interface InstanceSummary {
 }
 
 const PROP_NAME = /^[a-z][a-z0-9-]{0,39}$/
-/* a prop doubles as an attribute on `<doop-use>`, and these already mean something there */
+/* a prop doubles as an attribute on `<diagramly-use>`, and these already mean something there */
 const RESERVED_PROP_NAMES = new Set(['component', 'id', 'class', 'style', 'overrides', 'slot'])
 
 export function isPropName(value: unknown): value is string {
@@ -163,7 +163,7 @@ export function isPropName(value: unknown): value is string {
     typeof value === 'string' &&
     PROP_NAME.test(value) &&
     !RESERVED_PROP_NAMES.has(value) &&
-    !value.startsWith('data-doop-')
+    !value.startsWith('data-diagramly-')
   )
 }
 

@@ -78,7 +78,7 @@ describe('normalize', () => {
   it('keeps only real steps, with real roles', () => {
     const steps = normalizeSteps([
       { type: 'pull', accountId: 'act_1', filter: 'everything', canvasId: 'c1' },
-      { type: 'agent', prompt: ' Review it ', roles: ['bogus', 'ux', 'doop'], canvasId: 'c1' },
+      { type: 'agent', prompt: ' Review it ', roles: ['bogus', 'ux', 'diagramly'], canvasId: 'c1' },
     ])
     expect(steps).toEqual([
       { id: 's1', type: 'pull', provider: 'meta', accountId: 'act_1', filter: 'active', canvasId: 'c1' },
@@ -91,14 +91,14 @@ describe('normalize', () => {
 
   it('says what is missing before an automation can run', () => {
     expect(incompleteReason([])).toBe('Add a step')
-    expect(incompleteReason([{ id: 's1', type: 'agent', title: '', prompt: 'x', roles: ['doop'], canvasId: '' }])).toBe(
-      'Pick a canvas for every step',
-    )
+    expect(
+      incompleteReason([{ id: 's1', type: 'agent', title: '', prompt: 'x', roles: ['diagramly'], canvasId: '' }]),
+    ).toBe('Pick a canvas for every step')
     expect(
       incompleteReason([{ id: 's1', type: 'pull', provider: 'meta', accountId: '', filter: 'active', canvasId: 'c' }]),
     ).toBe('Pick a Meta ad account')
     expect(
-      incompleteReason([{ id: 's1', type: 'agent', title: '', prompt: 'x', roles: ['doop'], canvasId: 'c' }]),
+      incompleteReason([{ id: 's1', type: 'agent', title: '', prompt: 'x', roles: ['diagramly'], canvasId: 'c' }]),
     ).toBeUndefined()
   })
 

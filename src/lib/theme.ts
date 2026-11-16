@@ -8,7 +8,7 @@ export type ResolvedTheme = 'light' | 'dark'
 /* index.html reads this same key before the bundle loads, so a reload never
    flashes the light theme — change one and change the other. The choice is
    per browser, not per account: it is how this device looks, like zoom. */
-export const THEME_STORAGE_KEY = 'doop-theme'
+export const THEME_STORAGE_KEY = 'diagramly-theme'
 
 const DARK_QUERY = '(prefers-color-scheme: dark)'
 

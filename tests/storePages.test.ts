@@ -122,7 +122,7 @@ it('points a copied page’s prototype links and flow start at the copied frames
     {
       name: 'Start',
       pageId: page!.id,
-      html: `<a data-doop-on="click" data-doop-action="navigate:${target.id}">Go</a><b data-doop-interactions="${multi}"></b>`,
+      html: `<a data-diagramly-on="click" data-diagramly-action="navigate:${target.id}">Go</a><b data-diagramly-interactions="${multi}"></b>`,
     },
     'alice',
   )
@@ -145,7 +145,11 @@ it('points a copied canvas’s prototype links and flow starts at the copied fra
   const target = store.createFrame(canvas.id, { name: 'Target', pageId: page!.id }, 'alice')!
   store.createFrame(
     canvas.id,
-    { name: 'Start', pageId: page!.id, html: `<a data-doop-on="click" data-doop-action="overlay:${target.id}">Go</a>` },
+    {
+      name: 'Start',
+      pageId: page!.id,
+      html: `<a data-diagramly-on="click" data-diagramly-action="overlay:${target.id}">Go</a>`,
+    },
     'alice',
   )
   store.setFlowStart(canvas.id, page!.id, target.id)

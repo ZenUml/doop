@@ -4,8 +4,8 @@ import { carriedCss, renameInCss, scopeMarkup, withCarriedCss } from '../src/lib
 
 const page = (head: string, body: string) => `<!doctype html>\n<html><head>${head}</head><body>${body}</body></html>`
 /* every carried rule is limited to the moved markup through its scope mark */
-const S = (sel: string) => `:is([data-doop-carried-scope="s"], [data-doop-carried-scope="s"] *):is(${sel})`
-const ROOT = '[data-doop-carried-scope="s"]'
+const S = (sel: string) => `:is([data-diagramly-carried-scope="s"], [data-diagramly-carried-scope="s"] *):is(${sel})`
+const ROOT = '[data-diagramly-carried-scope="s"]'
 /* a subject pinned to its place under the root: the path weighs nothing, the
    padding is the weight of the ancestors cut off */
 const Q = (subject: string, pads = 1) => `${subject}:where(${ROOT})${':not(.\\0)'.repeat(pads)}`
@@ -89,7 +89,9 @@ describe('carriedCss', () => {
     const css = carriedCss(page(head, '<div class="theme"><div class="card"></div></div>'), '.card', 's')
     expect(css).toContain('--ink: red')
     expect(css).toContain('--bg: white')
-    expect(css).toMatch(/@media \(prefers-color-scheme: ?dark\) \{\s*\[data-doop-carried-scope="s"\] \{\s*--bg: black/)
+    expect(css).toMatch(
+      /@media \(prefers-color-scheme: ?dark\) \{\s*\[data-diagramly-carried-scope="s"\] \{\s*--bg: black/,
+    )
     expect(css).not.toContain('.theme')
   })
 
@@ -261,23 +263,23 @@ describe('carriedCss', () => {
   })
 
   it('leaves a nested layer’s earlier mark alone when its group moves again', () => {
-    const head = `<style data-doop-carried="">:is([data-doop-carried-scope="kid"], [data-doop-carried-scope="kid"] *):is(.kid:where([data-doop-carried-scope="kid"])) { color: red; }</style>`
+    const head = `<style data-diagramly-carried="">:is([data-diagramly-carried-scope="kid"], [data-diagramly-carried-scope="kid"] *):is(.kid:where([data-diagramly-carried-scope="kid"])) { color: red; }</style>`
     const css = carriedCss(
       page(
         head,
-        '<div class="group" data-doop-carried-scope="old"><div class="kid" data-doop-carried-scope="kid"></div></div>',
+        '<div class="group" data-diagramly-carried-scope="old"><div class="kid" data-diagramly-carried-scope="kid"></div></div>',
       ),
       '.group',
       's',
     )
-    expect(css).toContain('.kid:where([data-doop-carried-scope="kid"])')
-    expect(css).not.toContain('.kid:where([data-doop-carried-scope="s"])')
+    expect(css).toContain('.kid:where([data-diagramly-carried-scope="kid"])')
+    expect(css).not.toContain('.kid:where([data-diagramly-carried-scope="s"])')
   })
 
   it('pins a rule an earlier move pinned to its mark to the new mark', () => {
-    const head = `<style data-doop-carried="">:is([data-doop-carried-scope="old"], [data-doop-carried-scope="old"] *):is(:where([data-doop-carried-scope="old"]):not(.\\0)) { background: red; }</style>`
+    const head = `<style data-diagramly-carried="">:is([data-diagramly-carried-scope="old"], [data-diagramly-carried-scope="old"] *):is(:where([data-diagramly-carried-scope="old"]):not(.\\0)) { background: red; }</style>`
     const css = carriedCss(
-      page(head, '<div class="card" data-doop-carried-scope="old"><div class="card"></div></div>'),
+      page(head, '<div class="card" data-diagramly-carried-scope="old"><div class="card"></div></div>'),
       '.card',
       's',
     )
@@ -320,7 +322,7 @@ describe('carriedCss', () => {
       '.card',
       's',
     )
-    const block = /\[data-doop-carried-scope="s"\] \{([^}]*)\}/.exec(css)![1]!
+    const block = /\[data-diagramly-carried-scope="s"\] \{([^}]*)\}/.exec(css)![1]!
     const order = [...block.matchAll(/--ink: (\w+);/g)].map((m) => m[1])
     expect(order).toEqual(['blue', 'green', 'red'])
   })
@@ -397,7 +399,7 @@ describe('carriedCss', () => {
 describe('scopeMarkup and renameInCss', () => {
   it('marks each top-level element and follows renamed ids', () => {
     expect(scopeMarkup('<p id="a">x</p><b>y</b>', 's')).toBe(
-      '<p id="a" data-doop-carried-scope="s">x</p><b data-doop-carried-scope="s">y</b>',
+      '<p id="a" data-diagramly-carried-scope="s">x</p><b data-diagramly-carried-scope="s">y</b>',
     )
     expect(renameInCss('#hero { color: red; } .x { fill: url(#hero); } #other {}', { hero: 'hero-copy' })).toBe(
       '#hero-copy { color: red; } .x { fill: url(#hero-copy); } #other {}',
@@ -413,27 +415,27 @@ describe('scopeMarkup and renameInCss', () => {
 
 describe('carriedCss on a layer moved before', () => {
   it('takes only the rules of the move that brought this layer in, not another layer’s', () => {
-    const head = `<style data-doop-carried>
-      [data-doop-carried-scope="red"] { --ink: red; }
-      :is([data-doop-carried-scope="red"], [data-doop-carried-scope="red"] *):is(.card) { color: var(--ink); }
-      [data-doop-carried-scope="blue"] { --ink: blue; }
-      :is([data-doop-carried-scope="blue"], [data-doop-carried-scope="blue"] *):is(.card) { color: blue; }
+    const head = `<style data-diagramly-carried>
+      [data-diagramly-carried-scope="red"] { --ink: red; }
+      :is([data-diagramly-carried-scope="red"], [data-diagramly-carried-scope="red"] *):is(.card) { color: var(--ink); }
+      [data-diagramly-carried-scope="blue"] { --ink: blue; }
+      :is([data-diagramly-carried-scope="blue"], [data-diagramly-carried-scope="blue"] *):is(.card) { color: blue; }
     </style>`
     const body =
-      '<div class="card" data-doop-carried-scope="red"></div><div class="card" data-doop-carried-scope="blue"></div>'
-    const css = carriedCss(page(head, body), '[data-doop-carried-scope="red"]', 's')
+      '<div class="card" data-diagramly-carried-scope="red"></div><div class="card" data-diagramly-carried-scope="blue"></div>'
+    const css = carriedCss(page(head, body), '[data-diagramly-carried-scope="red"]', 's')
     expect(css).toContain('color: var(--ink)')
     expect(css).toContain('--ink: red')
     expect(css).not.toContain('blue')
   })
 
   it('scopes the carried rules once, under the new mark only', () => {
-    const head = `<style data-doop-carried>
-      [data-doop-carried-scope="old"] { --ink: red; }
-      :is([data-doop-carried-scope="old"], [data-doop-carried-scope="old"] *):is(.card) { color: var(--ink); }
-      :is([data-doop-carried-scope="old"], [data-doop-carried-scope="old"] *):is(.card)::after { content: ""; }
+    const head = `<style data-diagramly-carried>
+      [data-diagramly-carried-scope="old"] { --ink: red; }
+      :is([data-diagramly-carried-scope="old"], [data-diagramly-carried-scope="old"] *):is(.card) { color: var(--ink); }
+      :is([data-diagramly-carried-scope="old"], [data-diagramly-carried-scope="old"] *):is(.card)::after { content: ""; }
     </style>`
-    const css = carriedCss(page(head, '<div class="card" data-doop-carried-scope="old"></div>'), '.card', 's')
+    const css = carriedCss(page(head, '<div class="card" data-diagramly-carried-scope="old"></div>'), '.card', 's')
     expect(css).toContain(`${S('.card')} {`)
     expect(css).toContain(`${S('.card')}::after {`)
     expect(css).not.toContain('old')
@@ -445,7 +447,7 @@ describe('withCarriedCss', () => {
   it('renames a carried animation the destination already defines, in the sheet and the markup', () => {
     const dest = page(
       '<style>@keyframes pop{from{opacity:1}}</style>',
-      '<div data-doop-carried-scope="s" style="animation: pop 1s"><i style="animation-name: pop, spin"></i></div>',
+      '<div data-diagramly-carried-scope="s" style="animation: pop 1s"><i style="animation-name: pop, spin"></i></div>',
     )
     const css =
       '@keyframes pop { from { opacity: 0; } }\n@keyframes spin { to { rotate: 1turn; } }\n.x { animation: 1s ease pop infinite; }'
@@ -461,10 +463,10 @@ describe('withCarriedCss', () => {
   it('renames a carried animation kept in a custom property, chains and inline definitions included', () => {
     const dest = page(
       '<style>@keyframes pop{from{opacity:1}}</style>',
-      '<div data-doop-carried-scope="s" style="--inline-anim: pop"><i style="animation: var(--inline-anim) 2s"></i></div>',
+      '<div data-diagramly-carried-scope="s" style="--inline-anim: pop"><i style="animation: var(--inline-anim) 2s"></i></div>',
     )
     const css =
-      '@keyframes pop { from { opacity: 0; } }\n[data-doop-carried-scope="s"] { --anim: var(--brand-anim); --brand-anim: pop; --label: pop; --my-animation: pop; }\n.x { animation: var(--anim) 1s; }'
+      '@keyframes pop { from { opacity: 0; } }\n[data-diagramly-carried-scope="s"] { --anim: var(--brand-anim); --brand-anim: pop; --label: pop; --my-animation: pop; }\n.x { animation: var(--anim) 1s; }'
     const out = withCarriedCss(dest, css, 's')
     expect(out).toContain('@keyframes pop-s {')
     expect(out).toContain('--brand-anim: pop-s;')
@@ -478,7 +480,7 @@ describe('withCarriedCss', () => {
   it('renames a carried animation in -webkit- prefixed declarations too', () => {
     const dest = page(
       '<style>@keyframes pop{from{opacity:1}}</style>',
-      '<div data-doop-carried-scope="s" style="-webkit-animation: pop 1s"></div>',
+      '<div data-diagramly-carried-scope="s" style="-webkit-animation: pop 1s"></div>',
     )
     const css =
       '@keyframes pop { from { opacity: 0; } }\n.x { -webkit-animation: pop 1s; animation: pop 1s; -webkit-animation-name: pop; --x-webkit-animation: pop; }'
@@ -491,7 +493,7 @@ describe('withCarriedCss', () => {
   it('renames a carried font face the destination already defines, in the sheet and the markup', () => {
     const dest = page(
       '<style>@font-face{font-family:Inter;src:url(theirs.woff2)}</style>',
-      '<p data-doop-carried-scope="s" style="font-family: Inter, serif"><i style="font: 12px/1 \'Inter\'"></i></p>',
+      '<p data-diagramly-carried-scope="s" style="font-family: Inter, serif"><i style="font: 12px/1 \'Inter\'"></i></p>',
     )
     const css =
       '@font-face { font-family: Inter; src: url(mine.woff2); }\n.x { font-family: "Inter", sans-serif; }\n.y { font: 1em Inter; }'
@@ -507,10 +509,10 @@ describe('withCarriedCss', () => {
   it('renames a family kept in a custom property along with the face', () => {
     const dest = page(
       '<style>@font-face{font-family:Inter;src:url(theirs.woff2)}</style>',
-      '<p data-doop-carried-scope="s"></p>',
+      '<p data-diagramly-carried-scope="s"></p>',
     )
     const css =
-      '@font-face { font-family: Inter; src: url(mine.woff2); }\n[data-doop-carried-scope="s"] { --type: Inter; }\n.x { font-family: var(--type); }'
+      '@font-face { font-family: Inter; src: url(mine.woff2); }\n[data-diagramly-carried-scope="s"] { --type: Inter; }\n.x { font-family: var(--type); }'
     const out = withCarriedCss(dest, css, 's')
     expect(out).toContain('--type: Inter-s;')
     expect(out).toContain('font-family: Inter-s;')
@@ -519,10 +521,10 @@ describe('withCarriedCss', () => {
   it('leaves a custom property alone when a font clash renames a family it happens to share', () => {
     const dest = page(
       '<style>@font-face{font-family:Inter;src:url(theirs.woff2)}</style>',
-      '<p data-doop-carried-scope="s"></p>',
+      '<p data-diagramly-carried-scope="s"></p>',
     )
     const css =
-      '@font-face { font-family: Inter; src: url(mine.woff2); }\n@keyframes Inter { to { opacity: 0; } }\n[data-doop-carried-scope="s"] { --anim: Inter; --type: Inter; }\n.x { font-family: var(--type); animation: var(--anim) 1s; }'
+      '@font-face { font-family: Inter; src: url(mine.woff2); }\n@keyframes Inter { to { opacity: 0; } }\n[data-diagramly-carried-scope="s"] { --anim: Inter; --type: Inter; }\n.x { font-family: var(--type); animation: var(--anim) 1s; }'
     const out = withCarriedCss(dest, css, 's')
     expect(out).toContain('--type: Inter-s;')
     expect(out).toContain('--anim: Inter;')
@@ -532,17 +534,17 @@ describe('withCarriedCss', () => {
   it('serves every scope given from one sheet', () => {
     const dest = page(
       '<style>@keyframes pop{from{opacity:1}}</style>',
-      '<p data-doop-carried-scope="a" style="animation: pop 1s"></p><p data-doop-carried-scope="b" style="animation: pop 2s"></p>',
+      '<p data-diagramly-carried-scope="a" style="animation: pop 1s"></p><p data-diagramly-carried-scope="b" style="animation: pop 2s"></p>',
     )
     const out = withCarriedCss(dest, '@keyframes pop { to { opacity: 0; } }', ['a', 'b'])
-    expect(out.match(/<style data-doop-carried/g)).toHaveLength(1)
+    expect(out.match(/<style data-diagramly-carried/g)).toHaveLength(1)
     expect(out.match(/animation: pop-a/g)).toHaveLength(2)
   })
 
   it('rewrites inline animations under every root that wears the scope', () => {
     const dest = page(
       '<style>@keyframes pop{from{opacity:1}}</style>',
-      '<p data-doop-carried-scope="s" style="animation: pop 1s"></p><p data-doop-carried-scope="s" style="animation: pop 2s"></p>',
+      '<p data-diagramly-carried-scope="s" style="animation: pop 1s"></p><p data-diagramly-carried-scope="s" style="animation: pop 2s"></p>',
     )
     const out = withCarriedCss(dest, '@keyframes pop { to { opacity: 0; } }', 's')
     expect(out.match(/animation: pop-s/g)).toHaveLength(2)
@@ -551,7 +553,7 @@ describe('withCarriedCss', () => {
   it('adds the sheet to the head once', () => {
     const dest = page('', '<div></div>')
     const once = withCarriedCss(dest, '.card { padding: 8px; }')
-    expect(once).toContain('<style data-doop-carried="">.card { padding: 8px; }</style>')
+    expect(once).toContain('<style data-diagramly-carried="">.card { padding: 8px; }</style>')
     expect(withCarriedCss(once, '.card { padding: 8px; }')).toBe(once)
     expect(withCarriedCss(dest, '')).toBe(dest)
   })

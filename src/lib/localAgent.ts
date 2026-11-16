@@ -21,18 +21,18 @@ type NativeStatus = {
   chosenMissing?: string
 }
 type Bridge = {
-  __DOOP_CLAUDE_CLI__?: boolean
-  __DOOP_CLAUDE_INSTALL__?: boolean
-  __DOOP_CLAUDE_CHOOSE__?: boolean
+  __DIAGRAMLY_CLAUDE_CLI__?: boolean
+  __DIAGRAMLY_CLAUDE_INSTALL__?: boolean
+  __DIAGRAMLY_CLAUDE_CHOOSE__?: boolean
   __TAURI__?: {
     core: { invoke: <T>(command: string, args?: Record<string, unknown>) => Promise<T> }
     event: { listen: <T>(name: string, callback: (event: { payload: T }) => void) => Promise<() => void> }
   }
 }
 const bridge = globalThis as Bridge
-export const canInstallClaude = () => bridge.__DOOP_CLAUDE_INSTALL__ === true
-export const hasLocalClaude = () => bridge.__DOOP_CLAUDE_CLI__ === true
-export const canChooseClaude = () => bridge.__DOOP_CLAUDE_CHOOSE__ === true
+export const canInstallClaude = () => bridge.__DIAGRAMLY_CLAUDE_INSTALL__ === true
+export const hasLocalClaude = () => bridge.__DIAGRAMLY_CLAUDE_CLI__ === true
+export const canChooseClaude = () => bridge.__DIAGRAMLY_CLAUDE_CHOOSE__ === true
 
 export function invokeClaude<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   if (!hasLocalClaude() || !bridge.__TAURI__)

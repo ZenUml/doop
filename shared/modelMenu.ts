@@ -243,13 +243,13 @@ export const DESCRIBER_MODELS: Readonly<Record<string, string>> = {
   'openrouter-key': 'google/gemini-3.7-flash',
 }
 
-/** The server tier's describer when DOOP_AGENT_PROVIDER is anthropic. */
+/** The server tier's describer when DIAGRAMLY_AGENT_PROVIDER is anthropic. */
 export const DESCRIBER_ANTHROPIC_MODEL = 'claude-haiku-4-5-20251001'
 
 /**
  * How hard an OpenAI model thinks per turn, on a ChatGPT subscription or an
  * OpenAI key: the user's pick rides the account (`PATCH /api/model-account`),
- * and the server's `DOOP_AGENT_OPENAI_EFFORT` is what runs until they pick.
+ * and the server's `DIAGRAMLY_AGENT_OPENAI_EFFORT` is what runs until they pick.
  * The picker offers these four; the env var also admits `none` and `max`.
  */
 export const REASONING_EFFORTS = ['low', 'medium', 'high', 'xhigh'] as const

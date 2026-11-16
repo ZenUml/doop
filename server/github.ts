@@ -18,7 +18,7 @@ import type { Frame } from '../shared/types.ts'
  * and logged-in screens to the design-sync snippet.
  *
  * Provenance follows the design-sync pattern: a marker meta stamped into the
- * frame HTML (`doop-github-screen`), no frame column. The marker carries the
+ * frame HTML (`diagramly-github-screen`), no frame column. The marker carries the
  * connection's id — never the token — so frame HTML stays safe to read for
  * everyone on the canvas.
  */
@@ -386,7 +386,7 @@ export async function fetchRepoFile(conn: GithubConnection, path: string): Promi
 /* ------------------------------------------------------------------ */
 /* Marker + frame HTML                                                 */
 
-const GITHUB_META = 'doop-github-screen'
+const GITHUB_META = 'diagramly-github-screen'
 
 /** Same lockdown the importer and ingest stamp on their snapshots. */
 const SNAPSHOT_CSP = [

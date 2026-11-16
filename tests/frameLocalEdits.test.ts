@@ -50,7 +50,7 @@ describe.skipIf(!findBrowserPath())('local frame edits', () => {
     await frame.evaluate(() => {
       window.localEditRenders = 0
       window.addEventListener('message', (event) => {
-        if (event.data?.type === 'doop:html') window.localEditRenders++
+        if (event.data?.type === 'diagramly:html') window.localEditRenders++
       })
     })
     await page.click('[aria-label="Width"]', { count: 3 })

@@ -8,7 +8,7 @@ export function canHideUi({ view, presenting }: { view: 'canvas' | 'board'; pres
 
 /* The "UI hidden · ⌘. to show" hint goes up the first time ⌘. hides the
    chrome in this browser, and never again — after that the shortcut is known. */
-const HIDE_UI_HINTED_KEY = 'doop:hide-ui-hinted'
+const HIDE_UI_HINTED_KEY = 'diagramly:hide-ui-hinted'
 
 /** true once the hint has already been shown in this browser; marks it shown otherwise */
 export function hideUiHinted(): boolean {

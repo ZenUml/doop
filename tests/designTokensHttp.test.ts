@@ -84,7 +84,7 @@ describe('design tokens over REST', () => {
       const canvas = await (await owner.get(`/api/canvases/${canvasId}`)).json()
       return canvas.frames.find((f: { id: string }) => f.id === frame.id).html as string
     }
-    expect(await saved()).toContain('<style data-doop-tokens>:root{--spacing-4:16px}</style>')
+    expect(await saved()).toContain('<style data-diagramly-tokens>:root{--spacing-4:16px}</style>')
     const res = await owner.put(`/api/canvases/${canvasId}/tokens/--spacing-4`, { value: '32px' })
     expect(res.status).toBe(200)
     expect((await res.json()).result).toEqual({ name: '--spacing-4', result: 'updated' })
@@ -101,7 +101,7 @@ describe('design tokens over REST', () => {
     const frame = await (
       await owner.post(`/api/canvases/${canvasId}/frames`, {
         name: 'Dark',
-        html: '<html data-doop-theme="dark"><head></head><body style="background:var(--color-bg)"></body></html>',
+        html: '<html data-diagramly-theme="dark"><head></head><body style="background:var(--color-bg)"></body></html>',
       })
     ).json()
     const html = () =>
@@ -110,7 +110,7 @@ describe('design tokens over REST', () => {
         .then((r) => r.json())
         .then((c) => c.frames.find((f: { id: string }) => f.id === frame.id).html as string)
     expect(await html()).toContain(
-      ':root{--color-bg:#fff}\n:root[data-doop-theme="dark"],[data-doop-theme="dark"]{--color-bg:#111}',
+      ':root{--color-bg:#fff}\n:root[data-diagramly-theme="dark"],[data-diagramly-theme="dark"]{--color-bg:#111}',
     )
     const edit = await owner.put(`/api/canvases/${canvasId}/tokens/--color-bg`, {
       themes: { dark: '#000', dim: '#333' },
@@ -125,13 +125,13 @@ describe('design tokens over REST', () => {
       renames: [{ from: 'dark', to: 'night' }],
     })
     expect(await renamed.json()).toMatchObject({ themes: ['night', 'dim'] })
-    expect(await html()).toContain('[data-doop-theme="night"]{--color-bg:#000}')
+    expect(await html()).toContain('[data-diagramly-theme="night"]{--color-bg:#000}')
     const themes = await owner.put(`/api/canvases/${canvasId}/token-themes`, {
       themes: ['dark'],
       renames: [{ from: 'night', to: 'dark' }],
     })
     expect(await themes.json()).toMatchObject({ themes: ['dark'] })
-    expect(await html()).toContain('[data-doop-theme="dark"]{--color-bg:#000}')
+    expect(await html()).toContain('[data-diagramly-theme="dark"]{--color-bg:#000}')
     expect(await html()).not.toContain('dim')
     expect((await owner.put(`/api/canvases/${canvasId}/token-themes`, { themes: ['Dark Theme'] })).status).toBe(400)
     await owner.delete(`/api/canvases/${canvasId}/tokens/--color-bg`)
@@ -172,7 +172,7 @@ describe('design tokens over MCP', () => {
     const glob = await mcpCall(ownerKey, 'get_tokens', { canvas_id: canvasId, name_pattern: '*-4', format: 'css' })
     /* the canvas has a dark theme by now, so the export carries its block too */
     expect(glob.text).toBe(
-      ':root{--spacing-4:32px}\n:root[data-doop-theme="dark"],[data-doop-theme="dark"]{--spacing-4:32px}',
+      ':root{--spacing-4:32px}\n:root[data-diagramly-theme="dark"],[data-diagramly-theme="dark"]{--spacing-4:32px}',
     )
     const canvas = await mcpCall(ownerKey, 'get_canvas', { canvas_id: canvasId, agent_name: 'Tester' })
     expect(canvas.text).toContain('"--color-primary"')

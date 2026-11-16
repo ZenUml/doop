@@ -29,7 +29,7 @@ it('hands each command to every subscriber until it unsubscribes', () => {
 it('mirrors the state into a shell that has the View menu', () => {
   const invoke = vi.fn(() => Promise.resolve())
   vi.stubGlobal('__TAURI__', { core: { invoke } })
-  vi.stubGlobal('__DOOP_VIEW_MENU__', true)
+  vi.stubGlobal('__DIAGRAMLY_VIEW_MENU__', true)
   syncViewMenu(STATE)
   expect(invoke).toHaveBeenCalledWith('view_menu_state', STATE)
 })

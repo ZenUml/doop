@@ -18,9 +18,12 @@ export function CursorInstall({ mcpUrl }: { mcpUrl: string }) {
         <>
           <p>
             {t('workspace.cursorHelpBefore')} <strong>Customize</strong> {t('workspace.cursorHelpMiddle')}{' '}
-            <code>doop</code> {t('workspace.cursorHelpAfter')}
+            <code>diagramly</code> {t('workspace.cursorHelpAfter')}
           </p>
-          <CodeBlock text={JSON.stringify({ mcpServers: { doop: { url: mcpUrl } } }, null, 2)} className="mt-2.5" />
+          <CodeBlock
+            text={JSON.stringify({ mcpServers: { diagramly: { url: mcpUrl } } }, null, 2)}
+            className="mt-2.5"
+          />
         </>
       }
     />

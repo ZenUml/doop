@@ -79,16 +79,16 @@ export const PROTOTYPES = `When a human asks for a clickable prototype or a flow
 the element that triggers each step (edit_frame_html is enough; they are inert on the canvas and
 only run in the player):
 
-    <button data-doop-on="click" data-doop-action="navigate:<frameId>"
-            data-doop-transition="push-left" data-doop-duration="300">Continue</button>
+    <button data-diagramly-on="click" data-diagramly-action="navigate:<frameId>"
+            data-diagramly-transition="push-left" data-diagramly-duration="300">Continue</button>
 
-- data-doop-on: click | hover | press (while held) | delay:<ms> (after the screen shows; on any
+- data-diagramly-on: click | hover | press (while held) | delay:<ms> (after the screen shows; on any
   element, e.g. <body>) | key:<Key> (KeyboardEvent.key: ArrowRight, Escape, Enter, Space).
-- data-doop-action: navigate:<frameId> | back | overlay:<frameId> (opens that frame as a modal
+- data-diagramly-action: navigate:<frameId> | back | overlay:<frameId> (opens that frame as a modal
   over a scrim) | close-overlay | scroll-to:<css selector> | url:<https url> (new tab).
-- data-doop-transition: instant (default) | dissolve | slide-left | slide-right | slide-up |
-  slide-down | push-left | push-right; data-doop-duration in ms (default 300).
-- Several interactions on one element: data-doop-interactions='[{"on":"click","action":
+- data-diagramly-transition: instant (default) | dissolve | slide-left | slide-right | slide-up |
+  slide-down | push-left | push-right; data-diagramly-duration in ms (default 300).
+- Several interactions on one element: data-diagramly-interactions='[{"on":"click","action":
   "navigate:abc"},{"on":"key:Escape","action":"back"}]' instead of the single attributes.
 - Wire screens only with these attributes: the player does not follow href links or script click
   handlers between frames.
@@ -124,15 +124,15 @@ export const FRAME_STYLES = `- Style an element on the element itself: style="�
 export const COMPONENTS = `A component is one design used in many places: change its main and every instance follows.
 get_canvas and list_components show a canvas's components with their props.
 
-- Anything on that list goes in through <doop-use>, never redrawn. It is shorter, and it stays linked:
-      <doop-use component="Button" label="Start free" tone="ghost"></doop-use>
+- Anything on that list goes in through <diagramly-use>, never redrawn. It is shorter, and it stays linked:
+      <diagramly-use component="Button" label="Start free" tone="ghost"></diagramly-use>
   Write it anywhere frame HTML goes (create_frame, set_frame_html, append_frame_html,
   edit_frame_html), including inside a <table>. Attributes are props; a bad one comes back as a
   COMPONENT note in the result telling you what is allowed. Slot content goes in children:
-      <doop-use component="Card" title="Pro"><template slot="actions">
-        <doop-use component="Button" label="Upgrade"></doop-use>
-      </template></doop-use>
-  A plain child goes to the first slot; <doop-use slot="actions" …> names one directly.
+      <diagramly-use component="Card" title="Pro"><template slot="actions">
+        <diagramly-use component="Button" label="Upgrade"></diagramly-use>
+      </template></diagramly-use>
+  A plain child goes to the first slot; <diagramly-use slot="actions" …> names one directly.
 - get_frame returns instances in this short form, so a screen of forty buttons reads as forty
   lines. Keep the id="…" when you write one back: comments and links point at it. Pass
   expand_components=true only if you must read the full markup. edit_frame_html matches either
@@ -152,13 +152,13 @@ get_canvas and list_components show a canvas's components with their props.
   Approved frames that change lose sign-off, and it says which. Use dry_run first on anything
   widely used. Never edit each instance by hand.
 - get_component_preview shows you every variant at once. Look at it after changing a component.
-- Keep data-doop-part, data-doop-prop, data-doop-if and data-doop-slot when editing a main: part
+- Keep data-diagramly-part, data-diagramly-prop, data-diagramly-if and data-diagramly-slot when editing a main: part
   keys are how overrides stay attached.
 - A deleted component leaves its instances looking the same, as plain markup. To reuse components
   from another canvas: list_components with libraries=true, import_component, and sync_component
   when list_components says library_update_available.`
 
-export const DOOP_GUIDE = `# Diagramly Agent Guide
+export const DESIGN_GUIDE = `# Diagramly Agent Guide
 
 ## The room you're in
 
@@ -182,8 +182,8 @@ routing is for their benefit, not a lock on your work.
 
 Use get_comments({ canvas_id }) to read element-pinned comments and replies, including
 their frame, elementId, snippet, author, thread links, and claim/failure/resolution state. An
-element comment's elementId is the element's data-doop-id attribute in the frame HTML: find
-that attribute with get_frame to locate the element, and keep every data-doop-* attribute when
+element comment's elementId is the element's data-diagramly-id attribute in the frame HTML: find
+that attribute with get_frame to locate the element, and keep every data-diagramly-* attribute when
 you rewrite markup, or the comments and links pointing at it lose their element. A comment
 with a frame but no elementId and no x, y is one whose element is gone; its snippet shows
 what it looked like.
@@ -292,7 +292,7 @@ Viewers watch designs assemble live. Stream with append_frame_html:
 ${FRAME_STYLES}
 - Custom fonts: when get_canvas lists \`fonts\`, the team uploaded them — prefer them. Name the
   family in CSS (font-family: "Family", sans-serif) and nothing more: Diagramly adds the @font-face
-  rules in a <style data-doop-fonts> block, which you keep. Never fetch them from Google Fonts.
+  rules in a <style data-diagramly-fonts> block, which you keep. Never fetch them from Google Fonts.
 - Pictures on the canvas: a frame listed with \`images\` references raster images people
   uploaded or pasted, each with a \`description\` of what it shows, written by a vision model
   (null while pending). Read them before designing, and call get_frame_screenshot on the
@@ -314,7 +314,7 @@ ${FRAME_STYLES}
 
 ## GitHub-imported frames — the repo is the source of truth
 
-Frames whose HTML carries a "doop-github-screen" marker meta were imported from a
+Frames whose HTML carries a "diagramly-github-screen" marker meta were imported from a
 connected GitHub repository: repo HTML as-is, or a screen that exists in that repo only
 as code (a Next.js page, a Storybook story, a component) sketched by Diagramly from its
 source. The marker records the repo, the route and the source file path.

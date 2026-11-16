@@ -6,7 +6,7 @@ import { useSyncExternalStore } from 'react'
 export type PanelLayout = 'floating' | 'docked'
 
 /* Per browser, like the theme: it is how this device's editor looks. */
-export const PANEL_LAYOUT_STORAGE_KEY = 'doop:panel-layout'
+export const PANEL_LAYOUT_STORAGE_KEY = 'diagramly:panel-layout'
 
 export function isPanelLayout(value: unknown): value is PanelLayout {
   return value === 'floating' || value === 'docked'

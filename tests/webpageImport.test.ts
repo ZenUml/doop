@@ -5,7 +5,7 @@ import { createImportedWebpageFrame, findImportedWebpageFrame } from '../server/
 describe('agent webpage import', () => {
   it('finds an existing snapshot by its normalized requested URL', () => {
     const html =
-      '<!doctype html><html><head><meta name="doop-import-source" content="https%3A%2F%2Fexample.com%2F"></head></html>'
+      '<!doctype html><html><head><meta name="diagramly-import-source" content="https%3A%2F%2Fexample.com%2F"></head></html>'
     const frame = { id: 'source-1', html } as Frame
 
     expect(findImportedWebpageFrame([frame], 'example.com')).toBe(frame)

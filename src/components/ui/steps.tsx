@@ -9,7 +9,7 @@ function Steps({ className, ...props }: React.ComponentProps<'ol'>) {
   return (
     <ol
       data-slot="steps"
-      className={cn('flex flex-col gap-3 text-copy [counter-reset:doop-step]', className)}
+      className={cn('flex flex-col gap-3 text-copy [counter-reset:diagramly-step]', className)}
       {...props}
     />
   )
@@ -17,10 +17,14 @@ function Steps({ className, ...props }: React.ComponentProps<'ol'>) {
 
 function Step({ className, children, ...props }: React.ComponentProps<'li'>) {
   return (
-    <li data-slot="step" className={cn('flex items-center gap-3 [counter-increment:doop-step]', className)} {...props}>
+    <li
+      data-slot="step"
+      className={cn('flex items-center gap-3 [counter-increment:diagramly-step]', className)}
+      {...props}
+    >
       <span
         aria-hidden
-        className="grid size-6 flex-none place-items-center rounded-full bg-paper-deep text-label before:content-[counter(doop-step)]"
+        className="grid size-6 flex-none place-items-center rounded-full bg-paper-deep text-label before:content-[counter(diagramly-step)]"
       />
       <span className="min-w-0">{children}</span>
     </li>

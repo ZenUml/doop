@@ -15,7 +15,7 @@ for (const mode of ['section', 'page']) {
       await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['capture.js'] })
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: (mode) => window.__doopCapture(mode),
+        func: (mode) => window.__diagramlyCapture(mode),
         args: [mode],
       })
       window.close()

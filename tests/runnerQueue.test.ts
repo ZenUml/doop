@@ -42,25 +42,34 @@ beforeEach(() => {
 
 describe('a card with a runner pick', () => {
   it('carries the pick the composer sent and drops a malformed one', () => {
-    const picked = actions.addQueuedCard(canvasId, 'make it red', 'alice', ['doop'], [], 'alice', undefined, chatgpt)
+    const picked = actions.addQueuedCard(
+      canvasId,
+      'make it red',
+      'alice',
+      ['diagramly'],
+      [],
+      'alice',
+      undefined,
+      chatgpt,
+    )
     expect(picked?.runner).toEqual(chatgpt)
-    const junk = actions.addQueuedCard(canvasId, 'make it blue', 'alice', ['doop'], [], 'alice', undefined, {
+    const junk = actions.addQueuedCard(canvasId, 'make it blue', 'alice', ['diagramly'], [], 'alice', undefined, {
       provider: 'server',
     })
     expect(junk?.runner).toBeUndefined()
   })
   it('is not the same card as the same prompt sent to another connection', () => {
-    const a = actions.addQueuedCard(canvasId, 'make it red', 'alice', ['doop'], [], 'alice', undefined, plan)
-    const b = actions.addQueuedCard(canvasId, 'make it red', 'alice', ['doop'], [], 'alice', undefined, chatgpt)
+    const a = actions.addQueuedCard(canvasId, 'make it red', 'alice', ['diagramly'], [], 'alice', undefined, plan)
+    const b = actions.addQueuedCard(canvasId, 'make it red', 'alice', ['diagramly'], [], 'alice', undefined, chatgpt)
     expect(b?.id).not.toBe(a?.id)
   })
 })
 
 describe('claiming work per connection', () => {
   it('works the oldest card first and claims only the cards that share its pick', () => {
-    const first = actions.addQueuedCard(canvasId, 'one', 'alice', ['doop'], [], 'alice', undefined, plan)!
-    const second = actions.addQueuedCard(canvasId, 'two', 'alice', ['doop'], [], 'alice', undefined, chatgpt)!
-    const third = actions.addQueuedCard(canvasId, 'three', 'alice', ['doop'], [], 'alice', undefined, plan)!
+    const first = actions.addQueuedCard(canvasId, 'one', 'alice', ['diagramly'], [], 'alice', undefined, plan)!
+    const second = actions.addQueuedCard(canvasId, 'two', 'alice', ['diagramly'], [], 'alice', undefined, chatgpt)!
+    const third = actions.addQueuedCard(canvasId, 'three', 'alice', ['diagramly'], [], 'alice', undefined, plan)!
     /* cards queued in one millisecond tie on age, and a tie goes to the
        newest scanned: a step apart each, so the oldest is unambiguous */
     first.startedAt -= 2
@@ -78,30 +87,30 @@ describe('claiming work per connection', () => {
     ])
   })
   it('keeps a card without a pick on the Settings default, apart from picked ones', () => {
-    const plain = actions.addQueuedCard(canvasId, 'plain', 'alice', ['doop'], [], 'alice')!
+    const plain = actions.addQueuedCard(canvasId, 'plain', 'alice', ['diagramly'], [], 'alice')!
     /* queued a beat earlier: two cards in one millisecond tie on age */
     plain.startedAt -= 1
-    actions.addQueuedCard(canvasId, 'picked', 'alice', ['doop'], [], 'alice', undefined, plan)
+    actions.addQueuedCard(canvasId, 'picked', 'alice', ['diagramly'], [], 'alice', undefined, plan)
     expect(actions.nextWork(canvasId, DOOP)).toEqual({ payer: 'alice', key: actions.workKey('alice', undefined) })
     expect(actions.takeQueuedCardsFor(canvasId, DOOP, 'alice', '').map((c) => c.id)).toEqual([plain.id])
   })
   it('skips a stalled pick and goes on to the next connection', () => {
-    actions.addQueuedCard(canvasId, 'one', 'alice', ['doop'], [], 'alice', undefined, plan)
-    actions.addQueuedCard(canvasId, 'two', 'alice', ['doop'], [], 'alice', undefined, chatgpt)
+    actions.addQueuedCard(canvasId, 'one', 'alice', ['diagramly'], [], 'alice', undefined, plan)
+    actions.addQueuedCard(canvasId, 'two', 'alice', ['diagramly'], [], 'alice', undefined, chatgpt)
     const skip = new Set([actions.workKey('alice', plan)])
     expect(actions.nextWork(canvasId, DOOP, skip)?.runner).toEqual(chatgpt)
     expect(actions.nextWorkPayer(canvasId, DOOP, skip)).toBe('alice')
   })
   it('takes every card when no connection filter is given, as callers that bill but do not run do', () => {
-    actions.addQueuedCard(canvasId, 'one', 'alice', ['doop'], [], 'alice', undefined, plan)
-    actions.addQueuedCard(canvasId, 'two', 'alice', ['doop'], [], 'alice')
+    actions.addQueuedCard(canvasId, 'one', 'alice', ['diagramly'], [], 'alice', undefined, plan)
+    actions.addQueuedCard(canvasId, 'two', 'alice', ['diagramly'], [], 'alice')
     expect(actions.takeQueuedCardsFor(canvasId, DOOP, 'alice')).toHaveLength(2)
   })
 })
 
 describe('feedback and comments', () => {
   it('runs feedback on what the task it answers ran on', () => {
-    const card = actions.addQueuedCard(canvasId, 'one', 'alice', ['doop'], [], 'alice', undefined, chatgpt)!
+    const card = actions.addQueuedCard(canvasId, 'one', 'alice', ['diagramly'], [], 'alice', undefined, chatgpt)!
     actions.takeQueuedCardsFor(canvasId, DOOP, 'alice')
     const fb = actions.addTaskFeedback(card.id, 'alice', 'more blue', 'alice')!
     expect(actions.nextWork(canvasId, DOOP)).toMatchObject({ payer: 'alice', runner: chatgpt })
@@ -111,7 +120,7 @@ describe('feedback and comments', () => {
     ])
   })
   it('keeps feedback on its connection after the task leaves the history', () => {
-    const card = actions.addQueuedCard(canvasId, 'one', 'alice', ['doop'], [], 'alice', undefined, chatgpt)!
+    const card = actions.addQueuedCard(canvasId, 'one', 'alice', ['diagramly'], [], 'alice', undefined, chatgpt)!
     actions.takeQueuedCardsFor(canvasId, DOOP, 'alice')
     const fb = actions.addTaskFeedback(card.id, 'alice', 'more blue', 'alice')!
     expect(fb.runner).toEqual(chatgpt)

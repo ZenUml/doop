@@ -489,7 +489,7 @@ function buildAuth() {
             assertSignupDomainAllowed(user.email)
           },
           after: async (user) => {
-            if (env.DOOP_PRODUCT !== 'diagramly') {
+            if (env.DIAGRAMLY_PRODUCT !== 'diagramly') {
               const first = (user.name || 'Your').split(/\s+/)[0]
               const canvas = store.createCanvas(`${first}'s first canvas`, user.id)
               demo.markPending(canvas.id)

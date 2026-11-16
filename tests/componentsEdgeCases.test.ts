@@ -61,9 +61,9 @@ const nestedCard = (frameId: string) =>
     .slice(1)
     .find(Boolean)!
 
-const ids = (html: string) => [...html.matchAll(/data-doop-id="([^"]+)"/g)].map((match) => match[1]!)
+const ids = (html: string) => [...html.matchAll(/data-diagramly-id="([^"]+)"/g)].map((match) => match[1]!)
 const instanceIdOf = (html: string, componentId: string) =>
-  new RegExp(`<[^>]*${INSTANCE_ATTR}="${componentId}"[^>]*>`).exec(html)![0].match(/data-doop-id="([^"]+)"/)![1]!
+  new RegExp(`<[^>]*${INSTANCE_ATTR}="${componentId}"[^>]*>`).exec(html)![0].match(/data-diagramly-id="([^"]+)"/)![1]!
 
 describe('components edge cases', () => {
   let canvasId: string
@@ -82,18 +82,18 @@ describe('components edge cases', () => {
     const button = makeComponent(
       canvasId,
       'Button',
-      (id) => `<button class="btn" ${COMPONENT_ATTR}="${id}"><span data-doop-prop="label">Buy</span></button>`,
+      (id) => `<button class="btn" ${COMPONENT_ATTR}="${id}"><span data-diagramly-prop="label">Buy</span></button>`,
       '.btn { color: red }',
     )
     const card = makeComponent(
       canvasId,
       'Card',
       (id) =>
-        `<div class="card" ${COMPONENT_ATTR}="${id}"><h2>Title</h2><doop-use component="${button.def.id}"></doop-use></div>`,
+        `<div class="card" ${COMPONENT_ATTR}="${id}"><h2>Title</h2><diagramly-use component="${button.def.id}"></diagramly-use></div>`,
       '.card { padding: 8px }',
     )
     const page = actions.createFrame(canvasId, { name: 'Page', html: '' }, actor)!
-    actions.updateFrame(page.id, { html: doc(`<doop-use component="${card.def.id}"></doop-use>`) }, actor)
+    actions.updateFrame(page.id, { html: doc(`<diagramly-use component="${card.def.id}"></diagramly-use>`) }, actor)
     return { button, card, page }
   }
 
@@ -105,7 +105,7 @@ describe('components edge cases', () => {
       '.pill { color: red }',
     )
     const page = actions.createFrame(canvasId, { name: 'Page', html: '' }, actor)!
-    actions.updateFrame(page.id, { html: doc(`<doop-use component="${def.id}"></doop-use>`) }, actor)
+    actions.updateFrame(page.id, { html: doc(`<diagramly-use component="${def.id}"></diagramly-use>`) }, actor)
     const id = instanceIdOf(store.getFrame(page.id)!.html, def.id)
     changeInstances(canvasId, page.id, [{ instanceId: id, detach: true }], actor)
     const html = store.getFrame(page.id)!.html
@@ -127,7 +127,7 @@ describe('components edge cases', () => {
       '.pill { color: red }',
     )
     const page = actions.createFrame(canvasId, { name: 'Page', html: '' }, actor)!
-    actions.updateFrame(page.id, { html: doc(`<doop-use component="${def.id}"></doop-use>`) }, actor)
+    actions.updateFrame(page.id, { html: doc(`<diagramly-use component="${def.id}"></diagramly-use>`) }, actor)
     deleteComponent(canvasId, def.id, actor)
     const html = store.getFrame(page.id)!.html
     expect(html).not.toContain(` ${INSTANCE_ATTR}=`)
@@ -155,7 +155,7 @@ describe('components edge cases', () => {
     const { missing } = changeInstances(canvasId, page.id, [{ instanceId: id, props: { label: 'Pay' } }], actor)
     expect(missing).toEqual([])
     expect(store.getFrame(page.id)!.html).toContain('Pay')
-    expect(store.getFrame(page.id)!.html).toContain(`data-doop-id="${id}"`)
+    expect(store.getFrame(page.id)!.html).toContain(`data-diagramly-id="${id}"`)
   })
 
   it('detaches a nested instance from its own id', () => {
@@ -168,7 +168,7 @@ describe('components edge cases', () => {
     /* only that link is cut: the card around it stays an instance, and the button keeps its look */
     expect(html).toContain(`${INSTANCE_ATTR}="${card}"`)
     expect(html).not.toContain(` ${INSTANCE_ATTR}="${button.def.id}"`)
-    expect(html).toMatch(/data-doop-detached-from="[^"]+"/)
+    expect(html).toMatch(/data-diagramly-detached-from="[^"]+"/)
     expect(html).toContain('color: red')
   })
 
@@ -187,10 +187,14 @@ describe('components edge cases', () => {
     const { def } = makeComponent(
       canvasId,
       'Box',
-      (id) => `<div class="box" data-doop-slot="content" ${COMPONENT_ATTR}="${id}"></div>`,
+      (id) => `<div class="box" data-diagramly-slot="content" ${COMPONENT_ATTR}="${id}"></div>`,
     )
     const page = actions.createFrame(canvasId, { name: 'Page', html: '' }, actor)!
-    actions.updateFrame(page.id, { html: doc(`<doop-use component="${def.id}"><p>Custom</p></doop-use>`) }, actor)
+    actions.updateFrame(
+      page.id,
+      { html: doc(`<diagramly-use component="${def.id}"><p>Custom</p></diagramly-use>`) },
+      actor,
+    )
     const frame = store.getFrame(page.id)!
     expect(frame.html).toContain('<p>Custom</p>')
     expect(compactDocument(frame.html, contextFor(canvasId))).toContain('<p>Custom</p>')
@@ -210,7 +214,7 @@ describe('components edge cases', () => {
       'Hero',
       (id) => `<section ${COMPONENT_ATTR}="${id}"><style>.t { color: red }</style><h1 class="t">Hi</h1></section>`,
     )
-    const page = makeFrame(`<doop-use component="${def.id}"></doop-use>`)
+    const page = makeFrame(`<diagramly-use component="${def.id}"></diagramly-use>`)
     expect(html(page)).not.toContain(OVERRIDES_ATTR)
     const before = html(page)
     actions.updateFrame(page, { html: before }, actor)
@@ -224,10 +228,10 @@ describe('components edge cases', () => {
     const { def } = makeComponent(
       canvasId,
       'Box',
-      (id) => `<div class="box" ${COMPONENT_ATTR}="${id}"><div data-doop-slot="">Empty</div></div>`,
+      (id) => `<div class="box" ${COMPONENT_ATTR}="${id}"><div data-diagramly-slot="">Empty</div></div>`,
     )
     const page = makeFrame(
-      `<doop-use component="${def.id}"><doop-use component="${def.id}"><p>Inner</p></doop-use></doop-use>`,
+      `<diagramly-use component="${def.id}"><diagramly-use component="${def.id}"><p>Inner</p></diagramly-use></diagramly-use>`,
     )
     expect(html(page).match(new RegExp(` ${INSTANCE_ATTR}="${def.id}"`, 'g'))).toHaveLength(2)
     expect(html(page)).toContain('<p>Inner</p>')
@@ -246,13 +250,13 @@ describe('components edge cases', () => {
       '.btn { color: var(--brand) }',
     )
     /* the token and font blocks landed after the first pass: the second save sees them */
-    expect(html(frame.id)).toContain('data-doop-tokens')
+    expect(html(frame.id)).toContain('data-diagramly-tokens')
     actions.updateFrame(frame.id, { html: html(frame.id) }, actor)
     expect(revOf(def.id)).toBe(1)
-    const page = makeFrame(`<doop-use component="${def.id}"></doop-use>`)
-    expect(html(page)).not.toMatch(/data-doop-component-css[\s\S]*?--brand: red/)
+    const page = makeFrame(`<diagramly-use component="${def.id}"></diagramly-use>`)
+    expect(html(page)).not.toMatch(/data-diagramly-component-css[\s\S]*?--brand: red/)
     actions.setTokens(canvasId, [{ name: '--brand', value: 'blue' }], actor)
-    expect(html(page)).toMatch(/data-doop-tokens[\s\S]*?--brand:\s*blue/)
+    expect(html(page)).toMatch(/data-diagramly-tokens[\s\S]*?--brand:\s*blue/)
     expect(html(page)).not.toContain('red')
   })
 
@@ -260,15 +264,15 @@ describe('components edge cases', () => {
     const button = makeComponent(
       canvasId,
       'Button',
-      (id) => `<button ${COMPONENT_ATTR}="${id}"><span data-doop-prop="label">Buy</span></button>`,
+      (id) => `<button ${COMPONENT_ATTR}="${id}"><span data-diagramly-prop="label">Buy</span></button>`,
     )
     const card = makeComponent(
       canvasId,
       'Card',
       (id) =>
-        `<div class="card" ${COMPONENT_ATTR}="${id}"><doop-use component="${button.def.id}" label="Go"></doop-use></div>`,
+        `<div class="card" ${COMPONENT_ATTR}="${id}"><diagramly-use component="${button.def.id}" label="Go"></diagramly-use></div>`,
     )
-    const page = makeFrame(`<doop-use component="${card.def.id}"></doop-use>`)
+    const page = makeFrame(`<diagramly-use component="${card.def.id}"></diagramly-use>`)
     expect(html(page)).toContain('Go')
     actions.updateFrame(card.frame.id, { html: html(card.frame.id).replace('>Go<', '>Stop<') }, actor)
     expect(html(page)).toContain('Stop')
@@ -279,9 +283,9 @@ describe('components edge cases', () => {
     const { def } = makeComponent(
       canvasId,
       'Btn',
-      (id) => `<button ${COMPONENT_ATTR}="${id}"><span data-doop-prop="label">Buy</span></button>`,
+      (id) => `<button ${COMPONENT_ATTR}="${id}"><span data-diagramly-prop="label">Buy</span></button>`,
     )
-    const page = makeFrame(`<doop-use component="${def.id}" overrides='{"icon": null}'></doop-use>`)
+    const page = makeFrame(`<diagramly-use component="${def.id}" overrides='{"icon": null}'></diagramly-use>`)
     expect(html(page)).toContain(` ${INSTANCE_ATTR}="${def.id}"`)
     expect(html(page)).toContain('Buy')
     expect(html(page)).not.toContain(OVERRIDES_ATTR)
@@ -293,7 +297,7 @@ describe('components edge cases', () => {
     const b = makeComponent(canvasId, 'B', (id) => `<b class="b" ${COMPONENT_ATTR}="${id}">b</b>`)
     actions.updateFrame(
       b.frame.id,
-      { html: html(b.frame.id).replace('</body>', `<doop-use component="${a.def.id}"></doop-use></body>`) },
+      { html: html(b.frame.id).replace('</body>', `<diagramly-use component="${a.def.id}"></diagramly-use></body>`) },
       actor,
     )
     expect(html(b.frame.id)).toContain(`<link ${HEAD_ATTR} rel="stylesheet"`)
@@ -313,7 +317,7 @@ describe('components edge cases', () => {
       'Action',
       (id) => `<div ${COMPONENT_ATTR}="${id}"><button class="cta">Go</button></div>`,
     )
-    const page = makeFrame(`<doop-use component="${def.id}"></doop-use>`)
+    const page = makeFrame(`<diagramly-use component="${def.id}"></diagramly-use>`)
     const changed = html(page).replace(/<button class="cta"([^>]*)>Go<\/button>/, '<a class="cta"$1 href="/go">Go</a>')
     expect(changed).not.toBe(html(page))
     actions.updateFrame(page, { html: changed }, actor)
@@ -401,7 +405,7 @@ describe('components edge cases', () => {
       updateComponent(
         source,
         lib.def.id,
-        { html: `<div class="card"><h2>Title</h2><doop-use component="${badge.def.id}"></doop-use></div>` },
+        { html: `<div class="card"><h2>Title</h2><diagramly-use component="${badge.def.id}"></diagramly-use></div>` },
         actor,
       )
       const { updated } = syncComponent(canvasId, lib.def.id, actor, () => true)
@@ -417,7 +421,7 @@ describe('components edge cases', () => {
       const card = makeComponent(
         source,
         'Card',
-        (id) => `<div ${COMPONENT_ATTR}="${id}"><doop-use component="${badge.def.id}"></doop-use></div>`,
+        (id) => `<div ${COMPONENT_ATTR}="${id}"><diagramly-use component="${badge.def.id}"></diagramly-use></div>`,
       )
       importComponent(canvasId, source, card.def.id, actor)
       updateComponent(source, badge.def.id, { html: `<b>Newer</b>` }, actor)
@@ -452,14 +456,14 @@ describe('components edge cases', () => {
     })
   })
 
-  it.each(['id', 'component', 'class', 'style', 'overrides', 'slot', 'data-doop-part'])(
-    'refuses a prop called %s, which <doop-use> keeps for itself',
+  it.each(['id', 'component', 'class', 'style', 'overrides', 'slot', 'data-diagramly-part'])(
+    'refuses a prop called %s, which <diagramly-use> keeps for itself',
     (name) => {
       expect(() => validProps([{ name, type: 'text' }])).toThrow()
     },
   )
 
-  it('does not infer a prop from a class that would collide with <doop-use>', () => {
+  it('does not infer a prop from a class that would collide with <diagramly-use>', () => {
     const created = createComponentFromElement(
       canvasId,
       { name: 'Reserved', frameId: makeFrame(`<p class="id">Hello</p>`), element: 'p' },
@@ -473,14 +477,14 @@ describe('components edge cases', () => {
       canvasId,
       'Panel',
       (id) =>
-        `<div ${COMPONENT_ATTR}="${id}" data-doop-prop="aria-expanded:open"><p data-doop-if="open">Body</p></div>`,
+        `<div ${COMPONENT_ATTR}="${id}" data-diagramly-prop="aria-expanded:open"><p data-diagramly-if="open">Body</p></div>`,
       '',
       [{ name: 'open', type: 'boolean', default: 'true' }],
     )
     const saved = store.getComponents(canvasId).find((candidate) => candidate.id === def.id)!
     expect(saved.props.find((prop) => prop.name === 'open')?.default).toBe('true')
     const page = actions.createFrame(canvasId, { name: 'Page', html: '' }, actor)!
-    actions.updateFrame(page.id, { html: doc(`<doop-use component="${def.id}"></doop-use>`) }, actor)
+    actions.updateFrame(page.id, { html: doc(`<diagramly-use component="${def.id}"></diagramly-use>`) }, actor)
     expect(store.getFrame(page.id)!.html).toContain('Body')
   })
 
@@ -544,13 +548,13 @@ describe('components edge cases', () => {
     const { def } = makeComponent(
       canvasId,
       'Code',
-      (id) => `<div ${COMPONENT_ATTR}="${id}"><code data-doop-slot="body"></code></div>`,
+      (id) => `<div ${COMPONENT_ATTR}="${id}"><code data-diagramly-slot="body"></code></div>`,
     )
     const page = actions.createFrame(canvasId, { name: 'Page', html: '' }, actor)!
     const body = '  indented\n    code  '
     actions.updateFrame(
       page.id,
-      { html: doc(`<doop-use component="${def.id}"><template slot="body">${body}</template></doop-use>`) },
+      { html: doc(`<diagramly-use component="${def.id}"><template slot="body">${body}</template></diagramly-use>`) },
       actor,
     )
     expect(store.getFrame(page.id)!.html).toContain(`>${body}</code>`)
@@ -561,7 +565,9 @@ describe('components edge cases', () => {
   it('an idle stream still catches up on a component change', () => {
     const { def } = makeComponent(canvasId, 'Pill', (id) => `<div class="pill" ${COMPONENT_ATTR}="${id}">Old</div>`)
     const page = actions.createFrame(canvasId, { name: 'Page', html: '' }, actor)!
-    actions.appendFrameHtml(page.id, doc(`<doop-use component="${def.id}"></doop-use>`), actor, { start: true })
+    actions.appendFrameHtml(page.id, doc(`<diagramly-use component="${def.id}"></diagramly-use>`), actor, {
+      start: true,
+    })
     updateComponent(canvasId, def.id, { html: `<div class="pill">Fresh</div>` }, actor)
     expect(store.getFrame(page.id)!.html).not.toContain('Fresh')
     actions.expireIdleStreams(Date.now() + 60_000)
@@ -580,7 +586,7 @@ describe('components edge cases', () => {
     /* the instance's markup still says `pulse`, so that is the name its keyframes keep */
     expect(saved.css).toMatch(/@keyframes pulse\s*\{/)
     const page = actions.createFrame(canvasId, { name: 'Page', html: '' }, actor)!
-    actions.updateFrame(page.id, { html: doc(`<doop-use component="${def.id}"></doop-use>`) }, actor)
+    actions.updateFrame(page.id, { html: doc(`<diagramly-use component="${def.id}"></diagramly-use>`) }, actor)
     expect(html(page.id)).toContain('font-family: Brand; src: url(/brand.woff2)')
     expect(html(page.id)).toMatch(/@keyframes pulse\s*\{/)
   })
@@ -596,7 +602,7 @@ describe('components edge cases', () => {
       link,
     )
     const page = actions.createFrame(canvasId, { name: 'Page', html: '' }, actor)!
-    actions.updateFrame(page.id, { html: doc(`<doop-use component="${def.id}"></doop-use>`) }, actor)
+    actions.updateFrame(page.id, { html: doc(`<diagramly-use component="${def.id}"></diagramly-use>`) }, actor)
     expect(html(page.id)).toContain(`<link ${HEAD_ATTR} rel="stylesheet"`)
     changeInstances(canvasId, page.id, [{ instanceId: instanceIdOf(html(page.id), def.id), detach: true }], actor)
     expect(html(page.id)).toContain(link)

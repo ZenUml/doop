@@ -238,7 +238,7 @@ describe('where a canvas comment leads', () => {
     ))!
     expect(c.elementId).toMatch(/^[a-z0-9]{6}$/)
     expect(describeCommentAnchor(c, CANVAS)).toBe(
-      `on frame f1 "Hero", the element with data-doop-id="${c.elementId}"\n  element HTML at comment time: <h1>Hi</h1>`,
+      `on frame f1 "Hero", the element with data-diagramly-id="${c.elementId}"\n  element HTML at comment time: <h1>Hi</h1>`,
     )
     /* the element lost its id (an agent rewrote the frame): the snippet is what is left */
     expect(describeCommentAnchor({ ...c, elementId: undefined }, CANVAS)).toBe(

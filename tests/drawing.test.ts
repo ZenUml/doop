@@ -183,7 +183,7 @@ describe('saving and targeting drawings', () => {
     expect(api.deleteFrame).toHaveBeenCalledWith('created-1')
     await redo()
     expect(useStore.getState().canvas?.frames.find((f) => f.id === 'created-2')?.html).toContain(
-      'data-doop-drawing="rectangle"',
+      'data-diagramly-drawing="rectangle"',
     )
   })
 
@@ -195,8 +195,8 @@ describe('saving and targeting drawings', () => {
     ])
     const current = () => doc(useStore.getState().canvas!.frames[0]!.html)
     expect(current().querySelector('h1')?.textContent).toBe('Collaborator edit')
-    expect(current().querySelectorAll('[data-doop-drawing]')).toHaveLength(2)
-    const rect = current().querySelector<HTMLElement>('[data-doop-drawing="rectangle"]')!
+    expect(current().querySelectorAll('[data-diagramly-drawing]')).toHaveLength(2)
+    const rect = current().querySelector<HTMLElement>('[data-diagramly-drawing="rectangle"]')!
     expect(rect.style.left).toBe('20px')
     expect(rect.style.top).toBe('30px')
     expect(buildLayerTree(useStore.getState().canvas!.frames[0]!.html).map(layerName)).toEqual([
@@ -205,9 +205,9 @@ describe('saving and targeting drawings', () => {
       'Circle',
     ])
     await undo()
-    expect(current().querySelectorAll('[data-doop-drawing]')).toHaveLength(1)
+    expect(current().querySelectorAll('[data-diagramly-drawing]')).toHaveLength(1)
     await undo()
-    expect(current().querySelectorAll('[data-doop-drawing]')).toHaveLength(0)
+    expect(current().querySelectorAll('[data-diagramly-drawing]')).toHaveLength(0)
     expect(current().querySelector('h1')?.textContent).toBe('Collaborator edit')
   })
 
@@ -251,7 +251,7 @@ describe('saving and targeting drawings', () => {
       expect(call).toEqual(['c', expect.objectContaining({ pageId: 'first' })])
     }
     expect(api.updateFrame).toHaveBeenCalledWith('f', {
-      html: expect.stringContaining('data-doop-drawing="rectangle"'),
+      html: expect.stringContaining('data-diagramly-drawing="rectangle"'),
     })
     expect(useStore.getState().canvas?.frames).toHaveLength(3)
     expect(useStore.getState()).toMatchObject({ activePageId: 'second', selectedId: null, selectedElement: null })
@@ -285,7 +285,7 @@ describe('saving and targeting drawings', () => {
     expect(api.getCanvas).toHaveBeenCalledWith('c')
     const html = vi.mocked(api.updateFrame).mock.calls[0]![1].html!
     expect(html).toContain('Latest remote edit')
-    expect(html).toContain('data-doop-drawing="rectangle"')
+    expect(html).toContain('data-diagramly-drawing="rectangle"')
     expect(api.createFrame).toHaveBeenCalledTimes(2)
     expect(vi.mocked(api.createFrame).mock.calls[1]).toEqual(['c', expect.objectContaining({ pageId: 'first' })])
     expect(useStore.getState().canvas?.frames).toEqual([otherFrame])

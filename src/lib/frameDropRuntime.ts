@@ -4,7 +4,7 @@ export const FRAME_DROP_RUNTIME = `
   function dropContainer(el, source) {
     if (!el || el.namespaceURI !== 'http://www.w3.org/1999/xhtml' || isLocked(el)) return false
     if (el === source || source.contains(el)) return false
-    if (el.hasAttribute('data-doop-drawing')) return false
+    if (el.hasAttribute('data-diagramly-drawing')) return false
     if (el.tagName === 'UL' || el.tagName === 'OL') return source.tagName === 'LI'
     if (el.tagName === 'DL') return source.tagName === 'DT' || source.tagName === 'DD'
     return ['BODY', 'DIV', 'SECTION', 'MAIN', 'ARTICLE', 'ASIDE', 'HEADER', 'FOOTER',

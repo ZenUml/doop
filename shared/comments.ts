@@ -12,7 +12,7 @@ export function isCanvasComment(c: ElementComment): c is CanvasComment {
  *  empty selector, as "no element": the comment goes on the frame at the point. */
 export const FRAME_COMMENT_SELECTOR = 'body'
 
-/** A comment on one element inside a frame, found again by its `data-doop-id`. */
+/** A comment on one element inside a frame, found again by its `data-diagramly-id`. */
 export type ElementAnchoredComment = ElementComment & { frameId: string; elementId: string }
 
 export function isElementComment(c: ElementComment): c is ElementAnchoredComment {
@@ -30,7 +30,7 @@ export function isFrameComment(c: ElementComment): c is FrameComment {
 
 /** Where a thread is pinned after a move. On a frame, `selector` is the
  *  positional path of the element under the pointer in the live document
- *  (the server stamps its `data-doop-id` from it), `elementId` the id it
+ *  (the server stamps its `data-diagramly-id` from it), `elementId` the id it
  *  already carries if any, and the point is where the pin was let go. `elementOrigin` records
  *  the element top-left then, so a later move can fall back to its new top-left. Off every frame it is
  *  a page and a world point. The root and every reply take the new anchor

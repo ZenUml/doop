@@ -41,8 +41,8 @@ beforeEach(async () => {
       { id: 'two', name: 'Two' },
     ],
     frames: [
-      frame('home', 'one', '<button data-doop-on="click" data-doop-action="navigate:detail">Open</button>'),
-      frame('detail', 'one', '<a data-doop-on="click" data-doop-action="overlay:ghost">Help</a>'),
+      frame('home', 'one', '<button data-diagramly-on="click" data-diagramly-action="navigate:detail">Open</button>'),
+      frame('detail', 'one', '<a data-diagramly-on="click" data-diagramly-action="overlay:ghost">Help</a>'),
       frame('other', 'two', '<p>elsewhere</p>'),
     ],
     createdAt: 0,

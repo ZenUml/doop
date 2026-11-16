@@ -46,7 +46,7 @@ const INTERNAL_DOMAINS: string[] = (import.meta.env.VITE_POSTHOG_INTERNAL_DOMAIN
   .map((d: string) => d.trim().toLowerCase())
   .filter(Boolean)
 const isInternalEmail = (email: string) => INTERNAL_DOMAINS.some((d) => email.toLowerCase().endsWith(`@${d}`))
-const NO_REPLAY_KEY = 'doop:internal-no-replay'
+const NO_REPLAY_KEY = 'diagramly:internal-no-replay'
 
 if (!key) {
   console.warn('VITE_POSTHOG_KEY is unset — PostHog is disabled and no events will be sent.')

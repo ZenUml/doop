@@ -17,7 +17,7 @@ vi.mock('../server/env.ts', async (importOriginal) => {
     ...original,
     env: {
       ...original.env,
-      DOOP_AGENT_PROVIDER: 'anthropic',
+      DIAGRAMLY_AGENT_PROVIDER: 'anthropic',
       get ANTHROPIC_API_KEY() {
         return process.env.ANTHROPIC_API_KEY || undefined
       },

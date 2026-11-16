@@ -24,9 +24,12 @@ describe.skipIf(!findBrowserPath())('sandboxed frame replay', () => {
   beforeEach(async () => {
     page = await pages.open()
     await page.goto(fixtureUrl('frameReplay.html'))
-    await page.waitForFunction(() => window.testReady && window.messages.some((m) => m.type === 'doop:frame-ready'), {
-      timeout: 60_000,
-    })
+    await page.waitForFunction(
+      () => window.testReady && window.messages.some((m) => m.type === 'diagramly:frame-ready'),
+      {
+        timeout: 60_000,
+      },
+    )
   }, 60_000)
 
   /** The recorder the frame downloads: its own file in the build, named
@@ -36,7 +39,7 @@ describe.skipIf(!findBrowserPath())('sandboxed frame replay', () => {
   async function render(html: string, index = 0) {
     await page.evaluate(
       (html, index) => {
-        document.querySelectorAll('iframe')[index]!.contentWindow!.postMessage({ type: 'doop:html', html }, '*')
+        document.querySelectorAll('iframe')[index]!.contentWindow!.postMessage({ type: 'diagramly:html', html }, '*')
       },
       html,
       index,
@@ -79,26 +82,26 @@ describe.skipIf(!findBrowserPath())('sandboxed frame replay', () => {
     // the same attribute must survive and retain its normal execution behavior.
     await child.evaluate(() => {
       const content = document.createElement('div')
-      content.setAttribute('data-doop-replay', '')
+      content.setAttribute('data-diagramly-replay', '')
       content.textContent = 'Preserve design content'
       document.body.appendChild(content)
       const script = document.createElement('script')
-      script.setAttribute('data-doop-replay', '')
+      script.setAttribute('data-diagramly-replay', '')
       script.textContent = 'window.designScriptRan = true'
       document.body.appendChild(script)
     })
     await page.evaluate(() => {
       const target = document.querySelector('iframe')!.contentWindow!
-      target.postMessage({ type: 'doop:edit', on: true }, '*')
-      target.postMessage({ type: 'doop:edit', on: false }, '*')
+      target.postMessage({ type: 'diagramly:edit', on: true }, '*')
+      target.postMessage({ type: 'diagramly:edit', on: false }, '*')
     })
-    await page.waitForFunction(() => window.messages.some((m) => m.type === 'doop:edited'))
-    const saved = await page.evaluate(() => window.messages.find((m) => m.type === 'doop:edited')!.html)
-    expect(saved).toContain('<div data-doop-replay="">Preserve design content</div>')
-    expect(saved).toContain('<script data-doop-replay="">window.designScriptRan = true</script>')
+    await page.waitForFunction(() => window.messages.some((m) => m.type === 'diagramly:edited'))
+    const saved = await page.evaluate(() => window.messages.find((m) => m.type === 'diagramly:edited')!.html)
+    expect(saved).toContain('<div data-diagramly-replay="">Preserve design content</div>')
+    expect(saved).toContain('<script data-diagramly-replay="">window.designScriptRan = true</script>')
     expect(saved).not.toContain(new URL(request.url()).pathname)
     await page.evaluate(() => {
-      window.messages = window.messages.filter((m) => m.type !== 'doop:edited')
+      window.messages = window.messages.filter((m) => m.type !== 'diagramly:edited')
     })
     await request.continue()
     await captured('Initial design while loading')
@@ -128,7 +131,7 @@ describe.skipIf(!findBrowserPath())('sandboxed frame replay', () => {
     await replay.waitForFunction(() => {
       const outer = document.querySelector('iframe')?.contentDocument
       return outer
-        ?.querySelector<HTMLIFrameElement>('iframe[data-doop-frame]')
+        ?.querySelector<HTMLIFrameElement>('iframe[data-diagramly-frame]')
         ?.contentDocument?.body.textContent?.includes('Streamed design')
     })
   })
@@ -137,13 +140,13 @@ describe.skipIf(!findBrowserPath())('sandboxed frame replay', () => {
     await recordDesign()
     await page.evaluate(() => {
       const target = document.querySelector('iframe')!.contentWindow!
-      target.postMessage({ type: 'doop:edit', on: true }, '*')
-      target.postMessage({ type: 'doop:edit', on: false }, '*')
+      target.postMessage({ type: 'diagramly:edit', on: true }, '*')
+      target.postMessage({ type: 'diagramly:edit', on: false }, '*')
     })
-    await page.waitForFunction(() => window.messages.some((m) => m.type === 'doop:edited'))
-    const html = await page.evaluate(() => window.messages.find((m) => m.type === 'doop:edited')!.html)
+    await page.waitForFunction(() => window.messages.some((m) => m.type === 'diagramly:edited'))
+    const html = await page.evaluate(() => window.messages.find((m) => m.type === 'diagramly:edited')!.html)
     expect(html).toContain('Streamed design')
-    expect(html).not.toContain('data-doop-replay')
+    expect(html).not.toContain('data-diagramly-replay')
     expect(html).not.toContain('data-v-boot')
     expect(html).not.toContain('__PosthogExtensions__')
   })
@@ -156,7 +159,7 @@ describe.skipIf(!findBrowserPath())('sandboxed frame replay', () => {
     })
     await captured('Streamed design')
     await page.evaluate(() => window.addFrame())
-    await page.waitForFunction(() => window.messages.filter((m) => m.type === 'doop:frame-ready').length === 2)
+    await page.waitForFunction(() => window.messages.filter((m) => m.type === 'diagramly:frame-ready').length === 2)
     await render('<h1>Presentation frame</h1>', 1)
     await captured('Presentation frame')
   })
@@ -210,7 +213,7 @@ describe.skipIf(!findBrowserPath())('sandboxed frame replay', () => {
         window.addEventListener(
           'error',
           (event) => {
-            if ((event.target as Element | null)?.matches('script[data-doop-replay]')) failedRecorder = true
+            if ((event.target as Element | null)?.matches('script[data-diagramly-replay]')) failedRecorder = true
           },
           true,
         )

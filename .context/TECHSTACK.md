@@ -17,9 +17,9 @@
 - React 18.3.1 - UI framework in `src/`.
 - Zustand 4.5.4 - client-side state management.
 - Element ids (`shared/elementId.ts`): anything outside a frame that points at an element
-  inside it uses the element's `data-doop-id` attribute, stamped into the frame HTML the first
+  inside it uses the element's `data-diagramly-id` attribute, stamped into the frame HTML the first
   time something needs it (a comment, an element link, a layer rename, whose undo and redo find the element by it) and kept by agents like every other
-  `data-doop-*` attribute. The server stamps (`server/elementIds.ts`, parse5 by source offset,
+  `data-diagramly-*` attribute. The server stamps (`server/elementIds.ts`, parse5 by source offset,
   so nothing else is re-serialized; `actions.ensureElementId`, exposed as
   `POST /api/frames/:id/element-id` to the comment role) as an annotation: `store.updateFrame`'s
   `annotation` option keeps `ready_for_dev` sign-off, and no version or activity line is written.
@@ -27,7 +27,7 @@
   mid-stream) is refused, and a comment falls back to the frame at its point. The frame runtime's
   probe reports an existing id as `elementId`; its positional `cssPath` is now only the editor's
   internal selection language.
-- Element links use `/c/<canvasId>?frame=<frameId>&element=<data-doop-id>` (no selector form,
+- Element links use `/c/<canvasId>?frame=<frameId>&element=<data-diagramly-id>` (no selector form,
   and no backwards compatibility for the old one). `src/lib/elementLink.ts` owns copying from the
   element toolbar and Layers menu, stamping first when the element has no id; `Stage.tsx`
   focuses its page and frame; `FrameView.tsx` resolves the id in the ready iframe, including
@@ -80,7 +80,7 @@
   2.1+, else the newest known install. The shell is asked once per launch (`$SHELL -l -i -c`, 5s
   bound; Refresh asks again) and its `PATH` is given to every CLI process, since a GUI app's
   `/usr/bin:/bin` PATH lacks the `node` an npm install needs. Shells advertise this with
-  `__DOOP_CLAUDE_CHOOSE__`.
+  `__DIAGRAMLY_CLAUDE_CHOOSE__`.
 - Model menus (`server/modelCatalog.ts`, `GET /api/model-account/models`): the connected
   account's picker asks the provider's catalog with the user's own key when it opens (the
   composer's `ModelPicker`) or mounts (Settings, `useAgentModels`), merging the curated entries of
@@ -111,15 +111,15 @@
   `/models` lists the endpoint's ids and `/test` runs one turn that must call a tool, both rationed per
   person and able to use an edited provider's stored secrets. Every request goes through
   `customProviderFetch`: https to public addresses only, DNS pinned per request, no redirects, 32 MB
-  response cap; `DOOP_CUSTOM_PROVIDER_PRIVATE_HOSTS` admits private hosts and http for a self-hosted
-  instance, `DOOP_CUSTOM_PROVIDERS=false` turns the feature off (existing ones read as disconnected).
+  response cap; `DIAGRAMLY_CUSTOM_PROVIDER_PRIVATE_HOSTS` admits private hosts and http for a self-hosted
+  instance, `DIAGRAMLY_CUSTOM_PROVIDERS=false` turns the feature off (existing ones read as disconnected).
   Advanced: extra headers (routing and framing headers refused), `max_tokens` vs
   `max_completion_tokens`, and echoing `reasoning_content`. Tests: `customProvider.test.ts`,
   `customProvidersHttp.test.ts`, `customProviderForm.test.tsx`.
 - Reasoning effort on a user's OpenAI account (ChatGPT subscription or OpenAI key): the pick lives
   in `model_accounts.reasoning_effort` (`REASONING_EFFORTS` in `shared/modelMenu.ts`: low / medium /
   high / xhigh), set through `PATCH /api/model-account/:kind { effort }`, read by `effortFor` in
-  `server/openaiAgent.ts` for every turn, with `DOOP_AGENT_OPENAI_EFFORT` as the default until a
+  `server/openaiAgent.ts` for every turn, with `DIAGRAMLY_AGENT_OPENAI_EFFORT` as the default until a
   user picks. The status reports the resolved `effort` for the OpenAI kinds only, which is what
   shows the `Segmented` switch in Settings and the radio group in the composer's `ModelPicker`.
 - Image descriptions (`.context/specs/image-descriptions.md`, `server/imageDescriptions.ts`,
@@ -160,7 +160,7 @@
 - Which connection runs a task (`shared/agentRunner.ts`, `server/agentRunners.ts`):
   `GET /api/agent-runners` lists every connection that is on, with its menus, plus `default`.
   The composer's `ModelPicker` offers each one and its models; the pick is this browser's
-  (`src/lib/runnerPick.ts`, `doop:agent-runner`), rides on the card as `runner` (a `RunnerPick`:
+  (`src/lib/runnerPick.ts`, `diagramly:agent-runner`), rides on the card as `runner` (a `RunnerPick`:
   provider, model, effort; `tasks.runner` JSON, migration 0045) and the send button's meter names
   it. `pickModel(payerId, pick)` honours it for that run when the named connection is on, a
   model the provider does not know runs on the connection's configured one, and anything else
@@ -194,7 +194,7 @@
   asset, so removing a font never breaks a frame that loads it; re-uploading a face replaces it
   (writes queue per library, so racing uploads of one face leave one row).
   A frame stays self-contained: `withFontFaces` adds the `@font-face` rules for the library
-  families its CSS names to one `<style data-doop-fonts>` block in its own HTML (only adds, never
+  families its CSS names to one `<style data-diagramly-fonts>` block in its own HTML (only adds, never
   removes). `actions.createFrame` / `updateFrame` / the final append chunk run it on every write,
   and `FrameView`'s save path runs it too, so a family picked from the Design panel's "Custom
   fonts" group renders at once. Every renderer that reads frame HTML (screenshots, PDF
@@ -207,8 +207,8 @@
   typed design values (Paper's eleven types: colour, opacity, radius, spacing, container,
   breakpoint, font family / weight / size, line height, letter spacing), each a CSS custom
   property frames use as `var(--name)`, with a value per theme (`canvas.tokenThemes`; a frame
-  switches with `data-doop-theme="dark"` on its `<html>`). `withTokenBlock` writes the values a
-  frame names into its own `<style data-doop-tokens>` block wherever `withFontFaces` runs, and a
+  switches with `data-diagramly-theme="dark"` on its `<html>`). `withTokenBlock` writes the values a
+  frame names into its own `<style data-diagramly-tokens>` block wherever `withFontFaces` runs, and a
   token change rewrites that block in every frame naming it as an annotation (sign-off stands, no
   version). Stored in `design_tokens` + `canvases.token_themes` (migration 0050); REST under
   `/api/canvases/:id/tokens`, `/token-themes` and `/styleguide.md` (tokens + guidelines as one
@@ -222,7 +222,7 @@
   (Georgia, Verdana, Trebuchet, Helvetica, Arial, Times, Courier) were dropped from the menu since
   the server's renderer has none of them and exports disagreed with the editor. Naming a roster
   family in CSS is all it takes: `withWebFontLinks` adds one `<link rel="stylesheet"
-data-doop-webfonts>` for the roster families the frame names and does not load itself (a
+data-diagramly-webfonts>` for the roster families the frame names and does not load itself (a
   library family of the same name wins, and leaves the link when uploaded later), run wherever
   `withFontFaces` runs (`actions` on every write, `FrameView`'s save path). The screenshot and
   PDF renderers already admit the two Google Fonts origins. Agents get the roster as `webFonts`
@@ -232,7 +232,7 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   `elementPanelBrowser.test.ts`.
 - Fonts from this computer (`src/lib/localFonts.ts`, `desktop/src-tauri/src/fonts.rs`): in the
   desktop shell the font library card has "Add from this computer" (shells advertise it with
-  `__DOOP_LOCAL_FONTS__`). `fonts_choose_local` opens the native file panel in the platform's
+  `__DIAGRAMLY_LOCAL_FONTS__`). `fonts_choose_local` opens the native file panel in the platform's
   fonts folder (the person's own first) and remembers the picks; `fonts_read_local` hands the
   page one picked file's bytes once, by that path and no other, and the page uploads it through
   the ordinary `POST /api/fonts`, so a local font becomes a library font rather than a
@@ -258,7 +258,7 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   `canvasShares.test.ts`, `userEventsHttp.test.ts`.
 - Frame image export (`src/lib/frameRaster.ts`, `src/lib/frameExport.ts`): the PNG / JPG download
   and Copy as PNG are drawn by the browser showing the frame, not by the server's Chromium. The
-  runtime answers `doop:snapshot` with its live document (`exportSnapshot`: what an HTML copy
+  runtime answers `diagramly:snapshot` with its live document (`exportSnapshot`: what an HTML copy
   loses is captured first, every `<canvas>` as its pixels, each `<img>` at the source the
   browser picked, a `blob:` image as its bytes, every stylesheet as the CSSOM holds it, adopted
   sheets included; `html: null` when a canvas is tainted, and the export goes to the server; `snapshotFrame` in
@@ -274,14 +274,14 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   person sees on the canvas is never the export's blocker. An element inside a frame exports
   too (the element menu's Export… dialog and Copy as PNG, `downloadElementExport` /
   `copyElementPng`): the frame is rendered whole and cut to the element's live box
-  (`doop:inspect` rect, `clipToFrame`, the raster's `clip` option), so every style it inherits
+  (`diagramly:inspect` rect, `clipToFrame`, the raster's `clip` option), so every style it inherits
   and whatever paints behind it stay in the picture; a server render is cropped here the same
   way (`cropRaster`), and a frame off screen says so. Tests: `frameRaster.test.ts`,
   `frameRasterBrowser.test.ts` (pixels in Chromium, the live runtime included),
   `frameExport.test.ts`. Scale and format (`shared/exportScale.ts`, `src/lib/exportSettings.ts`,
   `ExportOptions.tsx`): the Inspector's Export group and the Export… dialog (frames, and elements
   from their menu) pick 0.5x / 1x / 2x / 3x / 4x or a typed multiplier (0.1-4, two decimals) and
-  PNG / JPG / SVG, remembered per browser under `doop:export-settings` (2x PNG by default) and
+  PNG / JPG / SVG, remembered per browser under `diagramly:export-settings` (2x PNG by default) and
   named `Name@2x.png` as Figma does. Up to 2x a scale is honoured as before; above it,
   `fitExportScale` brings a huge frame down to 16,384 px a side and 64 MP, the same limit
   for the browser render, `/i/<id>.png?scale=` (any parsed scale, 1x when unreadable) and MCP
@@ -370,13 +370,13 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   fly-tos fit into the stage area the top bar and floating panels leave open: `CanvasPage` passes
   `Stage` the `insets` its chrome covers and `fitBox` (`src/lib/viewFit.ts`) centres there.
   Tests: `viewFit.test.ts`, `fitSelectionBrowser.test.ts`.
-- View options (`src/lib/viewOptions.ts`, per browser under `doop:view-options`): the zoom pill's
+- View options (`src/lib/viewOptions.ts`, per browser under `diagramly:view-options`): the zoom pill's
   menu opens on a field for a typed level (`150`, `150%`; `parseZoomPercent`) and switches the
   pixel grid (⇧'), other people's cursors (⌘⌥\ / Ctrl+Alt+\) and the comment pins (⇧C), each read
   by `code` (registry actions `pixel-grid`, `comments`, `cursors`). Hidden pins still show under
   the Comment tool and for a thread that is open. Tests: `viewOptions.test.ts`, `zoomMenu.test.tsx`.
 - Canvas panel layout (Settings → Appearance → Canvas panels, `src/lib/panelLayout.ts`, per
-  browser under `doop:panel-layout`): `floating` (the default) keeps the islands over a
+  browser under `diagramly:panel-layout`): `floating` (the default) keeps the islands over a
   full-window stage; `docked` makes Layers, the tool rail, the icon islands, the Inspector /
   element panel and Agents flush columns (`Panel surface="docked"`), the bar a solid strip
   (`TopBar variant="docked"`), and the stage itself the gap between them (`Stage bounds`), so its
@@ -438,7 +438,7 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   its layout is read is left alone) and ⇧⌘G / ⌘⌫ unwrap (`groupElements` / `ungroupElements` in
   `layers.ts`); ⇧A makes a box a flex container, or wraps the pick in one, turning the space between
   the layers into `gap` and dropping their flow margins so nothing moves; ⌥⌘C / ⌥⌘V copy and paste
-  computed looks (`doop:computed`), text styles only between text layers; ⇧⌘V / ⇧⌘R paste over or
+  computed looks (`diagramly:computed`), text styles only between text layers; ⇧⌘V / ⇧⌘R paste over or
   replace the selection from the canvas clip (a frame goes only once all its replacements land; one
   undo step, a single `transfer` (`replaceFramesTracked`), so undo never removes a replacement
   before its original is back; tests in `replaceFrames.test.ts`); ⇧⌘U links (`setElementLink`: an
@@ -460,10 +460,10 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   Tests: `zoomTool.test.ts`, the Zoom cases in `tools.test.ts`.
 - `src/lib/drawing.ts` creates rectangles, circles, straight and cubic Bézier SVG paths, text and empty
   frames through the existing frame API. Drawing inside a frame appends a positioned HTML/SVG
-  layer. Standalone elements use frame persistence with a `data-doop-canvas-element` body marker
+  layer. Standalone elements use frame persistence with a `data-diagramly-canvas-element` body marker
   for transparent canvas chrome; no separate shape schema or protocol is required. Pasted and
   dropped images (`src/lib/frameClipboard.ts`) are standalone elements too: one
-  `<img data-doop-drawing="image">` named after its file. A standalone text or path takes its ink
+  `<img data-diagramly-drawing="image">` named after its file. A standalone text or path takes its ink
   from the theme the person drew under (`drawingInk`: the dark theme's `--ink`, else `DRAWING_INK`),
   since it sits on the canvas paper; inside a frame the dark ink stays. The Layers
   panel shows one as a single layer at the root (no frame row, no name label on the canvas) and
@@ -474,8 +474,8 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   through the frame drag (live, snapping, one undo step) and, let go over a frame, goes into it
   through `moveDrawing`. A layer leaving its frame takes the CSS it
   relies on along (`src/lib/styleCarry.ts`: the matching rules, their keyframes, font faces and
-  custom properties, as one `<style data-doop-carried>`, every rule scoped through a
-  `data-doop-carried-scope` mark on the moved root so the destination's own layers keep their
+  custom properties, as one `<style data-diagramly-carried>`, every rule scoped through a
+  `data-diagramly-carried-scope` mark on the moved root so the destination's own layers keep their
   look); copy/paste across frames carries it the same way. Tests: `layerTransfer.test.ts`, `layersDragAcross.test.tsx`, `styleCarry.test.ts`.
 - The pen snaps to the nearest anchor on its unfinished path within eight screen pixels,
   highlights the target, and previews a closed curve when approaching the first anchor.
@@ -501,7 +501,7 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   native fields and rich-text editors alone, except for the drawing textarea's keys: ⌘/Ctrl+Enter,
   Esc and a blur all commit the typed text (an empty draft is dropped).
 - `ElementMove.tsx` moves a drawing as an unclipped copy under the pointer and highlights the
-  destination frame; the original is hidden in its frame (`doop:drawing-moving`) once the copy
+  destination frame; the original is hidden in its frame (`diagramly:drawing-moving`) once the copy
   paints, and the copy stays until the frames show the save, so the shape itself follows the drag.
   While anything moves (a drawing, a layer, a standalone shape) its outline, grips and size badge
   stay hidden. Drawings and layers snap to their frame's edges and centre, their parent box and
@@ -573,7 +573,7 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   Rotation field sets it. The runtime reports an element's own turn (`ownRotation`: its `rotate`
   plus a plain 2D `transform` angle; skew, flip and 3D stay out) and its box before that turn
   (`box`, via a uniform render scale read off the turned bounds) in hit info, `inspect` and
-  `doop:locate`; `selectionBox` draws the outline, grips and zones on that box, centred on the
+  `diagramly:locate`; `selectionBox` draws the outline, grips and zones on that box, centred on the
   bounds and turned with it, so a turned layer keeps its grips and resizes along its own axes
   (`derotateDelta`; no guide snapping while turned). `sizable` now admits the element's own turn
   and still refuses a turned, skewed, 3D or nonuniformly scaled ancestor; unsupported transforms
@@ -583,7 +583,7 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
 - Rulers and guides (`src/components/Rulers.tsx`, math in `src/lib/rulers.ts`): ⇧R or the zoom menu
   toggles `<canvas>` rulers docked on the stage's top and left edges (the top bar and the floating
   chrome step in by `RULER_PX`) (remembered under
-  `doop:rulers`, hidden on phones and under ⌘.). Ticks step 1/2/5×10ⁿ by zoom; labels count from the
+  `diagramly:rulers`, hidden on phones and under ⌘.). Ticks step 1/2/5×10ⁿ by zoom; labels count from the
   selected frames' top-left, whose extent is highlighted. Dragging out of a ruler adds a guide;
   guides drag, drop back on their ruler or Delete to remove, and undo/redo (`history.ts` `guide`
   entries). Guides live in `canvases.guides` (jsonb, per page, client-generated ids), written one
@@ -598,10 +598,10 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   markup lands as editable vector layers, not an `<img>`, the way Figma imports one. Every
   `path`/`rect`/`circle`/`ellipse`/`line`/`polyline`/`polygon` is baked (transforms, nested
   `viewBox`es, `<use>` and `<symbol>` expanded, the whole `d` grammar including arcs and
-  quadratics turned into absolute cubics) into one `svg[data-doop-drawing="path"]` with a single
-  `path` child; `<g>` nesting becomes `div[data-doop-drawing="group"]` rows; text and images stay
-  as `svg[data-doop-drawing="svg"]` layers; gradients, clips, masks and filters ride in a
-  `[data-doop-defs]` host with the import's id prefix, user-space gradients and clips copied with
+  quadratics turned into absolute cubics) into one `svg[data-diagramly-drawing="path"]` with a single
+  `path` child; `<g>` nesting becomes `div[data-diagramly-drawing="group"]` rows; text and images stay
+  as `svg[data-diagramly-drawing="svg"]` layers; gradients, clips, masks and filters ride in a
+  `[data-diagramly-defs]` host with the import's id prefix, user-space gradients and clips copied with
   the shape's transform folded in. Paint comes from the browser's computed styles
   (`importSvgInBrowser` mounts the file in a closed shadow root, so `<style>` rules, classes and
   `currentColor` resolve and leak nowhere); `importSvgMarkup` reads attributes alone for tests.
@@ -628,7 +628,7 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   the box, since clipped backgrounds reach past it) and a raised layer budget, so paths, gradients,
   clips and images become the same editable layers an SVG gives; a CMYK JPEG is decoded through the
   page and re-encoded as RGB, and in the browser every picture becomes an `/a/` asset. The text comes
-  from MuPDF's structured text (ligatures kept), one `<p data-doop-drawing="text">` per run of one
+  from MuPDF's structured text (ligatures kept), one `<p data-diagramly-drawing="text">` per run of one
   font, size and colour, placed by the glyph box, rotated runs turned about their first glyph.
   Fonts are keyed by font object, not name: a producer embeds several subsets under one name
   (InDesign, per page), so a page's font resources (Form XObjects included) are paired with each
@@ -648,7 +648,7 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   compound paths included (`EditablePath.subpaths`; anchors are numbered flat across strokes);
   clicking the outline splits the segment there (`splitSegment`, a line stays linear in `t`);
   deleting the last-but-one anchor of a stroke removes the stroke when others remain. The runtime's
-  `doop:path` probe finds a shape inside an imported group (no standalone-root collapse) and
+  `diagramly:path` probe finds a shape inside an imported group (no standalone-root collapse) and
   reports `parentBox`; `updatePathFrame` keeps a grouped shape in percentages of its group and
   grows the group (the standalone's frame, or the root's px box inside a frame) around a point
   dragged past its edge, re-placing the sibling shapes. Cursors follow Figma's (`cursor-pen*`,
@@ -669,13 +669,13 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   stacking contexts, covered shapes, and delayed hit-test replies.
 
 - Comment anchors (`shared/comments.ts`): an element comment is `frameId` + `elementId` (the
-  element's `data-doop-id`) + `snippet`; a frame comment is `frameId` + design-px `x`/`y` and no
+  element's `data-diagramly-id`) + `snippet`; a frame comment is `frameId` + design-px `x`/`y` and no
   `elementId` (the Comment tool makes one on the frame's background, or from its name, which
   outlines the whole frame on hover and pins the comment just inside its top-left corner); a canvas comment is `pageId` + world `x`/`y`. One whose element is gone keeps the
   frame and snippet only and is listed without a pin. The browser still sends the runtime's
   positional selector (plus `elementId` when the element already wears one, and always the
   point); the server stamps and stores the id. `FrameView` places pins by
-  `doop:locate` on `[data-doop-id="…"]`. Comments stored before element ids carry their old
+  `diagramly:locate` on `[data-diagramly-id="…"]`. Comments stored before element ids carry their old
   selector in the `selector` column, which `actions.backfillElementIds` resolves once after the
   server starts listening, frame by frame with awaited, ordered writes (the stamped frame, then
   the comments naming its ids); unresolvable paths become lost anchors, a row that throws or a
@@ -696,19 +696,19 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   comment drags a thread's root pin; a ghost rides the pointer in the world layer
   (`CanvasComments`), above every frame, since the pin itself sits inside a clipped frame surface.
   On release the drop point is resolved in order: the topmost visible frame under it is probed
-  (`doop:probe`) for an element, else the frame as a whole at that design point, else the canvas
+  (`diagramly:probe`) for an element, else the frame as a whole at that design point, else the canvas
   at that world point, so a thread changes kind either way (element → canvas comment and back).
   `PATCH /api/comments/:id/anchor` (comment role; `CommentAnchorInput` in `shared/comments.ts`)
   re-anchors the root and its replies together and broadcasts each; a drop on the same anchor
   sends nothing, Esc mid-drag puts the pin back. Tests: `commentMove.test.ts`,
   `canvasCommentsRoute.test.ts`, `elementIds.test.ts`, the drag case in `drawingGeometryBrowser.test.ts`.
-- Components (`.context/specs/components.md`): a main is an element marked `data-doop-component`; an
-  instance is full markup marked `data-doop-instance`, so frame consumers need no changes. Every
-  frame write passes `prepareFrameHtml` (`server/components.ts`): `<doop-use>` expands, a changed main
+- Components (`.context/specs/components.md`): a main is an element marked `data-diagramly-component`; an
+  instance is full markup marked `data-diagramly-instance`, so frame consumers need no changes. Every
+  frame write passes `prepareFrameHtml` (`server/components.ts`): `<diagramly-use>` expands, a changed main
   becomes a revision, instances reconcile against the revision they were rendered from
   (`server/componentEngine.ts`) and upgrade. `actions.propagateComponents` carries a change across the
   canvas. The components pass runs first on every write, then `withLibraryFaces`, so an expanded
-  `<doop-use>` naming a library family gets its face. Agents read and write the short form
+  `<diagramly-use>` naming a library family gets its face. Agents read and write the short form
   (`get_frame`, `edit_frame_html`); tools live once in `server/componentTools.ts` for MCP and the
   resident agent. `src/lib/components.ts` and `ComponentsPanel.tsx` (the Layers panel's Components
   tab, beside Tokens) / `ComponentSection.tsx` are the editor's side. A component is renamed from its card's menu
@@ -716,12 +716,12 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   linked by id, so they follow); an instance's row is not renamed on its own. Stored in `components`
   (migration `0052_components`). Tests: `components.test.ts`, `componentsEdgeCases.test.ts`,
   `componentTools.test.ts`, `componentsRoutes.test.ts`, `componentsBrowser.test.ts`.
-- Prototypes (`.context/specs/prototyping.md`): interactions are `data-doop-on` /
-  `data-doop-action` (or the JSON `data-doop-interactions`) attributes in frame HTML, parsed by
+- Prototypes (`.context/specs/prototyping.md`): interactions are `data-diagramly-on` /
+  `data-diagramly-action` (or the JSON `data-diagramly-interactions`) attributes in frame HTML, parsed by
   `shared/prototype.ts`, whose parser the frame runtime inlines by source. `PrototypePlayer.tsx`
   (Play, and the full-page `/c/<id>/proto`) runs them with Web Animations transitions, under the
   desktop tab strip (`--app-inset`), scaled by the viewer's pick (actual size, responsive, fit width,
-  fit, fill; `screenLayout`, remembered under `doop:proto-scaling`); the
+  fit, fill; `screenLayout`, remembered under `diagramly:proto-scaling`); the
   Prototype tab and `PrototypeOverlay.tsx` edit and draw them; MCP has `get_prototype` and
   `set_prototype_start`. `tests/prototypeBrowser.test.ts` drives the player in Chromium.
 
@@ -833,7 +833,7 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   to per-user workers; `server/geminiCloudMcp.ts` exposes run-scoped canvas tools. The standalone
   worker runs official Gemini CLI headlessly, with Google credentials retained in its own volume.
   `workers/gemini/Dockerfile` builds the worker. Setup and limitations: `docs/gemini-cloud-pilot.md`.
-  `DOOP_GEMINI_CLOUD_WORKERS` enables operator-managed routing and BYO metering; unset by default.
+  `DIAGRAMLY_GEMINI_CLOUD_WORKERS` enables operator-managed routing and BYO metering; unset by default.
 
 - Docker - `Dockerfile` + `docker-compose.yml`; `docker compose up` runs the app container
   (port 4400) and a `postgres:16-alpine` db container for self-hosting.
@@ -870,7 +870,7 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   a canvas named after it (`src/lib/homePrompt.ts`), queues it as the first board card asking for N
   drafts, and opens the canvas; a card that cannot queue rides along as the canvas composer's draft.
   The hero's top-right close button asks to "Hide Prompt Box" before hiding the whole prompt area.
-  `src/lib/homePreferences.ts` remembers the choice in this browser under `doop.home.prompt-box-hidden`;
+  `src/lib/homePreferences.ts` remembers the choice in this browser under `diagramly.home.prompt-box-hidden`;
   Settings → General → Show Prompt Box restores it. The preference also updates other open tabs.
   Import makes a canvas and opens it with `?import=1`, which `CanvasPage` turns into the import
   picker. `GET /api/canvases` adds `people` (owner, then members) for the tiles' avatar stacks.
@@ -878,7 +878,7 @@ data-doop-webfonts>` for the roster families the frame names and does not load i
   Workspace and Admin alike (a page's own group, such as the admin indexes, goes in as children;
   Settings draws its own rail from the same `ui/dash.tsx` parts); it owns
   the ⌘K search palette (`CanvasSearchModal.tsx`), the connect-an-agent modal, the collapsed
-  narrow state (remembered in `localStorage` under `doop-rail`) and the account face at the bottom.
+  narrow state (remembered in `localStorage` under `diagramly-rail`) and the account face at the bottom.
   From another page the rail sends scope picks home as `/?scope=` and new workspaces as
   `/?workspace=new`. The workspace in view opens under its row: All canvases, People, Fonts, and
   for its owner and admins Plan & billing and Settings (`workspacePanesFor`); on the Workspace page

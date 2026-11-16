@@ -21,7 +21,7 @@ describe.skipIf(!findBrowserPath())('Rendered diagram title persistence', () => 
       '/api': { target: `http://localhost:${port}` },
       '/vendor/diagram': { target: `http://localhost:${port}` },
     })
-    server = await startServer({ PORT: String(port), BETTER_AUTH_URL: web.origin, DOOP_PRODUCT: 'diagramly' })
+    server = await startServer({ PORT: String(port), BETTER_AUTH_URL: web.origin, DIAGRAMLY_PRODUCT: 'diagramly' })
   }, 60_000)
   afterAll(async () => {
     server?.stop()
@@ -37,8 +37,9 @@ describe.skipIf(!findBrowserPath())('Rendered diagram title persistence', () => 
         if (event.data?.type === 'test:edit')
           document
             .querySelector<HTMLIFrameElement>('#title-diagram')!
-            .contentWindow!.postMessage({ ...event.data, type: 'doop:edit', on: true }, '*')
-        if (event.data?.type === 'doop:edited') (window as Window & { edits: string[] }).edits.push(event.data.html)
+            .contentWindow!.postMessage({ ...event.data, type: 'diagramly:edit', on: true }, '*')
+        if (event.data?.type === 'diagramly:edited')
+          (window as Window & { edits: string[] }).edits.push(event.data.html)
       })
       const iframe = document.createElement('iframe')
       iframe.id = 'title-diagram'
@@ -53,7 +54,7 @@ describe.skipIf(!findBrowserPath())('Rendered diagram title persistence', () => 
       (html) =>
         document
           .querySelector<HTMLIFrameElement>('#title-diagram')!
-          .contentWindow!.postMessage({ type: 'doop:html', html }, '*'),
+          .contentWindow!.postMessage({ type: 'diagramly:html', html }, '*'),
       buildDiagramHtml({ ...initial, pages: [{ ...initial, id: 'one', title: 'First' }], activePageId: 'one' }),
     )
     await diagram.waitForSelector('.title')
@@ -80,7 +81,7 @@ describe.skipIf(!findBrowserPath())('Rendered diagram title persistence', () => 
       else await page.keyboard.sendCharacter(title)
       await page.keyboard.press('Enter')
       await diagram.waitForFunction(
-        (title) => document.querySelector('[data-doop-diagram-source]')?.textContent?.includes('title ' + title),
+        (title) => document.querySelector('[data-diagramly-diagram-source]')?.textContent?.includes('title ' + title),
         { timeout: 2000 },
         title,
       )

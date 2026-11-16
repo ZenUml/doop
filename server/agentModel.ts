@@ -32,7 +32,7 @@ import {
  *    key) — the moment one is connected, that user's runs move onto it and
  *    the free-task meter stops applying to them;
  *  - the server tier, which pays for the free tasks every account starts
- *    with. DOOP_AGENT_PROVIDER picks what it runs on: 'anthropic' (the
+ *    with. DIAGRAMLY_AGENT_PROVIDER picks what it runs on: 'anthropic' (the
  *    default, on ANTHROPIC_API_KEY) or 'azure' (the AZURE_OPENAI_* vars).
  *
  * A run bills exactly ONE person: the requester behind the work it claims. The
@@ -79,7 +79,7 @@ export class ModelConfigurationError extends ModelAuthError {}
 /* the server tier: pays for everyone's free tasks                  */
 /* ---------------------------------------------------------------- */
 
-const ANTHROPIC_MODEL = env.DOOP_AGENT_MODEL
+const ANTHROPIC_MODEL = env.DIAGRAMLY_AGENT_MODEL
 
 let anthropic: Anthropic | null = null
 
@@ -149,7 +149,7 @@ function azureTier(): AgentModel | null {
   const apiKey = env.AZURE_OPENAI_API_KEY
   if (!endpoint || !deployment || !apiKey) {
     warnOnce(
-      '[diagramly-agent] DOOP_AGENT_PROVIDER=azure needs AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_DEPLOYMENT and AZURE_OPENAI_API_KEY — the free Diagramly Agent tier is off until all three are set.',
+      '[diagramly-agent] DIAGRAMLY_AGENT_PROVIDER=azure needs AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_DEPLOYMENT and AZURE_OPENAI_API_KEY — the free Diagramly Agent tier is off until all three are set.',
     )
     return null
   }
@@ -186,9 +186,9 @@ const serverTiers: Record<ServerProvider, () => AgentModel | null> = {
   azure: azureTier,
 }
 
-/* an unknown DOOP_AGENT_PROVIDER fails at boot (server/env.ts) */
+/* an unknown DIAGRAMLY_AGENT_PROVIDER fails at boot (server/env.ts) */
 function serverProvider(): ServerProvider {
-  return env.DOOP_AGENT_PROVIDER
+  return env.DIAGRAMLY_AGENT_PROVIDER
 }
 
 /** What the boot banner reports: which provider the free tier would run on,

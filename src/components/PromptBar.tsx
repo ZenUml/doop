@@ -144,7 +144,7 @@ async function sendPrompt(args: {
     await api.addCard(
       canvasId,
       text,
-      ['doop'],
+      ['diagramly'],
       refFrames.map((f) => f.id),
       scope,
       runner,

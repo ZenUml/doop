@@ -8,10 +8,10 @@ import { canvasPages, pageFrames } from './pages.ts'
  * tools. Spec: .context/specs/prototyping.md.
  *
  * One interaction (the canonical form the editor writes for one):
- *   data-doop-on="click" data-doop-action="navigate:<frameId>"
- *   data-doop-transition="dissolve" data-doop-duration="300"
+ *   data-diagramly-on="click" data-diagramly-action="navigate:<frameId>"
+ *   data-diagramly-transition="dissolve" data-diagramly-duration="300"
  * Several on one element (what the editor writes for two or more):
- *   data-doop-interactions='[{"on":"click","action":"navigate:abc"},{"on":"key:Escape","action":"back"}]'
+ *   data-diagramly-interactions='[{"on":"click","action":"navigate:abc"},{"on":"key:Escape","action":"back"}]'
  */
 
 export const PROTO_TRIGGERS = ['click', 'hover', 'press', 'delay', 'key'] as const
@@ -37,11 +37,11 @@ export const MAX_PROTO_DURATION = 5000
 export const MAX_PROTO_DELAY = 600_000
 
 export const PROTO_ATTRS = {
-  on: 'data-doop-on',
-  action: 'data-doop-action',
-  transition: 'data-doop-transition',
-  duration: 'data-doop-duration',
-  interactions: 'data-doop-interactions',
+  on: 'data-diagramly-on',
+  action: 'data-diagramly-action',
+  transition: 'data-diagramly-transition',
+  duration: 'data-diagramly-duration',
+  interactions: 'data-diagramly-interactions',
 } as const
 
 /** Matches every element that may carry an interaction. */
@@ -157,14 +157,14 @@ export function parseInteractions(attrs: InteractionAttrs): Interaction[] {
   return list
 }
 
-/** The trigger as written in `data-doop-on`. */
+/** The trigger as written in `data-diagramly-on`. */
 export function triggerString(i: Pick<Interaction, 'trigger' | 'delay' | 'key'>): string {
   if (i.trigger === 'delay') return `delay:${i.delay ?? 0}`
   if (i.trigger === 'key') return `key:${i.key === ' ' ? 'Space' : (i.key ?? '')}`
   return i.trigger
 }
 
-/** The action as written in `data-doop-action`. */
+/** The action as written in `data-diagramly-action`. */
 export function actionString(i: Pick<Interaction, 'action' | 'target'>): string {
   return i.action === 'back' || i.action === 'close-overlay' ? i.action : `${i.action}:${i.target ?? ''}`
 }
@@ -172,7 +172,7 @@ export function actionString(i: Pick<Interaction, 'action' | 'target'>): string 
 /**
  * The canonical attributes for a list of interactions: one interaction is
  * written as the single-attribute form (transition and duration only when
- * they differ from the defaults), two or more as `data-doop-interactions`.
+ * they differ from the defaults), two or more as `data-diagramly-interactions`.
  * Every attribute the other form would use is set to null (= remove), so an
  * element never carries both forms after an editor write.
  */
@@ -211,13 +211,13 @@ export function targetsFrame(i: Interaction): i is Interaction & { target: strin
 
 /**
  * Point the frame targets in copied HTML at the copies: every `navigate:` and
- * `overlay:` in a `data-doop-action` or `data-doop-interactions` value whose
+ * `overlay:` in a `data-diagramly-action` or `data-diagramly-interactions` value whose
  * frame is in `ids` takes the new id (entity-encoded JSON included); targets
  * outside the copy, and the rest of the document, stay as they are.
  */
 export function remapFrameTargets(html: string, ids: ReadonlyMap<string, string>): string {
   return html.replace(
-    /(\s(?:data-doop-action|data-doop-interactions)\s*=\s*)("[^"]*"|'[^']*'|[^\s"'=<>`]+)/gi,
+    /(\s(?:data-diagramly-action|data-diagramly-interactions)\s*=\s*)("[^"]*"|'[^']*'|[^\s"'=<>`]+)/gi,
     (_whole, name: string, value: string) =>
       name +
       value.replace(/\b(navigate|overlay):([\w-]{1,64})(?![\w-])/g, (action: string, kind: string, target: string) => {

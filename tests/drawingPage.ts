@@ -62,7 +62,7 @@ async function openPage(pages: TestPages): Promise<Page> {
   await page.evaluateOnNewDocument(() => {
     window.heldMoveHits = null
     window.addEventListener('message', (event) => {
-      if (event.data?.type !== 'doop:move-hit-result' || !window.heldMoveHits) return
+      if (event.data?.type !== 'diagramly:move-hit-result' || !window.heldMoveHits) return
       window.heldMoveHits.push(event)
       event.stopImmediatePropagation()
     })
@@ -166,7 +166,7 @@ export async function seedFrames(frames: Frame[]) {
   )
 }
 
-export async function visibleDrawing(title: string, selector = '[data-doop-drawing]') {
+export async function visibleDrawing(title: string, selector = '[data-diagramly-drawing]') {
   const handle = await page.waitForSelector(`iframe[title="${title}"]`)
   const iframe = (await handle!.contentFrame())!
   await iframe.waitForSelector(selector)

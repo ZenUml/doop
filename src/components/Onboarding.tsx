@@ -27,7 +27,7 @@ const obCopy =
  * account, so switching accounts cannot reuse someone else's checks.
  */
 
-const LS_KEY = 'doop:onboarding'
+const LS_KEY = 'diagramly:onboarding'
 
 interface Progress {
   dismissed?: boolean
@@ -157,7 +157,7 @@ export function Onboarding({ canvasId, user }: { canvasId: string; user: Pick<Me
   /* the same one-line prompt the Connect AI modal hands out: the MCP server
      ships its own instructions on connect, so the prompt only needs to name
      the canvas */
-  const prompt = `${productCopy('Work on Doop canvas')} ${canvasId}. Start with get_guide({ topic: "doop-instructions" }) and follow it.`
+  const prompt = `${productCopy('Work on Doop canvas')} ${canvasId}. Start with get_guide({ topic: "design-instructions" }) and follow it.`
 
   const checklist = (
     <>

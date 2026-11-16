@@ -10,7 +10,7 @@ import type { Frame } from '../shared/types.ts'
 import { MAX_FRAME_HTML_BYTES } from './limits.ts'
 
 /**
- * Design sync: a PostHog-style snippet (public/doop-sync.js) embedded in an
+ * Design sync: a PostHog-style snippet (public/diagramly-sync.js) embedded in an
  * app posts serialized DOM snapshots of its screens here, and each distinct
  * screen becomes (or refreshes) a frame on one canvas. The bearer secret in
  * the URL is the whole credential — write-only, scoped to a single canvas —
@@ -87,7 +87,7 @@ const SNAPSHOT_CSP = [
   'media-src data: blob: http: https:',
 ].join('; ')
 
-const SYNC_PAGE_META = 'doop-sync-page'
+const SYNC_PAGE_META = 'diagramly-sync-page'
 
 /** Which key/page a synced frame belongs to: `<keyId>/<page>` or undefined.
  *  The marker carries the key's public id, never its secret — frame HTML is
@@ -177,7 +177,7 @@ export function setIngestCors(res: express.Response) {
   res.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.set('Access-Control-Allow-Headers', 'Content-Type')
   /* the snippet reads these: edge batch recorded, and screen frozen (see below) */
-  res.set('Access-Control-Expose-Headers', 'X-Doop-Edges, X-Doop-Synced')
+  res.set('Access-Control-Expose-Headers', 'X-Diagramly-Edges, X-Diagramly-Synced')
   res.set('Access-Control-Max-Age', '86400')
   /* Chrome Private Network Access: a page on a public origin posting to a
      doop on localhost/an intranet host needs this opt-in on the preflight —
@@ -302,7 +302,7 @@ export async function handleIngest(req: express.Request, res: express.Response) 
      response (including the page-throttle 429 below) carries this marker so
      the snippet knows not to requeue them. The rate-limit 429 above returns
      WITHOUT it: those edges were never recorded and the snippet must retry. */
-  res.set('X-Doop-Edges', String(edgesRecorded))
+  res.set('X-Diagramly-Edges', String(edgesRecorded))
 
   /* Edge-only flush: an unchanged screen has nothing to upload, but the
      navigations that happened on it are still worth keeping. */
@@ -345,7 +345,7 @@ export async function handleIngest(req: express.Request, res: express.Response) 
     if (Date.now() - existing.createdAt > FREEZE_AFTER_MS) {
       /* the header tells the snippet this screen is settled — it stops
          serializing it for good, not just until the content hash drifts */
-      res.set('X-Doop-Synced', '1')
+      res.set('X-Diagramly-Synced', '1')
       return res.json({ ok: true, frameId: existing.id, frozen: true })
     }
     if (existing.html === wrapped) {

@@ -12,7 +12,7 @@ afterEach(() => {
 })
 it('selects the server without depending on native CLI status', async () => {
   const invoke = vi.fn().mockRejectedValue(new Error('CLI unavailable'))
-  vi.stubGlobal('__DOOP_CLAUDE_CLI__', true)
+  vi.stubGlobal('__DIAGRAMLY_CLAUDE_CLI__', true)
   vi.stubGlobal('__TAURI__', { core: { invoke } })
   useLocalAgent.setState({ preference: { enabled: true, model: 'claude-opus-5' } })
   const saved = { enabled: false, model: 'claude-opus-5' } as const

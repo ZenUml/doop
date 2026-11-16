@@ -82,7 +82,7 @@ White system (Doop UI v2, canvas guideline `doop-ui-system`): neutral greys, no 
 
 - Light is the default; `.dark` on `<html>` switches every token above. The shadcn semantic set
   resolves through `--paper` / `--ink`, so `.dark` redefines only the primitives and shadows.
-- The preference (`light` / `dark` / `system`) lives in `localStorage` under `doop-theme`, per
+- The preference (`light` / `dark` / `system`) lives in `localStorage` under `diagramly-theme`, per
   browser. `index.html` paints it before the bundle loads; `src/lib/theme.ts` owns it after that
   (`initTheme()` in `main.tsx`, `useTheme()` in components). Controls: Settings -> Appearance and
   the account menu.

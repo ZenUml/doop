@@ -8,27 +8,27 @@ const P = 'p:nth-of-type(1)'
 describe('setElementHidden', () => {
   it('marks the element and switches it off inline, so every renderer agrees', () => {
     const html = setElementHidden(page('<p>hello</p>'), P, true)
-    expect(html).toContain('data-doop-hidden="true"')
+    expect(html).toContain('data-diagramly-hidden="true"')
     expect(html).toMatch(/<p[^>]*style="display: none !important;?"/)
     expect(isElementHidden(html!, P)).toBe(true)
   })
 
   it('remembers an inline display and puts it back on show', () => {
     const hidden = setElementHidden(page('<p style="display: flex; color: red">hello</p>'), P, true)!
-    expect(hidden).toContain('data-doop-display="flex"')
+    expect(hidden).toContain('data-diagramly-display="flex"')
     expect(hidden).toMatch(/<p[^>]*style="[^"]*display: none !important/)
     expect(hidden).toContain('color: red')
     const shown = setElementHidden(hidden, P, false)!
-    expect(shown).not.toContain('data-doop')
+    expect(shown).not.toContain('data-diagramly')
     expect(shown).toMatch(/<p style="display: flex; color: red;?">hello<\/p>/)
     expect(isElementHidden(shown, P)).toBe(false)
   })
 
   it('keeps an inline display’s !important through hide and show', () => {
     const hidden = setElementHidden(page('<p style="display: flex !important">hello</p>'), P, true)!
-    expect(hidden).toContain('data-doop-display="flex !important"')
+    expect(hidden).toContain('data-diagramly-display="flex !important"')
     const shown = setElementHidden(hidden, P, false)!
-    expect(shown).not.toContain('data-doop')
+    expect(shown).not.toContain('data-diagramly')
     expect(shown).toMatch(/<p style="display: flex !important;?">hello<\/p>/)
   })
 

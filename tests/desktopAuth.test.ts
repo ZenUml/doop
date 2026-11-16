@@ -22,16 +22,16 @@ describe('desktop sign-in deep links', () => {
   })
 
   it('falls back to home for a missing or foreign target', () => {
-    expect(parseDesktopAuthDeepLink(`doop://auth?token=t&challenge=${CHALLENGE}`)?.to).toBe('/')
+    expect(parseDesktopAuthDeepLink(`diagramly://auth?token=t&challenge=${CHALLENGE}`)?.to).toBe('/')
     expect(parseDesktopAuthDeepLink(desktopAuthDeepLink('t', CHALLENGE, '//evil.com'))?.to).toBe('/')
     expect(parseDesktopAuthDeepLink(desktopAuthDeepLink('t', CHALLENGE, 'https://evil.com'))?.to).toBe('/')
   })
 
   it('rejects other schemes, hosts, malformed URLs and missing parts', () => {
     expect(parseDesktopAuthDeepLink(`https://auth?token=t&challenge=${CHALLENGE}`)).toBeNull()
-    expect(parseDesktopAuthDeepLink(`doop://open?token=t&challenge=${CHALLENGE}`)).toBeNull()
-    expect(parseDesktopAuthDeepLink(`doop://auth?challenge=${CHALLENGE}`)).toBeNull()
-    expect(parseDesktopAuthDeepLink('doop://auth?token=t')).toBeNull()
+    expect(parseDesktopAuthDeepLink(`diagramly://open?token=t&challenge=${CHALLENGE}`)).toBeNull()
+    expect(parseDesktopAuthDeepLink(`diagramly://auth?challenge=${CHALLENGE}`)).toBeNull()
+    expect(parseDesktopAuthDeepLink('diagramly://auth?token=t')).toBeNull()
     expect(parseDesktopAuthDeepLink('not a url')).toBeNull()
   })
 

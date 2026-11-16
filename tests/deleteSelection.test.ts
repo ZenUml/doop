@@ -61,7 +61,7 @@ describe('deleteSelection on a standalone element', () => {
   const shell: Frame = {
     ...frame,
     id: 'f3',
-    html: '<!doctype html><html><head></head><body data-doop-canvas-element="true"><svg><rect></rect></svg></body></html>',
+    html: '<!doctype html><html><head></head><body data-diagramly-canvas-element="true"><svg><rect></rect></svg></body></html>',
   }
   const SVG = 'body:nth-of-type(1) > svg:nth-of-type(1)'
   const RECT = `${SVG} > rect:nth-of-type(1)`
@@ -92,7 +92,7 @@ describe('deleteSelection on a standalone element', () => {
   })
 
   it('keeps a locked standalone element and its shell', () => {
-    const locked: Frame = { ...shell, html: shell.html.replace('<svg>', '<svg data-doop-locked="true">') }
+    const locked: Frame = { ...shell, html: shell.html.replace('<svg>', '<svg data-diagramly-locked="true">') }
     const canvas: Canvas = { id: 'c1', name: 'Canvas', frames: [locked] } as Canvas
     useStore.setState({ canvas })
     useStore.getState().pickElement({ frameId: 'f3', selector: SVG })

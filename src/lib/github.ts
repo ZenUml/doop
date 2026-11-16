@@ -2,8 +2,8 @@
  *  into their HTML (server/github.ts) — presence is the whole client signal,
  *  same pattern as design-sync frames. Placeholders carry a second meta: a
  *  screen the repo knows about but no lane could capture yet. */
-const GITHUB_MARKER = 'name="doop-github-screen"'
-const PLACEHOLDER_MARKER = 'name="doop-github-placeholder"'
+const GITHUB_MARKER = 'name="diagramly-github-screen"'
+const PLACEHOLDER_MARKER = 'name="diagramly-github-placeholder"'
 
 export function isGithubFrame(html: string): boolean {
   return html.includes(GITHUB_MARKER)

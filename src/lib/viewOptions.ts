@@ -15,7 +15,7 @@ export type ViewOption = keyof ViewOptions
 
 export const DEFAULT_VIEW_OPTIONS: ViewOptions = { pixelGrid: true, cursors: true, comments: true }
 
-const VIEW_OPTIONS_KEY = 'doop:view-options'
+const VIEW_OPTIONS_KEY = 'diagramly:view-options'
 
 export function readViewOptions(): ViewOptions {
   try {
