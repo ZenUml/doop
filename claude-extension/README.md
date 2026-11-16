@@ -21,9 +21,10 @@ extension manually:
    opens. Start a new Claude chat, enable Diagramly in the tools menu, and use
    the prompt shown by Diagramly for the current document.
 
-The saved MCP URL belongs to the current Diagramly Desktop server. If the app
-asks you to reconnect after a restart, copy its current URL from the Claude
-connection panel and update the extension settings.
+The saved MCP URL belongs to the current Diagramly Desktop library and stays
+the same across restarts. If another app occupies its port, Diagramly shows a
+startup error. Close the other app or another Diagramly copy, then reopen
+Diagramly; the saved Claude URL does not need to change.
 
 ## Build and validation
 
