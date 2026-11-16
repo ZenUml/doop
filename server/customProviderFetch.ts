@@ -6,8 +6,8 @@ import type { RequestInit as UndiciRequestInit } from 'undici'
  * The only way a request reaches a custom provider. Every other model
  * transport talks to a fixed URL; this one's URL is whatever a person typed,
  * which makes it a server-side fetch target: an SSRF into whatever network
- * Doop runs on. So, unless the operator says the instance's own network is
- * fair game (DOOP_CUSTOM_PROVIDER_PRIVATE_HOSTS, for a self-hosted Doop whose
+ * Diagramly runs on. So, unless the operator says the instance's own network is
+ * fair game (DOOP_CUSTOM_PROVIDER_PRIVATE_HOSTS, for a self-hosted Diagramly whose
  * models run beside it):
  *
  *  - the URL must be https on a public host name or address;

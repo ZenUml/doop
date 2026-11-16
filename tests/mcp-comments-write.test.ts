@@ -184,18 +184,18 @@ describe('element-comment write MCP tools', () => {
     vi.spyOn(actions, 'openThread').mockReturnValue({ root, frame: FRAME })
     const replySpy = vi
       .spyOn(actions, 'replyToComment')
-      .mockReturnValue(comment({ id: 'm2', parentId: 'm1', from: 'Claude', text: '@Doop tighten this' }))
+      .mockReturnValue(comment({ id: 'm2', parentId: 'm1', from: 'Claude', text: '@Diagramly tighten this' }))
     vi.spyOn(allowance, 'consumeResidentTask').mockResolvedValue(gate())
     const { client, close } = await connect('mate-1')
     try {
       const { isError } = await call(client, 'reply_to_comment', {
         canvas_id: CANVAS.id,
         comment_id: 'm1',
-        text: '@Doop tighten this',
+        text: '@Diagramly tighten this',
         agent_name: 'Claude',
       })
       expect(isError).toBeFalsy()
-      expect(replySpy).toHaveBeenCalledWith('m1', '@Doop tighten this', 'Claude', 'mate-1', 'agent')
+      expect(replySpy).toHaveBeenCalledWith('m1', '@Diagramly tighten this', 'Claude', 'mate-1', 'agent')
     } finally {
       await close()
     }
@@ -264,7 +264,7 @@ describe('element-comment write MCP tools', () => {
       const ok = await call(client, 'reply_to_comment', {
         canvas_id: CANVAS.id,
         comment_id: 'm1',
-        text: '@Doop please tighten the hero',
+        text: '@Diagramly please tighten the hero',
         agent_name: 'Claude',
       })
       expect(ok.isError).toBeFalsy()
@@ -278,7 +278,7 @@ describe('element-comment write MCP tools', () => {
       const failed = await call(client, 'reply_to_comment', {
         canvas_id: CANVAS.id,
         comment_id: 'm1',
-        text: '@Doop again',
+        text: '@Diagramly again',
         agent_name: 'Claude',
       })
       expect(failed.isError).toBe(true)
@@ -300,7 +300,7 @@ describe('element-comment write MCP tools', () => {
       const { raw, isError } = await call(client, 'reply_to_comment', {
         canvas_id: CANVAS.id,
         comment_id: 'm1',
-        text: '@Doop help',
+        text: '@Diagramly help',
         agent_name: 'Claude',
       })
       expect(isError).toBe(true)
@@ -488,7 +488,7 @@ describe('MCP comment write tools over real action state', () => {
   })
 
   it('captures exactly one decision when a thread is resolved twice', async () => {
-    const root = await seedRoot('@Doop make it 48px')
+    const root = await seedRoot('@Diagramly make it 48px')
     expect(root.forAgent).toBe(true)
     const { client, close } = await connect()
     try {
@@ -503,7 +503,7 @@ describe('MCP comment write tools over real action state', () => {
       const decisions = actions.getDecisions(CANVAS.id)
       expect(decisions).toHaveLength(1)
       expect(decisions[0]).toMatchObject({
-        text: '@Doop make it 48px',
+        text: '@Diagramly make it 48px',
         source: 'comment',
         from: 'alice',
         agentName: 'Claude',

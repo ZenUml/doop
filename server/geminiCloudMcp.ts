@@ -7,7 +7,7 @@ import { store } from './store.ts'
 import { canEditCanvas } from './access.ts'
 import { isBanned } from './auth.ts'
 
-/** Run-scoped capability; Google credentials never reach Doop's web server. */
+/** Run-scoped capability; Google credentials never reach Diagramly's web server. */
 export async function handleGeminiCloudMcp(req: Request, res: Response) {
   const id = req.params.id ?? ''
   const token = req.headers.authorization?.replace(/^Bearer /, '') ?? ''
@@ -25,7 +25,7 @@ export async function handleGeminiCloudMcp(req: Request, res: Response) {
     res.status(405).end()
     return
   }
-  const server = new Server({ name: 'doop', version: '1.0.0' }, { capabilities: { tools: {} } })
+  const server = new Server({ name: 'diagramly', version: '1.0.0' }, { capabilities: { tools: {} } })
   server.setRequestHandler(ListToolsRequestSchema, () => ({
     tools: run.request.tools.map((tool) => ({
       name: tool.name,

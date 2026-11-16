@@ -92,7 +92,7 @@ export function listIssues(token: string, input: z.input<typeof listIssuesInput>
   }
   return linearQuery(
     token,
-    `query DoopIssues($filter: IssueFilter, $first: Int!, $after: String) {
+    `query DiagramlyIssues($filter: IssueFilter, $first: Int!, $after: String) {
       issues(filter: $filter, first: $first, after: $after, orderBy: updatedAt) {
         nodes { ${fields} }
         pageInfo { hasNextPage endCursor }
@@ -111,7 +111,7 @@ export function listIssues(token: string, input: z.input<typeof listIssuesInput>
 export function getIssue(token: string, id: string) {
   return linearQuery(
     token,
-    `query DoopIssue($id: String!) { issue(id: $id) { ${fields} description } }`,
+    `query DiagramlyIssue($id: String!) { issue(id: $id) { ${fields} description } }`,
     { id },
     z.object({ issue: issue.extend({ description: z.string().nullable() }).nullable() }),
   )

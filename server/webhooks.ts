@@ -42,7 +42,7 @@ export const MAX_WEBHOOKS = 10
 export const RETRY_DELAYS_MS = [10_000, 60_000, 5 * 60_000]
 export const DISABLE_AFTER_FAILURES = 100
 export const TIMEOUT_MS = 10_000
-const USER_AGENT = 'doop-webhooks/1'
+const USER_AGENT = 'diagramly-webhooks/1'
 const allowPrivate = () => env.WEBHOOK_ALLOW_PRIVATE_URLS
 
 interface WebhookRecord extends WebhookInfo {
@@ -496,7 +496,7 @@ export async function testWebhook(userId: string, id: string): Promise<WebhookDe
     id: `evt_${nanoid(12)}`,
     type: 'ping',
     at: Date.now(),
-    message: 'Hello from doop — this webhook is wired up.',
+    message: 'Hello from Diagramly — this webhook is wired up.',
   })
   if (!result) return undefined
   record(hook, ticket, result)

@@ -39,7 +39,7 @@ beforeEach(async () => {
   resetLiveActivityStarts()
   rig.allCanvases.mockReturnValue([])
   rig.getCanvas.mockReturnValue({ id: 'c', name: 'Confidential design' })
-  rig.getTasks.mockReturnValue([{ id: 't', agentName: 'Doop', status: 'Sketching', startedAt: 1000 }])
+  rig.getTasks.mockReturnValue([{ id: 't', agentName: 'Diagramly', status: 'Sketching', startedAt: 1000 }])
   rig.allowed.mockReturnValue(true)
   await rig.db.insert(schema.liveActivities).values({
     id: 'a',
@@ -63,7 +63,9 @@ it('delivers updates once, then sends a terminal event and removes the token', a
   )
   await deliverLiveActivities(send)
   expect(send).toHaveBeenCalledTimes(1)
-  rig.getTasks.mockReturnValue([{ id: 't', agentName: 'Doop', status: 'Complete', startedAt: 1000, endedAt: 2000 }])
+  rig.getTasks.mockReturnValue([
+    { id: 't', agentName: 'Diagramly', status: 'Complete', startedAt: 1000, endedAt: 2000 },
+  ])
   await deliverLiveActivities(send)
   expect(send.mock.calls.at(-1)?.[2]).toMatchObject({ aps: { event: 'end', 'content-state': { phase: 'finished' } } })
   expect(await rig.db.select().from(schema.liveActivities)).toHaveLength(0)

@@ -637,13 +637,13 @@ workspacesRouter.post('/:id/members', async (req, res) => {
     return res.json({ member })
   }
   if (!unknownEmailInvitesAllowed())
-    return res.status(404).json({ error: 'no doop account with that email — ask them to sign up first' })
+    return res.status(404).json({ error: 'no Diagramly account with that email — ask them to sign up first' })
   const invite = await createInvite(ws.id, email, role, req.user!.id)
   if (mailerConfigured) {
     sendMail({
       to: email,
-      subject: `${req.user!.name} invited you to "${ws.name}" on doop`,
-      text: `${req.user!.name} invited you to the "${ws.name}" workspace on doop.\n\nCreate an account with this email address and you'll be in:\n\n${ORIGIN}/\n`,
+      subject: `${req.user!.name} invited you to "${ws.name}" on Diagramly`,
+      text: `${req.user!.name} invited you to the "${ws.name}" workspace on Diagramly.\n\nCreate an account with this email address and you'll be in:\n\n${ORIGIN}/\n`,
     }).catch((err) => console.error('[workspaces] invite email failed', err))
   }
   const pending: WorkspaceInvite = {

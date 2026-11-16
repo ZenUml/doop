@@ -32,7 +32,7 @@ import { effortFor, modelFor } from './openaiAgent.ts'
 
 /**
  * "Bring your own model": a user connects their ChatGPT subscription (or an
- * OpenAI API key) so the Doop Agent keeps working once their free tasks are
+ * OpenAI API key) so the Diagramly Agent keeps working once their free tasks are
  * spent. One row per user and provider kind, so several can be connected at
  * once; each can be switched off without losing its credential, and
  * `agentDefaults.ts` says which one runs work nobody picked a connection for.
@@ -43,10 +43,10 @@ import { effortFor, modelFor } from './openaiAgent.ts'
  * registers no redirect URI for a hosted app, so the browser flow can only
  * redirect to a loopback URL — which gives three ways in, cheapest first:
  *
- *  - Doop and the browser on the same machine (local dev, self-host, desktop):
+ *  - Diagramly and the browser on the same machine (local dev, self-host, desktop):
  *    we listen on 127.0.0.1:1455 ourselves and catch the redirect. Nothing to
  *    copy, and no account setting to turn on.
- *  - Doop hosted elsewhere: the device flow (`codex login --device-auth`),
+ *  - Diagramly hosted elsewhere: the device flow (`codex login --device-auth`),
  *    which has no redirect at all — the user types a short code at
  *    auth.openai.com and this process polls until they approve. Needs "device
  *    code authorization" enabled on their ChatGPT account.
@@ -72,7 +72,7 @@ const REDIRECT_URI = env.CHATGPT_OAUTH_REDIRECT_URI
    fetch — an ordinary product User-Agent passes where no header at all does */
 const AUTH_USER_AGENT = env.CHATGPT_AUTH_USER_AGENT
 
-/** The providers Doop knows by name. */
+/** The providers Diagramly knows by name. */
 export type BuiltinAccountKind =
   | 'chatgpt'
   | 'openai-key'
@@ -169,7 +169,7 @@ function customOf(row: typeof modelAccounts.$inferSelect): Pick<ModelAccount, 'c
   if (!customProvidersEnabled()) return null
   const config = parseCustomProviderConfig(row.custom)
   if (!config.ok) {
-    console.warn(`[doop-agent] ignoring custom provider ${row.kind} for user ${row.userId}: ${config.error}`)
+    console.warn(`[diagramly-agent] ignoring custom provider ${row.kind} for user ${row.userId}: ${config.error}`)
     return null
   }
   let stored: unknown = {}
@@ -180,7 +180,7 @@ function customOf(row: typeof modelAccounts.$inferSelect): Pick<ModelAccount, 'c
   }
   const headers = parseCustomHeaders(stored)
   if (!headers.ok) {
-    console.warn(`[doop-agent] ignoring custom provider ${row.kind} for user ${row.userId}: unreadable headers`)
+    console.warn(`[diagramly-agent] ignoring custom provider ${row.kind} for user ${row.userId}: unreadable headers`)
     return null
   }
   return { custom: config.value, ...(Object.keys(headers.value).length ? { headers: headers.value } : {}) }
@@ -196,7 +196,7 @@ function toAccount(row: typeof modelAccounts.$inferSelect): ModelAccount | null 
   if (!isBuiltinAccountKind(row.kind)) {
     /* a kind this build doesn't know (a rollback after an upgrade, say) —
        treating it as disconnected beats running it as the wrong provider */
-    console.warn(`[doop-agent] ignoring model account with unknown kind "${row.kind}" for user ${row.userId}`)
+    console.warn(`[diagramly-agent] ignoring model account with unknown kind "${row.kind}" for user ${row.userId}`)
     return null
   }
   return baseAccount(row, row.kind)
@@ -697,19 +697,19 @@ async function exchangeAndSave(
 }
 
 /* ---------------------------------------------------------------- */
-/* Device code: the flow that works when Doop is hosted elsewhere   */
+/* Device code: the flow that works when Diagramly is hosted elsewhere   */
 /* ---------------------------------------------------------------- */
 
 /**
  * OAuth device authorization, the same one `codex login --device-auth` uses.
- * No redirect URI is involved, so it works identically whether Doop runs on
+ * No redirect URI is involved, so it works identically whether Diagramly runs on
  * the user's machine or on a server: we get a short code, they type it at
  * auth.openai.com, and this process polls until they approve.
  *
  * Requires "device code authorization" to be on in the user's ChatGPT
  * security settings (workspace members need an admin to allow it) — the one
  * bit of setup the loopback flow avoids, which is why that stays the default
- * when Doop and the browser share a machine.
+ * when Diagramly and the browser share a machine.
  */
 
 export const DEVICE_VERIFICATION_URL = env.CHATGPT_DEVICE_URL ?? `${ISSUER}/codex/device`
@@ -920,20 +920,20 @@ export function startCallbackCatcher(): Promise<boolean> {
           400,
           error ? 'Connection refused' : 'Nothing to do here',
           error
-            ? `OpenAI reported: ${url.searchParams.get('error_description') || error}. You can close this tab and try again in Doop.`
+            ? `OpenAI reported: ${url.searchParams.get('error_description') || error}. You can close this tab and try again in Diagramly.`
             : 'This page only handles the ChatGPT sign-in redirect.',
         )
       }
       const userId = userIdForState(state)
-      if (!userId) return finish(400, 'That sign-in expired', 'Start the connection again from Doop.')
+      if (!userId) return finish(400, 'That sign-in expired', 'Start the connection again from Diagramly.')
       completeChatgptAuth(userId, url.toString()).then(
         () => {
-          finish(200, 'ChatGPT connected', 'You can close this tab — Doop already knows. Back to designing.')
+          finish(200, 'ChatGPT connected', 'You can close this tab — Diagramly already knows. Back to designing.')
           /* one flow per listener: the code is spent and the port goes back */
           stopCatcher()
         },
         (err: unknown) => {
-          finish(400, "That didn't work", err instanceof Error ? err.message : 'Try connecting again from Doop.')
+          finish(400, "That didn't work", err instanceof Error ? err.message : 'Try connecting again from Diagramly.')
         },
       )
     })

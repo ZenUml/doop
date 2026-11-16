@@ -16,7 +16,7 @@ const cliResultSchema = z.object({ response: z.string().max(100_000), error: z.u
 type Result = { success: boolean; text: string }
 type Runner = (job: GeminiCloudJob, origin: string, signal: AbortSignal) => Promise<Result>
 
-/** Highest-precedence CLI settings. Only the run's Doop tools are available. */
+/** Highest-precedence CLI settings. Only the run's Diagramly tools are available. */
 export function geminiWorkerSettings(job: GeminiCloudJob, origin: string) {
   return {
     security: {
@@ -32,9 +32,9 @@ export function geminiWorkerSettings(job: GeminiCloudJob, origin: string) {
     hooksConfig: { enabled: false },
     experimental: { enableAgents: false },
     telemetry: { enabled: false },
-    mcp: { allowed: ['doop'] },
+    mcp: { allowed: ['diagramly'] },
     mcpServers: {
-      doop: {
+      diagramly: {
         httpUrl: `${httpOrigin(origin)}/gemini-cloud/mcp/${job.id}`,
         headers: { Authorization: `Bearer ${job.token}` },
         trust: true,
@@ -51,7 +51,7 @@ export async function runGeminiCli(
   signal: AbortSignal,
   command = { executable: 'gemini', args: [] as string[] },
 ): Promise<Result> {
-  const directory = await mkdtemp(join(tmpdir(), 'doop-gemini-'))
+  const directory = await mkdtemp(join(tmpdir(), 'diagramly-gemini-'))
   try {
     const settings = join(directory, 'settings.json')
     const system = join(directory, 'system.md')

@@ -409,7 +409,7 @@ export function addTaskFeedback(
     feedbackLog.set(canvasId, list)
     persist.saveFeedback(fb)
     broadcast(canvasId, { type: 'feedback', feedback: fb })
-    /* resident Doop agent picks feedback up instantly (no-op without an API
+    /* resident Diagramly agent picks feedback up instantly (no-op without an API
        key). Dynamic import: resident depends on this module. */
     import('./resident.ts').then((r) => r.onFeedback(canvasId)).catch(() => {})
     logActivity(
@@ -505,7 +505,7 @@ export function retryTaskFeedback(feedbackId: string, by: string): TaskFeedback 
 
 /* ------------------------------------------------------------------ */
 /* Comments: pinned to a specific element inside a frame, or to a      */
-/* point on the canvas. Comments mentioning @Doop are routed to the    */
+/* point on the canvas. Comments mentioning @Diagramly are routed to the    */
 /* resident agent; the rest are notes for the humans in the room.      */
 /* ------------------------------------------------------------------ */
 
@@ -909,7 +909,7 @@ function postComment(
 ): ElementComment | undefined {
   const clean = text.trim()
   if (!clean) return undefined
-  /* @Doop, @brand, @a11y… — whichever resident agent is mentioned picks it up */
+  /* @Diagramly, @brand, @a11y… — whichever resident agent is mentioned picks it up */
   const mentioned = mentionedRole(clean)
   const list = commentLog.get(canvasId) ?? []
   /* strictly increasing per canvas: thread order is reconstructed from `at`
@@ -945,7 +945,7 @@ function postComment(
     frame?.id,
   )
   if (comment.forAgent) {
-    /* @Doop mention: the resident agent picks it up instantly (no-op without
+    /* @Diagramly mention: the resident agent picks it up instantly (no-op without
        an API key). Dynamic import: resident depends on this module. */
     import('./resident.ts').then((r) => r.onFeedback(canvasId)).catch(() => {})
   }
@@ -992,7 +992,7 @@ export function takeAgentCommentsFor(
     c.claimedBy = agentName
     c.claimedAt = Date.now()
     persist.saveComment(c)
-    broadcast(canvasId, { type: 'comment', comment: c }) // pins flip to "Doop is on it"
+    broadcast(canvasId, { type: 'comment', comment: c }) // pins flip to "Diagramly is on it"
   }
   return pending
 }

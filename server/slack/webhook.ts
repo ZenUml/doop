@@ -74,7 +74,7 @@ export function slackWebhookRouter() {
     try {
       if (req.is('application/x-www-form-urlencoded')) {
         const form = Object.fromEntries(new URLSearchParams(raw))
-        // Interactivity payloads arrive here too; Doop defines no interactive components yet.
+        // Interactivity payloads arrive here too; Diagramly defines no interactive components yet.
         if ('payload' in form) return res.status(200).end()
         const parsed = command.safeParse(form)
         if (!parsed.success) return res.status(400).json({ error: 'Invalid Slack command.' })
@@ -92,7 +92,7 @@ export function slackWebhookRouter() {
           text: parsed.data.text,
           responseUrl: parsed.data.response_url,
         })
-        res.json({ response_type: 'in_channel', text: 'Doop is on it — designing from your brief.' })
+        res.json({ response_type: 'in_channel', text: 'Diagramly is on it — designing from your brief.' })
         wakeSlack()
         return
       }

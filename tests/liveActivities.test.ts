@@ -50,7 +50,7 @@ describe('Live Activity registration', () => {
 })
 
 function task(overrides: Partial<AgentTask> = {}): AgentTask {
-  return { id: 't', agentName: 'Doop', color: '#2743ee', status: 'Designing', startedAt: 1000, ...overrides }
+  return { id: 't', agentName: 'Diagramly', color: '#2743ee', status: 'Designing', startedAt: 1000, ...overrides }
 }
 describe('agent badge state', () => {
   it('does not invent progress and excludes completed/failed work from the active count', () => {
@@ -111,7 +111,7 @@ describe('working agents dashboard', () => {
     ])
     expect(result.map((item) => item.id)).toEqual(['running', 'queued'])
     expect(result[0]).not.toHaveProperty('owner')
-    expect(result[0]).toMatchObject({ agentName: 'Doop', status: 'Designing' })
+    expect(result[0]).toMatchObject({ agentName: 'Diagramly', status: 'Designing' })
   })
   it('only exposes activity for canvases in the signed-in users library', async () => {
     const privateId = (await (await owner.post('/api/canvases', { name: 'Only mine' })).json()).id

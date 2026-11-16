@@ -1084,7 +1084,7 @@ app.put('/api/agent-runners/default', async (req, res) => {
   }
 })
 
-/* ---- the user's own model account: what keeps the Doop Agent running once
+/* ---- the user's own model account: what keeps the Diagramly Agent running once
    the free tasks are gone. Tokens live server-side and are never returned. */
 
 /* Every account route answers with the whole Settings view (every account,
@@ -1170,7 +1170,7 @@ app.post('/api/model-account/chatgpt', async (req, res) => {
   }
 })
 
-/* device flow: no redirect URI at all, so it works wherever Doop is hosted.
+/* device flow: no redirect URI at all, so it works wherever Diagramly is hosted.
    We poll OpenAI in the background; the browser polls the status below. */
 app.post('/api/model-account/chatgpt/device', async (req, res) => {
   if (!modelAccounts.chatgptConnectEnabled()) {
@@ -1726,7 +1726,7 @@ app.post('/api/canvases/:id/members', async (req, res) => {
     })
     .from(authSchema.user)
     .where(eq(authSchema.user.email, email))
-  if (!row) return res.status(404).json({ error: 'no doop account with that email — ask them to sign up first' })
+  if (!row) return res.status(404).json({ error: 'no Diagramly account with that email — ask them to sign up first' })
   if (row.id === c.ownerId) return res.status(400).json({ error: 'the owner already has access' })
   const isNew = !c.memberIds?.includes(row.id)
   store.addMember(c.id, row.id, req.user!.id)
@@ -2001,7 +2001,7 @@ app.post('/api/canvases/:id/github/:connId/import', async (req, res) => {
     const outcome = await withConnectionLock(conn.id, async () => {
       /* nothing new to queue (all rejected, or already on the board) costs nothing */
       if (!actions.planRepoCards(c.id, input).length) return { cards: [] as string[] }
-      /* the import is the Doop Agent's work, card by card — same gate as a card
+      /* the import is the Diagramly Agent's work, card by card — same gate as a card
          typed on the board: a free task, or the requester's own model account */
       const gate = await allowance.consumeResidentTask(req.user!.id)
       if (!gate.ok) return { limit: gate }
@@ -3334,7 +3334,7 @@ wss.on('connection', (ws, upgradeReq) => {
 })
 
 server.listen(PORT, env.HOST, () => {
-  console.log(`⟡ doop server     http://localhost:${PORT}`)
+  console.log(`⟡ Diagramly server     http://localhost:${PORT}`)
   /* frame HTML is loaded per canvas; a canvas nobody has used for
      CANVAS_IDLE_MS gives it back, unless a room, agent or stream is on it.
      Started here, once the room state it asks about exists. */
@@ -3375,14 +3375,14 @@ server.listen(PORT, env.HOST, () => {
   }
   console.log(`⟡ mcp endpoint      http://localhost:${PORT}/mcp`)
   console.log(`⟡ websocket         ws://localhost:${PORT}/ws`)
-  /* The Doop Agent failing silently is the one "why is nothing happening?"
+  /* The Diagramly Agent failing silently is the one "why is nothing happening?"
      a self-hoster cannot debug from the UI — board cards and @mentions just
      sit there. Say so at boot, not only when the first card is queued. */
   const tier = serverTierInfo()
   console.log(
     tier.ready
-      ? `⟡ doop agent        on — free tier on this server’s ${tier.provider === 'azure' ? 'Azure OpenAI deployment' : 'Anthropic key'}, then each user’s own model account`
-      : `⟡ doop agent        no server ${tier.provider === 'azure' ? 'Azure config' : 'key'} — runs only for users who connect their own ChatGPT subscription or OpenAI key (${tier.provider === 'azure' ? 'set the AZURE_OPENAI_* vars' : 'set ANTHROPIC_API_KEY'} for a free tier; agents connected over MCP work regardless)`,
+      ? `⟡ Diagramly agent        on — free tier on this server’s ${tier.provider === 'azure' ? 'Azure OpenAI deployment' : 'Anthropic key'}, then each user’s own model account`
+      : `⟡ Diagramly agent        no server ${tier.provider === 'azure' ? 'Azure config' : 'key'} — runs only for users who connect their own ChatGPT subscription or OpenAI key (${tier.provider === 'azure' ? 'set the AZURE_OPENAI_* vars' : 'set ANTHROPIC_API_KEY'} for a free tier; agents connected over MCP work regardless)`,
   )
   console.log(
     serverImageGenEnabled()

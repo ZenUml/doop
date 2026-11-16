@@ -18,7 +18,7 @@ import {
 import type { Actor, AgentTask, Frame, RepoScreenRef } from '../shared/types.ts'
 
 /**
- * The GitHub import's runner: the resident Doop agent hands every repo card
+ * The GitHub import's runner: the resident Diagramly agent hands every repo card
  * it claims to runRepoCards. A design-system card distills the repo's theme
  * into a pinned canvas guideline; a sketch card reads one screen's source
  * closure from the repo, has the model rewrite it into ONE self-contained
@@ -153,7 +153,7 @@ export async function collectClosure(
   return files
 }
 
-const SYSTEM_PROMPT = `You are Doop's senior product designer, reconstructing ONE screen of a product from its repository. You receive the screen's source file with some of its imports, plus a listing of the repository's file tree — and a request_files tool to read any other files.
+const SYSTEM_PROMPT = `You are Diagramly's senior product designer, reconstructing ONE screen of a product from its repository. You receive the screen's source file with some of its imports, plus a listing of the repository's file tree — and a request_files tool to read any other files.
 
 INVESTIGATE BEFORE YOU DESIGN. Fidelity to the real product is the whole job, and the two ways reconstructions go wrong are inventing the brand and inventing the copy. Before writing any HTML, make sure you have seen:
 - HOW STYLING IS DONE in this repo: the theme/design-token modules, global stylesheets, tailwind/chakra/styled-components config — whatever defines the real colors, fonts, radii and spacing. If the provided files don't show the brand's actual palette and type, request the files that do.
@@ -163,7 +163,7 @@ Use request_files for this — batch what you need; you have a couple of rounds.
 
 Then produce a single COMPLETE, self-contained HTML document that faithfully renders this screen:
 - Translate the component structure and its styling into real inline <style> CSS, using the palette, fonts and tokens you found — not defaults, not guesses.
-- The document's width is given in the request. Choose the natural height for the content and declare it as the LAST line of your output, an HTML comment: <!-- doop-height: 900 -->
+- The document's width is given in the request. Choose the natural height for the content and declare it as the LAST line of your output, an HTML comment: <!-- diagramly-height: 900 -->
 - Dynamic data (user names, table rows, dates) gets realistic, specific placeholder values — never lorem ipsum or "Item 1". Static marketing copy comes from the source, verbatim.
 - Reproduce the ENTIRE page top to bottom — every section the source renders (hero, features, FAQ, footer, all of it). A truncated page is a failed reconstruction; declare the true height.
 - No <script> tags, no external CSS or JS. Google Fonts via <link> are allowed when the source names a font (check _document/layout for font loading).
@@ -234,11 +234,11 @@ export function extractHtml(blocks: { type: string; text?: string }[]): { html: 
   const raw = (fenced ? fenced[1]! : text).trim()
   const html = normalizeToDocument(raw)
   if (!html) throw new Error('the model returned no HTML document')
-  const height = Math.min(8000, Math.max(480, Number(html.match(/doop-height:\s*(\d+)/)?.[1]) || 900))
+  const height = Math.min(8000, Math.max(480, Number(html.match(/diagramly-height:\s*(\d+)/)?.[1]) || 900))
   return { html, height }
 }
 
-const DESIGN_SYSTEM_PROMPT = `You are Doop's design-system archaeologist. From the given repository files (theme/token modules, tailwind/framework config, global styles, app shell, package.json), distill the product's ACTUAL design system into a style guide for design agents.
+const DESIGN_SYSTEM_PROMPT = `You are Diagramly's design-system archaeologist. From the given repository files (theme/token modules, tailwind/framework config, global styles, app shell, package.json), distill the product's ACTUAL design system into a style guide for design agents.
 
 Output ONLY markdown with these sections:
 - **Palette** — every meaningful color as hex with its role (ground, ink, accent, success…), taken from the code, not invented.
@@ -358,7 +358,7 @@ export async function resolveRepoAssets(conn: GithubConnection, html: string, pa
     try {
       const asset = await createAsset(await fetchRepoBinary(conn, p), {
         canvasId: conn.canvasId,
-        uploadedBy: 'Doop',
+        uploadedBy: 'Diagramly',
       })
       urls.set(p, `${ORIGIN}/a/${asset.id}.${asset.ext}`)
     } catch (err) {
@@ -430,7 +430,7 @@ function failureReason(err: unknown): string {
   if (err instanceof ModelUnavailableError)
     return 'The chosen model is not available on the connected account yet. Pick another model in Settings, then retry.'
   const message = err instanceof Error ? err.message : 'unknown error'
-  return `Doop could not finish this: ${message.slice(0, 200)}. Retry when you are ready.`
+  return `Diagramly could not finish this: ${message.slice(0, 200)}. Retry when you are ready.`
 }
 
 /** A billing/auth failure is account-wide — one card proving it is enough;
@@ -648,7 +648,7 @@ async function sketchScreen(
   const withAssets = await resolveRepoAssets(conn, html, pathSet)
   let frame = placeRepoFrame(canvasId, conn, screen, wrapGeneratedHtml(withAssets, conn, screen), width, height, actor)
 
-  /* Doop's own doctrine: never ship without looking. Render the draft,
+  /* Diagramly's own doctrine: never ship without looking. Render the draft,
      show the model its own output, and let it fix what is visibly
      wrong — the single biggest quality lever short of executing the
      app. Draft stays on the canvas while the fix round runs. */

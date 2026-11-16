@@ -310,7 +310,7 @@ describe('delivery', () => {
     webhooks.onCanvasEvent('c1', {
       type: 'frame.created',
       frame: FRAME,
-      actor: { name: 'Doop', kind: 'agent', color: '#000' },
+      actor: { name: 'Diagramly', kind: 'agent', color: '#000' },
     })
     await vi.advanceTimersByTimeAsync(0)
     for (const delay of webhooks.RETRY_DELAYS_MS) await vi.advanceTimersByTimeAsync(delay)
@@ -354,14 +354,14 @@ describe('payloads', () => {
   it('shapes every event', () => {
     const task = {
       id: 't1',
-      agentName: 'Doop',
+      agentName: 'Diagramly',
       color: '#000',
       status: 'Make the hero pop',
       startedAt: 1,
       queuedBy: 'Alice',
     }
     expect(webhooks.payloadFor({ type: 'task.completed', task })).toMatchObject({
-      actor: { name: 'Doop', kind: 'agent' },
+      actor: { name: 'Diagramly', kind: 'agent' },
       task: { id: 't1', title: 'Make the hero pop', queuedBy: 'Alice', frameIds: [] },
     })
     expect(webhooks.payloadFor({ type: 'task.failed', task, reason: 'rate limited' })).toMatchObject({

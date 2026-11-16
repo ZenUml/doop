@@ -96,7 +96,7 @@ export async function testCustomProvider(target: CustomTarget, model: CustomMode
   )
   if (!called) {
     throw new CustomProviderError(
-      `${model.id} answered without calling a tool. Doop’s agent works through tool calls, so pick a model (or a server setting) with tool calling.`,
+      `${model.id} answered without calling a tool. Diagramly’s agent works through tool calls, so pick a model (or a server setting) with tool calling.`,
     )
   }
 }

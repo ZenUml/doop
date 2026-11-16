@@ -22,7 +22,7 @@ export async function connect(userId: string, token: string) {
   if (!/^[A-Za-z0-9_-]{20,400}$/.test(accessToken)) throw new LinearError('Enter a valid Linear personal API key.', 400)
   const { viewer, organization } = await linearQuery(
     accessToken,
-    'query DoopConnection { viewer { id name } organization { id name } }',
+    'query DiagramlyConnection { viewer { id name } organization { id name } }',
     {},
     z.object({
       viewer: z.object({ id: z.string(), name: z.string() }),

@@ -440,7 +440,7 @@ function buildAuth() {
       enabled: true,
       requireEmailVerification: REQUIRE_VERIFICATION,
       sendResetPassword: async ({ user, url }) => {
-        const productName = env.DOOP_PRODUCT === 'diagramly' ? 'Diagramly' : 'doop'
+        const productName = 'Diagramly'
         await sendMail({
           to: user.email,
           subject: `Reset your ${productName} password`,
@@ -461,7 +461,7 @@ function buildAuth() {
         joinDefaultWorkspace(user.id, defaultWorkspaceId())
       },
       sendVerificationEmail: async ({ user, url }) => {
-        const productName = env.DOOP_PRODUCT === 'diagramly' ? 'Diagramly' : 'doop'
+        const productName = 'Diagramly'
         await sendMail({
           to: user.email,
           subject: `Verify your ${productName} email`,

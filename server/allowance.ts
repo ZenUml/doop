@@ -11,7 +11,7 @@ import type { AccountKind } from './modelAccounts.ts'
  * Free-tier metering for the resident design team. Anything that triggers
  * resident work consumes one of RESIDENT_TASK_LIMIT free tasks: a board card,
  * an element comment that @mentions a resident, feedback on a task, and every
- * retry. Connecting a model account lifts the meter entirely — the Doop Agent
+ * retry. Connecting a model account lifts the meter entirely — the Diagramly Agent
  * itself then runs on the user's ChatGPT subscription or OpenAI key,
  * immediately, without spending remaining free tasks first.
  *
@@ -20,7 +20,7 @@ import type { AccountKind } from './modelAccounts.ts'
  * bill a credential, and an OAuth token ever issued must not turn into
  * unlimited runs on the server's key.
  *
- * The default is 0: the Doop Agent runs on an account the user connects, from
+ * The default is 0: the Diagramly Agent runs on an account the user connects, from
  * the first task. Self-hosters footing their own model bill can grant an
  * allowance via RESIDENT_TASK_LIMIT.
  */
@@ -32,7 +32,7 @@ export interface Allowance {
   limit: number
   /** the user completed MCP OAuth or authenticated with an Agent key */
   connected: boolean
-  /** the user connected a model account the Doop Agent can run on */
+  /** the user connected a model account the Diagramly Agent can run on */
   byoModel: boolean
   /** which kind, for the UI copy */
   byoKind?: AccountKind | 'claude-local' | 'gemini-cloud'
@@ -105,7 +105,7 @@ export async function getAllowance(userId: string): Promise<Allowance> {
 }
 
 /** Spend one resident task. ok:false = the free tier is used up and the user
- *  has no model account for the Doop Agent to run on. */
+ *  has no model account for the Diagramly Agent to run on. */
 export async function consumeResidentTask(userId: string): Promise<Allowance & { ok: boolean }> {
   const current = await getAllowance(userId)
   if (current.byoModel) return { ...current, ok: true }

@@ -105,9 +105,9 @@ Generic frame tools remain compatible with existing documents. For diagram work,
 
 const DIAGRAMLY_INSTRUCTIONS = `${DIAGRAMLY_GUIDE}\n\nCall get_guide({ topic: "diagramly-instructions" }) when you need this workflow again.`
 
-const INSTRUCTIONS = `Doop is a shared multiplayer design canvas: humans and AI agents design together in real time. Canvases contain frames — artboards that render complete HTML documents live for everyone viewing.
+const INSTRUCTIONS = `Diagramly is a shared multiplayer design canvas: humans and AI agents design together in real time. Canvases contain frames — artboards that render complete HTML documents live for everyone viewing.
 
-You MUST call get_guide({ topic: "doop-instructions" }) once before using other Doop tools. Call it again if a long conversation may have compressed or dropped the guide text.
+You MUST call get_guide({ topic: "design-instructions" }) once before using other Diagramly tools. Call it again if a long conversation may have compressed or dropped the guide text.
 
 - Context first: call get_canvas before adding or editing frames.
 - Implementation handoff: get_canvas and get_frame expose approvalStatus (draft, ready_for_dev, needs_review) and human approval attribution. Use get_canvas with approval_status="ready_for_dev" to find approved screens. Re-read get_frame before implementing; only ready_for_dev is current sign-off. HTML or size edits invalidate approval. Approval does not automatically start an implementation task; follow the human's implementation request.
@@ -122,13 +122,13 @@ You MUST call get_guide({ topic: "doop-instructions" }) once before using other 
 - Clickable prototypes: wire screens with data-doop-on / data-doop-action attributes in frame HTML (guide → Prototypes), set the flow start with set_prototype_start, and check the wiring with get_prototype.
 - History: every replace and stream files the design it overwrote. list_frame_versions shows a frame's earlier states; restore_frame_version brings one back (HTML and size) when a human asks for the previous version or your rework turned out worse.
 - Images: real imagery makes designs. search_images finds stock photos (you SEE thumbnails and pick), search_icons finds 200k+ UI icons as hotlinkable SVGs, search_logos finds real company logos by brand name or domain — call it once per brand BEFORE writing any logo wall, integration row, press bar or testimonial, and never ship a placeholder tile, "LOGO" text or an invented wordmark in its place, list_backgrounds shows a page of curated hero/section/bento backgrounds (glows, grainy meshes, aurora, painterly scenes) as thumbnails — browse it when a section wants atmosphere rather than defaulting to a flat CSS gradient, judge by eye whether one fits the frame, and draw your own when none does, upload_asset stores your own file (remote file → source_url; local file → local_file=true, returns a curl command) and returns a permanent URL. generate_image makes a new image from a prompt (a full-bleed hero background in the frame's exact palette, illustration, a product render, brand-specific hero art that stock cannot supply) and stores it as a permanent asset — reach for it when search_images cannot deliver the exact visual, or when the human asks for a generated image; it costs the human money or quota, so one considered prompt beats five drafts. Never inline images as data: URIs.
-- Websites: when a request names an existing site or URL — a redesign of it, or "like acme.com" — call import_webpage FIRST so an editable HTML snapshot lands on the canvas. Leave that source frame unchanged and design in a separate frame. view_website is only for read-only inspection when the page should not be added. If Doop cannot capture the site, do not retry with view_website because it uses the same capture path. Use your own browser or web tool and work only from content you actually observe; if that is unavailable, ask the user for screenshots or an HTML export rather than inventing content.
+- Websites: when a request names an existing site or URL — a redesign of it, or "like acme.com" — call import_webpage FIRST so an editable HTML snapshot lands on the canvas. Leave that source frame unchanged and design in a separate frame. view_website is only for read-only inspection when the page should not be added. If Diagramly cannot capture the site, do not retry with view_website because it uses the same capture path. Use your own browser or web tool and work only from content you actually observe; if that is unavailable, ask the user for screenshots or an HTML export rather than inventing content.
 ${extensionGuideLines()}- Feedback: humans reply to your tasks; their notes arrive inside your tool results as HUMAN FEEDBACK blocks (read-only tools only announce them: claim those with get_feedback) — address them before continuing.
 - Comments: call get_comments to read comments and replies on a canvas — pinned to an element inside a frame, or to a point on the canvas (pageId, x, y) — optionally filtered by frame; reply_to_comment answers a thread and resolve_comment closes it. Reading does not claim feedback or comments. A reply that @mentions a resident role is metered like a comment left in the browser.
 - Guidelines: canvases can carry named style guides (brand rules, style recipes). get_canvas lists them with one-line summaries — read the relevant ones with get_guidelines BEFORE designing and follow them.
 - Design tokens: canvases can carry typed design tokens (colour, spacing, radius, type scale — CSS custom properties), each with a value per theme (light, dark, …) where it differs. get_canvas lists them; use one by writing var(--name) in CSS, never the literal, so a token change restyles every frame; switch a frame's theme with data-doop-theme="dark" on its <html>. create_tokens adds them when a brief names a palette or scale; set_tokens changes, renames or deletes; set_token_themes declares the themes; get_tokens exports them as JSON, CSS or a Tailwind @theme block.
 - Memory: canvases can also carry pinned style references — exemplar designs humans marked as "more like this". get_canvas lists them; read the relevant one with get_reference and match its look. When your human gives you design feedback in conversation and you address it, record it with save_decision so the canvas remembers their taste.
-- Problems with Doop itself: when a Doop tool errors, misbehaves or lacks something you need, or the guide leaves you guessing, call report_issue with what you tried and what happened, then carry on. Ideas for making Doop better for agents, or something that worked well, go to share_feedback. Both reach the Doop team, not the humans on the canvas.`
+- Problems with Diagramly itself: when a Diagramly tool errors, misbehaves or lacks something you need, or the guide leaves you guessing, call report_issue with what you tried and what happened, then carry on. Ideas for making Diagramly better for agents, or something that worked well, go to share_feedback. Both reach the Diagramly team, not the humans on the canvas.`
 
 function extensionGuideLines(): string {
   const lines = extensions.flatMap((extension) => extension.mcpGuideLines ?? [])
@@ -408,7 +408,7 @@ export function buildMcpServer(
           {
             type: 'resource' as const,
             resource: {
-              uri: `doop://canvas/${canvas.id}/${encodeURIComponent(fileName)}`,
+              uri: `diagramly://canvas/${canvas.id}/${encodeURIComponent(fileName)}`,
               mimeType: 'application/pdf',
               blob: pdf.toString('base64'),
             },
@@ -436,7 +436,7 @@ export function buildMcpServer(
   }
   const diagramly = env.DOOP_PRODUCT === 'diagramly'
   const server = new McpServer(
-    { name: diagramly ? 'diagramly-canvas' : 'doop-canvas', version: packageJson.version },
+    { name: 'diagramly-canvas', version: packageJson.version },
     { instructions: diagramly ? DIAGRAMLY_INSTRUCTIONS : INSTRUCTIONS },
   )
   loadToolTargets(server, diagramly ? diagramlyMcpAvailable : undefined)
@@ -445,10 +445,10 @@ export function buildMcpServer(
   server.registerTool(
     'get_guide',
     {
-      title: diagramly ? 'Read the Diagramly agent guide' : 'Read the Doop agent guide',
+      title: 'Read the Diagramly agent guide',
       description: diagramly
         ? 'Read the source-first diagram workflow: create, read, update, review and collaborative edits.'
-        : 'Read the Doop agent guide: mandatory review checkpoints, the streaming workflow, frame sizing, design-quality doctrine, and multiplayer etiquette. Call with topic "doop-instructions" ONCE before using other Doop tools; call again if a long conversation may have compressed earlier context.',
+        : 'Read the Diagramly agent guide: mandatory review checkpoints, the streaming workflow, frame sizing, design-quality doctrine, and multiplayer etiquette. Call with topic "design-instructions" ONCE before using other Diagramly tools; call again if a long conversation may have compressed earlier context.',
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       inputSchema: {
         topic: z.enum([...GUIDE_TOPICS, 'diagramly-instructions']).describe('Guide topic to load'),
@@ -531,21 +531,21 @@ export function buildMcpServer(
       ),
   )
 
-  /* ChatGPT shows this when several Doop accounts are connected — the
+  /* ChatGPT shows this when several Diagramly accounts are connected — the
      `openai/profile` flag marks it as the one that tells them apart. */
   server.registerTool(
     'get_profile',
     {
       title: 'Get the connected account',
       description:
-        'Return the Doop account this connection is signed in as (stable id and display name). Read-only; use it to confirm whose canvases you are working on.',
+        'Return the Diagramly account this connection is signed in as (stable id and display name). Read-only; use it to confirm whose canvases you are working on.',
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       _meta: { 'openai/profile': true },
       inputSchema: {},
       outputSchema: { id: z.string(), name: z.string() },
     },
     async () => {
-      if (!ownerId) return err('this connection is not signed in to a Doop account')
+      if (!ownerId) return err('this connection is not signed in to a Diagramly account')
       const profile = { id: ownerId, name: owner ?? '' }
       return { content: [{ type: 'text' as const, text: JSON.stringify(profile) }], structuredContent: profile }
     },
@@ -599,7 +599,7 @@ export function buildMcpServer(
       if (page_id && !canvasPages(c).some((page) => page.id === page_id))
         return err(`No page ${page_id} on this canvas. Its pages are listed by get_canvas without page_id.`)
       arrive(canvas_id, agent_name)
-      /* demo frames (the Doop welcome show, seeded examples) are product
+      /* demo frames (the Diagramly welcome show, seeded examples) are product
          content, not user work — hidden so agents never mistake them for
          the canvas's established style */
       const shown = c.frames.filter(
@@ -992,7 +992,7 @@ export function buildMcpServer(
     'save_decision',
     {
       title: 'Save a design decision',
-      description: `Record a design decision your human made while talking to YOU — style feedback you carried out ("rounder corners", "less purple, more white and blue", "stop using italic serif"). Doop's UI feedback is captured automatically, but you are the only one who hears your own conversation, so report it with this tool AFTER you have addressed it. It lands in the canvas's Memory; recurring preferences become suggested style rules. Save one decision and its rationale per call, at most ${MAX_DECISION_CHARS} characters. Split longer feedback or briefs into separate calls by topic (palette, typography, layout), preserving the reason for each choice. Record design taste only — not one-off content edits like typo fixes or copy changes.`,
+      description: `Record a design decision your human made while talking to YOU — style feedback you carried out ("rounder corners", "less purple, more white and blue", "stop using italic serif"). Diagramly's UI feedback is captured automatically, but you are the only one who hears your own conversation, so report it with this tool AFTER you have addressed it. It lands in the canvas's Memory; recurring preferences become suggested style rules. Save one decision and its rationale per call, at most ${MAX_DECISION_CHARS} characters. Split longer feedback or briefs into separate calls by topic (palette, typography, layout), preserving the reason for each choice. Record design taste only — not one-off content edits like typo fixes or copy changes.`,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       inputSchema: {
         canvas_id: z.string(),
@@ -1092,7 +1092,7 @@ export function buildMcpServer(
     {
       title: 'Reply to a comment',
       description:
-        'Reply inside an element-comment thread on a canvas. The reply inherits the root comment’s element anchor, so an @mention in it gives the resident agent the same anchor the conversation is about. Writing does not resolve the thread — read the request with get_comments, make the change, then close it with resolve_comment. If the text @mentions a resident role (e.g. "@Doop"), it counts as a new resident task against the account’s meter, exactly like a comment left in the browser.',
+        'Reply inside an element-comment thread on a canvas. The reply inherits the root comment’s element anchor, so an @mention in it gives the resident agent the same anchor the conversation is about. Writing does not resolve the thread — read the request with get_comments, make the change, then close it with resolve_comment. If the text @mentions a resident role (e.g. "@Diagramly"), it counts as a new resident task against the account’s meter, exactly like a comment left in the browser.',
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
       inputSchema: {
         canvas_id: z.string(),
@@ -1205,8 +1205,8 @@ export function buildMcpServer(
     },
   )
 
-  /* report_issue and share_feedback: both go to the Doop team, never to the canvas */
-  const tellDoopTeam = async (
+  /* report_issue and share_feedback: both go to the Diagramly team, never to the canvas */
+  const tellDiagramlyTeam = async (
     kind: AgentFeedbackKind,
     input: { category: AgentFeedbackCategory; message: string; tool?: string; canvas_id?: string; agent_name?: string },
   ) => {
@@ -1223,10 +1223,10 @@ export function buildMcpServer(
       userId: ownerId,
     })
     if (!saved.ok) return err(saved.error)
-    return text({ ok: true, id: saved.id, note: 'Thanks — the Doop team reads these. Carry on with your task.' })
+    return text({ ok: true, id: saved.id, note: 'Thanks — the Diagramly team reads these. Carry on with your task.' })
   }
   const teamMessageFields = {
-    tool: z.string().max(80).optional().describe('The Doop tool involved, if any (e.g. "edit_frame_html").'),
+    tool: z.string().max(80).optional().describe('The Diagramly tool involved, if any (e.g. "edit_frame_html").'),
     canvas_id: z.string().optional().describe('The canvas you were working on, if any.'),
     agent_name: agentName.optional(),
   }
@@ -1234,15 +1234,15 @@ export function buildMcpServer(
   server.registerTool(
     'report_issue',
     {
-      title: 'Report a problem with Doop',
+      title: 'Report a problem with Diagramly',
       description:
-        "Tell the Doop team where Doop itself got in your way, so it can be fixed: a tool that errored or did something other than its description says, a guide or tool description that left you guessing, a capability you needed and did not have, or a workaround you had to invent. Call it whenever you struggle with Doop — after a retry fails, when you fall back to a workaround, or when you give up on part of a task — then carry on with the task. Ideas and suggestions that did not block you go to share_feedback instead. It does not reach the humans on the canvas and does not change any canvas; for the human's design feedback use save_decision. Be specific: what you tried (tool and arguments in brief), what happened, what you expected. Never include secrets.",
+        "Tell the Diagramly team where Diagramly itself got in your way, so it can be fixed: a tool that errored or did something other than its description says, a guide or tool description that left you guessing, a capability you needed and did not have, or a workaround you had to invent. Call it whenever you struggle with Diagramly — after a retry fails, when you fall back to a workaround, or when you give up on part of a task — then carry on with the task. Ideas and suggestions that did not block you go to share_feedback instead. It does not reach the humans on the canvas and does not change any canvas; for the human's design feedback use save_decision. Be specific: what you tried (tool and arguments in brief), what happened, what you expected. Never include secrets.",
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
       inputSchema: {
         category: z
           .enum(AGENT_ISSUE_CATEGORIES)
           .describe(
-            'bug: a tool misbehaved · tool_error: a tool returned an error you could not get past · confusing: the guide or a description was unclear · missing_capability: you needed something Doop cannot do · other',
+            'bug: a tool misbehaved · tool_error: a tool returned an error you could not get past · confusing: the guide or a description was unclear · missing_capability: you needed something Diagramly cannot do · other',
           ),
         message: z
           .string()
@@ -1252,21 +1252,21 @@ export function buildMcpServer(
         ...teamMessageFields,
       },
     },
-    (input) => tellDoopTeam('issue', input),
+    (input) => tellDiagramlyTeam('issue', input),
   )
 
   server.registerTool(
     'share_feedback',
     {
-      title: 'Share an idea or feedback about Doop',
+      title: 'Share an idea or feedback about Diagramly',
       description:
-        "Tell the Doop team how Doop could work better for agents like you: a tool you wish existed, a parameter or result field that would have saved you calls, a workflow that felt clumsy, or something that worked especially well and should stay. Use it when you notice something worth saying, then carry on with the task. Something that broke or blocked you goes to report_issue instead. It does not reach the humans on the canvas and does not change any canvas; for the human's design feedback use save_decision. Be concrete: what you were doing and what would have helped. Never include secrets.",
+        "Tell the Diagramly team how Diagramly could work better for agents like you: a tool you wish existed, a parameter or result field that would have saved you calls, a workflow that felt clumsy, or something that worked especially well and should stay. Use it when you notice something worth saying, then carry on with the task. Something that broke or blocked you goes to report_issue instead. It does not reach the humans on the canvas and does not change any canvas; for the human's design feedback use save_decision. Be concrete: what you were doing and what would have helped. Never include secrets.",
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
       inputSchema: {
         category: z
           .enum(AGENT_IDEA_CATEGORIES)
           .describe(
-            'idea: something new Doop could offer · improvement: a change to something that exists · praise: something that worked well · other',
+            'idea: something new Diagramly could offer · improvement: a change to something that exists · praise: something that worked well · other',
           ),
         message: z
           .string()
@@ -1276,7 +1276,7 @@ export function buildMcpServer(
         ...teamMessageFields,
       },
     },
-    (input) => tellDoopTeam('feedback', input),
+    (input) => tellDiagramlyTeam('feedback', input),
   )
 
   server.registerTool(
@@ -2590,7 +2590,7 @@ export async function handleMcpRequest(req: Request, res: Response) {
        rather than retry. Both the header and `_meta` carry the challenge —
        ChatGPT offers Connect only when it finds it in both. */
     const challenge = [
-      'Bearer realm="doop"',
+      'Bearer realm="diagramly"',
       `resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp"`,
       `scope="${MCP_SCOPES.join(' ')}"`,
       ...(bearer ? ['error="invalid_token"', 'error_description="The access token is expired or not valid"'] : []),

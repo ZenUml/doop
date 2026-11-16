@@ -13,7 +13,7 @@ import {
 import { parseAuthCode } from '../server/modelAccounts.ts'
 
 /**
- * The Doop Agent loop is written against Anthropic's message shape. When a run
+ * The Diagramly Agent loop is written against Anthropic's message shape. When a run
  * moves onto a user's ChatGPT subscription, every turn goes through this
  * translation — so these tests pin the parts that would silently corrupt a run:
  * tool-call round-tripping and the screenshots the agent verifies its work with.

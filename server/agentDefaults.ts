@@ -53,7 +53,7 @@ export async function readConnections(userId: string): Promise<Connections> {
     getAccounts(userId),
     /* an unreadable mark is no mark: the fallback order still runs the work */
     getStoredDefault(userId).catch((err: unknown) => {
-      console.error('[doop-agent] could not read the default connection', err)
+      console.error('[diagramly-agent] could not read the default connection', err)
       return undefined
     }),
   ])

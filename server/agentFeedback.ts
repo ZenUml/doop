@@ -13,7 +13,7 @@ import {
 } from '../shared/agentFeedback.ts'
 
 /**
- * Agents talking to the Doop team. Issues (report_issue) are where Doop got
+ * Agents talking to the Diagramly team. Issues (report_issue) are where Diagramly got
  * in their way: a tool that failed or misbehaved, a guide that left them
  * guessing, a capability they needed and did not have. Feedback
  * (share_feedback) is what they would add or change, or what worked. Stored for the instance admins (GET /api/admin/agent-feedback)

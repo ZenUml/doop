@@ -86,11 +86,11 @@ it('runs the extracted download and forwards real Doop tools, instructions and r
     await client.connect(transport)
     expect(client.getInstructions()).toContain('get_guide')
     expect((await client.listTools()).tools.map((tool) => tool.name)).toContain('create_frame')
-    const result = await client.callTool({ name: 'get_guide', arguments: { topic: 'doop-instructions' } })
+    const result = await client.callTool({ name: 'get_guide', arguments: { topic: 'design-instructions' } })
     expect(result.isError, errors).not.toBe(true)
     expect(result.content).not.toEqual([])
     const { resources } = await client.listResources()
-    const preview = resources.find((resource) => resource.uri.startsWith('ui://doop/'))
+    const preview = resources.find((resource) => resource.uri.startsWith('ui://diagramly/'))
     expect(preview).toBeDefined()
     expect((await client.readResource({ uri: preview!.uri })).contents).not.toEqual([])
   } finally {

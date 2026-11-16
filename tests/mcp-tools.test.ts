@@ -22,7 +22,7 @@ describe('MCP server info', () => {
     await client.connect(clientTransport)
 
     try {
-      expect(client.getServerVersion()).toEqual({ name: 'doop-canvas', version: packageJson.version })
+      expect(client.getServerVersion()).toEqual({ name: 'diagramly-canvas', version: packageJson.version })
     } finally {
       await client.close()
     }
@@ -357,7 +357,7 @@ describe('MCP ChatGPT app contract', () => {
       expect(html.text).toContain('Design in progress')
       /* retired URIs stay served for chats that still hold them */
       expect(resources.map((r) => r.uri)).toEqual(
-        expect.arrayContaining(['ui://doop/frame-preview-1.html', 'ui://doop/frame-preview-2.html']),
+        expect.arrayContaining(['ui://diagramly/frame-preview-1.html', 'ui://diagramly/frame-preview-2.html']),
       )
       expect(html.text).toContain('class="retry"')
       const meta = html._meta as Record<string, unknown>

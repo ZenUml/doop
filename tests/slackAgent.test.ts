@@ -188,10 +188,10 @@ describe('Slack app installation', () => {
     )
   })
 
-  it('does not transfer installation or billing to another Doop user', async () => {
+  it('does not transfer installation or billing to another Diagramly user', async () => {
     const { url } = await startInstall('stranger')
     await expect(finishInstall('stranger', new URL(url).searchParams.get('state')!, 'code')).rejects.toThrow(
-      'already has a Doop installer',
+      'already has a Diagramly installer',
     )
     expect((await db.select().from(slackInstallations))[0]?.userId).toBe(userId)
   })
@@ -244,11 +244,11 @@ describe('design jobs', () => {
     const ack = sent.find((request) => request.method === 'chat.postMessage')!
     expect(ack.authorization).toBe('Bearer xoxb-secret')
     expect(ack.body).toMatchObject({ channel: channelId, thread_ts: '1700000000.000100' })
-    expect(String(ack.body.text)).toMatch(/^Doop is on it/)
+    expect(String(ack.body.text)).toMatch(/^Diagramly is on it/)
     await tickSlack()
     const linked = sent.find((request) => request.method === 'chat.update')!
     expect(linked.body.ts).toBe(row.ackTs)
-    expect(String(linked.body.text)).toContain(`https://doop.example/c/${row.canvasId}|Open design in Doop`)
+    expect(String(linked.body.text)).toContain(`https://doop.example/c/${row.canvasId}|Open design in Diagramly`)
     expect((await session()).linked).toBe(true)
     await receiveRequest(mention())
     await tickSlack()
@@ -354,7 +354,7 @@ describe('design jobs', () => {
     expect(onFeedback).not.toHaveBeenCalled()
   })
 
-  it('ignores unknown workspaces and Doop’s own messages', async () => {
+  it('ignores unknown workspaces and Diagramly’s own messages', async () => {
     await receiveRequest(mention({ teamId: 'T0OTHER' }))
     await receiveRequest(mention({ requesterId: botUserId }))
     expect(await db.select().from(slackSessions)).toHaveLength(0)
@@ -467,7 +467,7 @@ describe('design jobs', () => {
     expect(row.status).toBe('running')
   })
 
-  it('falls back to the response URL when Doop is not in the channel', async () => {
+  it('falls back to the response URL when Diagramly is not in the channel', async () => {
     const fetcher = vi.mocked(fetch)
     const working = fetcher.getMockImplementation()!
     fetcher.mockImplementation(async (url, options) => {
