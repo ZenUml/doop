@@ -5,7 +5,7 @@ enum CanvasSocketChecks {
     static func run() throws {
         let session = URLSession(configuration: .ephemeral)
         defer { session.invalidateAndCancel() }
-        let task = CanvasSocket.task(session: session, request: URLRequest(url: URL(string: "wss://doop.design/ws")!))
+        let task = CanvasSocket.task(session: session, request: URLRequest(url: URL(string: "wss://example.invalid/ws")!))
         defer { task.cancel(with: .goingAway, reason: nil) }
         // A canvas can contain many megabytes of HTML. Check the actual socket
         // factory and decode an init larger than the old limit without dialing.

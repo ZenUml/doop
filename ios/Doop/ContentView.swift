@@ -8,7 +8,17 @@ struct ContentView: View {
     var body: some View {
         Group {
             if app.loading {
-                VStack(spacing: 20) { DoopWordmark(); ProgressView("Opening your workspace…") }
+                VStack(spacing: 20) { DiagramlyWordmark(); ProgressView("Opening your workspace…") }
+            } else if !app.serverConfigured {
+                VStack(spacing: 16) {
+                    DiagramlyWordmark()
+                    Text("Connect to a Diagramly server to get started.")
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.secondary)
+                    Button("Configure server") { settings = true }
+                        .buttonStyle(.borderedProminent)
+                }
+                .padding(24)
             } else if app.user == nil {
                 SignInView(app: app, settings: $settings)
             } else {
@@ -21,13 +31,13 @@ struct ContentView: View {
     }
 }
 
-private struct DoopWordmark: View {
+private struct DiagramlyWordmark: View {
     var body: some View {
         HStack(spacing: 12) {
             Image("AppMark").resizable().frame(width: 30, height: 30).clipShape(RoundedRectangle(cornerRadius: 7.2))
                 .accessibilityHidden(true)
             // Match src/components/ui/wordmark.tsx: Inter 800, -0.01em.
-            Text("Doop").font(.custom("Inter-Regular_ExtraBold", size: 18, relativeTo: .headline))
+            Text("Diagramly").font(.custom("Inter-Regular_ExtraBold", size: 18, relativeTo: .headline))
                 .tracking(-0.18)
         }
     }
@@ -76,7 +86,7 @@ private struct SignInView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
-                    DoopWordmark().padding(.top, 32)
+                    DiagramlyWordmark().padding(.top, 32)
                     VStack(alignment: .leading, spacing: 10) {
                         Text(registering ? "Make room for\nyour next idea." : "Your ideas.\nAnywhere.")
                             .font(.custom("Inter-Regular_Medium", size: 42, relativeTo: .largeTitle))
@@ -154,7 +164,7 @@ private struct SignInView: View {
                     .buttonStyle(.borderedProminent)
                     .disabled(submitting || email.isEmpty || password.isEmpty || (registering && name.trimmingCharacters(in: .whitespaces).isEmpty))
                     .accessibilityIdentifier("login.submit")
-                    Button(registering ? "Already have an account? Sign in" : "New to Doop? Create an account") { registering.toggle(); error = nil }
+                    Button(registering ? "Already have an account? Sign in" : "New to Diagramly? Create an account") { registering.toggle(); error = nil }
                     Text(app.client.server.origin.host ?? "").font(.caption).foregroundStyle(.tertiary)
                 }
                 .padding(28).frame(maxWidth: 480).frame(maxWidth: .infinity)
@@ -424,7 +434,7 @@ private struct NativeSettings: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section { DoopWordmark().padding(.vertical, 12) }
+                Section { DiagramlyWordmark().padding(.vertical, 12) }
                 if let user = app.user {
                     Section("Account") {
                         LabeledContent("Name", value: user.name)
@@ -466,15 +476,15 @@ private struct NativeSettings: View {
                         Text(hasPassword ? "This cannot be undone. Enter your password to confirm." : "This cannot be undone.")
                     }
                 }
+                if app.serverConfigured {
+                    Section {
+                        Link("Privacy policy", destination: app.client.server.origin.appendingPathComponent("privacy"))
+                        Link("Terms of service", destination: app.client.server.origin.appendingPathComponent("terms"))
+                    } header: { Text("Help") }
+                }
                 Section {
-                    Link("Privacy policy", destination: app.client.server.origin.appendingPathComponent("privacy"))
-                    Link("Terms of service", destination: app.client.server.origin.appendingPathComponent("terms"))
-                    Link("Contact support, or report a canvas", destination: URL(string: "mailto:support@doop.design?subject=Doop%20for%20iOS")!)
-                } header: { Text("Help") }
-                Section {
-                    TextField("https://doop.design", text: $address).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Doop server address")
-                    Button("Use Doop Cloud") { address = "https://doop.design" }
-                } header: { Text("Server") } footer: { Text("Doop Cloud or your own HTTPS server. Your account and canvases stay on that server.") }
+                    TextField("https://your-server.example.invalid", text: $address).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Diagramly server address")
+                } header: { Text("Server") } footer: { Text("Enter the HTTPS origin of your Diagramly server. No hosted server is preconfigured.") }
                 if let error { Section { Text(error).foregroundStyle(.red) } }
                 Section { Text("Built for iPhone and iPad. Native controls, live HTML designs.").foregroundStyle(.secondary) }
             }
@@ -596,7 +606,7 @@ struct WorkingAgentsView: View {
             // An older server must not look like an idle team.
             guard result.isEmpty || result.allSatisfy({ $0.activeTasks != nil }) else {
                 canvases = []; updatedAt = nil
-                error = "Update your Doop server to see working agents here."
+                error = "Update your Diagramly server to see working agents here."
                 loading = false
                 return
             }

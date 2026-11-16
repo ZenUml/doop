@@ -1,14 +1,16 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
   "mcpServers": {
-    "doop": {
+    "diagramly": {
       "type": "streamable-http",
-      "url": "https://doop.design/mcp",
+      "url": "https://example.invalid/mcp",
       "extensions": {
         "com.openai": {
           "auth": {
             "type": "oauth",
-            "client": { "mode": "dcr" }
+            "client": {
+              "mode": "dcr"
+            }
           }
         }
       }

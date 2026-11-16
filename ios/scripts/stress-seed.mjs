@@ -15,7 +15,7 @@ const count = Number(countArg || 60)
 const server = serverArg || 'http://localhost:4400'
 // Test-only credentials for the local dev server; the iOS app reads the same
 // values from its -testEmail / -testPassword launch arguments.
-export const TEST_ACCOUNT = { email: 'stress@doop.test', password: 'stress-test-pass-2026', name: 'Stress Tester' }
+export const TEST_ACCOUNT = { email: 'stress@example.invalid', password: 'stress-test-pass-2026', name: 'Stress Tester' }
 
 let cookie = ''
 async function call(path, body, method = body ? 'POST' : 'GET') {

@@ -9,5 +9,14 @@
         <string>Fonts/Inter.ttf</string>
         <string>Fonts/HankenGrotesk.ttf</string>
     </array>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>diagramly</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

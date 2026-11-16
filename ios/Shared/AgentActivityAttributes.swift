@@ -8,13 +8,13 @@ struct AgentActivityAttributes: ActivityAttributes {
     let serverOrigin: String
 }
 
-/// The link a Live Activity opens: `doop://canvas/<id>?server=<origin>`.
+/// The link a Live Activity opens: `diagramly://canvas/<id>?server=<origin>`.
 /// ContentView answers it by opening that canvas when the app is signed in
 /// to the same server.
 enum CanvasLink {
     static func url(canvasID: String, serverOrigin: String) -> URL? {
         var components = URLComponents()
-        components.scheme = "doop"
+        components.scheme = "diagramly"
         components.host = "canvas"
         components.path = "/" + canvasID
         components.queryItems = [URLQueryItem(name: "server", value: serverOrigin)]
@@ -22,7 +22,7 @@ enum CanvasLink {
     }
 
     static func parse(_ url: URL) -> (canvasID: String, serverOrigin: String)? {
-        guard url.scheme == "doop", url.host == "canvas",
+        guard url.scheme == "diagramly", url.host == "canvas",
               let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               let server = components.queryItems?.first(where: { $0.name == "server" })?.value else { return nil }
         let id = String(url.path.dropFirst())

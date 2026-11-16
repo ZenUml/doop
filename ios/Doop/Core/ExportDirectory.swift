@@ -4,7 +4,7 @@ import Foundation
 public struct ExportDirectory {
     public let root: URL
 
-    public init(root: URL = FileManager.default.temporaryDirectory.appendingPathComponent("DoopExports", isDirectory: true)) {
+    public init(root: URL = FileManager.default.temporaryDirectory.appendingPathComponent("DiagramlyExports", isDirectory: true)) {
         self.root = root
     }
 
@@ -13,7 +13,7 @@ public struct ExportDirectory {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let name = (suggestedFilename as NSString).lastPathComponent
             .components(separatedBy: .controlCharacters).joined()
-        let safeName = name.isEmpty || name == "." || name == ".." ? "Doop export" : String(name.prefix(120))
+        let safeName = name.isEmpty || name == "." || name == ".." ? "Diagramly export" : String(name.prefix(120))
         return directory.appendingPathComponent(safeName, isDirectory: false)
     }
 

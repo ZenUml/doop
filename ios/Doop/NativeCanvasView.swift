@@ -228,7 +228,7 @@ struct NativeCanvasView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         if case .specialist(let agent) = agentAssignment {
-                            ComposerContextChip(label: agent.name, symbol: "", brand: "doop") {
+                            ComposerContextChip(label: agent.name, symbol: "", brand: "diagramly") {
                                 agentAssignment = .automatic
                             }
                         }
@@ -433,7 +433,7 @@ struct NativeCanvasView: View {
     private var modelPicker: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Doop Agent model").font(.subheadline).foregroundStyle(.secondary)
+                Text("Diagramly Agent model").font(.subheadline).foregroundStyle(.secondary)
                 Spacer()
                 Button { modelPickerOpen = false } label: {
                     Image(systemName: "xmark").font(.caption).foregroundStyle(ComposerColors.action).frame(width: 44, height: 44)
@@ -547,8 +547,8 @@ struct NativeCanvasView: View {
                             ForEach(availableAgents, id: \.self) { assignment in
                                 Button { selectAgent(assignment) } label: {
                                     HStack(spacing: 12) {
-                                        ComposerBrandMark(name: "doop").frame(width: 20, height: 20)
-                                        Text(assignment == .automatic ? "Doop" : assignment.label)
+                                        ComposerBrandMark(name: "diagramly").frame(width: 20, height: 20)
+                                        Text(assignment == .automatic ? "Diagramly" : assignment.label)
                                             .lineLimit(2).multilineTextAlignment(.leading)
                                         Spacer(minLength: 0)
                                         if assignment == agentAssignment { Image(systemName: "checkmark").font(.caption).foregroundStyle(ComposerColors.action) }
@@ -557,7 +557,7 @@ struct NativeCanvasView: View {
                                     .frame(minHeight: 48).contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain).disabled(sending)
-                                .accessibilityLabel("Assign to " + (assignment == .automatic ? "Doop" : assignment.label))
+                                .accessibilityLabel("Assign to " + (assignment == .automatic ? "Diagramly" : assignment.label))
                             }
                         }
                     }
@@ -607,7 +607,7 @@ struct NativeCanvasView: View {
     private var availableAgents: [AgentAssignment] {
         let query = mentionQuery ?? ""
         return ([AgentAssignment.automatic] + SpecialistAgent.allCases.map { .specialist($0) }).filter {
-            query.isEmpty || ($0 == .automatic ? "Doop" : $0.label).localizedCaseInsensitiveContains(query)
+            query.isEmpty || ($0 == .automatic ? "Diagramly" : $0.label).localizedCaseInsensitiveContains(query)
         }
     }
 

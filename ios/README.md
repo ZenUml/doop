@@ -1,7 +1,7 @@
-# doop for iOS
+# Diagramly for iOS
 
 A native SwiftUI iPhone/iPad app, targeting iOS 16+. The app does **not** load the
-Doop website for its main interface, and it does **not** use WebKit to draw frames:
+Diagramly website for its main interface, and it does **not** use WebKit to draw frames:
 every frame is rendered by [Blitz](https://github.com/DioxusLabs/blitz), a Rust
 HTML/CSS engine (Stylo + Taffy + Parley), compiled into the app as a static library.
 
@@ -103,7 +103,7 @@ HTML/CSS engine (Stylo + Taffy + Parley), compiled into the app as a static libr
   Blitz DOM automatically, without a separate mode. A compact, icon-only glass action bar
   above the prompt offers Copy, Paste, Duplicate, Delete, Comment and Export for
   the current element or frame. Copies use the system clipboard; element markup
-  is also available as HTML/text in other apps. Paste accepts Doop copies and can
+  is also available as HTML/text in other apps. Paste accepts Diagramly copies and can
   place a frame on another canvas/page or an element after the selected element
   (inside the body when only a frame is selected). Saved edits participate in Undo.
   Element edits use an isolated WebKit DOMParser with network requests blocked;
@@ -118,10 +118,10 @@ HTML/CSS engine (Stylo + Taffy + Parley), compiled into the app as a static libr
   queued with that `scope` so the agent edits it in place; the chip's × asks about
   the whole canvas instead until something else is selected.
 - **Task composer**: a rounded glass panel puts removable context chips above
-  the prompt. The @ button opens an Agents section with Doop brand marks, plus
+  the prompt. The @ button opens an Agents section with Diagramly brand marks, plus
   people currently on the canvas and frames. Typing a trailing `@` query filters
   the same picker. A specialist becomes a removable assignment chip; the default
-  is Doop. People/frame references are appended to the task text with names and
+  is Diagramly. People/frame references are appended to the task text with names and
   IDs; people are not notified. Frame/element selection remains the edit scope.
   The separate model control beside Send uses the ChatGPT mark (Claude for a
   Claude account), reads the provider menu from `GET /api/model-account`, and
@@ -134,15 +134,16 @@ HTML/CSS engine (Stylo + Taffy + Parley), compiled into the app as a static libr
   mode so frame edges, labels and cursors stay readable.
 
 The main app uses the existing backend APIs. Live Activity background updates require
-the server additions and Apple push configuration described below. Use Doop Cloud or an
-HTTPS self-hosted origin. Native session cookies persist; the client can also import
-an existing WKWebView login for the selected host. Passwords are never saved by the app.
+the server additions and Apple push configuration described below. Configure an HTTPS
+server origin in Settings before signing in; no hosted server is preconfigured. Native session cookies persist; the client can also import
+an existing WKWebView login for the selected host. Passwords are never saved by the
+app.
 Cookies follow normal domain/path scoping, not port isolation.
 
 Google, Microsoft and SSO sign-in reuse the desktop app's browser handoff
 (`src/lib/desktopAuth.ts`): the app opens `/desktop/signin` in an
 `ASWebAuthenticationSession`, the provider round trip runs there, and the handoff page
-returns a one-time token over `doop://auth`, which the app redeems for its session cookie
+returns a one-time token over `diagramly://auth`, which the app redeems for its session cookie
 only when the link's challenge matches the attempt it started (`Doop/Core/ProviderSignIn.swift`).
 Accounts without a password delete themselves on a fresh session instead of a password.
 Sign in with Apple is native (`SignInWithAppleButton`, entitlement
@@ -228,17 +229,24 @@ fallback and inline SVG `<pattern>` fills.
 
 ## Run
 
+Before building, set `DIAGRAMLY_IOS_BUNDLE_IDENTIFIER` and
+`DIAGRAMLY_IOS_ACTIVITY_BUNDLE_IDENTIFIER` in Xcode to registered identifiers for
+the app and Live Activity extension. The server's `APPLE_APP_BUNDLE_IDENTIFIER`
+must match the app identifier to enable native Apple sign-in. No bundle identifier
+is supplied by default.
+
 1. Open `ios/Doop.xcodeproj` in Xcode.
 2. Select **Doop** and an iPhone or iPad simulator, then Run. The first build compiles
    the Rust library (a few minutes); later builds are incremental.
-3. Sign in with your Doop email and password, or choose another server in Settings.
+3. Sign in with your Diagramly email and password, or choose another server in Settings.
 4. For a physical device, set your development team and registered bundle identifier
    under Signing & Capabilities.
 
 For a local simulator test server with a trusted HTTPS certificate, launch with:
 
 ```sh
-xcrun simctl launch booted design.doop.ios -serverOrigin https://localhost:18443
+APP_BUNDLE_ID="your.registered.bundle.id" # use the identifier configured in Xcode
+xcrun simctl launch booted "$APP_BUNDLE_ID" -serverOrigin https://localhost:18443
 ```
 
 ## Validation
@@ -273,11 +281,12 @@ a claim of complete feature parity or App Store readiness.
 The app only accepts HTTPS origins, so a local server is fronted by a TLS proxy whose
 CA the simulator trusts. Debug builds accept launch arguments that sign in with test
 credentials on a `localhost` origin, open a canvas and run a scripted camera that logs
-per-phase frame times (`subsystem design.doop.ios`, category `canvas.perf`):
+per-phase frame times (`subsystem DIAGRAMLY_IOS_BUNDLE_IDENTIFIER`, category `canvas.perf`):
 
 ```sh
-bun run dev                                               # doop on http://localhost:4400
-openssl req -x509 -newkey rsa:2048 -nodes -keyout ca.key -out ca.pem -days 30 -subj "/CN=doop local test CA"
+APP_BUNDLE_ID="your.registered.bundle.id" # use the identifier configured in Xcode
+bun run dev                                               # Diagramly on http://localhost:4400
+openssl req -x509 -newkey rsa:2048 -nodes -keyout ca.key -out ca.pem -days 30 -subj "/CN=Diagramly local test CA"
 openssl req -newkey rsa:2048 -nodes -keyout localhost.key -out localhost.csr -subj "/CN=localhost"
 printf "subjectAltName=DNS:localhost,IP:127.0.0.1\nextendedKeyUsage=serverAuth\n" > ext.cnf
 openssl x509 -req -in localhost.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out localhost.pem -days 30 -extfile ext.cnf
@@ -285,9 +294,9 @@ node ios/scripts/local-https.mjs localhost.pem localhost.key 18443 &
 xcrun simctl boot "iPhone 18 Pro" && xcrun simctl keychain booted add-root-cert ca.pem
 node ios/scripts/stress-seed.mjs <dir-of-frames-with-manifest.json> 60   # prints the canvas id
 xcrun simctl install booted ios/DerivedData/Build/Products/Debug-iphonesimulator/Doop.app
-xcrun simctl launch booted design.doop.ios -serverOrigin https://localhost:18443 \
+xcrun simctl launch booted "$APP_BUNDLE_ID" -serverOrigin https://localhost:18443 \
   -testEmail <seed email> -testPassword <seed password> -openCanvas <id> -stressTest 1
-xcrun simctl spawn booted log show --last 2m --info --predicate 'subsystem == "design.doop.ios"' --style compact
+xcrun simctl spawn booted log show --last 2m --info --predicate "subsystem == '$APP_BUNDLE_ID'" --style compact
 ```
 
 `-holdCamera "x,y,zoom"` parks the camera for screenshots (prefix a negative x with
@@ -302,7 +311,7 @@ exists only on the local dev database.
 
 - Native SSO needs a browser authentication session plus a secure server callback /
   single-use session exchange. Email/password is the implemented sign-in path.
-- Model-account setup currently opens Doop's account settings in the system browser.
+- Model-account setup currently opens Diagramly's account settings in the system browser.
 - Element comments pin to the selected element; replies and resolution controls have
   not yet moved to native UI.
 - Frames that depend on scripts render as static HTML. A per-frame WebKit fallback
@@ -329,8 +338,8 @@ What the project carries for review, and what still happens outside the repo:
   hook (`server/accountDeletion.ts`) deletes canvases only that user could reach,
   removes them from shared canvases and workspaces, and drops their push tokens.
 - Settings links to `/privacy` and `/terms` on the configured server (the
-  server proxies both from the marketing site) and to support@doop.design as
-  the channel for support requests and for reporting a canvas.
+  server proxies both from the marketing site). Configure a verified support
+  contact in publishing metadata before release.
 - `.github/workflows/ios-release.yml` archives a Release build with Xcode-managed
   signing and uploads it to App Store Connect on an `ios-v*` tag (secrets listed
   in the workflow). `ios/ExportOptions.plist` holds the export settings.
@@ -341,7 +350,7 @@ first TestFlight build goes out.
 
 ## Brand typography
 
-The wordmark matches `src/components/ui/wordmark.tsx`: “Doop” in Inter ExtraBold
+The wordmark matches `src/components/ui/wordmark.tsx`: “Diagramly” in Inter ExtraBold
 with -0.01em tracking. Sign-in headlines use Inter Medium; the home greeting
 uses Hanken Grotesk Light, matching the web's `HomeHero`. Custom text scales
 with Dynamic Type. The original variable fonts and SIL Open Font Licenses are
@@ -382,7 +391,7 @@ and configure these server-only environment variables:
 DIAGRAMLY_APNS_TEAM_ID=your_apple_team_id
 DIAGRAMLY_APNS_KEY_ID=your_apns_key_id
 DIAGRAMLY_APNS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
-DIAGRAMLY_APNS_BUNDLE_ID=design.doop.ios
+DIAGRAMLY_APNS_BUNDLE_ID=your_registered_app_bundle_id
 ```
 
 On iOS 17.2+ the app also registers a push-to-start token (`PUT
@@ -405,9 +414,9 @@ access after revocation. Share-link-only visitors cannot register background upd
 
 Without push configuration, starting an activity requires opening the canvas in the
 foreground (push-to-start needs the APNs key), and the last local status becomes
-stale after two minutes and asks the user to reopen Doop. Sign-out/server changes
+stale after two minutes and asks the user to reopen Diagramly. Sign-out/server changes
 end local activities. Apple controls delivery timing and activity availability.
-APNs delivery was verified on a physical iPhone against doop.design on 2026-10-08.
+APNs delivery was verified on a physical iPhone against the previous hosted service on 2026-10-08.
 
 Server checks: `bunx vitest run tests/liveActivities.test.ts tests/liveActivityDelivery.test.ts`.
 

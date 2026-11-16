@@ -71,7 +71,7 @@ public struct LoginProviders: Decodable, Equatable {
 ///
 /// Identity providers refuse embedded web views, so the provider round trip runs
 /// in the system browser (an `ASWebAuthenticationSession`) and the resulting
-/// session is handed back over a `doop://` URL: the same flow the desktop app
+/// session is handed back over a `diagramly://` URL: the same flow the desktop app
 /// uses (`src/lib/desktopAuth.ts`), which is why the server pages still carry
 /// `desktop` in their paths.
 ///
@@ -79,7 +79,7 @@ public struct LoginProviders: Decodable, Equatable {
 ///    sign-in from inside the browser, so better-auth's state cookie and the
 ///    provider's callback share a cookie jar.
 /// 2. The browser lands on `/desktop/handoff` signed in, mints a one-time
-///    token from that session and navigates to `doop://auth?token=…&challenge=…`.
+///    token from that session and navigates to `diagramly://auth?token=…&challenge=…`.
 /// 3. The authentication session intercepts that URL; `token(from:)` releases
 ///    the token only if the challenge answers this attempt, so a link minted
 ///    from someone else's browser session can't sign the app into their account.
@@ -91,7 +91,7 @@ public struct ProviderSignIn: Equatable {
     public let challenge: String
 
     /// The custom scheme the handoff page returns on.
-    public static let callbackScheme = "doop"
+    public static let callbackScheme = "diagramly"
 
     public init(provider: SignInProvider, challenge: String = ProviderSignIn.newChallenge()) {
         self.provider = provider
@@ -112,7 +112,7 @@ public struct ProviderSignIn: Equatable {
     }
 
     /// The one-time token carried by `callback`, or nil unless it is a well-formed
-    /// `doop://auth` link answering this attempt's challenge.
+    /// `diagramly://auth` link answering this attempt's challenge.
     public func token(from callback: URL) -> String? {
         guard let parts = URLComponents(url: callback, resolvingAgainstBaseURL: false),
               parts.scheme?.lowercased() == Self.callbackScheme, parts.host?.lowercased() == "auth" else { return nil }

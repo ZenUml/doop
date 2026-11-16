@@ -30,11 +30,11 @@ struct AgentLiveActivity: Widget {
                     AgentStatusBody(state: context.state, stale: context.isStale, recentSteps: 1).padding(.horizontal, 6)
                 }
             } compactLeading: {
-                DoopLogo().frame(width: 14, height: 16)
+                DiagramlyLogo().frame(width: 14, height: 16)
             } compactTrailing: {
                 Image(systemName: context.isStale ? "clock" : symbol(context.state)).foregroundStyle(brand)
             } minimal: {
-                DoopLogo().frame(width: 14, height: 16)
+                DiagramlyLogo().frame(width: 14, height: 16)
             }
             .keylineTint(brand)
             .widgetURL(CanvasLink.url(canvasID: context.attributes.canvasID, serverOrigin: context.attributes.serverOrigin))
@@ -72,7 +72,7 @@ private struct AgentStatusBody: View {
                 Text(stale ? "Status needs updating" : title(state)).font(.title2.weight(.semibold)).lineLimit(1)
             }
             if stale {
-                Caption(text: "Open Doop for the latest agent status.")
+                Caption(text: "Open Diagramly for the latest agent status.")
             } else if state.phase == "working" {
                 StepLog(steps: (state.steps ?? []).suffix(recentSteps), current: state.status)
             } else if state.isActive {
@@ -88,15 +88,15 @@ private struct AgentStatusBody: View {
     }
 }
 
-/// The Doop logo and a badge for the agent at work, like a tiny avatar row.
+/// The Diagramly logo and a badge for the agent at work, like a tiny avatar row.
 private struct BrandRow: View {
     let agentName: String
     var body: some View {
         HStack(spacing: 6) {
-            DoopLogo().frame(width: 15, height: 18)
+            DiagramlyLogo().frame(width: 15, height: 18)
             ZStack {
                 Circle().fill(.white.opacity(0.16))
-                if AgentMark.brand(for: agentName) == "doop" {
+                if AgentMark.brand(for: agentName) == "diagramly" {
                     Image(systemName: "person.fill").font(.system(size: 10)).foregroundStyle(.white.opacity(0.7))
                 } else {
                     MarkShape(AgentMark.path(for: agentName)).fill(.white.opacity(0.85)).padding(5)
@@ -152,8 +152,8 @@ private struct Caption: View {
     }
 }
 
-private struct DoopLogo: View {
-    var body: some View { MarkShape(AgentMark.doopMark()).fill(brand) }
+private struct DiagramlyLogo: View {
+    var body: some View { MarkShape(AgentMark.diagramlyMark()).fill(brand) }
 }
 
 /// Fits a mark into the view's bounds, keeping its aspect ratio.

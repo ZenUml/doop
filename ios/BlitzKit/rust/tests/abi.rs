@@ -6,7 +6,7 @@ use doopblitz::*;
 #[test]
 fn renders_and_hit_tests_a_real_frame() {
     let html = CString::new(include_str!("terse.html")).unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     unsafe {
         let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 1512, 1250, 0.5);
         assert!(!doc.is_null());
@@ -70,7 +70,7 @@ fn renders_and_hit_tests_a_real_frame() {
 
 #[test]
 fn streamed_html_replaces_the_document_and_keeps_geometry() {
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     let first = CString::new("<!doctype html><html><body style='margin:0;background:#2743ee'><h1 id='a'>One</h1></body></html>").unwrap();
     let second = CString::new("<!doctype html><html><body style='margin:0;background:#e5533c'><p class='x'>Two</p><p class='x'>Three</p></body></html>").unwrap();
     unsafe {
@@ -103,7 +103,7 @@ fn streamed_html_replaces_the_document_and_keeps_geometry() {
 
 #[test]
 fn several_documents_do_not_bleed_into_each_other() {
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     let red = CString::new("<!doctype html><html><body style='margin:0;background:#ff0000'><h1>R</h1></body></html>").unwrap();
     let green = CString::new("<!doctype html><html><body style='margin:0;background:#00ff00'><p>G</p></body></html>").unwrap();
     let terse = CString::new(include_str!("terse.html")).unwrap();
@@ -139,7 +139,7 @@ fn several_documents_do_not_bleed_into_each_other() {
 
 #[test]
 fn sixty_documents_keep_their_own_content() {
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     let colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#123456", "#654321"];
     // Inline styles only: the bridge tests must not depend on a font service being reachable.
     let htmls: Vec<CString> = colors.iter().map(|c| CString::new(format!("<!doctype html><html><head><style>body{{margin:0;background:{c}}}</style></head><body><p>{c}</p></body></html>")).unwrap()).collect();
@@ -194,7 +194,7 @@ fn rescaling_restyles_device_pixel_snapped_borders() {
     // A frame first styled at a tiny scale (fitted board) and then zoomed in must
     // match a frame created at the final scale: hairline borders snap to one device
     // pixel at cascade time, so the rescale has to recascade.
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     let html = CString::new("<!doctype html><html><body style='margin:0;background:#fff'>\
         <div style='margin:20px;width:300px;height:120px;border:1px solid #000;outline:1.5px solid #27f;outline-offset:4px'></div>\
         <button style='margin:20px;padding:10px 20px;border:1px solid #000;background:#fff'>Start</button></body></html>").unwrap();
@@ -225,7 +225,7 @@ fn rescaling_restyles_device_pixel_snapped_borders() {
 
 #[test]
 fn region_render_matches_the_full_render() {
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     let html = CString::new("<!doctype html><html><body style='margin:0;background:#fff'>\
         <div style='position:absolute;left:100px;top:60px;width:200px;height:80px;background:#27f'></div>\
         <p style='position:absolute;left:120px;top:160px;font:20px sans-serif'>Tile me</p></body></html>").unwrap();
@@ -264,7 +264,7 @@ fn borders_on_half_pixels_stay_symmetric_at_high_scale() {
         r#"<div style="position:absolute;left:10.5px;top:10.5px;width:9px;height:9px;border:1.5px solid #000;background:#fff"></div>"#,
     )
     .unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     unsafe {
         let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 60, 60, 3.0);
         let (mut w, mut h, mut len) = (0u32, 0u32, 0usize);
@@ -333,7 +333,7 @@ fn hairline_borders_match_at_every_scale() {
         </body></html>",
     )
     .unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     for scale in [0.61f32, 0.84, 1.0, 1.37, 2.3] {
         unsafe {
             let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 300, 160, scale);
@@ -358,7 +358,7 @@ fn hairline_borders_match_at_every_scale() {
 #[test]
 fn selector_paths_escape_ids() {
     let html = CString::new(r#"<div id="a.b"><span id="1st">x</span></div><p class="b">y</p>"#).unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     unsafe {
         let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 100, 100, 1.0);
         let (mut w, mut h, mut len) = (0u32, 0u32, 0usize);
@@ -384,7 +384,7 @@ fn tiles_keep_fixed_backgrounds_sized_to_the_frame() {
         "<!doctype html><html><body style='margin:0;min-height:100vh;background:linear-gradient(90deg,#ff0000,#0000ff) fixed'></body></html>",
     )
     .unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     unsafe {
         let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 400, 200, 1.0);
         let (mut w, mut h, mut len) = (0u32, 0u32, 0usize);
@@ -426,7 +426,7 @@ fn clip_path_clips_the_outer_box_shadow() {
          </body></html>",
     )
     .unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     unsafe {
         let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 200, 300, 1.0);
         let (mut w, mut h, mut len) = (0u32, 0u32, 0usize);
@@ -459,7 +459,7 @@ fn clip_path_clips_the_outline() {
          </body></html>",
     )
     .unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     unsafe {
         let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 200, 200, 1.0);
         let (mut w, mut h, mut len) = (0u32, 0u32, 0usize);
@@ -490,7 +490,7 @@ fn hit_and_rect_follow_a_centering_transform() {
         "<div class=\"modal\"><div class=\"foot\"><a class=\"btn\" id=\"go\">Continue</a></div></div>",
     ))
     .unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     for scale in [1.0f32, 0.5, 2.0] {
         unsafe {
             let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 1440, 900, scale);
@@ -525,7 +525,7 @@ fn rect_composes_nested_transforms_before_bounding() {
         "<div class=\"p\"><div class=\"c\" id=\"c\"></div></div>",
     ))
     .unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     unsafe {
         let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 400, 400, 2.0);
         let (mut w, mut h, mut len) = (0u32, 0u32, 0usize);
@@ -555,7 +555,7 @@ fn pick_selects_the_text_layer_not_its_inline_runs() {
         "</body>",
     ))
     .unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     unsafe {
         let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 400, 400, 1.0);
         let (mut w, mut h, mut len) = (0u32, 0u32, 0usize);

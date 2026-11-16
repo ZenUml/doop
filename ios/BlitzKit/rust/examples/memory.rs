@@ -14,7 +14,7 @@ fn main() {
     let dir = &args[1];
     let copies: usize = args[2].parse().unwrap();
     let scale: f32 = args[3].parse().unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     let mut docs = Vec::new();
     for entry in std::fs::read_dir(dir).unwrap() {
         let path = entry.unwrap().path();

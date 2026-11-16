@@ -8,7 +8,7 @@ struct Document(*mut Doc);
 impl Document {
     fn new(html: &str, scale: f32) -> Self {
         let html = CString::new(html).unwrap();
-        let base = CString::new("https://doop.design/").unwrap();
+        let base = CString::new("https://example.invalid/").unwrap();
         let doc = Self(doopblitz_doc_new(
             html.as_ptr(),
             base.as_ptr(),

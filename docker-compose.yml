@@ -2,12 +2,12 @@
 # Set BETTER_AUTH_SECRET (any long random string) before running in earnest:
 #   BETTER_AUTH_SECRET=$(openssl rand -hex 32) docker compose up -d
 services:
-  doop:
+  diagramly:
     build: .
     ports:
       - '4400:4400'
     environment:
-      DATABASE_URL: postgres://doop:doop@db:5432/doop
+      DATABASE_URL: postgres://diagramly:diagramly@db:5432/diagramly
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-change-me-please-not-for-production}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:4400}
       SIGNUP_EMAIL_DOMAINS: ${SIGNUP_EMAIL_DOMAINS:-}
@@ -29,17 +29,23 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: doop
-      POSTGRES_PASSWORD: doop
-      POSTGRES_DB: doop
+      POSTGRES_USER: diagramly
+      POSTGRES_PASSWORD: diagramly
+      POSTGRES_DB: diagramly
     volumes:
-      - doop-pg:/var/lib/postgresql/data
+      - diagramly-pg:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U doop']
+      test: ['CMD-SHELL', 'pg_isready -U diagramly']
       interval: 5s
       timeout: 3s
       retries: 10
     restart: unless-stopped
 
 volumes:
-  doop-pg:
+  # Existing doop-pg data is intentionally left on disk; this name creates a
+  # separate fresh volume. Before upgrading, export from the old compose with:
+  # docker compose exec -T db pg_dump --no-owner --no-acl -U doop -d doop > backup.sql
+  # After startup, import with:
+  # docker compose exec -T db psql -U diagramly -d diagramly < backup.sql
+  # Never use `down -v` if you still need the old volume.
+  diagramly-pg:

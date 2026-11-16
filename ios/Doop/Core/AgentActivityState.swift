@@ -25,7 +25,7 @@ public struct AgentActivityState: Codable, Hashable {
         let step = task.stage ?? 0
         return Self(
             canvasName: String(canvasName.prefix(80)),
-            agentName: String((task.agentName.isEmpty ? "Doop" : task.agentName).prefix(60)),
+            agentName: String((task.agentName.isEmpty ? "Diagramly" : task.agentName).prefix(60)),
             status: String((phase == "failed" ? task.failureReason ?? task.status : task.status).prefix(200)),
             phase: phase,
             activeCount: running.count,

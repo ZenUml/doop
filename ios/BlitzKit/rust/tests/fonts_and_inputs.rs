@@ -22,7 +22,7 @@ impl Frame {
             "<!doctype html><body style='margin:0;background:white'>{body}"
         ))
         .unwrap();
-        let base = CString::new("https://doop.design/").unwrap();
+        let base = CString::new("https://example.invalid/").unwrap();
         let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), width, height, 1.0);
         let deadline = Instant::now() + Duration::from_secs(10);
         let frame = loop {

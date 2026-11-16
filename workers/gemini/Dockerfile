@@ -5,7 +5,7 @@ RUN bun install --frozen-lockfile --production --ignore-scripts
 
 FROM node:22-slim
 # Pin the CLI surface exercised by this prototype. Google sign-in remains in
-# this unmodified official CLI; Doop never imports its authentication internals.
+# this unmodified official CLI; Diagramly never imports its authentication internals.
 RUN npm install --global @google/gemini-cli@0.61.0 \
     && npm cache clean --force \
     && mkdir -p /home/node/.gemini \

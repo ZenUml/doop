@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Doop Cature",
+  "name": "Diagramly Capture",
   "version": "0.1.0",
-  "description": "Capture a page or section as editable HTML and paste it into Doop.",
+  "description": "Capture a page or section as editable HTML and paste it into Diagramly.",
   "permissions": ["activeTab", "scripting", "clipboardWrite"],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Doop Cature",
+    "default_title": "Diagramly Capture",
     "default_icon": {
       "16": "icon-16.png",
       "32": "icon-32.png",

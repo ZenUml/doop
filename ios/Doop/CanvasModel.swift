@@ -47,7 +47,7 @@ final class CanvasModel: ObservableObject {
     private var socket: URLSessionWebSocketTask?
     private let clientID = "ios-" + UUID().uuidString
     private var pendingMoves = PendingFrameMoves()
-    private let connectionLog = Logger(subsystem: "design.doop.ios", category: "canvas.connection")
+    private let connectionLog = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Diagramly", category: "canvas.connection")
 
     init(id: String, client: DoopClient) {
         self.id = id; self.client = client; self.activePageID = "\(id):page1"
