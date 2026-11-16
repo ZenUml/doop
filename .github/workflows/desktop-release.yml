@@ -243,13 +243,30 @@ jobs:
           # ancestor; lift them up so every installer sits at the top level
           find . -mindepth 2 -type f -exec mv -t . {} +
           # every release has its own asset URLs, so give the macOS package a versioned name
-          mv doop.app.tar.gz "doop_${version}_universal.app.tar.gz"
-          mv doop.app.tar.gz.sig "doop_${version}_universal.app.tar.gz.sig"
           mac="doop_${version}_universal.app.tar.gz"
           win="doop_${version}_x64-setup.exe"
           appimage="doop_${version}_amd64.AppImage"
           deb="doop_${version}_amd64.deb"
           rpm="doop-${version}-1.x86_64.rpm"
+          # Tauri names the built packages from productName (Diagramly). Keep
+          # the established release asset names while normalizing those inputs.
+          rename_one() {
+            local pattern="$1" destination="$2" source
+            local -a matches
+            mapfile -t matches < <(find . -maxdepth 1 -type f -name "$pattern" -print)
+            if [[ "${#matches[@]}" -ne 1 ]]; then
+              echo "::error::expected one $pattern package, found ${#matches[@]}"
+              exit 1
+            fi
+            source="${matches[0]}"
+            mv "$source" "$destination"
+            if [[ -f "$source.sig" ]]; then mv "$source.sig" "$destination.sig"; fi
+          }
+          rename_one 'Diagramly.app.tar.gz' "$mac"
+          rename_one '*-setup.exe' "$win"
+          rename_one '*.AppImage' "$appimage"
+          rename_one '*.deb' "$deb"
+          rename_one '*.rpm' "$rpm"
           # a missing signature would otherwise go into the feed as an empty
           # string ($(cat …) failing inside an argument does not stop the step)
           for f in "$mac" "$win" "$appimage" "$deb" "$rpm"; do
