@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, expect } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import type { TextFormatCommand } from '../src/lib/richText'
-import { fixtureUrl, pagePerTest, type TestPages } from './browser'
+import { pagePerTest, type TestPages } from './browser'
 import type { Canvas, ElementComment, Frame } from '../shared/types'
 import type { ImportedSvg } from '../src/lib/svgImport'
 
@@ -102,6 +103,7 @@ async function openPage(pages: TestPages): Promise<Page> {
 /** Opens the drawing fixture on a seeded canvas before every test of the
  *  calling `describe`, and fails the file on an uncaught page error. */
 export function drawingPage(): void {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
 
   beforeEach(async () => {

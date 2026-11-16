@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Frame } from '../shared/types'
 
 /* the elementPanel fixture's harness, as far as this file uses it (the full
@@ -33,6 +34,7 @@ function frame(id: string, x: number, y: number, width: number, height: number):
 }
 
 describe.skipIf(!findBrowserPath())('frame name stacking', () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   const errors: string[] = []

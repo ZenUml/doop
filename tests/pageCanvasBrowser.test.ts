@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Canvas, Frame } from '../shared/types'
 
 declare global {
@@ -50,6 +51,7 @@ const canvas = (frames: Frame[]): Canvas => ({
 /* Each test loads the whole app (hundreds of unbundled modules) in its own body,
    which on a busy CI runner can take longer than the 5 s default test timeout. */
 describe.skipIf(!findBrowserPath())('page camera and snapping', { timeout: 30_000 }, () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest({ permissions: ['clipboard-read', 'clipboard-sanitized-write'] })
   let page: Page
   beforeEach(async () => {

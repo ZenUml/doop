@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { openBrowser, serveBuilt, type BuiltServer, type TestBrowser } from './browser'
+import { openBrowser, serveDesignBuilt, type BuiltServer, type TestBrowser } from './browser'
 import { freePort, startServer, type Server } from './harness'
 
 /* The whole loop in the real editor, over the real server: make a component
@@ -84,13 +84,13 @@ describe.skipIf(!findBrowserPath())('components in the editor', { timeout: 60_00
 
   beforeAll(async () => {
     const port = await freePort()
-    web = await serveBuilt({
+    web = await serveDesignBuilt({
       '/api': { target: `http://localhost:${port}` },
       '/ws': { target: `ws://localhost:${port}`, ws: true },
       '/i': { target: `http://localhost:${port}` },
     })
     const origin = web.origin
-    server = await startServer({ PORT: String(port), BETTER_AUTH_URL: origin })
+    server = await startServer({ DIAGRAMLY_PRODUCT: 'design', PORT: String(port), BETTER_AUTH_URL: origin })
     browser = await openBrowser()
     page = await browser.newPage()
     page.setDefaultTimeout(10_000)

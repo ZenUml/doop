@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { ElementComment, Frame } from '../shared/types'
 
 declare global {
@@ -40,6 +41,7 @@ const comment: ElementComment = {
 }
 
 describe.skipIf(!findBrowserPath())('element comment pin placement', () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   const errors: string[] = []

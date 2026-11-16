@@ -1,9 +1,10 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import type { CanvasRole } from '../shared/canvasRole'
 import type { Frame } from '../shared/types'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 
 declare global {
   interface Window {
@@ -43,6 +44,7 @@ const FRAME: Frame = {
 const CLIPBOARD_IS_RELIABLE = process.platform !== 'darwin' || !!process.env.DIAGRAMLY_CLIPBOARD_TESTS
 
 describe.skipIf(!findBrowserPath() || !CLIPBOARD_IS_RELIABLE)('canvas clipboard shortcuts', { timeout: 20_000 }, () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest({ permissions: ['clipboard-read', 'clipboard-sanitized-write'] })
   let page: Page
   let created: Partial<Frame>[] = []

@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Frame } from '../shared/types'
 
 /* `window.drawingHarness` is declared by drawingPage.ts, whose fixture this shares */
@@ -15,6 +16,7 @@ const screen = (wx: number, wy: number): [number, number] => [
 ]
 
 describe.skipIf(!findBrowserPath())('importing SVG files', { timeout: 30_000 }, () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   let saved: Frame[] = []

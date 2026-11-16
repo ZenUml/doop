@@ -1,10 +1,11 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Frame } from '../shared/types'
 import type { ElementInfo, GeometryEdit } from '../src/lib/frameBridge'
 
@@ -31,6 +32,7 @@ declare global {
 }
 
 describe.skipIf(!findBrowserPath())('element design controls', () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   let saved: Frame

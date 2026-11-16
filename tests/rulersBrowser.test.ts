@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import type { HTTPRequest, Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Canvas, CanvasGuide, ElementComment, Frame } from '../shared/types'
 
 declare global {
@@ -40,6 +41,7 @@ const FRAME: Frame = {
 }
 
 describe.skipIf(!findBrowserPath())('rulers and guides', { timeout: 30_000 }, () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   let guideRequests: { method: string; id: string; body: Partial<CanvasGuide> | null }[] = []

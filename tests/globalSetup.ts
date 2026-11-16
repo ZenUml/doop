@@ -19,7 +19,13 @@ export async function setup(project: TestProject): Promise<void> {
   project.provide('templateDir', dir)
   project.provide(
     'browserRig',
-    rig && { wsEndpoint: rig.wsEndpoint, fixtureOrigin: rig.fixtureOrigin, builtDir: rig.builtDir },
+    rig && {
+      wsEndpoint: rig.wsEndpoint,
+      fixtureOrigin: rig.fixtureOrigin,
+      builtDir: rig.builtDir,
+      designFixtureOrigin: rig.designFixtureOrigin,
+      designBuiltDir: rig.designBuiltDir,
+    },
   )
 }
 

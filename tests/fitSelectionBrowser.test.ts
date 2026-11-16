@@ -1,12 +1,14 @@
+import { designFixtureUrl } from './designBrowser'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import { canvasFrame, prepareCanvasPage, showCanvasPage } from './canvasPageFixture'
 
 /* ⇧2 fits the selection into the part of the stage the panels leave open,
    not the whole window under them */
 describe.skipIf(!findBrowserPath())('zoom to selection with the panels open', () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   const WIDE = canvasFrame({ id: 'wide', name: 'Wide', x: 0, y: 0, width: 1440, height: 900 })
@@ -20,7 +22,7 @@ describe.skipIf(!findBrowserPath())('zoom to selection with the panels open', ()
        before the page that reads it loads */
     await page.goto(fixtureUrl('canvasPage.html'))
     await page.evaluate(() => localStorage.removeItem('diagramly:panel-layout'))
-    await showCanvasPage(page, [WIDE])
+    await showCanvasPage(page, [WIDE], '', 'design')
   })
 
   /** the open stage: right of the tool rail (which follows the Layers
@@ -58,7 +60,7 @@ describe.skipIf(!findBrowserPath())('zoom to selection with the panels open', ()
   })
 
   it('fits a linked frame beside the Inspector the link opens', async () => {
-    await showCanvasPage(page, [WIDE], '?frame=wide')
+    await showCanvasPage(page, [WIDE], '?frame=wide', 'design')
     await page.waitForSelector('[aria-label="Account"]')
     /* the link opens the Inspector, whose header offers to close it */
     await page.waitForFunction(() => document.querySelectorAll('[data-slot="panel"]').length >= 2)
@@ -70,7 +72,7 @@ describe.skipIf(!findBrowserPath())('zoom to selection with the panels open', ()
 
   it('docked: the stage fills the gap between the columns and fits there', async () => {
     await page.evaluate(() => localStorage.setItem('diagramly:panel-layout', 'docked'))
-    await showCanvasPage(page, [WIDE])
+    await showCanvasPage(page, [WIDE], '', 'design')
     const frame = await fitWithPanelsOpen()
     const area = await openArea()
     const stage = await page.$eval('.stage', (el) => {
@@ -88,7 +90,7 @@ describe.skipIf(!findBrowserPath())('zoom to selection with the panels open', ()
 
   it('docked: fits a linked frame inside the stage the Inspector narrows', async () => {
     await page.evaluate(() => localStorage.setItem('diagramly:panel-layout', 'docked'))
-    await showCanvasPage(page, [WIDE], '?frame=wide')
+    await showCanvasPage(page, [WIDE], '?frame=wide', 'design')
     await page.waitForSelector('[aria-label="Account"]')
     await page.waitForFunction(() => document.querySelectorAll('[data-slot="panel"]').length >= 2)
     await new Promise((r) => setTimeout(r, 300))

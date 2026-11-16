@@ -9,12 +9,12 @@ import { afterAll, afterEach, beforeAll, expect, inject } from 'vitest'
 import { findBrowserPath, launchBrowser } from '../server/screenshot.ts'
 
 /**
- * Shared rig for the tests that drive a real Chromium: ONE browser and ONE
- * server for the fixtures, started by tests/globalSetup.ts before any worker
- * runs.
+ * Shared rig for the tests that drive a real Chromium: ONE browser and two shared
+ * fixture servers: the production default and the explicit HTML design profile.
+ * tests/globalSetup.ts starts both before any worker runs.
  *
- * The server hands out a production build of the fixtures (and of the app's
- * own index.html), made once per run by tests/fixtures.vite.config.ts. A page
+ * Each server hands out a production build of the fixtures (and of the app's
+ * own index.html), made once per profile by tests/fixtures.vite.config.ts. A page
  * is a few bundled files, so a load costs much the same on a 2-vCPU CI runner
  * as it does here, and it is the code that ships. A dev server would serve
  * the app as hundreds of unbundled modules, a second or two per load on CI,
@@ -30,7 +30,7 @@ import { findBrowserPath, launchBrowser } from '../server/screenshot.ts'
 declare module 'vitest' {
   interface ProvidedContext {
     /** null when no Chromium is installed; every browser test skips then */
-    browserRig: { wsEndpoint: string; fixtureOrigin: string; builtDir: string } | null
+    browserRig: Omit<BrowserRig, 'close'> | null
   }
 }
 
@@ -60,7 +60,7 @@ const STEP_TIMEOUT_MS = 15_000
  * fixtures fetch by path at run time (a stylesheet, an image) is not part of
  * the bundle, so those files are copied next to the built pages.
  */
-export async function buildFixtures(productMode?: 'design'): Promise<string> {
+async function buildFixtures(productMode?: 'design'): Promise<string> {
   const dir = mkdtempSync(path.join(tmpdir(), 'doop-test-fixtures-'))
   try {
     await promisify(execFile)(
@@ -118,6 +118,8 @@ export interface BrowserRig {
   wsEndpoint: string
   fixtureOrigin: string
   builtDir: string
+  designFixtureOrigin: string
+  designBuiltDir: string
   close(): Promise<void>
 }
 
@@ -125,22 +127,42 @@ export interface BrowserRig {
  *  the browser's first render is behind it before tests start. */
 export async function startBrowserRig(): Promise<BrowserRig | null> {
   if (!findBrowserPath()) return null
-  const [launched, built] = await Promise.allSettled([launchBrowser(COLD_START_MS), buildFixtures()])
+  const [launched, built, designBuilt] = await Promise.allSettled([
+    launchBrowser(COLD_START_MS),
+    buildFixtures(),
+    buildFixtures('design'),
+  ])
   const browser = launched.status === 'fulfilled' ? launched.value : null
   const builtDir = built.status === 'fulfilled' ? built.value : null
+  const designBuiltDir = designBuilt.status === 'fulfilled' ? designBuilt.value : null
   let server: BuiltServer | null = null
+  let designServer: BuiltServer | null = null
   const close = async () => {
-    await browser?.close()
-    await server?.close()
-    if (builtDir) rmSync(builtDir, { recursive: true, force: true })
+    const results = await Promise.allSettled([browser?.close(), server?.close(), designServer?.close()])
+    for (const directory of [builtDir, designBuiltDir]) {
+      if (directory) rmSync(directory, { recursive: true, force: true })
+    }
+    for (const result of results) {
+      if (result.status === 'rejected') throw result.reason
+    }
   }
   try {
-    if (!browser || !builtDir)
-      throw launched.status === 'rejected' ? launched.reason : (built as PromiseRejectedResult).reason
+    for (const result of [launched, built, designBuilt]) {
+      if (result.status === 'rejected') throw result.reason
+    }
+    if (!browser || !builtDir || !designBuiltDir) throw new Error('Incomplete browser fixture rig')
     server = await serveBuilt(undefined, builtDir)
+    designServer = await serveBuilt(undefined, designBuiltDir)
     const fixtureOrigin = `${server.origin}/`
     await warmBrowser(browser, fixtureOrigin)
-    return { wsEndpoint: browser.wsEndpoint(), fixtureOrigin, builtDir, close }
+    return {
+      wsEndpoint: browser.wsEndpoint(),
+      fixtureOrigin,
+      builtDir,
+      designFixtureOrigin: `${designServer.origin}/`,
+      designBuiltDir,
+      close,
+    }
   } catch (error) {
     /* a half-started rig must not leave a Chromium or a server holding the run open */
     await close()
@@ -163,20 +185,20 @@ async function warmBrowser(browser: Browser, origin: string): Promise<void> {
 /** What a test file drives: pages in its own context of the shared browser. */
 export interface TestBrowser {
   newPage(): Promise<Page>
-  /** grants this file's context the permissions on the fixture origin */
+  /** grants this file's context permissions on both fixture origins */
   grantPermissions(permissions: Permission[]): Promise<void>
   /** closes this file's context and lets go of the shared browser (which keeps running) */
   close(): Promise<void>
 }
 
-function rig(): { wsEndpoint: string; fixtureOrigin: string; builtDir: string } {
+function rig(): Omit<BrowserRig, 'close'> {
   const provided = inject('browserRig')
   if (!provided) throw new Error('no browser rig: tests/globalSetup.ts found no Chromium')
   return provided
 }
 
 export async function openBrowser(): Promise<TestBrowser> {
-  const { wsEndpoint, fixtureOrigin } = rig()
+  const { wsEndpoint, fixtureOrigin, designFixtureOrigin } = rig()
   const browser = await puppeteer.connect({ browserWSEndpoint: wsEndpoint })
   const context = await browser.createBrowserContext()
   return {
@@ -201,7 +223,12 @@ export async function openBrowser(): Promise<TestBrowser> {
       if (rate > 1) await session.send('Emulation.setCPUThrottlingRate', { rate })
       return page
     },
-    grantPermissions: (permissions) => context.overridePermissions(fixtureOrigin, permissions),
+    async grantPermissions(permissions) {
+      await Promise.all([
+        context.overridePermissions(fixtureOrigin, permissions),
+        context.overridePermissions(designFixtureOrigin, permissions),
+      ])
+    },
     async close() {
       await context.close()
       await browser.disconnect()
@@ -275,6 +302,13 @@ export function pagePerTest(options: { permissions?: Permission[] } = {}): TestP
 }
 
 /** URL of a page in tests/fixtures on the shared fixture server. */
-export function fixtureUrl(file: string): string {
-  return `${rig().fixtureOrigin}${FIXTURES}/${file}`
+export function fixtureUrl(file: string, productMode?: 'design'): string {
+  const provided = rig()
+  const origin = productMode === 'design' ? provided.designFixtureOrigin : provided.fixtureOrigin
+  return `${origin}${FIXTURES}/${file}`
+}
+
+/** Explicit HTML editor build for tests that proxy a real backend. */
+export function serveDesignBuilt(proxy?: Record<string, ProxyOptions>): Promise<BuiltServer> {
+  return serveBuilt(proxy, rig().designBuiltDir)
 }

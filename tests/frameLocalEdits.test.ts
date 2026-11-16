@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Frame } from '../shared/types'
 
 declare global {
@@ -11,6 +12,7 @@ declare global {
 }
 
 describe.skipIf(!findBrowserPath())('local frame edits', () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   let saved: Frame

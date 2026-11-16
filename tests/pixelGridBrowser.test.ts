@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { ElementComment, Frame } from '../shared/types'
 
 /* The fixture's stage starts 40px down the page. At 800% the grid is fully on. */
@@ -67,6 +68,7 @@ function stackAt(page: Page, [x, y]: [number, number]) {
 }
 
 describe.skipIf(!findBrowserPath())('pixel grid', { timeout: 30_000 }, () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   const errors: string[] = []

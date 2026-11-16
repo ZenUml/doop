@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { pagePerTest, serveBuilt, type BuiltServer } from './browser'
+import { pagePerTest, serveDesignBuilt, type BuiltServer } from './browser'
 import { freePort, startServer, type Server } from './harness'
 
 describe.skipIf(!findBrowserPath())('page list controls and keyboard history', () => {
@@ -16,12 +16,12 @@ describe.skipIf(!findBrowserPath())('page list controls and keyboard history', (
     /* the web server needs the backend's port for its proxy and the backend needs its
        origin as BETTER_AUTH_URL, so the port is picked before either starts */
     const port = await freePort()
-    web = await serveBuilt({
+    web = await serveDesignBuilt({
       '/api': { target: `http://localhost:${port}` },
       '/ws': { target: `ws://localhost:${port}`, ws: true },
     })
     origin = web.origin
-    server = await startServer({ PORT: String(port), BETTER_AUTH_URL: origin })
+    server = await startServer({ DIAGRAMLY_PRODUCT: 'design', PORT: String(port), BETTER_AUTH_URL: origin })
   }, 60_000)
   beforeEach(async () => {
     page = await pages.open()

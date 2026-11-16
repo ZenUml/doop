@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Frame } from '../shared/types'
 
 declare global {
@@ -27,6 +28,7 @@ const HTML = `<html><head><style>body { margin: 0; padding: 20px }</style></head
 </body></html>`
 
 describe.skipIf(!findBrowserPath())('frame and element context menus', () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest({ permissions: ['clipboard-read', 'clipboard-write', 'clipboard-sanitized-write'] })
   let page: Page
   let saved: Frame

@@ -400,7 +400,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     )
     await page.click('[aria-label="Rectangle"]')
     await page.click('[title="Alice: Keep this"]')
-    const reply = 'textarea[placeholder="Reply… (@doop to ask the agent)"]'
+    const reply = 'textarea[placeholder="Reply… (@diagramly to ask the agent)"]'
     await page.waitForSelector(reply)
     await page.click(reply)
     await page.keyboard.type('Reply text')
@@ -579,7 +579,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     expect(Math.abs(Number(commentMoves[0]!.x) - 480)).toBeLessThan(2)
     expect(Math.abs(Number(commentMoves[0]!.y) - 80)).toBeLessThan(2)
     /* no thread opened from the release */
-    expect(await page.$('textarea[placeholder="Reply… (@doop to ask the agent)"]')).toBeNull()
+    expect(await page.$('textarea[placeholder="Reply… (@diagramly to ask the agent)"]')).toBeNull()
     /* the room says where it went: a canvas pin now */
     const onCanvas = {
       ...onElement,
@@ -629,7 +629,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
 
     /* a click still opens the thread, and Esc mid-drag puts the pin back without a move */
     await page.mouse.click(pin.x + pin.width / 2, pin.y + pin.height / 2)
-    await page.waitForSelector('textarea[placeholder="Reply… (@doop to ask the agent)"]')
+    await page.waitForSelector('textarea[placeholder="Reply… (@diagramly to ask the agent)"]')
     await page.keyboard.press('Escape')
     await page.mouse.move(pin.x + pin.width / 2, pin.y + pin.height / 2)
     await page.mouse.down()
@@ -643,9 +643,11 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     /* the cancelled gesture leaves nothing behind: the next click opens the
        thread, and Escape (no longer swallowed) closes it again */
     await page.mouse.click(pin.x + pin.width / 2, pin.y + pin.height / 2)
-    await page.waitForSelector('textarea[placeholder="Reply… (@doop to ask the agent)"]')
+    await page.waitForSelector('textarea[placeholder="Reply… (@diagramly to ask the agent)"]')
     await page.keyboard.press('Escape')
-    await page.waitForFunction(() => !document.querySelector('textarea[placeholder="Reply… (@doop to ask the agent)"]'))
+    await page.waitForFunction(
+      () => !document.querySelector('textarea[placeholder="Reply… (@diagramly to ask the agent)"]'),
+    )
 
     /* ⇧C mid-drag hides the pins, but the one in hand finishes its move and
        leaves no ghost behind; ⇧C again brings the pins back */

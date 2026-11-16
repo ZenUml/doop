@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Frame } from '../shared/types'
 
 /* the part of tests/fixtures/elementPanel.html's harness this suite drives */
@@ -16,6 +17,7 @@ type Harness = {
 /* The Prototype tab of the element panel writes interactions into the frame
    HTML through the ordinary save path, one undo step per change. */
 describe.skipIf(!findBrowserPath())('interactions panel', { timeout: 30_000 }, () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   let saved: Frame
