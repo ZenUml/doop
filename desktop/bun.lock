@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "doop-desktop",
+      "name": "diagramly-desktop",
       "devDependencies": {
         "@electron/universal": "3.0.6",
         "@tauri-apps/cli": "^2.9.0",

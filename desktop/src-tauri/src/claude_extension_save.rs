@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Url, WebviewWindow};
 
 fn bundle_path(resources: &Path) -> PathBuf {
-    resources.join("local-server/app/dist/claude-extension/doop.mcpb")
+    resources.join("local-server/app/dist/claude-extension/diagramly.mcpb")
 }
 
 #[tauri::command]
@@ -27,7 +27,7 @@ pub async fn claude_save_bundled_extension(
     }
     let Some(destination) = rfd::AsyncFileDialog::new()
         .set_title("Save Claude extension")
-        .set_file_name("doop.mcpb")
+        .set_file_name("diagramly.mcpb")
         .add_filter("Claude extension", &["mcpb"])
         .save_file()
         .await
@@ -48,7 +48,7 @@ mod tests {
     fn source_is_the_fixed_bundled_extension() {
         assert_eq!(
             bundle_path(Path::new("/app/Resources")),
-            PathBuf::from("/app/Resources/local-server/app/dist/claude-extension/doop.mcpb")
+            PathBuf::from("/app/Resources/local-server/app/dist/claude-extension/diagramly.mcpb")
         );
     }
     #[test]

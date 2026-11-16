@@ -1,4 +1,4 @@
-//! Register this Doop instance in the configuration shared by Codex clients.
+//! Register this Diagramly instance in the configuration shared by Codex clients.
 //! This only installs the MCP URL; Codex owns OAuth and its credentials.
 use std::fs;
 use std::io::{ErrorKind, Write};
@@ -28,7 +28,7 @@ fn mcp_url(mut page: Url) -> Result<String, String> {
         || !page.username().is_empty()
         || page.password().is_some()
     {
-        return Err("Open your Doop server before connecting Codex.".into());
+        return Err("Open your Diagramly server before connecting Codex.".into());
     }
     page.set_path("/mcp");
     page.set_query(None);
@@ -51,15 +51,15 @@ fn edit_config(text: &str, url: &str) -> Result<String, String> {
     let servers = document["mcp_servers"].as_table_like_mut().ok_or(
         "The mcp_servers setting in your Codex config must be a table. Fix it in Codex settings, then try again.",
     )?;
-    if let Some(existing) = servers.get_mut("doop") {
+    if let Some(existing) = servers.get_mut("diagramly") {
         let connection = existing.as_table_like_mut().ok_or(
-            "The doop entry in your Codex config is not a server. Rename or remove it in Codex settings, then try again.",
+            "The diagramly entry in your Codex config is not a server. Rename or remove it in Codex settings, then try again.",
         )?;
         if connection.get("url").and_then(Item::as_str) != Some(url)
             || connection.contains_key("command")
             || connection.contains_key("args")
         {
-            return Err("Codex already has a different doop connection. Rename or remove it in Codex settings, then try again. Your settings were not changed.".into());
+            return Err("Codex already has a different diagramly connection. Rename or remove it in Codex settings, then try again. Your settings were not changed.".into());
         }
         // Keep existing credentials, tool policies and custom timeouts.
         if connection.get("enabled").and_then(Item::as_bool) == Some(false) {
@@ -69,15 +69,15 @@ fn edit_config(text: &str, url: &str) -> Result<String, String> {
         }
     } else {
         // Inline mcp_servers tables need an inline value; ordinary tables can
-        // have the readable [mcp_servers.doop] child table.
+        // have the readable [mcp_servers.diagramly] child table.
         if inline {
             let mut entry = toml_edit::InlineTable::new();
             entry.insert("url", url.into());
-            servers.insert("doop", Item::Value(entry.into()));
+            servers.insert("diagramly", Item::Value(entry.into()));
         } else {
             let mut entry = Table::new();
             entry["url"] = value(url);
-            servers.insert("doop", Item::Table(entry));
+            servers.insert("diagramly", Item::Table(entry));
         }
     }
     Ok(document.to_string())
@@ -145,7 +145,7 @@ pub async fn codex_add_mcp(window: WebviewWindow) -> Result<(), String> {
     let url = mcp_url(
         window
             .url()
-            .map_err(|_| "Could not read the current Doop server.")?,
+            .map_err(|_| "Could not read the current Diagramly server.")?,
     )?;
     let home = window
         .path()
@@ -161,7 +161,7 @@ pub async fn codex_add_mcp(window: WebviewWindow) -> Result<(), String> {
 mod tests {
     use super::*;
 
-    const URL: &str = "https://doop.design/mcp";
+    const URL: &str = "https://diagramly.ai/mcp";
 
     #[test]
     fn preserves_settings_comments_and_other_servers_and_is_idempotent() {
@@ -169,7 +169,7 @@ mod tests {
         let after = edit_config(before, URL).unwrap();
         assert!(after.starts_with(before));
         assert_eq!(
-            after.parse::<DocumentMut>().unwrap()["mcp_servers"]["doop"]["url"].as_str(),
+            after.parse::<DocumentMut>().unwrap()["mcp_servers"]["diagramly"]["url"].as_str(),
             Some(URL)
         );
         assert_eq!(edit_config(&after, URL).unwrap(), after);
@@ -177,16 +177,16 @@ mod tests {
 
     #[test]
     fn keeps_existing_credentials_and_enables_same_server() {
-        let before = "[mcp_servers.doop]\nurl = 'https://doop.design/mcp'\nenabled = false\nbearer_token_env_var = 'DOOP_TOKEN'\n";
+        let before = "[mcp_servers.diagramly]\nurl = 'https://diagramly.ai/mcp'\nenabled = false\nbearer_token_env_var = 'DIAGRAMLY_TOKEN'\n";
         let after = edit_config(before, URL).unwrap();
         let parsed = after.parse::<DocumentMut>().unwrap();
         assert_eq!(
-            parsed["mcp_servers"]["doop"]["enabled"].as_bool(),
+            parsed["mcp_servers"]["diagramly"]["enabled"].as_bool(),
             Some(true)
         );
         assert_eq!(
-            parsed["mcp_servers"]["doop"]["bearer_token_env_var"].as_str(),
-            Some("DOOP_TOKEN")
+            parsed["mcp_servers"]["diagramly"]["bearer_token_env_var"].as_str(),
+            Some("DIAGRAMLY_TOKEN")
         );
     }
 
@@ -195,10 +195,10 @@ mod tests {
         for text in [
             "secret = invalid-secret",
             "mcp_servers = 3",
-            "[mcp_servers]\ndoop = 3",
-            "[mcp_servers.doop]\ncommand = 'something'",
-            "[mcp_servers.doop]\nurl = 'https://other.example/mcp'",
-            "[mcp_servers.doop]\nurl = 'https://doop.design/mcp'\ncommand = 'something'",
+            "[mcp_servers]\ndiagramly = 3",
+            "[mcp_servers.diagramly]\ncommand = 'something'",
+            "[mcp_servers.diagramly]\nurl = 'https://other.example/mcp'",
+            "[mcp_servers.diagramly]\nurl = 'https://diagramly.ai/mcp'\ncommand = 'something'",
         ] {
             let error = edit_config(text, URL).unwrap_err();
             assert!(!error.contains("invalid-secret"));
@@ -216,7 +216,7 @@ mod tests {
         ] {
             let after = edit_config(text, URL).unwrap();
             assert_eq!(
-                after.parse::<DocumentMut>().unwrap()["mcp_servers"]["doop"]["url"].as_str(),
+                after.parse::<DocumentMut>().unwrap()["mcp_servers"]["diagramly"]["url"].as_str(),
                 Some(URL)
             );
             assert_eq!(edit_config(&after, URL).unwrap(), after);
@@ -226,7 +226,7 @@ mod tests {
     #[test]
     fn derives_endpoint_from_the_webview_and_drops_page_parameters() {
         assert_eq!(
-            mcp_url(Url::parse("https://doop.design/c/123?token=secret#fragment").unwrap())
+            mcp_url(Url::parse("https://diagramly.ai/c/123?token=secret#fragment").unwrap())
                 .unwrap(),
             URL
         );
@@ -236,8 +236,8 @@ mod tests {
         );
         for invalid in [
             "file:///tmp/app",
-            "https://user:pass@doop.design",
-            "doop://connect/codex",
+            "https://user:pass@diagramly.ai",
+            "diagramly://connect/codex",
         ] {
             assert!(mcp_url(Url::parse(invalid).unwrap()).is_err());
         }

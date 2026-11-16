@@ -1,16 +1,16 @@
 //! Name and icon for an AppImage window. GNOME and KDE take both from the
 //! installed .desktop file whose name or StartupWMClass matches the window
-//! class (the binary name, `doop-desktop`), never from the window itself. The
+//! class (the binary name, `diagramly-desktop`), never from the window itself. The
 //! .deb and .rpm install one; an AppImage started from a download folder has
-//! none, so its window shows up as "doop-desktop" with a generic icon. The
-//! deep-link plugin's `doop-desktop-handler.desktop` does not match either.
+//! none, so its window shows up as "diagramly-desktop" with a generic icon. The
+//! deep-link plugin's `diagramly-desktop-handler.desktop` does not match either.
 //!
 //! So an AppImage writes an entry of its own, rewritten when the AppImage
-//! moved. It is named apart from the packages' `doop-desktop.desktop`, which a
+//! moved. It is named apart from the packages' `diagramly-desktop.desktop`, which a
 //! user entry of the same name would shadow, and the packaged app removes it:
 //! after switching from the AppImage to the .deb or .rpm, the menu must not
 //! keep launching a deleted AppImage. It cannot be NoDisplay: GNOME does not match windows to hidden
-//! entries, so doop also appears among the installed apps, as it does after an
+//! entries, so diagramly also appears among the installed apps, as it does after an
 //! AppImage manager integrates it. Its icon is a file in the app's data dir
 //! named by absolute path: an icon placed in the user's hicolor theme stays
 //! invisible wherever a stale icon-theme.cache sits beside it.
@@ -18,8 +18,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
 
-const WM_CLASS: &str = "doop-desktop";
-const ENTRY: &str = "doop-desktop-appimage.desktop";
+const WM_CLASS: &str = "diagramly-desktop";
+const ENTRY: &str = "diagramly-desktop-appimage.desktop";
 const ICON: &[u8] = include_bytes!("../icons/128x128@2x.png");
 
 pub fn integrate(app: &AppHandle) {
@@ -65,7 +65,7 @@ fn write(applications: &Path, app_data: &Path, appimage: &Path) -> std::io::Resu
 
 fn entry(appimage: &Path, icon: &Path) -> String {
     format!(
-        "[Desktop Entry]\nType=Application\nName=doop\nExec={}\nIcon={}\nStartupWMClass={WM_CLASS}\nTerminal=false\n",
+        "[Desktop Entry]\nType=Application\nName=diagramly\nExec={}\nIcon={}\nStartupWMClass={WM_CLASS}\nTerminal=false\n",
         escape_value(&exec_arg(appimage)),
         escape_value(&icon.to_string_lossy())
     )
@@ -111,12 +111,12 @@ mod tests {
     #[test]
     fn names_the_window_class_and_quotes_the_path() {
         let entry = entry(
-            Path::new("/home/a b/$x\"100%\\doop.AppImage"),
-            Path::new("/home/a b/.local/share/design.doop.desktop/icon.png"),
+            Path::new("/home/a b/$x\"100%\\diagramly.AppImage"),
+            Path::new("/home/a b/.local/share/ai.diagramly.desktop/icon.png"),
         );
-        assert!(entry.contains("Exec=\"/home/a b/\\\\$x\\\\\"100%%\\\\\\\\doop.AppImage\"\n"));
-        assert!(entry.contains("StartupWMClass=doop-desktop\n"));
-        assert!(entry.contains("Icon=/home/a b/.local/share/design.doop.desktop/icon.png\n"));
+        assert!(entry.contains("Exec=\"/home/a b/\\\\$x\\\\\"100%%\\\\\\\\diagramly.AppImage\"\n"));
+        assert!(entry.contains("StartupWMClass=diagramly-desktop\n"));
+        assert!(entry.contains("Icon=/home/a b/.local/share/ai.diagramly.desktop/icon.png\n"));
         assert!(!entry.contains("NoDisplay"));
     }
 
@@ -124,8 +124,8 @@ mod tests {
     fn writes_the_entry_and_icon_and_follows_a_moved_appimage() {
         let data = tempfile::tempdir().unwrap();
         let applications = data.path().join("applications");
-        let app_data = data.path().join("design.doop.desktop");
-        let appimage = Path::new("/opt/doop.AppImage");
+        let app_data = data.path().join("ai.diagramly.desktop");
+        let appimage = Path::new("/opt/diagramly.AppImage");
         write(&applications, &app_data, appimage).unwrap();
         let desktop = applications.join(ENTRY);
         let icon = app_data.join("icon.png");
@@ -135,7 +135,7 @@ mod tests {
         );
         assert_eq!(fs::read(&icon).unwrap(), ICON);
 
-        let moved = Path::new("/home/me/doop.AppImage");
+        let moved = Path::new("/home/me/diagramly.AppImage");
         write(&applications, &app_data, moved).unwrap();
         assert_eq!(fs::read_to_string(&desktop).unwrap(), entry(moved, &icon));
     }
@@ -147,10 +147,10 @@ mod tests {
         write(
             &applications,
             &data.path().join("app"),
-            Path::new("/opt/doop.AppImage"),
+            Path::new("/opt/diagramly.AppImage"),
         )
         .unwrap();
-        let packaged = applications.join("doop-desktop.desktop");
+        let packaged = applications.join("diagramly-desktop.desktop");
         fs::write(&packaged, "[Desktop Entry]\n").unwrap();
 
         remove(&applications);

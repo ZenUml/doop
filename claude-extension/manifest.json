@@ -1,14 +1,20 @@
 {
   "manifest_version": "0.3",
-  "name": "doop",
-  "display_name": "Doop",
+  "name": "diagramly",
+  "display_name": "Diagramly",
   "version": "0.1.0",
-  "description": "Design with Claude on a shared canvas. Create, edit and review designs together in real time.",
-  "author": { "name": "Doop", "url": "https://doop.design" },
-  "homepage": "https://doop.design",
-  "documentation": "https://github.com/kgoedecke/doop/tree/main/claude-extension",
-  "support": "https://github.com/kgoedecke/doop/issues",
-  "repository": { "type": "git", "url": "https://github.com/kgoedecke/doop" },
+  "description": "Create and revise editable diagrams with Claude and Diagramly Desktop.",
+  "author": {
+    "name": "Diagramly",
+    "url": "https://diagramly.ai"
+  },
+  "homepage": "https://diagramly.ai",
+  "documentation": "https://github.com/ZenUml/doop/tree/main/claude-extension",
+  "support": "https://github.com/ZenUml/doop/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZenUml/doop"
+  },
   "license": "AGPL-3.0-only",
   "icon": "icon.png",
   "server": {
@@ -24,23 +30,34 @@
         "--auth-timeout",
         "300",
         "--static-oauth-client-metadata",
-        "{\"client_name\":\"Doop for Claude Desktop\",\"client_uri\":\"https://doop.design\"}"
+        "{\"client_name\":\"Diagramly for Claude Desktop\",\"client_uri\":\"https://diagramly.ai\"}"
       ]
     }
   },
   "user_config": {
     "server_url": {
       "type": "string",
-      "title": "Doop server URL",
-      "description": "Keep this for Doop Cloud. For self-hosting, use your Doop server's URL followed by /mcp. HTTPS is required except on localhost.",
-      "default": "https://doop.design/mcp",
+      "title": "Diagramly server URL",
+      "description": "Paste the local MCP URL shown in Diagramly Desktop under Connect AI \u2192 Claude. This keeps Claude connected to the selected local library.",
       "required": true
     }
   },
   "compatibility": {
-    "platforms": ["darwin", "win32"],
-    "runtimes": { "node": ">=20.18.1" }
+    "platforms": [
+      "darwin",
+      "win32"
+    ],
+    "runtimes": {
+      "node": ">=20.18.1"
+    }
   },
   "tools_generated": true,
-  "keywords": ["design", "canvas", "html", "css", "multiplayer"]
+  "keywords": [
+    "diagramly",
+    "mermaid",
+    "zenuml",
+    "architecture",
+    "mcp",
+    "claude"
+  ]
 }

@@ -3,7 +3,7 @@
 # bundles CEF for one architecture at a time (its universal target lipo's the
 # helper but ships one architecture's framework), so this does what Electron
 # apps do: build the Chromium shell for Apple Silicon and for Intel, unsigned,
-# merge the two into one doop.app (scripts/universal-app.mjs), then sign it
+# merge the two into one Diagramly.app (scripts/universal-app.mjs), then sign it
 # inside out with the entitlements Chromium needs under the hardened runtime,
 # notarize it and pack the DMG and the updater package.
 #
@@ -11,8 +11,8 @@
 # signature when TAURI_SIGNING_PRIVATE_KEY is (required on a desktop-v* tag,
 # scripts/updater-config.sh), as with the WebKit build. Output keeps the paths
 # and names the WebKit universal build had:
-#   <target>/universal-apple-darwin/release/bundle/macos/doop.app[.tar.gz[.sig]]
-#   <target>/universal-apple-darwin/release/bundle/dmg/doop_<version>_universal.dmg
+#   <target>/universal-apple-darwin/release/bundle/macos/Diagramly.app[.tar.gz[.sig]]
+#   <target>/universal-apple-darwin/release/bundle/dmg/diagramly_<version>_universal.dmg
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -20,7 +20,7 @@ crate=src-tauri-chromium
 target_dir=${CARGO_TARGET_DIR:-$crate/target}
 version=$(jq -r .version "$crate/tauri.conf.json")
 bundle=$target_dir/universal-apple-darwin/release/bundle
-app=$bundle/macos/doop.app
+app=$bundle/macos/Diagramly.app
 
 # refuses a tag build without the updater key before an hour of compiling
 bash scripts/updater-config.sh >/dev/null
@@ -32,8 +32,8 @@ done
 rm -rf "$bundle"
 mkdir -p "$bundle/macos" "$bundle/dmg"
 bun scripts/universal-app.mjs \
-  "$target_dir/aarch64-apple-darwin/release/bundle/macos/doop.app" \
-  "$target_dir/x86_64-apple-darwin/release/bundle/macos/doop.app" \
+  "$target_dir/aarch64-apple-darwin/release/bundle/macos/Diagramly.app" \
+  "$target_dir/x86_64-apple-darwin/release/bundle/macos/Diagramly.app" \
   "$app"
 
 work=$(mktemp -d)
@@ -97,25 +97,25 @@ fi
 
 # the DMG the WebKit build made: its background, window and icon positions
 # (src-tauri-chromium/tauri.conf.json > bundle > macOS > dmg)
-dmg=$bundle/dmg/doop_${version}_universal.dmg
+dmg=$bundle/dmg/Diagramly_${version}_universal.dmg
 mkdir -p "$work/dmg"
-ditto "$app" "$work/dmg/doop.app"
+ditto "$app" "$work/dmg/Diagramly.app"
 create-dmg \
-  --volname doop \
+  --volname Diagramly \
   --background src-tauri/dmg/background.png \
   --window-size 660 400 \
-  --icon doop.app 180 170 \
+  --icon Diagramly.app 180 170 \
   --app-drop-link 480 170 \
-  --hide-extension doop.app \
+  --hide-extension Diagramly.app \
   "$dmg" "$work/dmg"
 if [ -n "${APPLE_SIGNING_IDENTITY:-}" ]; then
   codesign --force --timestamp ${keychain_args[@]+"${keychain_args[@]}"} --sign "$APPLE_SIGNING_IDENTITY" "$dmg"
 fi
 
-# the updater package: the app as a tar.gz with doop.app at its root, signed
+# the updater package: the app as a tar.gz with Diagramly.app at its root, signed
 # with the key whose public half is plugins.updater.pubkey
 if [ -n "${TAURI_SIGNING_PRIVATE_KEY:-}" ]; then
-  tar -czf "$app.tar.gz" -C "$bundle/macos" doop.app
+  tar -czf "$app.tar.gz" -C "$bundle/macos" Diagramly.app
   bunx tauri signer sign "$app.tar.gz"
 fi
 

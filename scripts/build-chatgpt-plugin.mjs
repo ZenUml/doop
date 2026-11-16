@@ -1,4 +1,4 @@
-/* Zips chatgpt-plugin/ (plugin.json, mcp.json, assets/) into chatgpt-plugin/dist/doop.zip,
+/* Zips chatgpt-plugin/ (plugin.json, mcp.json, assets/) into chatgpt-plugin/dist/diagramly.zip,
    the package the OpenAI Platform dashboard accepts. Validates the limits the
    dashboard enforces so a bad field fails here, not after the upload. */
 import { execFileSync } from 'node:child_process'
@@ -36,6 +36,6 @@ if (!/^https:\/\//.test(review.demo_recording_url)) {
 const dist = join(root, 'dist')
 rmSync(dist, { recursive: true, force: true })
 mkdirSync(dist)
-const out = join(dist, 'doop.zip')
+const out = join(dist, 'diagramly.zip')
 execFileSync('zip', ['-r', '-X', out, 'plugin.json', 'mcp.json', 'assets'], { cwd: root, stdio: 'inherit' })
 console.log(`✓ ${out}`)

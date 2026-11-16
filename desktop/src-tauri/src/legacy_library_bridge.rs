@@ -9,7 +9,7 @@ pub(crate) fn allowed_origin(label: &str, actual: &Url, expected: &Url) -> bool 
 
 pub fn marker(origin: &str) -> String {
     let origin = serde_json::to_string(origin).expect("valid origin string");
-    format!("if(window===window.top&&window.location.origin==={origin}){{window.__DOOP_LEGACY_LIBRARY__=true;}}")
+    format!("if(window===window.top&&window.location.origin==={origin}){{window.__DIAGRAMLY_LEGACY_LIBRARY__=true;}}")
 }
 
 static CHOOSING: AtomicBool = AtomicBool::new(false);

@@ -31,7 +31,7 @@ connection panel and update the extension settings.
 VITE_PRODUCT_MODE=diagramly bun run build:claude-extension
 ```
 
-The build writes `public/claude-extension/doop.mcpb` (the current shell's
+The build writes `public/claude-extension/diagramly.mcpb` (the current shell's
 compatibility filename), a ZIP containing the
 Diagramly manifest, these instructions, the app icon, license, and pinned
 `mcp-remote` proxy with its runtime dependencies and their licenses. The MCP
@@ -48,7 +48,7 @@ Before release, install the built file in Claude Desktop on macOS and Windows,
 complete browser sign-in, and create a diagram on a test document. Test again
 after restarting Claude and Diagramly Desktop.
 
-Source and support: [ZenUml/doop](https://github.com/ZenUml/doop).
+Source and support: [source repository](https://github.com/ZenUml/doop).
 
 Format: [MCP Bundles](https://github.com/modelcontextprotocol/mcpb).
 Proxy: [mcp-remote](https://github.com/punkpeye/mcp-remote).

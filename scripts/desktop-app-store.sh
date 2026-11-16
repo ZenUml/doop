@@ -58,7 +58,7 @@ const native = audit.native.map(entry => {
   if (!actual.startsWith(root + path.sep) || !fs.statSync(actual).isFile()) throw Error('Native audit path escapes the bundle');
   return actual;
 });
-for (const required of ['Contents/Resources/local-server/node', 'Contents/Helpers/DoopFrameSnapshot'])
+for (const required of ['Contents/Resources/local-server/node', 'Contents/Helpers/DiagramlyFrameSnapshot'])
   if (!audit.native.includes(required)) throw Error('Bundle audit did not inventory a required executable');
 fs.writeFileSync(file + '.native-list', native.map(file => file + '\0').join(''), {flag: 'wx'});
 NODE
@@ -155,7 +155,7 @@ NODE
   # runtime peers (React, pg, zod) are already explicit production dependencies.
   (cd "$STAGE" && bun install --production --omit peer --frozen-lockfile --ignore-scripts)
   ditto "$STAGE/node_modules" "$LOCAL/app/node_modules"
-  xcrun swiftc -O -parse-as-library -target "$(uname -m)-apple-macosx13.5" "$ROOT/desktop/scripts/FrameSnapshot.swift" -o "$APP/Contents/Helpers/DoopFrameSnapshot"
+  xcrun swiftc -O -parse-as-library -target "$(uname -m)-apple-macosx13.5" "$ROOT/desktop/scripts/FrameSnapshot.swift" -o "$APP/Contents/Helpers/DiagramlyFrameSnapshot"
   desktop_run_audit "$NODE_BINARY" "$ROOT/scripts/desktop-bundle-audit.mjs" "$APP" "$OUTPUT/provenance-before-signing.json"
   IDENTITY=-
   if [[ "$MODE" == --sign ]]; then

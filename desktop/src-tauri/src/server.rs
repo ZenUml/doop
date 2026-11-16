@@ -1,5 +1,5 @@
-//! Which Doop server the shell opens. Official builds open doop.design (or
-//! the `DOOP_APP_URL` they were built with); the sign-in screen's server
+//! Which Diagramly server the shell opens. Official builds open diagramly.ai (or
+//! the `DIAGRAMLY_APP_URL` they were built with); the sign-in screen's server
 //! settings (src/components/ServerSettings.tsx) let a person point the same
 //! build at a self-hosted instance instead, through `server_choose`.
 //!
@@ -19,9 +19,9 @@
 //!
 //! A server that never loads leaves no page to change it from. So at launch
 //! the shell checks a chosen server answers and, when it does not, asks in a
-//! native dialog whether to try again or go back to doop.design (every
+//! native dialog whether to try again or go back to diagramly.ai (every
 //! platform: Windows and Linux have no menu bar), and on macOS the app menu
-//! also has "Use doop.design…" while another server is chosen.
+//! also has "Use diagramly.ai…" while another server is chosen.
 use std::path::PathBuf;
 use std::sync::OnceLock;
 use std::time::Duration;
@@ -47,9 +47,9 @@ static ACTIVE: OnceLock<String> = OnceLock::new();
 pub fn default_url() -> String {
     let url = if cfg!(debug_assertions) {
         // A second worktree runs its dev pair on other ports (vite.config.ts);
-        // DOOP_DEV_URL points a dev shell at it. Keep tauri.conf.json's devUrl
+        // DIAGRAMLY_DEV_URL points a dev shell at it. Keep tauri.conf.json's devUrl
         // in step so IPC keeps treating the pages as local.
-        option_env!("DOOP_DEV_URL").unwrap_or("http://localhost:4300")
+        option_env!("DIAGRAMLY_DEV_URL").unwrap_or("http://localhost:4300")
     } else {
         crate::APP_URL
     };
@@ -117,9 +117,9 @@ fn save(app: &AppHandle, url: Option<&str>) -> Result<(), String> {
     }
 }
 
-/// A typed address as the origin it names: `doop.example.com`,
-/// `https://doop.example.com/c/abc` and `HTTPS://Doop.Example.com/` are all
-/// `https://doop.example.com`. Only a server it is safe to hand the shell's
+/// A typed address as the origin it names: `diagramly.example.com`,
+/// `https://diagramly.example.com/c/abc` and `HTTPS://Diagramly.Example.com/` are all
+/// `https://diagramly.example.com`. Only a server it is safe to hand the shell's
 /// IPC to: https, or http on this computer (see `secure`).
 pub fn normalize(input: &str) -> Result<String, String> {
     let origin = parse_origin(input)?;
@@ -154,7 +154,7 @@ fn secure(url: &Url) -> Result<(), String> {
 fn parse_origin(input: &str) -> Result<Url, String> {
     let input = input.trim();
     if input.is_empty() {
-        return Err("Enter the address of a Doop server.".into());
+        return Err("Enter the address of a Diagramly server.".into());
     }
     let with_scheme = if input.contains("://") {
         input.to_string()
@@ -174,7 +174,7 @@ fn parse_origin(input: &str) -> Result<Url, String> {
     Ok(url)
 }
 
-/// doop.design and www.doop.design are one server.
+/// diagramly.ai and www.diagramly.ai are one server.
 fn same_server(a: &str, b: &str) -> bool {
     let bare = |url: &str| url.trim_end_matches('/').replacen("://www.", "://", 1);
     bare(a) == bare(b)
@@ -194,7 +194,7 @@ pub fn app_hosts(server: &str) -> Vec<String> {
     hosts
 }
 
-/// The shell capability, granted to `server` instead of doop.design.
+/// The shell capability, granted to `server` instead of diagramly.ai.
 fn capability_for(server: &str) -> Result<String, String> {
     let mut capability: Value =
         serde_json::from_str(CAPABILITY).map_err(|error| error.to_string())?;
@@ -216,7 +216,7 @@ pub fn grant(app: &AppHandle) -> Result<(), String> {
         .map_err(|error| error.to_string())
 }
 
-/// Every Doop server answers this public route, so a typo or another site
+/// Every Diagramly server answers this public route, so a typo or another site
 /// is caught before the app restarts onto it. Resolves to the origin that
 /// answered: an address that redirects (http to https, the bare host to
 /// `www.`) is saved and granted as where the pages actually load, and that
@@ -226,7 +226,7 @@ async fn probe(server: &str) -> Result<String, String> {
         let _ = rustls::crypto::ring::default_provider().install_default();
     }
     let unreachable =
-        || format!("No Doop server answered at {server}. Check the address and try again.");
+        || format!("No Diagramly server answered at {server}. Check the address and try again.");
     let client = reqwest::Client::builder()
         .timeout(PROBE_TIMEOUT)
         .build()
@@ -283,7 +283,7 @@ async fn switch(app: &AppHandle, server: String) -> Result<bool, String> {
         dialog(
             app,
             &format!("Switch back to {}?", display(&server)),
-            "doop will restart and open it.",
+            "diagramly will restart and open it.",
         )
         .set_buttons(MessageButtons::OkCancelCustom(SWITCH.into(), CANCEL.into()))
         .show()
@@ -291,9 +291,9 @@ async fn switch(app: &AppHandle, server: String) -> Result<bool, String> {
     } else {
         dialog(
             app,
-            &format!("Connect doop to {}?", display(&server)),
+            &format!("Connect diagramly to {}?", display(&server)),
             &format!(
-                "doop will restart and open {server}.\n\nThe server you connect to can use this app's access to your computer: it can run Claude Code here, read fonts you pick and add itself to your Codex and Claude settings. Only connect to a server you trust."
+                "diagramly will restart and open {server}.\n\nThe server you connect to can use this app's access to your computer: it can run Claude Code here, read fonts you pick and add itself to your Codex and Claude settings. Only connect to a server you trust."
             ),
         )
         .set_level(MessageLevel::Warning)
@@ -436,12 +436,12 @@ mod tests {
     #[test]
     fn normalizes_typed_addresses_to_origins() {
         assert_eq!(
-            normalize("doop.example.com").unwrap(),
-            "https://doop.example.com"
+            normalize("diagramly.example.com").unwrap(),
+            "https://diagramly.example.com"
         );
         assert_eq!(
-            normalize(" HTTPS://Doop.Example.com/c/abc?x=1#y ").unwrap(),
-            "https://doop.example.com"
+            normalize(" HTTPS://Diagramly.Example.com/c/abc?x=1#y ").unwrap(),
+            "https://diagramly.example.com"
         );
         assert_eq!(
             normalize("http://localhost:4400/").unwrap(),
@@ -453,8 +453,8 @@ mod tests {
         );
         assert_eq!(normalize("http://[::1]:4400").unwrap(), "http://[::1]:4400");
         assert_eq!(
-            normalize("https://doop.example.com:443").unwrap(),
-            "https://doop.example.com"
+            normalize("https://diagramly.example.com:443").unwrap(),
+            "https://diagramly.example.com"
         );
     }
 
@@ -463,14 +463,14 @@ mod tests {
         assert!(normalize("").is_err());
         assert!(normalize("file:///etc/passwd").is_err());
         assert!(normalize("javascript://alert(1)").is_err());
-        assert!(normalize("https://user:pass@doop.example.com").is_err());
+        assert!(normalize("https://user:pass@diagramly.example.com").is_err());
         assert!(normalize("https://").is_err());
     }
 
     #[test]
     fn keeps_plain_http_to_this_computer() {
         for remote in [
-            "http://doop.example.com",
+            "http://diagramly.example.com",
             "http://192.168.1.20:4400",
             "http://localhost.example.com",
         ] {
@@ -506,57 +506,57 @@ mod tests {
 
     #[test]
     fn saves_the_origin_a_redirect_lands_on() {
-        let doop = serve(json_response(r#"{"defaultLocale":"en"}"#));
+        let diagramly = serve(json_response(r#"{"defaultLocale":"en"}"#));
         let redirect = serve(format!(
-            "HTTP/1.1 302 Found\r\nLocation: http://localhost:{doop}/api/locale-config\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+            "HTTP/1.1 302 Found\r\nLocation: http://localhost:{diagramly}/api/locale-config\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
         ));
         let answered =
             tauri::async_runtime::block_on(probe(&format!("http://127.0.0.1:{redirect}")));
-        assert_eq!(answered.unwrap(), format!("http://localhost:{doop}"));
+        assert_eq!(answered.unwrap(), format!("http://localhost:{diagramly}"));
     }
 
     #[test]
-    fn refuses_a_server_that_is_not_doop() {
+    fn refuses_a_server_that_is_not_diagramly() {
         let other = serve(json_response(r#"{"hello":"world"}"#));
         let answered = tauri::async_runtime::block_on(probe(&format!("http://127.0.0.1:{other}")));
-        assert!(answered.unwrap_err().contains("No Doop server answered"));
+        assert!(answered.unwrap_err().contains("No Diagramly server answered"));
     }
 
     #[test]
     fn www_and_bare_hosts_are_one_server() {
         assert!(same_server(
-            "https://www.doop.design",
-            "https://doop.design/"
+            "https://www.diagramly.ai",
+            "https://diagramly.ai/"
         ));
         assert!(!same_server(
-            "https://doop.example.com",
-            "https://doop.design"
+            "https://diagramly.example.com",
+            "https://diagramly.ai"
         ));
     }
 
     #[test]
     fn keeps_the_chosen_hosts_in_the_window() {
-        let hosts = app_hosts("https://doop.example.com");
-        assert!(hosts.contains(&"doop.example.com".to_string()));
-        assert!(hosts.contains(&"www.doop.example.com".to_string()));
+        let hosts = app_hosts("https://diagramly.example.com");
+        assert!(hosts.contains(&"diagramly.example.com".to_string()));
+        assert!(hosts.contains(&"www.diagramly.example.com".to_string()));
         assert!(hosts.contains(&"localhost".to_string()));
-        assert!(!hosts.contains(&"doop.design".to_string()));
+        assert!(!hosts.contains(&"diagramly.ai".to_string()));
     }
 
     #[test]
     fn grants_the_bundled_permissions_to_the_chosen_origin() {
         let capability: Value =
-            serde_json::from_str(&capability_for("https://doop.example.com").unwrap()).unwrap();
+            serde_json::from_str(&capability_for("https://diagramly.example.com").unwrap()).unwrap();
         let bundled: Value = serde_json::from_str(CAPABILITY).unwrap();
         assert_eq!(
             capability["remote"]["urls"],
-            json!(["https://doop.example.com"])
+            json!(["https://diagramly.example.com"])
         );
         assert_eq!(capability["permissions"], bundled["permissions"]);
         assert_eq!(capability["windows"], bundled["windows"]);
         assert_ne!(capability["identifier"], bundled["identifier"]);
         // the runtime accepts it as a capability file
-        assert!(capability_for("https://doop.example.com")
+        assert!(capability_for("https://diagramly.example.com")
             .unwrap()
             .parse::<tauri::utils::acl::capability::CapabilityFile>()
             .is_ok());
@@ -564,7 +564,7 @@ mod tests {
 
     #[test]
     fn reads_the_launch_dialog_by_its_buttons() {
-        let back = "Use doop.design";
+        let back = "Use diagramly.ai";
         let custom = |label: &str| MessageDialogResult::Custom(label.into());
         assert_eq!(launch_choice(&custom(RETRY), back), LaunchChoice::Retry);
         assert_eq!(

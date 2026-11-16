@@ -9,5 +9,5 @@ $ErrorActionPreference = 'Stop'
 & $env:SIGNTOOL_PATH sign /v /fd SHA256 `
   /tr http://timestamp.acs.microsoft.com /td SHA256 `
   /dlib $env:ARTIFACT_SIGNING_DLIB /dmdf $env:ARTIFACT_SIGNING_METADATA `
-  /d doop $File
+  /d diagramly $File
 exit $LASTEXITCODE

@@ -49,18 +49,13 @@ enum Trigger {
     Manual,
 }
 
-/// Official installers point at doop.design. Replacing a self-hosted shell
-/// with one would silently change its server, and a debug build would be
-/// replaced by a release. On macOS the feed names the Chromium build, so the
-/// WebKit app updates into it and the Chromium app keeps updating from it.
+/// No verified Diagramly update feed is configured yet.
 fn updates_enabled() -> bool {
-    // an app on its own bundled server is not the official one (spike)
-    !cfg!(debug_assertions)
-        && !crate::local_server::running()
-        && matches!(
-            crate::APP_URL.trim_end_matches('/'),
-            "https://doop.design" | "https://www.doop.design"
-        )
+    if crate::local_server::running() {
+        return false;
+    }
+    // A Diagramly update feed has not been published. Apple handles App Store updates.
+    false
 }
 
 pub fn start(app: &AppHandle) {
@@ -91,7 +86,10 @@ pub fn install_on_quit(app: &AppHandle) {
     let ready = state.ready.lock().ok().and_then(|mut ready| ready.take());
     if let Some((update, bytes)) = ready {
         if let Err(error) = update.install(&bytes) {
-            eprintln!("Installing doop {} on quit failed: {error}", update.version);
+            eprintln!(
+                "Installing diagramly {} on quit failed: {error}",
+                update.version
+            );
         }
     }
 }
@@ -110,7 +108,7 @@ async fn run(app: &AppHandle, trigger: Trigger) {
             dialog(
                 app,
                 "You’re up to date",
-                &format!("doop {current} is up to date."),
+                &format!("diagramly {current} is up to date."),
             )
             .show()
             .await;
@@ -192,15 +190,15 @@ async fn offer(app: &AppHandle, update: Update, bytes: Vec<u8>) {
         return;
     }
     let later = if cfg!(target_os = "macos") {
-        "\n\nChoose Later to install it when you quit doop."
+        "\n\nChoose Later to install it when you quit diagramly."
     } else {
         ""
     };
     let choice = dialog(
         app,
-        "A new version of doop is ready",
+        "A new version of diagramly is ready",
         &format!(
-            "doop {} is ready to install. You have {}.\n\nRestarting stops an agent run in progress.{later}",
+            "diagramly {} is ready to install. You have {}.\n\nRestarting stops an agent run in progress.{later}",
             update.version,
             app.package_info().version
         ),
@@ -234,11 +232,11 @@ async fn install(app: &AppHandle, update: Update, bytes: Vec<u8>) -> Result<(), 
     match update.install(&bytes) {
         Ok(()) => app.restart(),
         Err(error) => {
-            eprintln!("Installing doop {} failed: {error}", update.version);
+            eprintln!("Installing diagramly {} failed: {error}", update.version);
             dialog(
                 app,
                 "Couldn’t install the update",
-                "Download the latest doop from doop.design and install it over this version.",
+                "Automatic updates are not available for this build. Contact the app provider for an updated installer.",
             )
             .set_level(MessageLevel::Error)
             .show()
@@ -349,7 +347,7 @@ pub mod menu {
                 dialog(
                     &app,
                     "Custom desktop build",
-                    "This app connects to a custom Doop server or is a development build. Contact whoever provided this app for an updated desktop build.",
+                    "This app connects to a custom Diagramly server or is a development build. Contact whoever provided this app for an updated desktop build.",
                 )
                 .show()
                 .await;

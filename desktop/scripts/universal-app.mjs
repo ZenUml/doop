@@ -1,10 +1,10 @@
 // Merges the Apple Silicon and Intel builds of the Chromium shell into one
-// universal doop.app, the way Electron apps are made universal: the Tauri 3
+// universal Diagramly.app, the way Electron apps are made universal: the Tauri 3
 // CLI bundles CEF for one architecture at a time, so macos-universal.sh builds
 // both and this lipo's every Mach-O file together (@electron/universal),
 // requiring every other file to match.
 //
-//   bun scripts/universal-app.mjs <arm64 doop.app> <x64 doop.app> <out doop.app>
+//   bun scripts/universal-app.mjs <arm64 Diagramly.app> <x64 Diagramly.app> <out Diagramly.app>
 import { mkdir, rm } from 'node:fs/promises'
 import path from 'node:path'
 import { makeUniversalApp } from '@electron/universal'

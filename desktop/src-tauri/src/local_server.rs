@@ -68,7 +68,7 @@ pub fn start(app: &AppHandle) -> Option<String> {
             .env_clear()
             .env("PATH", "/usr/bin:/bin")
             .env("LANG", "en_US.UTF-8")
-            .env("DOOP_PRODUCT", "diagramly")
+            .env("DIAGRAMLY_PRODUCT", "diagramly")
             .env("DIAGRAMLY_ORIGIN", "https://diagramly.ai");
         if let Some(value) = home {
             command.env("HOME", value);
@@ -78,10 +78,10 @@ pub fn start(app: &AppHandle) -> Option<String> {
         }
     }
     #[cfg(feature = "app-store")]
-    command.env("DOOP_LEGACY_LIBRARY_MANIFEST", legacy_manifest);
-    let snapshot_helper = resources.parent()?.join("Helpers/DoopFrameSnapshot");
+    command.env("DIAGRAMLY_LEGACY_LIBRARY_MANIFEST", legacy_manifest);
+    let snapshot_helper = resources.parent()?.join("Helpers/DiagramlyFrameSnapshot");
     if snapshot_helper.is_file() {
-        command.env("DOOP_FRAME_SNAPSHOT_HELPER", snapshot_helper);
+        command.env("DIAGRAMLY_FRAME_SNAPSHOT_HELPER", snapshot_helper);
     }
     let child = command
         .arg("--import")
@@ -94,7 +94,7 @@ pub fn start(app: &AppHandle) -> Option<String> {
         .env("HOST", "127.0.0.1")
         .env("BETTER_AUTH_URL", &origin)
         .env("BETTER_AUTH_SECRET", secret(&data)?)
-        .env("DOOP_DATA_DIR", &data)
+        .env("DIAGRAMLY_DATA_DIR", &data)
         .stdin(Stdio::piped())
         .stdout(log.try_clone().ok()?)
         .stderr(log)

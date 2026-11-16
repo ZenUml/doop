@@ -1209,7 +1209,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "doop-desktop-chromium"
+name = "diagramly-desktop-chromium"
 version = "0.13.0"
 dependencies = [
  "block2",

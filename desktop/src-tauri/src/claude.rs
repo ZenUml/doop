@@ -134,12 +134,12 @@ struct ShellView {
     path: Option<OsString>,
 }
 
-const SHELL_BEGIN: &str = "__DOOP_SHELL_BEGIN__";
-const SHELL_PATH: &str = "__DOOP_SHELL_PATH__";
+const SHELL_BEGIN: &str = "__DIAGRAMLY_SHELL_BEGIN__";
+const SHELL_PATH: &str = "__DIAGRAMLY_SHELL_PATH__";
 /// Start-up files print what they like (a motd, a prompt theme's warning), so
 /// the answer comes after a marker and only that part is read.
 const SHELL_PROBE: &str =
-    "printf '\\n__DOOP_SHELL_BEGIN__\\n'; command -v claude; printf '\\n__DOOP_SHELL_PATH__%s\\n' \"$PATH\"";
+    "printf '\\n__DIAGRAMLY_SHELL_BEGIN__\\n'; command -v claude; printf '\\n__DIAGRAMLY_SHELL_PATH__%s\\n' \"$PATH\"";
 const SHELL_TIMEOUT: Duration = Duration::from_secs(5);
 
 static SHELL_VIEW: Mutex<Option<ShellView>> = Mutex::new(None);
@@ -189,7 +189,7 @@ fn probe_shell(shell: &Path, timeout: Duration) -> ShellView {
     static PROBES: AtomicUsize = AtomicUsize::new(0);
     let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_nanos());
     let file = std::env::temp_dir().join(format!(
-        "doop-shell-{}-{}-{nonce}.txt",
+        "diagramly-shell-{}-{}-{nonce}.txt",
         std::process::id(),
         PROBES.fetch_add(1, Ordering::SeqCst)
     ));
@@ -377,7 +377,7 @@ fn supported_command(app: &AppHandle) -> Result<Command, String> {
         return Ok(command_at(&claude));
     }
     let found = claude.version.map(version_text).unwrap_or_else(|| "an unknown version".into());
-    Err(format!("Claude Code {found} at {} is older than the {MIN_CLAUDE_VERSION_TEXT} Doop needs. Run `claude update`, then Refresh.", claude.path.display()))
+    Err(format!("Claude Code {found} at {} is older than the {MIN_CLAUDE_VERSION_TEXT} Diagramly needs. Run `claude update`, then Refresh.", claude.path.display()))
 }
 
 /// Piped, stdin-less, API-key-free, under the login shell's PATH when known
@@ -569,7 +569,7 @@ pub async fn claude_choose_cli(app: AppHandle) -> Result<bool, String> {
             return Err(format!("{} did not answer as Claude Code. Choose the claude executable.", path.display()));
         };
         if !supported(Some(version)) {
-            return Err(format!("Claude Code {} at {} is older than the {MIN_CLAUDE_VERSION_TEXT} Doop needs. Run `claude update`, or choose another.", version_text(version), path.display()));
+            return Err(format!("Claude Code {} at {} is older than the {MIN_CLAUDE_VERSION_TEXT} Diagramly needs. Run `claude update`, or choose another.", version_text(version), path.display()));
         }
         let path = path.to_str().ok_or("Choose a Claude Code whose path is valid UTF-8.")?;
         write_chosen(&chosen_file(&app)?, path).map_err(|e| e.to_string())?;
@@ -592,8 +592,8 @@ pub async fn claude_connect(app: AppHandle, user_id: String, enabled: bool) -> R
         if user_id.is_empty() || user_id.len() > 256 { return Err("Invalid account".into()); }
         let mut users = enabled_users(&app)?;
         if enabled && !users.contains(&user_id) {
-            let accepted = rfd::MessageDialog::new().set_title("Use local Claude for Doop?")
-                .set_description("Doop will run your installed Claude CLI on this computer for this Doop account's canvas tasks, using your Claude login and usage limits. Only Doop canvas tools are enabled. Tasks run while this desktop app is open.")
+            let accepted = rfd::MessageDialog::new().set_title("Use local Claude for Diagramly?")
+                .set_description("Diagramly will run your installed Claude CLI on this computer for this Diagramly account's canvas tasks, using your Claude login and usage limits. Only Diagramly canvas tools are enabled. Tasks run while this desktop app is open.")
                 .set_buttons(rfd::MessageButtons::OkCancel).show();
             if accepted != rfd::MessageDialogResult::Ok { return Err("Connection cancelled".into()); }
             users.insert(user_id);
@@ -779,7 +779,7 @@ fn run_cli(app: &AppHandle, job: &Value, cancel: Arc<AtomicBool>) -> Result<Valu
             options.mode(0o600);
         }
         // Server URL is compiled into the app; a web page cannot choose an arbitrary target.
-        let mcp = json!({"mcpServers":{"doop":{"type":"http", "url":format!("{}/local-agent/mcp/{}", crate::base_url(), id), "headers":{"Authorization":format!("Bearer {}", token)}}}});
+        let mcp = json!({"mcpServers":{"diagramly":{"type":"http", "url":format!("{}/local-agent/mcp/{}", crate::base_url(), id), "headers":{"Authorization":format!("Bearer {}", token)}}}});
         options
             .open(&config)
             .map_err(|e| e.to_string())?
@@ -804,7 +804,7 @@ fn run_cli(app: &AppHandle, job: &Value, cancel: Arc<AtomicBool>) -> Result<Valu
                 "--tools",
                 "",
                 "--allowedTools",
-                "mcp__doop__*",
+                "mcp__diagramly__*",
                 "--permission-mode",
                 "dontAsk",
                 "--disable-slash-commands",
@@ -873,7 +873,7 @@ mod tests {
     #[test]
     fn installer_does_not_execute_a_failed_download() {
         use std::os::unix::fs::PermissionsExt;
-        let dir = std::env::temp_dir().join(format!("doop-installer-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("diagramly-installer-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let curl = dir.join("curl");
         // Write a partial payload, then simulate a failed download. It must never run.
@@ -996,7 +996,7 @@ mod tests {
 
     #[test]
     fn a_pick_is_saved_whole_and_a_broken_one_is_no_pick() {
-        let dir = std::env::temp_dir().join(format!("doop-chosen-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("diagramly-chosen-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let file = dir.join("cli.json");
         assert_eq!(read_chosen(&file), None);
@@ -1012,7 +1012,7 @@ mod tests {
     #[test]
     fn the_probe_file_is_never_one_already_there() {
         use std::os::unix::fs::PermissionsExt;
-        let dir = std::env::temp_dir().join(format!("doop-private-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("diagramly-private-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let target = dir.join("victim");
         std::fs::write(&target, "keep").unwrap();
@@ -1043,7 +1043,7 @@ mod tests {
     #[test]
     fn asks_the_login_shell_and_runs_npm_installs_under_its_path() {
         use std::os::unix::fs::PermissionsExt;
-        let dir = std::env::temp_dir().join(format!("doop-shell-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("diagramly-shell-test-{}", std::process::id()));
         let bin = dir.join("bin");
         std::fs::create_dir_all(&bin).unwrap();
         let script = |path: &Path, body: &str| {
@@ -1051,8 +1051,8 @@ mod tests {
             std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o700)).unwrap();
         };
         // An npm install: a script whose interpreter only the shell's PATH has.
-        script(&bin.join("doop-test-node"), "#!/bin/sh\necho '2.1.300 (Claude Code)'\n");
-        script(&bin.join("claude"), "#!/usr/bin/env doop-test-node\n");
+        script(&bin.join("diagramly-test-node"), "#!/bin/sh\necho '2.1.300 (Claude Code)'\n");
+        script(&bin.join("claude"), "#!/usr/bin/env diagramly-test-node\n");
         // A shell whose start-up prints noise and extends PATH, as nvm does; its args are -l -i -c PROBE.
         let shell = dir.join("shell");
         script(&shell, &format!("#!/bin/sh\nprintf 'Last login: today'\nPATH='{}':$PATH\nexport PATH\neval \"$4\"\n", bin.display()));

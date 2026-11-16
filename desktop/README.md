@@ -1,40 +1,47 @@
-# doop desktop
+# Diagramly desktop
+
+> Diagramly uses the bundled local server in App Store builds. Other shells default
+> to `http://127.0.0.1:4300` and need a running server or an explicit
+> `DIAGRAMLY_APP_URL` at build time. No Diagramly cloud API or update feed is
+> published; automatic updater checks are disabled. Historical hosted deployment
+> and signing instructions below describe infrastructure that must be provisioned
+> before use. The App Store identity remains `com.zenuml.app` (ZenUML).
 
 A thin [Tauri](https://tauri.app) shell around the hosted app. It loads
-`https://doop.design` in a native window — there is no bundled frontend, so
+`https://diagramly.ai` in a native window — there is no bundled frontend, so
 every deploy is instantly "in" the desktop app and the binary only
 needs a new release when the shell itself changes (icon, menu, Tauri bump).
 
 The released installers (macOS DMG, Windows NSIS setup, and the Linux AppImage,
 .deb and .rpm) talk to the hosted
-service at doop.design. Self-hosting your own doop instance? The cog on the
+service at diagramly.ai. Self-hosting your own diagramly instance? The cog on the
 sign-in screen points the same app at it: the shell checks that the address
-answers as a Doop server (`/api/locale-config`, following redirects to where
+answers as a Diagramly server (`/api/locale-config`, following redirects to where
 the pages really load; https only, plain http only on this computer), asks for confirmation in a
 native dialog (the server gets the app's IPC, Claude Code included), saves it
 as `server.json` in the app's data directory and restarts onto it
 (`src-tauri/src/server.rs`). The server gets `capabilities/default.json` for
 its own origin at runtime. If a chosen server does not answer at launch, a
-native dialog offers Try Again or Use doop.design (on every platform), and on
-macOS the app menu has "Use doop.design…" while one is chosen. Shells advertise this with
-`__DOOP_SERVER_CHOOSE__`. Debug builds keep their pick in `server-dev.json`.
+native dialog offers Try Again or Use diagramly.ai (on every platform), and on
+macOS the app menu has "Use diagramly.ai…" while one is chosen. Shells advertise this with
+`__DIAGRAMLY_SERVER_CHOOSE__`. Debug builds keep their pick in `server-dev.json`.
 
 You can also build a shell that opens your instance by default, without
 patching anything:
 
 ```sh
-DOOP_APP_URL=https://doop.example.com bun run build
+DIAGRAMLY_APP_URL=https://diagramly.example.com bun run build
 ```
 
 The URL is baked in at compile time (`src-tauri/src/main.rs`); the in-shell
 navigation allowlist follows it automatically.
 
-Links outside doop.design open in the system browser (`src-tauri/src/main.rs`).
+Links outside diagramly.ai open in the system browser (`src-tauri/src/main.rs`).
 Google / Microsoft / SSO sign-in runs there too: identity providers refuse
 embedded webviews, so the page opens the provider in the browser and the
-finished sign-in returns through a `doop://auth?token=…` link (deep-link
+finished sign-in returns through a `diagramly://auth?token=…` link (deep-link
 plugin, scheme in `tauri.conf.json`) that the page redeems for a session — see
-`src/lib/desktopAuth.ts`. macOS only routes `doop://` to an installed bundle, so
+`src/lib/desktopAuth.ts`. macOS only routes `diagramly://` to an installed bundle, so
 `tauri dev` cannot receive it. To test locally, build a `.app` with
 `bunx tauri build --debug --bundles app` (a debug build still targets
 localhost:4300) and launch it. A built bundle treats localhost as a remote
@@ -42,19 +49,19 @@ origin, so temporarily add `http://localhost:4300` to `remote.urls` in
 `capabilities/default.json` for that test or the page gets no IPC (no events,
 no opener) — and take it out again before committing.
 When a deploy ships a new client bundle, long-running windows get a
-"doop was updated — Reload" toast on WebSocket reconnect (see `serverBuild`
+"diagramly was updated — Reload" toast on WebSocket reconnect (see `serverBuild`
 in the `init` message).
 
 ## Updates
 
 Official release builds update themselves through `tauri-plugin-updater`
 (`src-tauri/src/updates.rs`). Fifteen seconds after launch and then once a day
-the shell reads `https://doop.design/desktop/latest.json`, downloads a newer
+the shell reads `https://diagramly.ai/desktop/latest.json`, downloads a newer
 version in the background and asks to restart into it. **Later** keeps the
 download: macOS installs it when the app quits, Windows and Linux ask again at
-the next check. On macOS, **doop → Check for Updates…** runs the same check on demand
+the next check. On macOS, **diagramly → Check for Updates…** runs the same check on demand
 and also reports "up to date" and failures; Windows and Linux have no menu bar and rely
-on the scheduled checks. Debug builds and custom `DOOP_APP_URL` builds never
+on the scheduled checks. Debug builds and custom `DIAGRAMLY_APP_URL` builds never
 update (replacing a self-hosted shell with the official one would change its
 server).
 
@@ -63,16 +70,16 @@ The feed and its packages are produced by `desktop-release.yml`:
 - Both builds pass `scripts/updater-config.sh`'s override, which turns on
   `createUpdaterArtifacts` when the `TAURI_SIGNING_PRIVATE_KEY` /
   `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` secrets are set: macOS adds a signed
-  `doop.app.tar.gz`, Windows signs the NSIS installer itself (`.exe.sig`) and
+  `diagramly.app.tar.gz`, Windows signs the NSIS installer itself (`.exe.sig`) and
   Linux signs the AppImage, .deb and .rpm (`.sig` next to each). An installed
   Linux app updates in the format it was installed from: an AppImage rewrites
   itself, a .deb or .rpm reinstalls through `pkexec`. A
   `desktop-v*` tag fails without the key; other builds skip the packages.
-- The release job renames the macOS package to `doop_X.Y.Z_universal.app.tar.gz`,
+- The release job renames the macOS package to `diagramly_X.Y.Z_universal.app.tar.gz`,
   writes `latest.json` (the platform entries point at the tag's assets),
   attaches everything to the release and then copies `latest.json` onto the
   fixed `desktop-updates` prerelease (never mark it latest, never delete it).
-- `doop.design/desktop/latest.json` redirects there (the hosted deployment serves it),
+- `diagramly.ai/desktop/latest.json` redirects there (the hosted deployment serves it),
   so the feed can move without shipping a new shell.
 
 The key's public half is `plugins.updater.pubkey` in `tauri.conf.json`; the
@@ -80,7 +87,7 @@ plugin refuses any package that does not verify against it. Losing the private
 key means no installed app can be updated again without a manual reinstall, so
 it is backed up with the Apple signing material. Shells released before the
 updater (0.9.x and older) have none: their Check for Updates… reads the DMG
-redirect at `https://doop.design/download/mac`, so keep that route current
+redirect at `https://diagramly.ai/download/mac`, so keep that route current
 too.
 
 ## Develop
@@ -112,12 +119,12 @@ sudo dnf install webkit2gtk4.1-devel libappindicator-gtk3-devel librsvg2-devel o
 
 Connect AI → Claude → **Add to Claude** opens Claude Desktop's install prompt
 directly, without a save dialog or a file to locate. The page prepares the bundled
-extension with this Doop instance's `/mcp` URL; `claude_add_extension` stages it in
-Doop's cache and opens it with Claude (macOS) or the registered `.mcpb` handler
-(Windows). Claude asks the user to confirm installation, then Doop asks them to
+extension with this Diagramly instance's `/mcp` URL; `claude_add_extension` stages it in
+Diagramly's cache and opens it with Claude (macOS) or the registered `.mcpb` handler
+(Windows). Claude asks the user to confirm installation, then Diagramly asks them to
 approve the OAuth connection. Credentials are never included in this handoff.
 
-The native capability marker `__DOOP_CLAUDE_EXTENSION__` gates this flow so older
+The native capability marker `__DIAGRAMLY_CLAUDE_EXTENSION__` gates this flow so older
 shells do not invoke an unknown command. Public HTTPS servers also offer a prefilled
 online connector link; local servers require a connection from the user's computer.
 
@@ -126,10 +133,10 @@ online connector link; local servers require a connection from the user's comput
 Connect AI → Codex → **Add to Codex** registers this instance's `/mcp` URL in
 `~/.codex/config.toml`. ChatGPT desktop's Codex tab and Codex CLI share this config.
 No CLI installation, command execution, or file download is needed for registration.
-Open a new Codex chat afterwards and authenticate Doop through the client's MCP settings;
-CLI users can run `codex mcp login doop`. OAuth credentials remain managed by Codex.
+Open a new Codex chat afterwards and authenticate Diagramly through the client's MCP settings;
+CLI users can run `codex mcp login diagramly`. OAuth credentials remain managed by Codex.
 
-In a browser, **Open Doop Desktop** sends `doop://connect/codex?origin=…&canvas=…`.
+In a browser, **Open Diagramly Desktop** sends `diagramly://connect/codex?origin=…&canvas=…`.
 Both launch-time and running-app links open the Codex setup screen. The link only
 opens that screen: the user clicks **Add to Codex** inside the app to write config.
 The requesting origin must match the desktop server (the production www alias is
@@ -141,19 +148,19 @@ not subscribed to that canvas; the usual canvas Connect AI dialog keeps that sta
 
 The installer preserves comments and unrelated settings, keeps same-server credentials
 and tool policies, re-enables a disabled matching entry, and refuses to overwrite a
-different `doop` connection or malformed config. It writes atomically, follows existing
-config symlinks, and honors an existing absolute `CODEX_HOME` inherited by Doop Desktop.
+different `diagramly` connection or malformed config. It writes atomically, follows existing
+config symlinks, and honors an existing absolute `CODEX_HOME` inherited by Diagramly Desktop.
 Terminal-only environment overrides and WSL configs may differ from the desktop process;
 use manual setup in that environment when needed. No shell environment is imported.
 
-`__DOOP_CODEX_SETUP__` gates the native command. Older shells show an update hint and
+`__DIAGRAMLY_CODEX_SETUP__` gates the native command. Older shells show an update hint and
 manual commands. This requires a new desktop release as well as the hosted frontend.
 The separate ChatGPT browser setup remains manual and is labeled **Open ChatGPT setup**.
 
 Run `cargo test --locked` in `desktop/src-tauri` for config and filesystem tests.
 Frontend tests cover native success/error states, older shells, both deep-link delivery
 paths, server mismatches, and canvas context. Before releasing, smoke-test a packaged
-macOS and Windows app with a website handoff, approve Doop's OAuth in Codex, and start
+macOS and Windows app with a website handoff, approve Diagramly's OAuth in Codex, and start
 a fresh chat. WSL installation remains a manual CLI path.
 
 Reference: [OpenAI's MCP configuration docs](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
@@ -161,7 +168,7 @@ Reference: [OpenAI's MCP configuration docs](https://learn.chatgpt.com/docs/exte
 ## Fonts from this computer
 
 Settings → Fonts and Workspace → Fonts show **Add from this computer** in shells that set the
-`__DOOP_LOCAL_FONTS__` marker. `fonts_choose_local` opens the native file panel in the
+`__DIAGRAMLY_LOCAL_FONTS__` marker. `fonts_choose_local` opens the native file panel in the
 platform's fonts folder (`~/Library/Fonts` then `/Library/Fonts` on macOS, the per-user
 `Microsoft\Windows\Fonts` then `C:\Windows\Fonts`, `~/.local/share/fonts` and friends on Linux)
 and remembers the picked paths; `fonts_read_local` returns one picked file's bytes, once, and
@@ -173,15 +180,15 @@ file the person did not pick.
 
 ## Local Claude CLI
 
-Settings → Doop Agent includes **Claude Plan** in shells built with the
+Settings → Diagramly Agent includes **Claude Plan** in shells built with the
 local-runner capability. Install the native `claude` executable, sign in through
 `claude auth login` (or the row's **Sign in** button), then choose **Use instead**.
 No Claude Agent SDK is installed or used. The shell invokes `claude -p` directly
 and consumes newline-delimited JSON output.
 
-The first connection shows a native consent dialog. It allows this Doop account
+The first connection shows a native consent dialog. It allows this Diagramly account
 on this device to use the CLI's existing login for canvas tasks. Claude credentials
-stay in Claude's local credential storage; Doop never reads or uploads them. The
+stay in Claude's local credential storage; Diagramly never reads or uploads them. The
 runner excludes inherited API-key/provider overrides so it does not silently bill
 an API key. Claude's own login and usage limits determine account access.
 
@@ -206,10 +213,10 @@ an API key. Claude's own login and usage limits determine account access.
   Offline work stays queued with no automatic server fallback. Only one desktop
   claims a user's runs at a time. Closing/reloading during a run interrupts it;
   its lease expires and the card becomes retryable. Retry starts a fresh CLI run.
-- The native process receives only the current run's Doop MCP tools. Built-in
+- The native process receives only the current run's Diagramly MCP tools. Built-in
   shell/file tools, user/project settings, hooks and unrelated MCP servers are
   disabled. `--bare` is intentionally not used because it skips subscription auth.
-- **Stop task** cancels the local process; **Disconnect** disables Doop's local
+- **Stop task** cancels the local process; **Disconnect** disables Diagramly's local
   connection without signing the user out of Claude Code. Recent text output is
   visible in Settings; canvas tool activity appears through existing task/status
   events. The CLI also retains its normal local session history.
@@ -240,11 +247,11 @@ machine, which are older than the Mesa on current distros and make WebKitGTK abo
 with `EGL_BAD_PARAMETER` (an empty window).
 
 An AppImage started from a download folder has no installed `.desktop` file, so
-GNOME and KDE would show its window as "doop-desktop" with a generic icon. On
-launch it writes `~/.local/share/applications/doop-desktop-appimage.desktop`
+GNOME and KDE would show its window as "diagramly-desktop" with a generic icon. On
+launch it writes `~/.local/share/applications/diagramly-desktop-appimage.desktop`
 (pointing at the AppImage, rewritten when it moves) and the icon into the app's
 data dir (`src-tauri/src/appimage.rs`); the .deb and .rpm install their own
-`doop-desktop.desktop` and remove the AppImage's entry when they launch.
+`diagramly-desktop.desktop` and remove the AppImage's entry when they launch.
 
 ## Chromium shell (the macOS app)
 
@@ -283,11 +290,11 @@ notarized and packed (`brew install create-dmg` to run it locally).
 
 ### Replacing the WebKit app
 
-The Chromium app is `doop` (`design.doop.desktop`) with the executable
-`doop-desktop`, exactly as the WebKit app was: the updater swaps the bundle in
+The Chromium app is `diagramly` (`ai.diagramly.desktop`) with the executable
+`diagramly-desktop`, exactly as the WebKit app was: the updater swaps the bundle in
 place and relaunches it by the old executable's path, and macOS keeps the
 app's permissions and keychain items. Chromium keeps its profile in
-`~/Library/Application Support/design.doop.desktop/cef` (debug builds use
+`~/Library/Application Support/ai.diagramly.desktop/cef` (debug builds use
 `cef-dev`, since they encrypt cookies with a mock keychain).
 
 On its first launch the app opens hidden on the app origin's `/favicon.ico`
@@ -307,10 +314,10 @@ without migrating and leaves the next launch to try again.
 To test it on a machine with the WebKit app installed: quit the WebKit app
 (both share the bundle id, so a running one takes the launch over), build
 the Chromium app against the same server, and launch it. Delete
-`~/Library/Application Support/design.doop.desktop/cef` (`cef-dev` for a
+`~/Library/Application Support/ai.diagramly.desktop/cef` (`cef-dev` for a
 debug build) to run the migration again.
 
-`DOOP_CEF_DEBUG_PORT=9333 bun run dev:chromium` opens Chrome's remote
+`DIAGRAMLY_CEF_DEBUG_PORT=9333 bun run dev:chromium` opens Chrome's remote
 debugging on that port in a debug build (never in a release), for
 `chrome://inspect` or a CDP client such as Playwright's `connectOverCDP`.
 
@@ -373,7 +380,7 @@ of them is left unsigned.
 What Azure holds (subscription "Azure subscription 1", resource group
 `ResourceGroup`):
 
-- Artifact Signing account `Doop` (East US, `https://eus.codesigning.azure.net`)
+- Artifact Signing account `Diagramly` (East US, `https://eus.codesigning.azure.net`)
   with the public-trust certificate profile `doop-public`, issued from the
   individual identity validation (it expires 2027-10-30; renew it in the
   portal before then).
@@ -411,7 +418,7 @@ Signing from another repo means adding a federated credential for that repo's
    gh secret set APPLE_TEAM_ID   # 10-char team id from the developer portal
    ```
 4. Tag a release. Tauri signs and notarizes during the build; the resulting
-   DMG opens with no warnings and can be linked from doop.design.
+   DMG opens with no warnings and can be linked from diagramly.ai.
 
 ## DMG background
 
@@ -440,8 +447,8 @@ pixelated on high-DPI screens. The rest of the sizes serve the `.exe` and shortc
 
 ```sh
 sizes="256 128 64 48 40 32 24 20 16"
-for s in $sizes; do magick app-icon.png -filter Lanczos -resize ${s}x${s} -strip PNG32:/tmp/doop-$s.png; done
-magick $(for s in $sizes; do echo /tmp/doop-$s.png; done) src-tauri/icons/icon.ico
+for s in $sizes; do magick app-icon.png -filter Lanczos -resize ${s}x${s} -strip PNG32:/tmp/diagramly-$s.png; done
+magick $(for s in $sizes; do echo /tmp/diagramly-$s.png; done) src-tauri/icons/icon.ico
 ```
 
 ## ZenUML upgrade — Mac App Store profile
@@ -452,10 +459,10 @@ App Store ID `1602636196`, version `1.1.0` build `41` (previously `1.0.7` build 
 macOS 13.5+, system WebKit. Build with both `--no-default-features` and
 `--features app-store`; the build rejects the self-updater or Chromium profile.
 This profile runs only its packaged loopback server. A missing or failed server
-stops launch; it never falls back to doop.design. Apple delivers app updates.
+stops launch; it never falls back to diagramly.ai. Apple delivers app updates.
 The Claude installer, local CLI runner, extension installer, server switcher and
 updater IPC commands are omitted from this profile. The child receives a clean
-environment, `DOOP_PRODUCT=diagramly`, and the fixed cloud origin
+environment, `DIAGRAMLY_PRODUCT=diagramly`, and the fixed cloud origin
 `https://diagramly.ai`; inherited API keys and Node loader options are excluded.
 The frontend build also sets `VITE_PRODUCT_MODE=diagramly`. The native Codex
 configuration installer is disabled: the App Sandbox cannot write the real
@@ -501,7 +508,7 @@ a successful snapshot. Original browser databases are never opened by a database
 engine or upgraded in place.
 
 Native writes `legacy-library.json` and supplies its absolute path to Node through
-`DOOP_LEGACY_LIBRARY_MANIFEST`. A raw copy has status `preserved_needs_export`:
+`DIAGRAMLY_LEGACY_LIBRARY_MANIFEST`. A raw copy has status `preserved_needs_export`:
 **preserved is not imported or migrated**. The server must validate a complete,
 current-record export before offering import, and retain the snapshot for recovery.
 The manifest carries snapshot paths, file sizes/hashes and an optional validated
@@ -510,7 +517,7 @@ cloud credentials or document contents inline.
 
 If the old app used an unsandboxed folder, choose the original **ZenUML** folder
 using the native folder picker. The native bridge advertises
-`window.__DOOP_LEGACY_LIBRARY__` only in the main local page, and
+`window.__DIAGRAMLY_LEGACY_LIBRARY__` only in the main local page, and
 `legacy_library_choose` accepts no path supplied by JavaScript. The chooser is
 restricted to the main window's exact launch origin and the runtime permission.
 Keep the old app and backup until imported diagrams have been checked. The

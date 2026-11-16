@@ -823,6 +823,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "diagramly-desktop"
+version = "0.13.0"
+dependencies = [
+ "libc",
+ "objc2",
+ "objc2-app-kit",
+ "reqwest",
+ "rfd",
+ "rustls",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-deep-link",
+ "tauri-plugin-opener",
+ "tauri-plugin-single-instance",
+ "tauri-plugin-updater",
+ "tempfile",
+ "tokio",
+ "toml_edit 0.25.13+spec-1.1.0",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -930,30 +954,6 @@ dependencies = [
  "precomputed-hash",
  "selectors",
  "tendril",
-]
-
-[[package]]
-name = "doop-desktop"
-version = "0.13.0"
-dependencies = [
- "libc",
- "objc2",
- "objc2-app-kit",
- "reqwest",
- "rfd",
- "rustls",
- "serde",
- "serde_json",
- "sha2",
- "tauri",
- "tauri-build",
- "tauri-plugin-deep-link",
- "tauri-plugin-opener",
- "tauri-plugin-single-instance",
- "tauri-plugin-updater",
- "tempfile",
- "tokio",
- "toml_edit 0.25.13+spec-1.1.0",
 ]
 
 [[package]]

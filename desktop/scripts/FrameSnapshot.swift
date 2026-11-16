@@ -81,15 +81,15 @@ private final class Snapshot: NSObject, WKNavigationDelegate {
         if (diagram) {
             const root = document.documentElement;
             await new Promise(resolve => {
-                if (root.hasAttribute('data-doop-diagram-state')) return resolve();
+                if (root.hasAttribute('data-diagramly-diagram-state')) return resolve();
                 const observer = new MutationObserver(() => {
-                    if (!root.hasAttribute('data-doop-diagram-state')) return;
+                    if (!root.hasAttribute('data-diagramly-diagram-state')) return;
                     observer.disconnect();
                     resolve();
                 });
-                observer.observe(root, {attributeFilter: ['data-doop-diagram-state']});
+                observer.observe(root, {attributeFilter: ['data-diagramly-diagram-state']});
             });
-            if (root.getAttribute('data-doop-diagram-state') !== 'rendered') return false;
+            if (root.getAttribute('data-diagramly-diagram-state') !== 'rendered') return false;
         }
         await document.fonts.ready;
         return true;
@@ -99,8 +99,8 @@ private final class Snapshot: NSObject, WKNavigationDelegate {
         func snapshot(paper: String? = nil) async throws -> CGImage {
             if let paper {
                 _ = try await view.callAsyncJavaScript("""
-                let style = document.getElementById('doop-capture-paper');
-                if (!style) { style = document.createElement('style'); style.id = 'doop-capture-paper'; document.documentElement.append(style); }
+                let style = document.getElementById('diagramly-capture-paper');
+                if (!style) { style = document.createElement('style'); style.id = 'diagramly-capture-paper'; document.documentElement.append(style); }
                 style.textContent = `html,body{background:${paper}!important}.sequence-diagram{background:transparent!important}*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}`;
                 // Hidden windows may never receive animation frames. Force
                 // layout, then bound the two-frame wait before software capture.

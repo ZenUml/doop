@@ -66,7 +66,7 @@ await addFile(join(root, 'LICENSE'), 'LICENSE')
 const output = join(root, 'public/claude-extension')
 await mkdir(output, { recursive: true })
 await writeFile(
-  join(output, 'doop.mcpb'),
+  join(output, 'diagramly.mcpb'),
   await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', platform: 'UNIX' }),
 )
-console.log(`Built public/claude-extension/doop.mcpb (${packed.size} bundled packages)`)
+console.log(`Built public/claude-extension/diagramly.mcpb (${packed.size} bundled packages)`)
