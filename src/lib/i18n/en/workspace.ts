@@ -73,7 +73,7 @@ export const workspace = {
   billingDescription:
     'Team is billed per seat: every person in the workspace, monthly or yearly. Seats follow the people list — add someone and the next invoice grows, remove them and it shrinks.',
   billingDisabledDescription:
-    'Billing isn’t configured on this server. Workspaces are included on self-hosted doop; there is nothing to pay for here.',
+    'Billing isn’t configured on this server. Workspaces are included on self-hosted Diagramly; there is nothing to pay for here.',
   plan: 'Plan',
   planTeam: 'Team',
   planPersonal: 'Personal',
@@ -114,22 +114,22 @@ export const workspace = {
 
   /* Codex */
   codexManual: 'Run this in a terminal with Codex CLI installed:',
-  codexAdding: 'Adding Doop…',
+  codexAdding: 'Adding Diagramly…',
   codexAdded: 'Added to Codex',
   codexAdd: 'Add to Codex',
-  codexConfigured: 'Doop is configured. Open a new Codex chat, then sign in to Doop when prompted.',
-  codexUpdateDesktop: 'Update Doop Desktop to add Codex directly, or use the manual setup below.',
-  openDesktop: 'Open Doop Desktop',
+  codexConfigured: 'Diagramly is configured. Open a new Codex chat, then sign in to Diagramly when prompted.',
+  codexUpdateDesktop: 'Update Diagramly Desktop to add Codex directly, or use the manual setup below.',
+  openDesktop: 'Open Diagramly Desktop',
   codexNeedsDesktop:
-    'Requires the updated Doop desktop app. Click Add to Codex there to finish setup. If the app doesn’t open, use the manual setup below.',
+    'Requires the updated Diagramly desktop app. Click Add to Codex there to finish setup. If the app doesn’t open, use the manual setup below.',
 
   /* Claude Desktop */
   claudeOpening: 'Opening Claude…',
   claudeOpenAgain: 'Open Claude again',
   claudeAdd: 'Add to Claude',
   claudeNeedsDesktop:
-    'Open this server in an updated Doop desktop app to add Claude directly. In a browser, you can use the manual installation below.',
-  claudeConfirm: 'Confirm the installation in Claude, then approve the Doop sign-in.',
+    'Open this server in an updated Diagramly desktop app to add Claude directly. In a browser, you can use the manual installation below.',
+  claudeConfirm: 'Confirm the installation in Claude, then approve the Diagramly sign-in.',
   installManually: 'Install manually',
   downloadExtension: 'Download extension',
   claudeSaved: 'Extension saved. Open the saved file with Claude Desktop.',
@@ -144,5 +144,5 @@ export const workspace = {
   cursorHelpBefore: 'If Cursor does not open, open its',
   cursorHelpMiddle: 'panel and add a custom MCP server. Merge this',
   cursorHelpAfter:
-    'entry into your MCP configuration, keeping any existing servers. If Doop is already connected through a plugin, use that connection.',
+    'entry into your MCP configuration, keeping any existing servers. If Diagramly is already connected through a plugin, use that connection.',
 } as const

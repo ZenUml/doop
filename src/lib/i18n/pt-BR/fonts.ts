@@ -38,7 +38,7 @@ export const fonts: Catalog['fonts'] = {
   addLocal: 'Adicionar deste computador',
   addLocalTitle: { one: 'Adicionar {name} a esta biblioteca?', other: 'Adicionar {count} fontes deste computador?' },
   addLocalDescription:
-    'Todos que usam esta biblioteca recebem a fonte, e os frames que a usam a levam para capturas de tela e exportações. Fontes instaladas com o sistema operacional ou compradas para uma máquina costumam ser licenciadas só para o seu uso; verifique a licença da fonte antes de compartilhá-la aqui. O Doop não verifica licenças por você.',
+    'Todos que usam esta biblioteca recebem a fonte, e os frames que a usam a levam para capturas de tela e exportações. Fontes instaladas com o sistema operacional ou compradas para uma máquina costumam ser licenciadas só para o seu uso; verifique a licença da fonte antes de compartilhá-la aqui. O Diagramly não verifica licenças por você.',
   addLocalConfirm: 'Adicionar fontes',
   localSkipped: {
     one: '{names} não é um arquivo de fonte único (TTF, OTF, WOFF ou WOFF2) e ficou de fora.',

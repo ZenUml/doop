@@ -8,12 +8,12 @@ export const settings: Catalog['settings'] = {
   canvas: 'Canvas',
 
   generalTitle: 'Geral',
-  generalBlurb: 'Deixe o Doop do jeito que você gosta neste navegador.',
+  generalBlurb: 'Deixe o Diagramly do jeito que você gosta neste navegador.',
   homeDashboardTitle: 'Painel inicial',
   homeDashboardDescription: 'Escolha o que aparece no seu painel inicial neste navegador.',
   showPromptBox: 'Mostrar a caixa de prompt',
   showPromptBoxHint: 'Comece um design a partir de um prompt no painel inicial.',
-  agentTitle: 'Doop Agent',
+  agentTitle: 'Diagramly Agent',
   agentBlurb: 'Suas conexões, e a que o agente usa quando ninguém escolhe: comentários, @menções e automações.',
   fontsTitle: 'Fontes',
   fontsBlurb: 'Suas próprias fontes, para criar nos seus canvases pessoais.',
@@ -26,11 +26,11 @@ export const settings: Catalog['settings'] = {
   accountBlurb: 'Quem você é em cada canvas — e como voltar a entrar neste.',
   appearanceTitle: 'Aparência',
   appearanceBlurb:
-    'Como o Doop aparece neste navegador: claro ou escuro e como o editor do canvas organiza seus painéis.',
+    'Como o Diagramly aparece neste navegador: claro ou escuro e como o editor do canvas organiza seus painéis.',
 
-  freeTasksLeftLabel: 'Tarefas gratuitas restantes do Doop Agent',
+  freeTasksLeftLabel: 'Tarefas gratuitas restantes do Diagramly Agent',
   meterGeminiCloud: 'Piloto do Gemini na nuvem selecionado — conexão gerenciada pelo seu operador.',
-  meterNoFreeTasks: 'Este servidor não oferece tarefas gratuitas — conecte uma conta para usar o Doop Agent.',
+  meterNoFreeTasks: 'Este servidor não oferece tarefas gratuitas — conecte uma conta para usar o Diagramly Agent.',
   meterUsedUp: 'Suas tarefas gratuitas acabaram.',
   meterLeft: {
     one: '{left} de {count} tarefa gratuita restante.',
@@ -66,7 +66,7 @@ export const settings: Catalog['settings'] = {
 
   languageTitle: 'Idioma',
   languageDescription:
-    'O idioma em que as telas do Doop aparecem neste navegador. Enquanto você não escolher um, vale o padrão configurado neste servidor.',
+    'O idioma em que as telas do Diagramly aparecem neste navegador. Enquanto você não escolher um, vale o padrão configurado neste servidor.',
   languageRow: 'Idioma',
   languageAria: 'Idioma',
   languagePicked: 'Escolhido neste navegador.',

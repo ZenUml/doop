@@ -74,7 +74,7 @@ export const workspace: Catalog['workspace'] = {
   billingDescription:
     'O Team é cobrado por assento: cada pessoa no workspace, mensal ou anualmente. Os assentos acompanham a lista de pessoas — adicione alguém e a próxima fatura aumenta, remova e ela diminui.',
   billingDisabledDescription:
-    'A cobrança não está configurada neste servidor. Workspaces estão incluídos no doop auto-hospedado; não há nada a pagar aqui.',
+    'A cobrança não está configurada neste servidor. Workspaces estão incluídos no Diagramly auto-hospedado; não há nada a pagar aqui.',
   plan: 'Plano',
   planTeam: 'Team',
   planPersonal: 'Pessoal',
@@ -114,21 +114,23 @@ export const workspace: Catalog['workspace'] = {
   deleteConfirmDescription: 'Os canvases voltam aos donos e a assinatura termina agora. Isso não pode ser desfeito.',
 
   codexManual: 'Rode isto em um terminal com o Codex CLI instalado:',
-  codexAdding: 'Adicionando o Doop…',
+  codexAdding: 'Adicionando o Diagramly…',
   codexAdded: 'Adicionado ao Codex',
   codexAdd: 'Adicionar ao Codex',
-  codexConfigured: 'O Doop está configurado. Abra um novo chat do Codex e entre no Doop quando for solicitado.',
-  codexUpdateDesktop: 'Atualize o Doop Desktop para adicionar o Codex direto, ou use a configuração manual abaixo.',
-  openDesktop: 'Abrir o Doop Desktop',
+  codexConfigured:
+    'O Diagramly está configurado. Abra um novo chat do Codex e entre no Diagramly quando for solicitado.',
+  codexUpdateDesktop:
+    'Atualize o Diagramly Desktop para adicionar o Codex direto, ou use a configuração manual abaixo.',
+  openDesktop: 'Abrir o Diagramly Desktop',
   codexNeedsDesktop:
-    'Requer o app desktop do Doop atualizado. Clique em Adicionar ao Codex lá para concluir. Se o app não abrir, use a configuração manual abaixo.',
+    'Requer o app desktop do Diagramly atualizado. Clique em Adicionar ao Codex lá para concluir. Se o app não abrir, use a configuração manual abaixo.',
 
   claudeOpening: 'Abrindo o Claude…',
   claudeOpenAgain: 'Abrir o Claude de novo',
   claudeAdd: 'Adicionar ao Claude',
   claudeNeedsDesktop:
-    'Abra este servidor em um app desktop do Doop atualizado para adicionar o Claude direto. No navegador, você pode usar a instalação manual abaixo.',
-  claudeConfirm: 'Confirme a instalação no Claude e depois aprove o login no Doop.',
+    'Abra este servidor em um app desktop do Diagramly atualizado para adicionar o Claude direto. No navegador, você pode usar a instalação manual abaixo.',
+  claudeConfirm: 'Confirme a instalação no Claude e depois aprove o login no Diagramly.',
   installManually: 'Instalar manualmente',
   downloadExtension: 'Baixe a extensão',
   claudeSaved: 'Extensão salva. Abra o arquivo salvo com o Claude Desktop.',
@@ -142,5 +144,5 @@ export const workspace: Catalog['workspace'] = {
   cursorHelpBefore: 'Se o Cursor não abrir, abra o painel',
   cursorHelpMiddle: 'e adicione um servidor MCP personalizado. Mescle a entrada',
   cursorHelpAfter:
-    'na sua configuração MCP, mantendo os servidores existentes. Se o Doop já estiver conectado por um plugin, use essa conexão.',
+    'na sua configuração MCP, mantendo os servidores existentes. Se o Diagramly já estiver conectado por um plugin, use essa conexão.',
 }

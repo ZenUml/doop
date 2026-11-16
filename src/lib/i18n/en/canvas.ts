@@ -58,8 +58,8 @@ export const canvas = {
   linkCopied: 'Canvas link copied',
   itemsImported: { one: '{count} item imported', other: '{count} items imported' },
   importedWithFailures: '{imported} · {failed} failed',
-  cardsQueued: { one: '{count} card queued — Doop is on it', other: '{count} cards queued — Doop is on it' },
-  appUpdated: 'doop was updated',
+  cardsQueued: { one: '{count} card queued — Diagramly is on it', other: '{count} cards queued — Diagramly is on it' },
+  appUpdated: 'Diagramly was updated',
   reload: 'Reload',
 
   /* canvas not found */
@@ -89,8 +89,8 @@ export const canvas = {
   contactSupport: 'Contact support',
   youAre: 'You are “{name}” — click to change your name',
   changeDisplayName: 'Change your display name',
-  agents: 'Agents · ⌘/ to ask the Doop Agent',
-  agentsWorking: 'Agents · {working} working · ⌘/ to ask the Doop Agent',
+  agents: 'Agents · ⌘/ to ask the Diagramly Agent',
+  agentsWorking: 'Agents · {working} working · ⌘/ to ask the Diagramly Agent',
   comments: 'Comments',
   commentsOpen: 'Comments · {open} open',
   activity: 'Activity',
@@ -172,7 +172,7 @@ export const canvas = {
   repoTitle: 'Import the design system',
   repoFramework: 'A {framework} app.',
   repoLede:
-    "Doop distills the repo's design system into a style guide pinned to this canvas — every agent follows it from then on. Each component or page you pick becomes a card on the board: Doop sketches it from the source and lands it as a frame. Whole pages are optional.",
+    "Diagramly distills the repo's design system into a style guide pinned to this canvas — every agent follows it from then on. Each component or page you pick becomes a card on the board: Diagramly sketches it from the source and lands it as a frame. Whole pages are optional.",
   extractTitle: 'Extract the design system into a style guide',
   extractDescription:
     "Palette, type and spacing from the repo's theme — pinned to the canvas, followed by every agent.",
@@ -184,7 +184,7 @@ export const canvas = {
   hidePages: 'hide pages',
   showPages: { one: 'show {count} page (optional)', other: 'show {count} pages (optional)' },
   repoTruncated: 'The repository listing was cut short — very large repos show a subset.',
-  repoImporting: 'Doop is importing — the style guide and sketches fill in on the canvas…',
+  repoImporting: 'Diagramly is importing — the style guide and sketches fill in on the canvas…',
   repoImport: 'Import {items}',
   repoPieceSystem: 'design system',
   repoPieceComponents: { one: '{count} component', other: '{count} components' },
@@ -239,13 +239,13 @@ export const canvas = {
   syncStep3Title: 'Browse the app',
   syncStep3Detail: 'Every new screen someone visits lands as a frame. Delete a frame to re-import it fresh.',
   syncNote:
-    'Visible page content uploads to Doop as static HTML. Input values are dropped; mark anything sensitive with data-diagramly-mask.',
+    'Visible page content uploads to Diagramly as static HTML. Input values are dropped; mark anything sensitive with data-diagramly-mask.',
 
   /* import: GitHub */
   githubTitle: 'Connect a GitHub repo',
   githubForbidden: 'Repo connections are for canvas members — ask the owner for durable access.',
   githubLede:
-    'Doop reads the repo’s routing conventions and lists its screens for review. Nothing lands until you pick.',
+    'Diagramly reads the repo’s routing conventions and lists its screens for review. Nothing lands until you pick.',
   nothingImported: 'nothing imported yet',
   analyzing: 'Analyzing…',
   analyze: 'Analyze',

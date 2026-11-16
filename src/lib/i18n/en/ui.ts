@@ -3,7 +3,7 @@ export const ui = {
   confirm: 'Confirm',
   copyCode: 'copy',
   showSidebar: 'Show sidebar',
-  doopHome: 'Doop home',
+  doopHome: 'Diagramly home',
   setUpManually: 'Set up manually',
   selectedOf: '{count} of {total} selected',
 } as const
