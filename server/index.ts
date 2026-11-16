@@ -403,6 +403,14 @@ app.set('trust proxy', 1)
 
 app.get('/healthz', (_req, res) => res.json({ ok: true }))
 
+// This random per-launch marker is only a startup identity check, not an
+// authentication token. Hosted servers do not expose a desktop-ready marker.
+app.get('/healthz/desktop', (_req, res) => {
+  const token = env.DIAGRAMLY_DESKTOP_STARTUP_TOKEN
+  if (!token) return res.sendStatus(404)
+  res.set('Cache-Control', 'no-store').type('text/plain').send(token)
+})
+
 /* how many canvases have their frame HTML in memory (store.load / evictIdle) */
 app.get('/healthz/store', (_req, res) => {
   res.json(store.stats())

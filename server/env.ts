@@ -113,6 +113,7 @@ const schema = {
   DATABASE_URL: str({ default: undefined }),
   /* where the embedded database and uploaded assets live; unset = ./data under the
      working directory. A packaged desktop app runs from a read-only bundle and sets it (spike) */
+  DIAGRAMLY_DESKTOP_STARTUP_TOKEN: str({ default: undefined }),
   DIAGRAMLY_DATA_DIR: str({ default: undefined }),
   /* the interface to listen on; unset = all of them. A desktop app sets 127.0.0.1 (spike) */
   HOST: str({ default: undefined }),
