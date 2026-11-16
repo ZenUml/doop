@@ -95,7 +95,7 @@ const RENDERER_STYLE = /\\.zenuml\\b/
 let zenuml = null
 async function renderDiagram(mount, source) {
   zenuml = zenuml || new ZenUml(mount)
-  await zenuml.render(source, { theme: 'theme-default' })
+  await zenuml.render(source, { theme: 'theme-default', onContentChange: saveDiagramSource })
 }`,
   mermaid: `import mermaid from '${DIAGRAM_VENDOR_PATH}/mermaid/mermaid.esm.min.mjs'
 
@@ -158,6 +158,25 @@ runtime.dispose = () => {
 
 function current() {
   return !disposed && mount.isConnected && document.body.getAttribute('data-doop-diagram') === RENDERER_KIND
+}
+
+function saveDiagramSource(source) {
+  if (!current() || typeof source !== 'string') return
+  const holder = document.querySelector('[data-doop-diagram-source]')
+  if (!holder || holder.textContent === source) return
+  const pagesHolder = document.querySelector('[data-doop-diagram-pages]')
+  if (pagesHolder) {
+    const metadata = JSON.parse(pagesHolder.textContent)
+    const page = metadata.pages.find((page) => page.id === metadata.activePageId)
+    if (!page) return
+    page.source = source
+    pagesHolder.textContent = JSON.stringify(metadata)
+  }
+  // Native edits already updated the renderer; keep the observer from echoing
+  // the edit back into React while its contenteditable is committing.
+  shown = source
+  holder.textContent = source
+  document.dispatchEvent(new Event('doop:diagram-edited'))
 }
 
 async function sync() {
