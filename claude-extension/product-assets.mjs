@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises'
+import { URL } from 'node:url'
 
 const here = new URL('.', import.meta.url)
 
