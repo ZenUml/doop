@@ -97,7 +97,7 @@ describe('translateIn', () => {
       'diagramly://auth https://doop.design X-Diagramly-Signature @Doop',
     )
     expect(product.productCopy('Doop Desktop. doop. Doop.design')).toBe('Diagramly Desktop. Diagramly. Doop.design')
-    expect(i18n.translateIn('en', 'auth.openDoop')).toBe('Open Diagramly')
+    expect(i18n.translateIn('en', 'auth.openDiagramly')).toBe('Open Diagramly')
     expect(i18n.translateIn('en', 'auth.serverLede', { host: 'Doop user content' })).toContain('Doop user content')
     expect(i18n.translateIn('en', 'connect.cursorApproveBody')).toContain('the diagramly server')
     expect(i18n.translateIn('en', 'actions.newCanvas')).toBe('New document')
@@ -122,12 +122,12 @@ describe('locale', () => {
 
     i18n.setLocale('en')
     expect(i18n.getLocale()).toBe('en')
-    expect(store.get('doop-locale')).toBe('en')
+    expect(store.get('diagramly-locale')).toBe('en')
     expect(document.documentElement.lang).toBe('en')
   })
 
   it('does not ask the server when the browser already picked', async () => {
-    store.set('doop-locale', 'pt-BR')
+    store.set('diagramly-locale', 'pt-BR')
     serverSays({ defaultLocale: 'en' })
     await i18n.initLocale()
     expect(fetch).not.toHaveBeenCalled()

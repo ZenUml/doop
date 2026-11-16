@@ -333,7 +333,7 @@ function os2Table(m: FontMetrics): Uint8Array {
   w.u32(0)
   w.u32(0)
   w.u32(0)
-  w.tag('DOOP') /* vendor */
+  w.tag('DGML') /* vendor */
   w.u16((m.italic ? 1 : 0) | (m.bold ? 32 : 0) | (!m.bold && !m.italic ? 64 : 0))
   const codes = [...m.cmap.keys()].filter((c) => c <= 0xffff)
   w.u16(codes.length ? Math.min(...codes) : 0x20)

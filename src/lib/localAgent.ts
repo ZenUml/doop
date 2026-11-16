@@ -1,4 +1,3 @@
-import { productCopy } from './product'
 import { create } from 'zustand'
 import { api, ApiError } from './api'
 import { useStore } from './store'
@@ -36,7 +35,7 @@ export const canChooseClaude = () => bridge.__DIAGRAMLY_CLAUDE_CHOOSE__ === true
 
 export function invokeClaude<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   if (!hasLocalClaude() || !bridge.__TAURI__)
-    return Promise.reject(new Error(productCopy('Update the Doop desktop app to use local Claude.')))
+    return Promise.reject(new Error('Update the Diagramly desktop app to use local Claude.'))
   return bridge.__TAURI__.core.invoke<T>(command, args)
 }
 

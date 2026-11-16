@@ -61,6 +61,6 @@ it('does not call unknown IPC commands in older shells', async () => {
   const invoke = vi.fn()
   vi.stubGlobal('__TAURI__', { core: { invoke } })
   expect(canAddToCodex()).toBe(false)
-  await expect(addToCodex()).rejects.toThrow('Update Doop Desktop')
+  await expect(addToCodex()).rejects.toThrow('Update Diagramly Desktop')
   expect(invoke).not.toHaveBeenCalled()
 })

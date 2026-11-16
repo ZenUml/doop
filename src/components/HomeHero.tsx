@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { DRAFT_OPTIONS, DRAFTS_STORAGE_KEY, isDraftCount, readStoredDrafts, type DraftCount } from '../lib/homePrompt'
 import { setPromptBoxHidden, usePromptBoxHidden } from '../lib/homePreferences'
-import { DoopMark } from './Logo'
+import { DiagramlyMark } from './Logo'
 import { ModelPicker } from './ModelPicker'
 import { BrandMark } from './ui/brand-mark'
 import { IconButton } from './ui/icon-button'
@@ -114,7 +114,7 @@ export function HomeHero({
   /** a send in flight: the composer locks until the canvas opens */
   busy: boolean
   actions: HeroActions
-  /** a timestamp — the rail's "Ask Doop" and ⌘/ ask for the keyboard */
+  /** a timestamp — the rail's "Ask Diagramly" and ⌘/ ask for the keyboard */
   focusAt: number
 }) {
   const hidden = usePromptBoxHidden()
@@ -227,7 +227,7 @@ export function HomeHero({
 
       <div className="relative px-4 pt-10 text-center md:pt-14">
         <span className="mx-auto mb-4 block h-[52px] w-[40px] text-ink md:mb-5 md:h-[62px] md:w-[48px]">
-          <DoopMark animated size="fill" className="block" />
+          <DiagramlyMark animated size="fill" className="block" />
         </span>
         <h1 className="font-hero text-title font-light leading-none md:text-display">
           {t('home.greeting')}

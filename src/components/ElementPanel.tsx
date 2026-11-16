@@ -131,10 +131,10 @@ export function ElementPanel(props: {
   className?: string
   style?: CSSProperties
 }) {
-  return isDiagramly() ? null : <DoopElementPanel {...props} />
+  return isDiagramly() ? null : <HtmlElementPanel {...props} />
 }
 
-function DoopElementPanel({
+function HtmlElementPanel({
   frame,
   selector,
   surface = 'floating',

@@ -4,7 +4,7 @@ import { Slot } from '@radix-ui/react-slot'
 
 import { cn } from '@/lib/utils'
 
-/* Doop's button: a white surface drawn by a 1px shadow ring rather than a
+/* Diagramly's button: a white surface drawn by a 1px shadow ring rather than a
    border, with one black primary per screen. Pressing a control deepens its
    fill instead of sinking it. That restraint lives in the base and every
    variant only re-colours it. The border stays in the base (transparent) so

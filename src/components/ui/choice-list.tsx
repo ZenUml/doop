@@ -5,7 +5,7 @@ import { ChevronRightIcon } from './icons'
 import { Pressable } from './pressable'
 
 /* A short list of things to go to, one per row, laid out the way Settings →
-   Doop Agent lists its connections: one ringed panel, hairlines between the
+   Diagramly Agent lists its connections: one ringed panel, hairlines between the
    rows, each row an app icon, a name with a line under it, and a chevron.
    The import picker lists its sources with it and a frame's export its
    formats. */

@@ -125,7 +125,7 @@ export const KeyCaps: Story = {
       <span className="flex items-center gap-1">
         <Kbd>⌘</Kbd>
         <Kbd>/</Kbd>
-        <span className="ml-1.5">Ask Doop</span>
+        <span className="ml-1.5">Ask Diagramly</span>
       </span>
       <span className="flex items-center gap-1">
         <Kbd>Esc</Kbd>

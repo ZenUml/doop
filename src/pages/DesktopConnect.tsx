@@ -28,7 +28,7 @@ export function DesktopConnect() {
           <>
             <AuthCardText>{t('auth.desktopConnectBody')}</AuthCardText>
             <Button asChild className="mt-1">
-              <a href={link}>{t('auth.openDoop')}</a>
+              <a href={link}>{t('auth.openDiagramly')}</a>
             </Button>
           </>
         ) : (

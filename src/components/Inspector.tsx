@@ -43,10 +43,10 @@ function boxOf(frame: Frame): FrameBox {
 }
 
 export function Inspector(props: { frame: Frame; surface?: PanelSurface; className?: string; style?: CSSProperties }) {
-  return isDiagramly() ? <DiagramlyInspector {...props} /> : <DoopInspector {...props} />
+  return isDiagramly() ? <DiagramlyInspector {...props} /> : <HtmlInspector {...props} />
 }
 
-function DoopInspector({
+function HtmlInspector({
   frame,
   surface = 'floating',
   className,

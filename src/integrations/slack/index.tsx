@@ -50,7 +50,7 @@ function SlackSettingsCard({ status, busy, setBusy, requestDisconnect }: Setting
       name="Slack"
       detail={
         slack.connected
-          ? t('automations.doopAgentIn', { workspace: slack.workspaceName ?? t('automations.slackWorkspace') })
+          ? t('automations.diagramlyAgentIn', { workspace: slack.workspaceName ?? t('automations.slackWorkspace') })
           : t('automations.slackPitch')
       }
       connected={slack.connected}

@@ -37,7 +37,7 @@ export const Inputs: Story = {
 export const Wells: Story = {
   render: () => (
     <div className="flex max-w-[420px] flex-col gap-5">
-      <Input variant="well" placeholder="Invite by email (doop account)" aria-label="Invite by email" />
+      <Input variant="well" placeholder="Invite by email (Diagramly account)" aria-label="Invite by email" />
       <Input
         variant="well"
         inputSize="lg"

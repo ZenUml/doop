@@ -127,5 +127,5 @@ export const connect = {
   codexSetupTitle: 'Open the matching Diagramly server',
   codexSetupBody:
     'This setup link is for a different Diagramly server or is incomplete. Open Connect AI in the desktop app for that server, or use the manual Codex setup in your browser.',
-  backToDoop: 'Back to Diagramly',
+  backToDiagramly: 'Back to Diagramly',
 } as const

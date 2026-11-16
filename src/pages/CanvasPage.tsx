@@ -19,7 +19,7 @@ import {
   type SyncKeyInfo,
 } from '../lib/api'
 import { navigate } from '../App'
-import { DoopMark } from '../components/Logo'
+import { DiagramlyMark } from '../components/Logo'
 import {
   BarDivider,
   BarPill,
@@ -877,7 +877,7 @@ export function CanvasPage({
                 title={t('canvas.backToDocuments')}
                 onClick={() => navigate('/')}
               >
-                <DoopMark size={14} />
+                <DiagramlyMark size={14} />
               </Button>
             ) : (
               <MainMenu
@@ -889,7 +889,7 @@ export function CanvasPage({
                     aria-label={t('actions.mainMenu')}
                     title={t('actions.mainMenu')}
                   >
-                    <DoopMark size={14} />
+                    <DiagramlyMark size={14} />
                   </Button>
                 }
               />
@@ -1059,7 +1059,7 @@ export function CanvasPage({
                       setShowActivity(true)
                     }}
                   >
-                    <DoopMark size={12} /> {t('canvas.memorySuggestionReview')}
+                    <DiagramlyMark size={12} /> {t('canvas.memorySuggestionReview')}
                   </Button>
                   <Button
                     variant="bare"
@@ -2157,7 +2157,7 @@ function SyncKeysSection({ canvasId, onBack }: { canvasId: string; onBack: () =>
   )
 }
 
-/* GitHub as an import source: one click installs the doop GitHub App on the
+/* GitHub as an import source: one click installs the Diagramly GitHub App on the
    repos you pick and you land back here on a repo picker — no tokens to
    copy. Pasting a fine-grained PAT stays as the fallback when the app isn't
    configured (self-hosters) or someone prefers it. Credentials stay on the

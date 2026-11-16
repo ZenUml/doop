@@ -279,7 +279,7 @@ export function AuthPage({ initialMode }: { initialMode?: 'signin' | 'signup' } 
         /* Identity providers refuse embedded webviews, so the desktop shell
            signs in through the system browser and gets the session handed
            back over a diagramly:// link (src/lib/desktopAuth.ts). The browser
-           starts the provider round trip itself, from a doop page. */
+           starts the provider round trip itself, from a Diagramly page. */
         if (!(await beginBrowserSignIn(provider, ssoRedirects(provider)))) {
           setError(startFailed)
           return

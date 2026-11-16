@@ -13,7 +13,7 @@ import { getLocale, useT, type PlainMessageKey, type Translate } from '@/lib/i18
  * Pieces the Automations and Integrations pages share: the provider and
  * trigger marks and the run status dot. Controls come from `ui/` (Switch,
  * Select). The rail itself is the shell's AppRail. Visual reference: the
- * "Automations 0/1/5" frames on the Doop Dashboard canvas.
+ * "Automations 0/1/5" frames on the Diagramly Dashboard canvas.
  */
 
 /* ---- marks ---- */
@@ -32,7 +32,7 @@ export function ClockTile({ size = 24, className }: { size?: number; className?:
   )
 }
 
-/** Meta's mark on a paper tile — the provider's own identity, not a Doop role. */
+/** Meta's mark on a paper tile — the provider's own identity, not a Diagramly role. */
 export function MetaTile({ size = 24, className }: { size?: number; className?: string }) {
   const icon = Math.round(size * 0.58)
   return (

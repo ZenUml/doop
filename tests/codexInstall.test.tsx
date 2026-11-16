@@ -45,7 +45,7 @@ function native() {
 it('opens the desktop setup from the browser and keeps the manual command available', async () => {
   await mount()
   const link = Array.from(document.body.querySelectorAll('a')).find(
-    (a) => a.textContent?.trim() === 'Open Doop Desktop',
+    (a) => a.textContent?.trim() === 'Open Diagramly Desktop',
   )!
   expect(link.getAttribute('href')).toBe('diagramly://connect/codex?origin=https%3A%2F%2Fdoop.design&canvas=canvas-1')
   expect(document.querySelector('[data-slot="collapsible-trigger"]')?.getAttribute('aria-expanded')).toBe('false')
@@ -65,11 +65,11 @@ it('waits for successful native setup before displaying configured, without clai
   )
   await mount()
   await act(async () => button('Add to Codex')!.click())
-  expect(button('Adding Doop…')?.disabled).toBe(true)
-  expect(text()).not.toContain('Doop is configured')
+  expect(button('Adding Diagramly…')?.disabled).toBe(true)
+  expect(text()).not.toContain('Diagramly is configured')
   await act(async () => finish())
   expect(button('Added to Codex')?.disabled).toBe(true)
-  expect(text()).toContain('Doop is configured')
+  expect(text()).toContain('Diagramly is configured')
   expect(text()).toContain('Waiting for agent activity on this canvas')
   expect(mocks.invoke).toHaveBeenCalledExactlyOnceWith('codex_add_mcp')
 })
@@ -80,17 +80,17 @@ it('shows a native config conflict and permits retry', async () => {
   await mount()
   await act(async () => button('Add to Codex')!.click())
   expect(document.querySelector('[role="alert"]')?.textContent).toContain('different doop connection')
-  expect(text()).not.toContain('Doop is configured')
+  expect(text()).not.toContain('Diagramly is configured')
   mocks.invoke.mockResolvedValueOnce(undefined)
   await act(async () => button('Add to Codex')!.click())
   expect(document.querySelector('[role="alert"]')).toBeNull()
-  expect(text()).toContain('Doop is configured')
+  expect(text()).toContain('Diagramly is configured')
 })
 
 it('offers an update hint in older desktop shells instead of a broken command', async () => {
   vi.stubGlobal('__DIAGRAMLY_DESKTOP__', '0.3.0')
   await mount()
-  expect(text()).toContain('Update Doop Desktop')
+  expect(text()).toContain('Update Diagramly Desktop')
   expect(button('Add to Codex')).toBeUndefined()
   expect(document.querySelector('a[href^="diagramly:"]')).toBeNull()
   expect(mocks.invoke).not.toHaveBeenCalled()
@@ -104,7 +104,7 @@ it('opens a matching handoff as a review screen and requires a click to write co
   )
   await act(async () => root.render(<DesktopCodexSetup />))
   expect(button('Add to Codex')).toBeDefined()
-  expect(text()).toContain('Work on Doop canvas from-browser.')
+  expect(text()).toContain('Work on Diagramly canvas from-browser.')
   expect(text()).not.toContain('Waiting for agent activity')
   expect(mocks.invoke).not.toHaveBeenCalled()
   await act(async () => button('Done')!.click())
@@ -115,7 +115,7 @@ it('rejects a different server handoff without offering an installation button',
   native()
   vi.stubGlobal('location', new URL('https://doop.design/desktop/connect/codex?origin=http%3A%2F%2Flocalhost%3A4301'))
   await act(async () => root.render(<DesktopCodexSetup />))
-  expect(text()).toContain('Open the matching Doop server')
+  expect(text()).toContain('Open the matching Diagramly server')
   expect(button('Add to Codex')).toBeUndefined()
   expect(mocks.invoke).not.toHaveBeenCalled()
 })

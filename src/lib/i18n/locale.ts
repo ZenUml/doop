@@ -4,7 +4,7 @@ import { FALLBACK_LOCALE, isLocale, type Locale, type LocaleConfig } from '../..
 export { LOCALES, LOCALE_NAMES, isLocale, type Locale } from '../../../shared/locales'
 
 /* Per browser, not per account, like the theme: it is how this device reads. */
-export const LOCALE_STORAGE_KEY = 'doop-locale'
+export const LOCALE_STORAGE_KEY = 'diagramly-locale'
 
 /* A slow or unreachable server must not hold the first paint for long. */
 const CONFIG_TIMEOUT_MS = 1500

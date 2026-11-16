@@ -1,4 +1,3 @@
-import { productCopy } from './product'
 import { canUsePublicMcpEndpoint } from './mcpConnection'
 
 type ClaudeExtensionBridge = {
@@ -15,22 +14,21 @@ export function claudeConnectorInstallUrl(mcpUrl: string): string | null {
   if (!canUsePublicMcpEndpoint(mcpUrl)) return null
   const install = new URL('https://claude.ai/customize/connectors')
   install.searchParams.set('modal', 'add-custom-connector')
-  install.searchParams.set('connectorName', productCopy('Doop'))
+  install.searchParams.set('connectorName', 'Diagramly')
   install.searchParams.set('connectorUrl', new URL(mcpUrl).href)
   return install.href
 }
 
 export async function addToClaudeDesktop(mcpUrl: string): Promise<void> {
-  if (!canAddToClaudeDesktop()) throw new Error(productCopy('Update the Doop desktop app to add Claude directly.'))
+  if (!canAddToClaudeDesktop()) throw new Error('Update the Diagramly desktop app to add Claude directly.')
   const response = await fetch('/claude-extension/diagramly.mcpb')
   if (!response.ok) throw new Error('Could not prepare the Claude connection. Please try again.')
   const { default: JSZip } = await import('jszip')
   const bundle = await JSZip.loadAsync(await response.arrayBuffer())
   const manifestFile = bundle.file('manifest.json')
-  if (!manifestFile)
-    throw new Error(productCopy('The Claude extension is incomplete. Please try again after updating Doop.'))
+  if (!manifestFile) throw new Error('The Claude extension is incomplete. Please try again after updating Diagramly.')
   const manifest = JSON.parse(await manifestFile.async('string'))
-  // The native handoff is already specific to this Doop instance. Prefill its
+  // The native handoff is already specific to this Diagramly instance. Prefill its
   // URL so self-hosted and local users don't have to copy one into Claude.
   manifest.user_config.server_url.default = mcpUrl
   bundle.file('manifest.json', JSON.stringify(manifest, null, 2))

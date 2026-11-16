@@ -121,7 +121,7 @@ export const models = {
   pinAria: 'Pin a model id',
   pinPlaceholder: 'Pin a model id, e.g. claude-opus-5-20260901',
   pin: 'Pin',
-  updateDoop: 'Update Diagramly to connect Claude.',
+  updateDiagramly: 'Update Diagramly to connect Claude.',
   outdatedBefore: 'Claude Code {version} at ',
   outdatedMiddle: ' is older than the {min} Diagramly needs. Run ',
   outdatedAfter: ' in a terminal, or {fix}, then Refresh.',

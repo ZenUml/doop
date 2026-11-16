@@ -1,4 +1,4 @@
-/* Doop in the desktop shell (desktop/src-tauri). The shell is one webview
+/* Diagramly in the desktop shell (desktop/src-tauri). The shell is one webview
    with an overlay title bar; canvases open Figma-style in a tab strip the
    web app draws itself (src/components/DesktopTabs.tsx). Tabs are ordinary
    in-page navigations — this module only keeps the strip's state and the
@@ -208,7 +208,7 @@ async function completeBrowserSignIn(urls: readonly string[]) {
   if (!link) return
   /* the pending record outlives a verify that never got an answer (the
      request threw: offline, server restarting) so the person can click
-     "Open doop" in the browser again; it is cleared once the server has
+     "Open Diagramly" in the browser again; it is cleared once the server has
      ruled on the token, before the reload that follows either ruling */
   const res = await authClient.oneTimeToken.verify({ token: link.token })
   forgetPendingSignIn()
@@ -231,13 +231,13 @@ const connectsInFlight = new Set<string>()
  *  so the Integrations page reads the fresh status and shows the notice.
  *  Links answering no pending connection are ignored. If the request never
  *  got an answer (offline, server restarting) the pending record stays, so
- *  "Open doop" in the browser can deliver the link again. */
+ *  "Open Diagramly" in the browser can deliver the link again. */
 async function completeDesktopConnect(urls: readonly string[]) {
   const link = urls
     .map(parseDesktopConnectLink)
     .find((l) => l !== null && isPendingConnect(l.provider) && !connectsInFlight.has(l.provider))
   if (!link) return
-  /* a second "Open doop" during a slow exchange must not spend the
+  /* a second "Open Diagramly" during a slow exchange must not spend the
      single-use state twice and replace the success with an error */
   connectsInFlight.add(link.provider)
   let response: Response
@@ -272,7 +272,7 @@ function listenForDesktopLinks() {
   tauri?.event
     ?.listen?.<string[]>('deep-link://new-url', (e) => void handleDesktopLinks(e.payload).catch(console.error))
     .catch(console.error)
-  /* the link that launched the app: the person quit doop while the browser
+  /* the link that launched the app: the person quit Diagramly while the browser
      was still busy, and the callback relaunched it */
   tauri?.deepLink
     ?.getCurrent?.()

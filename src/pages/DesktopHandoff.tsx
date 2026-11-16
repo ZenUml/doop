@@ -46,7 +46,7 @@ export function DesktopHandoff() {
             <AuthCardText>{t('auth.desktopSendingBack')}</AuthCardText>
             {link && (
               <Button asChild className="mt-1">
-                <a href={link}>{t('auth.openDoop')}</a>
+                <a href={link}>{t('auth.openDiagramly')}</a>
               </Button>
             )}
           </>

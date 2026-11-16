@@ -1,7 +1,7 @@
 /**
- * Which Doop server the desktop shell opens (desktop/src-tauri/src/server.rs).
+ * Which Diagramly server the desktop shell opens (desktop/src-tauri/src/server.rs).
  * The sign-in screen's server settings read it with `server_status` and change
- * it with `server_choose`: the shell checks the address answers as a Doop
+ * it with `server_choose`: the shell checks the address answers as a Diagramly
  * server, asks the person in a native dialog, saves it and restarts onto it.
  * Shells advertise this with `__DIAGRAMLY_SERVER_CHOOSE__`; browsers and older
  * shells never see the settings.
@@ -26,7 +26,7 @@ export const canChooseServer = () => bridge.__DIAGRAMLY_SERVER_CHOOSE__ === true
 
 function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   const call = canChooseServer() ? bridge.__TAURI__?.core?.invoke : undefined
-  if (!call) return Promise.reject(new Error('Update the Doop desktop app to change its server.'))
+  if (!call) return Promise.reject(new Error('Update the Diagramly desktop app to change its server.'))
   return call<T>(command, args)
 }
 
@@ -36,7 +36,7 @@ export function serverStatus(): Promise<ServerStatus> {
 
 /** Resolves true when the app is restarting onto `url`, false when nothing
  *  changed (the same server, or the person cancelled the dialog). Rejects
- *  with the shell's reason: not an address, or no Doop server answered. */
+ *  with the shell's reason: not an address, or no Diagramly server answered. */
 export function chooseServer(url: string): Promise<boolean> {
   return invoke<boolean>('server_choose', { url })
 }
@@ -48,7 +48,7 @@ export function serverErrorMessage(error: unknown, fallback: string): string {
   return fallback
 }
 
-/** `https://doop.example.com` as `doop.example.com`. */
+/** `https://diagramly.example.com` as `diagramly.example.com`. */
 export function serverHost(url: string): string {
   try {
     return new URL(url).host

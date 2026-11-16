@@ -171,7 +171,7 @@ export interface RepoManifest {
 }
 
 /** An import queues board cards — nothing lands on the canvas until the
- *  Doop Agent finishes each one. `rejected` lists selections the server no
+ *  Diagramly Agent finishes each one. `rejected` lists selections the server no
  *  longer finds in the repo manifest. */
 export interface GithubImportResult {
   cards: string[]
@@ -189,13 +189,13 @@ export interface DiscoveredSite {
   truncated: boolean
 }
 
-/** The Doop Agent's free-task meter for the signed-in user. */
+/** The Diagramly Agent's free-task meter for the signed-in user. */
 export interface Allowance {
   used: number
   limit: number
   /** connected an agent of their own over MCP — unmetered */
   connected: boolean
-  /** connected a model account the Doop Agent itself can run on */
+  /** connected a model account the Diagramly Agent itself can run on */
   byoModel: boolean
   byoKind?: ModelAccountKind | 'claude-local' | 'gemini-cloud'
   byoEmail?: string

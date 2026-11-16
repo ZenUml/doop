@@ -1325,7 +1325,7 @@ function duration(t: Translate, ms: number): string {
 
 /* a role's one-liner in the app's language; the role's name is its identity */
 const ROLE_BLURB: Record<string, PlainMessageKey> = {
-  diagramly: 'automations.roleBlurbDoop',
+  diagramly: 'automations.roleBlurbDiagramly',
   ux: 'automations.roleBlurbUx',
   copy: 'automations.roleBlurbCopy',
   brand: 'automations.roleBlurbBrand',

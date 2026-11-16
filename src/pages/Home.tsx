@@ -104,7 +104,7 @@ export function Home() {
   /* a prompt or import on its way to a fresh canvas */
   const [starting, setStarting] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  /* the rail's "Ask Doop" and ⌘/ hand the keyboard to the composer */
+  /* the rail's "Ask Diagramly" and ⌘/ hand the keyboard to the composer */
   const [composerFocusAt, setComposerFocusAt] = useState(0)
   const { data: session } = authClient.useSession()
   const t = useT()

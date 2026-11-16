@@ -1,4 +1,3 @@
-import { productCopy } from './product'
 /**
  * Fonts from this computer, in the desktop shell: the shell opens the native
  * file panel in the fonts folder (desktop/src-tauri/src/fonts.rs), the page
@@ -35,7 +34,7 @@ export const canAddLocalFonts = () => bridge.__DIAGRAMLY_LOCAL_FONTS__ === true 
 
 function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   if (!canAddLocalFonts())
-    return Promise.reject(new Error(productCopy('Update the Doop desktop app to add fonts from this computer.')))
+    return Promise.reject(new Error('Update the Diagramly desktop app to add fonts from this computer.'))
   return bridge.__TAURI__!.core.invoke<T>(command, args)
 }
 

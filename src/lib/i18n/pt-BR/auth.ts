@@ -81,7 +81,7 @@ export const auth: Catalog['auth'] = {
   desktopSignedIn: 'Você entrou.',
   desktopHandoffFailed: 'Não foi possível passar o acesso para o app do Diagramly. Volte ao app e tente de novo.',
   desktopSendingBack: 'Levando você de volta ao app do Diagramly… Você pode fechar esta aba depois.',
-  openDoop: 'Abrir o Diagramly',
+  openDiagramly: 'Abrir o Diagramly',
   desktopConnectTitle: 'De volta ao app do Diagramly.',
   desktopConnectBody:
     'O Diagramly conclui a conexão no app, para a conta conectada lá. Você pode fechar esta aba depois.',

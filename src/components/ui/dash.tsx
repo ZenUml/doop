@@ -69,7 +69,7 @@ function DashSidebarBrand({
       {...props}
     >
       <IconButton
-        aria-label={t('ui.doopHome')}
+        aria-label={t('ui.diagramlyHome')}
         className="size-[26px] rounded-row hover:bg-transparent"
         onClick={onHome}
       >
@@ -226,7 +226,7 @@ function DashBrand() {
       </IconButton>
       <a
         href="/"
-        aria-label={t('ui.doopHome')}
+        aria-label={t('ui.diagramlyHome')}
         className="rounded-control focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
         onClick={(e) => {
           e.preventDefault()

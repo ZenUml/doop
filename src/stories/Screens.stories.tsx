@@ -36,7 +36,7 @@ export const SignedOutCard: Story = {
       <AuthScreen className="h-auto min-h-0">
         <AuthCard title="Something went wrong.">
           <Callout tone="error">
-            Could not hand the sign-in over to the doop app. Go back to the app and try again.
+            Could not hand the sign-in over to the Diagramly app. Go back to the app and try again.
           </Callout>
         </AuthCard>
       </AuthScreen>
@@ -60,7 +60,7 @@ export const Install: Story = {
       />
       <InstallBlock
         action={<Button variant="solid">Added to Codex</Button>}
-        status="Doop is configured. Open a new Codex chat, then sign in to Doop when prompted."
+        status="Diagramly is configured. Open a new Codex chat, then sign in to Diagramly when prompted."
         manual={<CodeBlock text="codex mcp add diagramly --url https://doop.design/mcp" />}
       />
       <InstallBlock

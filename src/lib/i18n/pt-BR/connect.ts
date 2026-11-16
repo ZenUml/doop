@@ -135,5 +135,5 @@ export const connect: Catalog['connect'] = {
   codexSetupTitle: 'Abra o servidor Diagramly correspondente',
   codexSetupBody:
     'Este link de configuração é de outro servidor Diagramly ou está incompleto. Abra o Connect AI no app desktop desse servidor, ou use a configuração manual do Codex no navegador.',
-  backToDoop: 'Voltar ao Diagramly',
+  backToDiagramly: 'Voltar ao Diagramly',
 }

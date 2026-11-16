@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
 
-/* Doop labels a control three ways, all sentence case in the UI sans: a quiet
+/* Diagramly labels a control three ways, all sentence case in the UI sans: a quiet
    caption over a field in a dense panel, the label step over a form row, or a
    bolder body line that heads a group. (The mono uppercase voice is retired.) */
 const labelVariants = cva('block text-ink-soft', {

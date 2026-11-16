@@ -1,10 +1,9 @@
-import { isDiagramly } from '../../lib/product'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 import { Logo } from '../Logo'
 
-/** Logo + "Doop", the lockup used in headers, the auth card and the footer. */
+/** Logo + "Diagramly", the lockup used in headers, the auth card and the footer. */
 function Wordmark({
   size = 'md',
   className,
@@ -22,7 +21,7 @@ function Wordmark({
       {...props}
     >
       <Logo className={size === 'sm' ? 'size-[26px]' : 'size-[30px]'} />
-      {children ?? (isDiagramly() ? 'Diagramly' : 'Doop')}
+      {children ?? 'Diagramly'}
     </span>
   )
 }

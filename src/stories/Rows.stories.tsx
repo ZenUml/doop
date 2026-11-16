@@ -52,7 +52,7 @@ export const People: Story = {
             <BuildingIcon width={14} height={14} aria-hidden />
           </span>
         }
-        name="Everyone in Doop"
+        name="Everyone in Diagramly"
         detail="12 people"
         trailing={<span className="text-label text-ink-faint">Can edit</span>}
       />
@@ -112,7 +112,7 @@ export const HowTo: Story = {
   render: () => (
     <Steps className="max-w-[420px]">
       <Step>Copy your frames below.</Step>
-      <Step>In Figma, run Plugins → “Doop — Editable import”.</Step>
+      <Step>In Figma, run Plugins → “Diagramly — Editable import”.</Step>
       <Step>Paste, then add to your current page.</Step>
     </Steps>
   ),

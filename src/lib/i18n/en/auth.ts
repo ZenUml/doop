@@ -83,7 +83,7 @@ export const auth = {
   desktopSignedIn: "You're signed in.",
   desktopHandoffFailed: 'Could not hand the sign-in over to the Diagramly app. Go back to the app and try again.',
   desktopSendingBack: 'Sending you back to the Diagramly app… You can close this tab afterwards.',
-  openDoop: 'Open Diagramly',
+  openDiagramly: 'Open Diagramly',
   desktopConnectTitle: 'Back to the Diagramly app.',
   desktopConnectBody:
     'Diagramly finishes connecting in the app, for the account signed in there. You can close this tab afterwards.',

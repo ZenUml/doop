@@ -9,7 +9,7 @@ it('uses Claude’s documented install link and preserves the exact server URL',
   const link = new URL(claudeConnectorInstallUrl(server)!)
   expect(link.origin + link.pathname).toBe('https://claude.ai/customize/connectors')
   expect(link.searchParams.get('connectorUrl')).toBe(server)
-  expect(link.searchParams.get('connectorName')).toBe('Doop')
+  expect(link.searchParams.get('connectorName')).toBe('Diagramly')
   expect(link.searchParams.get('modal')).toBe('add-custom-connector')
 })
 
@@ -81,6 +81,6 @@ it('keeps older shells from invoking an unavailable native command', async () =>
   vi.stubGlobal('__DIAGRAMLY_CLAUDE_EXTENSION__', undefined)
   const fetcher = vi.fn()
   vi.stubGlobal('fetch', fetcher)
-  await expect(addToClaudeDesktop('https://doop.design/mcp')).rejects.toThrow('Update the Doop desktop app')
+  await expect(addToClaudeDesktop('https://doop.design/mcp')).rejects.toThrow('Update the Diagramly desktop app')
   expect(fetcher).not.toHaveBeenCalled()
 })

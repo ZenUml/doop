@@ -1,11 +1,10 @@
-import { productCopy } from '../lib/product'
 import { Fragment, useState } from 'react'
 import { posthog } from '../lib/posthog'
 import { navigate } from '../App'
 import { cn } from '@/lib/utils'
 import { BrandMark, type Brand } from './ui/brand-mark'
 import { EffortSlider } from './ConnectionTable'
-import { DoopMark } from './Logo'
+import { DiagramlyMark } from './Logo'
 import { useAgentModels } from './ModelAccount'
 import { useAgentRunners, useRunnerPick } from '../lib/runnerPick'
 import { resolveRunnerPick, type AgentRunner, type RunnerOption, type RunnerProvider } from '../../shared/agentRunner'
@@ -85,7 +84,7 @@ export function ModelPicker({ disabled = false }: { disabled?: boolean }) {
   const modelsOf = (runner: AgentRunner): RunnerOption[] =>
     runner.provider === liveKind && catalog?.live ? catalog.models : runner.models
 
-  const label = resolved ? modelName(modelsOf(resolved.runner), resolved.pick.model ?? '') : productCopy('Doop Agent')
+  const label = resolved ? modelName(modelsOf(resolved.runner), resolved.pick.model ?? '') : 'Diagramly Agent'
   const mark = resolved ? PROVIDER_MARK[resolved.runner.provider] : undefined
   /* the effort reads after the model, lighter, as in Settings */
   const effortId = resolved?.pick.effort
@@ -124,7 +123,7 @@ export function ModelPicker({ disabled = false }: { disabled?: boolean }) {
                 <BrandMark brand={mark} size={12} />
               ) : (
                 /* no connection behind it: the agent's own mark */
-                <DoopMark size={11} className="block" />
+                <DiagramlyMark size={11} className="block" />
               )}
             </span>
           }

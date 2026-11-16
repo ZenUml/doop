@@ -27,9 +27,10 @@ export const Cards: Story = {
     <div className="flex max-w-[640px] flex-col gap-4">
       <Card>
         <CardHeader>
-          <CardTitle>Doop Agent</CardTitle>
+          <CardTitle>Diagramly Agent</CardTitle>
           <CardDescription>
-            Choose how the Doop Agent runs on your canvases: a connected model account or Claude CLI on your desktop.
+            Choose how the Diagramly Agent runs on your canvases: a connected model account or Claude CLI on your
+            desktop.
           </CardDescription>
         </CardHeader>
         <CardBody>
@@ -62,7 +63,7 @@ export const Settings: Story = {
         <CardRow
           label="Webhook URL"
           controlWidth="lg"
-          control={<Input placeholder="https://hooks.example.com/doop" />}
+          control={<Input placeholder="https://hooks.example.com/diagramly" />}
         />
         <CardRow label="Created">
           <span className="text-body text-ink-soft">2d ago</span>

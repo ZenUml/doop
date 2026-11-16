@@ -51,7 +51,7 @@ export const automations: Catalog['automations'] = {
   exampleNightlyPolishName: 'Acabamento noturno',
   exampleNightlyPolishBlurb: 'O Visual Polish arruma espaçamento e alinhamento toda noite.',
 
-  roleBlurbDoop: 'Designer generalista — faz a coisa acontecer',
+  roleBlurbDiagramly: 'Designer generalista — faz a coisa acontecer',
   roleBlurbUx: 'Fluxo, hierarquia, estados, affordances',
   roleBlurbCopy: 'Títulos, microtexto, rótulos, CTAs',
   roleBlurbBrand: 'Paleta, tipografia, logo, tom de voz',
@@ -202,7 +202,7 @@ export const automations: Catalog['automations'] = {
   linearConnectFailed: 'Não foi possível conectar o Linear.',
   linearKeyReplaced: 'Chave do Linear substituída.',
   linearConnected: 'Linear conectado.',
-  doopAgentIn: 'Agente do Diagramly · {workspace}',
+  diagramlyAgentIn: 'Agente do Diagramly · {workspace}',
   linearAccount: 'Conta do Linear',
   linearPitch: 'Delegue tickets ao agente de design do Diagramly',
   automaticPickup: 'Captura automática de design',

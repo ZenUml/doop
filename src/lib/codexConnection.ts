@@ -1,4 +1,3 @@
-import { productCopy } from './product'
 import { DESKTOP_SCHEME } from './desktopAuth'
 
 export const CODEX_SETUP_PATH = '/desktop/connect/codex'
@@ -13,7 +12,7 @@ export const canAddToCodex = () => bridge.__DIAGRAMLY_CODEX_SETUP__ === true && 
 
 export async function addToCodex(): Promise<void> {
   if (!canAddToCodex())
-    throw new Error(productCopy('Update Doop Desktop to add Codex directly, or use the manual setup below.'))
+    throw new Error('Update Diagramly Desktop to add Codex directly, or use the manual setup below.')
   // The native command derives /mcp from its own webview. Neither a website
   // handoff nor an IPC argument can select another server or a local command.
   await bridge.__TAURI__!.core!.invoke('codex_add_mcp')
@@ -43,7 +42,7 @@ export function codexDesktopLink(origin: string, canvasId?: string): string {
 }
 
 /** An external link only opens the setup screen. The user clicks Add to Codex
- * inside Doop before anything is written to their configuration. */
+ * inside Diagramly before anything is written to their configuration. */
 export function codexSetupTarget(link: string): string | null {
   try {
     const url = new URL(link)

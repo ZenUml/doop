@@ -63,7 +63,7 @@ function initialPane(): Pane {
 }
 
 /**
- * Account settings. Today it holds one thing — which model account the Doop
+ * Account settings. Today it holds one thing — which model account the Diagramly
  * Agent runs on once the free tasks are spent — but it is the account-level
  * home for that kind of setting, so the canvas surfaces can link here instead
  * of carrying their own copy of it.

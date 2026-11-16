@@ -1,4 +1,3 @@
-import { productCopy } from '../lib/product'
 import { useEffect, useState } from 'react'
 import {
   adminApi,
@@ -377,7 +376,7 @@ export function Admin() {
 
 type KindFilter = 'all' | AgentFeedbackKind
 
-/** What agents sent the Doop team: issues (report_issue) and ideas or praise
+/** What agents sent the Diagramly team: issues (report_issue) and ideas or praise
  *  (share_feedback). Search and the kind filter run on the server, so older
  *  reports stay findable; the list loads a page at a time. */
 function AgentFeedbackList({ q }: { q: string }) {
@@ -458,7 +457,7 @@ function FeedbackPages({
               <p className="mt-1.5 text-copy whitespace-pre-wrap text-ink">{f.message}</p>
               <MetaLine className="mt-1.5">
                 <span>{f.agentName ?? t('admin.unnamedAgent')}</span>
-                <span>{f.source === 'resident' ? productCopy('Doop Agent') : (f.client ?? 'MCP')}</span>
+                <span>{f.source === 'resident' ? 'Diagramly Agent' : (f.client ?? 'MCP')}</span>
                 {f.user && <span>{f.user.email}</span>}
                 {f.canvasId && <span className="font-mono">{f.canvasId}</span>}
                 <span>{timeAgo(f.at)}</span>

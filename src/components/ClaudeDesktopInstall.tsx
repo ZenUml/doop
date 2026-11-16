@@ -1,4 +1,3 @@
-import { productCopy } from '../lib/product'
 import { useState } from 'react'
 import { addToClaudeDesktop, canAddToClaudeDesktop } from '../lib/claudeConnection'
 import { posthog } from '../lib/posthog'
@@ -49,8 +48,8 @@ export function ClaudeDesktopInstall({ mcpUrl }: { mcpUrl: string }) {
           {t('workspace.downloadExtension')}
         </a>
       )}
-      {t('workspace.claudeManualOpen')} <strong>{productCopy('Doop server URL')}</strong>{' '}
-      {t('workspace.claudeManualTo')} <code className="break-all">{mcpUrl}</code>
+      {t('workspace.claudeManualOpen')} <strong>Diagramly server URL</strong> {t('workspace.claudeManualTo')}{' '}
+      <code className="break-all">{mcpUrl}</code>
       {t('workspace.claudeManualFallback')}{' '}
       <strong>Settings → Extensions → Advanced settings → Install Extension</strong>.
     </p>

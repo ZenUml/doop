@@ -55,7 +55,7 @@ export const automations = {
   exampleNightlyPolishBlurb: 'Visual Polish tidies spacing and alignment every evening.',
 
   /* agent roles' one-liners */
-  roleBlurbDoop: 'Generalist designer — makes the thing',
+  roleBlurbDiagramly: 'Generalist designer — makes the thing',
   roleBlurbUx: 'Flow, hierarchy, states, affordances',
   roleBlurbCopy: 'Headlines, microcopy, labels, CTAs',
   roleBlurbBrand: 'Palette, type, logo, tone of voice',
@@ -210,7 +210,7 @@ export const automations = {
   linearConnectFailed: 'Could not connect Linear.',
   linearKeyReplaced: 'Linear key replaced.',
   linearConnected: 'Linear connected.',
-  doopAgentIn: 'Diagramly agent · {workspace}',
+  diagramlyAgentIn: 'Diagramly agent · {workspace}',
   linearAccount: 'Linear account',
   linearPitch: 'Delegate tickets to the Diagramly design agent',
   automaticPickup: 'Automatic design pickup',

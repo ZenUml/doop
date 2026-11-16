@@ -1,4 +1,3 @@
-import { productCopy } from '../lib/product'
 import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { navigate } from '../App'
@@ -25,7 +24,7 @@ import { isDesktopShell } from '../lib/shell'
 /**
  * "Connect AI" is about agents that join the canvas from outside: Claude Code,
  * Codex, Cursor, the Claude or ChatGPT apps, or any MCP client. Pick the agent,
- * then follow its own three steps. Running the built-in Doop Agent on your own
+ * then follow its own three steps. Running the built-in Diagramly Agent on your own
  * ChatGPT or Claude plan is an account setting and lives in Settings, next to
  * the prompt bar's allowance meter — not here.
  */
@@ -40,7 +39,7 @@ type McpConnection = 'browser' | 'key'
 type AgentOption = {
   id: AgentId
   blurb: PlainMessageKey
-  /** its app icon, as Settings → Doop Agent shows the providers */
+  /** its app icon, as Settings → Diagramly Agent shows the providers */
   icon: AppIconBrand
 } & ({ name: string } | { nameKey: PlainMessageKey })
 
@@ -317,7 +316,7 @@ function agentSteps(
             body: (
               <>
                 {t('connect.chatgptAddBefore')}
-                <strong>{productCopy('Doop')}</strong>
+                <strong>Diagramly</strong>
                 {t('connect.chatgptAddDescribe')}
                 <strong>OAuth</strong>
                 {t('connect.chatgptAddReview')}
@@ -422,7 +421,7 @@ function AgentSteps({
      rest lives behind get_guide. The only thing this prompt knows that they don't is
      which canvas the human is looking at. */
   const prompt = canvasId
-    ? `${productCopy('Work on Doop canvas')} ${canvasId}. Start with get_guide({ topic: "design-instructions" }) and follow it.`
+    ? `Work on Diagramly canvas ${canvasId}. Start with get_guide({ topic: "design-instructions" }) and follow it.`
     : ''
   const [mcpConnection, setMcpConnection] = useState<McpConnection>('browser')
   /* a browser keeps these steps open beside the new tab; the desktop shell's

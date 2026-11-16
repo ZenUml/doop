@@ -4,7 +4,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../src/lib/api'
 import { LegacyZenUmlImport } from '../src/components/LegacyZenUmlImport'
-import { DoopMark } from '../src/components/Logo'
+import { DiagramlyMark } from '../src/components/Logo'
 import { Modal } from '../src/components/ui/modal'
 
 describe('LegacyZenUmlImport prepared preview', () => {
@@ -54,7 +54,7 @@ describe('LegacyZenUmlImport prepared preview', () => {
     await act(async () => {
       root.render(
         <>
-          <DoopMark size={14} />
+          <DiagramlyMark size={14} />
           <Modal onClose={() => {}}>
             <LegacyZenUmlImport
               initialItems={items}

@@ -257,7 +257,7 @@ export function LocalClaudeRow({ isDefault = false, onMakeDefault, onChange }: P
 
   const panel = (
     <div className="flex flex-col gap-[10px]">
-      {!supported && <p>{t('models.updateDoop')}</p>}
+      {!supported && <p>{t('models.updateDiagramly')}</p>}
       {supported && native?.installed && native.outdated && (
         <p>
           {t('models.outdatedBefore', { version: native.cliVersion ?? '' })}
@@ -269,7 +269,7 @@ export function LocalClaudeRow({ isDefault = false, onMakeDefault, onChange }: P
           })}
         </p>
       )}
-      {/* shown with no install found too: one Doop did not find can still be
+      {/* shown with no install found too: one Diagramly did not find can still be
           picked; once connected it lives in the Claude Code settings */}
       {!connected && cliChooser}
       {supported && native && !native.installed && (

@@ -123,7 +123,7 @@ export const models: Catalog['models'] = {
   pinAria: 'Fixar um id de modelo',
   pinPlaceholder: 'Fixe um id de modelo, ex.: claude-opus-5-20260901',
   pin: 'Fixar',
-  updateDoop: 'Atualize o Diagramly para conectar o Claude.',
+  updateDiagramly: 'Atualize o Diagramly para conectar o Claude.',
   outdatedBefore: 'O Claude Code {version} em ',
   outdatedMiddle: ' é mais antigo que a versão {min} de que o Diagramly precisa. Rode ',
   outdatedAfter: ' em um terminal, ou {fix}, e depois clique em Atualizar.',
