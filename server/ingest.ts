@@ -180,7 +180,7 @@ export function setIngestCors(res: express.Response) {
   res.set('Access-Control-Expose-Headers', 'X-Diagramly-Edges, X-Diagramly-Synced')
   res.set('Access-Control-Max-Age', '86400')
   /* Chrome Private Network Access: a page on a public origin posting to a
-     doop on localhost/an intranet host needs this opt-in on the preflight —
+     Diagramly on localhost/an intranet host needs this opt-in on the preflight —
      the local-testing and self-hosted cases. */
   res.set('Access-Control-Allow-Private-Network', 'true')
 }

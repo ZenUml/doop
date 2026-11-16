@@ -573,7 +573,7 @@ app.get('/bg/:file', async (req, res) => {
 /* ------------------------------------------------------------------ */
 /* One-time asset uploads: the upload_asset MCP tool mints a ticket and */
 /* the agent curls the file here (curl -T file /u/<token>), so bytes    */
-/* go disk -> doop without ever passing through the model. Mounted      */
+/* go disk -> Diagramly without ever passing through the model. Mounted      */
 /* before express.json — the body IS the file. The token is the         */
 /* capability: unguessable, single-use, 15-minute TTL.                  */
 /* ------------------------------------------------------------------ */
@@ -801,7 +801,7 @@ app.use('/api', async (req, res, next) => {
     if (!session) return res.status(401).json({ error: 'unauthorized' })
     req.user = session.user
     req.impersonatedBy = (session.session as { impersonatedBy?: string | null }).impersonatedBy ?? undefined
-    /* Viewing as someone else is read-only, full stop. Every doop mutation is
+    /* Viewing as someone else is read-only, full stop. Every Diagramly mutation is
        a non-GET REST call — the websocket after `join` carries only cursor,
        editing and frame:drag — so this single rule covers the whole surface.
        better-auth's own routes are mounted earlier (/api/auth/*), so signing
@@ -1678,7 +1678,7 @@ app.patch('/api/canvases/:id', (req, res) => {
 })
 
 /* ------------------------------------------------------------------ */
-/* Collaborators: Figma-style invites. The owner invites existing doop */
+/* Collaborators: Figma-style invites. The owner invites existing Diagramly */
 /* accounts by email; members get full edit access regardless of the   */
 /* link setting. Management is owner-only (members may remove          */
 /* themselves); the people list is visible to anyone with access.      */

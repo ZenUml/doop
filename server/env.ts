@@ -84,7 +84,7 @@ const secretKeys = makeExactValidator<SecretKey[]>((input) => {
 /* development and tests seal with a fixed key, so the encrypted path is the
    one every local run exercises */
 const DEV_SECRET_KEYS: SecretKey[] = [
-  { id: 'dev', key: createHash('sha256').update('doop-dev-secrets-key-not-for-production').digest() },
+  { id: 'dev', key: createHash('sha256').update('diagramly-dev-secrets-key-not-for-production').digest() },
 ]
 
 const int = (minimum: number) =>
@@ -105,7 +105,7 @@ const nonNegativeInt = int(0)
 const schema = {
   NODE_ENV: str({ choices: ['development', 'test', 'production'], default: 'development' }),
   PORT: port({ default: 4400 }),
-  DIAGRAMLY_PRODUCT: str({ choices: ['doop', 'diagramly'], default: 'doop' }),
+  DIAGRAMLY_PRODUCT: str({ choices: ['design', 'diagramly'], default: 'diagramly' }),
   DIAGRAMLY_ORIGIN: origin({ default: 'https://diagramly.ai' }),
   /* the interface language for anyone who has not picked one in Settings */
   DEFAULT_LOCALE: str({ choices: LOCALES, default: FALLBACK_LOCALE }),
@@ -122,12 +122,12 @@ const schema = {
 
   /* ---------------------------------------------------------- auth */
   BETTER_AUTH_SECRET: str({
-    devDefault: 'doop-dev-secret-not-for-production',
+    devDefault: 'diagramly-dev-secret-not-for-production',
     desc: 'Signs sessions and OAuth tokens; must be set in production',
   }),
   BETTER_AUTH_URL: origin({
     devDefault: 'http://localhost:4300',
-    desc: 'The public origin, e.g. https://doop.app; must be set in production',
+    desc: 'The public origin, e.g. https://diagramly.ai; must be set in production',
   }),
   /* unset in production = user credentials stored unencrypted (boot warns) */
   SECRETS_ENCRYPTION_KEYS: secretKeys({ default: [], devDefault: DEV_SECRET_KEYS }),
@@ -187,7 +187,7 @@ const schema = {
   CHATGPT_OAUTH_CLIENT_ID: str({ default: 'app_EMoamEEZ73f0CkXaXp7hrann' }),
   CHATGPT_OAUTH_REDIRECT_URI: str({ default: 'http://localhost:1455/auth/callback' }),
   CHATGPT_OAUTH_CALLBACK_PORT: port({ default: 1455 }),
-  CHATGPT_AUTH_USER_AGENT: str({ default: 'doop/0.1 (+https://doop.design)' }),
+  CHATGPT_AUTH_USER_AGENT: str({ default: 'diagramly-desktop/0.1 (+https://diagramly.ai)' }),
   CHATGPT_DEVICE_URL: str({ default: undefined }),
   CHATGPT_RESPONSES_URL: str({ default: 'https://chatgpt.com/backend-api/codex/responses' }),
   /* the Codex backend's model catalog; it answers for a Codex CLI version it

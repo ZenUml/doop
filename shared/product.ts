@@ -1,5 +1,5 @@
 /** Product decisions are separate from storage/protocol compatibility. */
-export type ProductMode = 'doop' | 'diagramly'
+export type ProductMode = 'design' | 'diagramly'
 
 export const DIAGRAMLY_DECISIONS = {
   documents: true,

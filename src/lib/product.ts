@@ -1,6 +1,6 @@
 import type { ProductMode } from '../../shared/product'
 
-let mode: ProductMode = import.meta.env.VITE_PRODUCT_MODE === 'diagramly' ? 'diagramly' : 'doop'
+let mode: ProductMode = import.meta.env.VITE_PRODUCT_MODE === 'design' ? 'design' : 'diagramly'
 
 export function isDiagramly(): boolean {
   return mode === 'diagramly'
@@ -18,7 +18,3 @@ export async function initProduct(): Promise<void> {
   if (isDiagramly()) document.title = 'Diagramly Desktop'
 }
 
-/** Compatibility for static display copy in components; never apply to user content. */
-export function productCopy(text: string): string {
-  return text.replace(/(?<![\w@./:-])doop\b(?![\w/:-]|\.[\w])/gi, 'Diagramly')
-}

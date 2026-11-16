@@ -20,7 +20,7 @@ import type { AgentTask, Canvas, ElementComment, Frame } from '../shared/types.t
 
 /**
  * Outbound webhooks: the push counterpart of polling get_comments over MCP.
- * A person registers a URL and the events they care about; doop POSTs each
+ * A person registers a URL and the events they care about; Diagramly POSTs each
  * matching event on every canvas that person durably has access to (owner,
  * invited member, workspace member — the same rule as design-sync keys, so
  * a share-link visit never subscribes anyone to a canvas for good).

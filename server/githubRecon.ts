@@ -346,7 +346,7 @@ const ORIGIN = env.BETTER_AUTH_URL
 
 /** Transplant the repository's real image assets: every src="repo:<path>"
  *  the model emitted is fetched through the connection and re-hosted in
- *  doop's asset store, so private-repo logos and screenshots render for
+ *  Diagramly's asset store, so private-repo logos and screenshots render for
  *  every viewer. Unresolvable refs collapse to a transparent pixel rather
  *  than a broken image. */
 export async function resolveRepoAssets(conn: GithubConnection, html: string, pathSet: Set<string>): Promise<string> {

@@ -11,7 +11,7 @@ export const publicOrigin = () => env.BETTER_AUTH_URL
 export const redirectUri = () => `${publicOrigin()}/api/integrations/slack/callback`
 export const agentEnabled = () => !!(env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET && env.SLACK_SIGNING_SECRET)
 /** Exactly the saved app manifest: hear mentions, answer in threads, take
- *  /doop, and (reserved for uploads and thread reads) files and history. */
+ *  /Diagramly, and (reserved for uploads and thread reads) files and history. */
 export const BOT_SCOPES = [
   'app_mentions:read',
   'chat:write',

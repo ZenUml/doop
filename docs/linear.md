@@ -10,9 +10,9 @@ Doop is the delegated agent.
 1. Create an OAuth application named **Doop** in Linear’s **Settings → API**.
    Its name and icon are what people see in Linear’s assignment menu.
 2. Set its callback URL to
-   `https://YOUR_DOOP_HOST/api/integrations/linear/callback`.
+   `https://YOUR_DIAGRAMLY_HOST/api/integrations/linear/callback`.
 3. Enable webhooks, select **Agent session events**, and set the webhook URL to
-   `https://YOUR_DOOP_HOST/webhooks/linear`. This must be publicly reachable
+   `https://YOUR_DIAGRAMLY_HOST/webhooks/linear`. This must be publicly reachable
    over HTTPS; it does not use a browser login.
 4. Set `LINEAR_CLIENT_ID`, `LINEAR_CLIENT_SECRET`, and
    `LINEAR_WEBHOOK_SECRET` on the Doop server. Set `BETTER_AUTH_URL` to its

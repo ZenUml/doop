@@ -3,7 +3,7 @@ import { env } from './env.ts'
 import type { SecretKey } from './env.ts'
 
 /**
- * Encryption at rest for the credentials doop keeps on behalf of its users:
+ * Encryption at rest for the credentials Diagramly keeps on behalf of its users:
  * model-account keys and tokens, integration tokens, GitHub PATs, Linear and
  * Slack installations, webhook signing secrets. A copy of the database alone
  * (a backup, a leaked connection string) then yields ciphertext; reading a

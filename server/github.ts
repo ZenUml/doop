@@ -9,7 +9,7 @@ import type { Frame } from '../shared/types.ts'
 
 /**
  * GitHub repo as an import source — a ONE-TIME, CODE-ONLY job: connect a
- * repo (GitHub App install or fine-grained PAT), let doop enumerate its
+ * repo (GitHub App install or fine-grained PAT), let Diagramly enumerate its
  * screens from framework routing conventions, and queue the selected ones as
  * cards on the board. The resident Diagramly agent works the cards one by one
  * (server/githubRecon.ts): repo HTML lands as-is, and a screen that only
@@ -357,7 +357,7 @@ export async function fetchTreePaths(conn: GithubConnection): Promise<string[]> 
 const MAX_FILE_BYTES = 1_500_000
 
 /** Raw bytes of a repo file — image assets the reconstruction transplants
- *  into doop's asset store so private-repo logos/screenshots render for
+ *  into Diagramly's asset store so private-repo logos/screenshots render for
  *  every canvas viewer. */
 export async function fetchRepoBinary(conn: GithubConnection, path: string): Promise<Buffer> {
   const res = await gh(

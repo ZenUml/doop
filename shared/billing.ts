@@ -59,8 +59,7 @@ export const PLANS: readonly Plan[] = [
 
 export const TEAM_PLAN = PLANS.find((p) => p.id === 'team')!
 
-// TODO: Replace this upstream contact once a Diagramly enterprise contact is confirmed.
-export const ENTERPRISE_CONTACT = 'mailto:hello@doop.design?subject=Doop%20Enterprise'
+export const ENTERPRISE_CONTACT = 'mailto:support@diagramly.ai?subject=Diagramly%20Enterprise'
 
 /** A workspace whose members may grow it: create canvases in it, invite
  *  people, move canvases in. past_due counts — Stripe is retrying the card,

@@ -213,8 +213,8 @@ export async function inspectFrame(frame: Frame): Promise<FrameInspection> {
       }
 
       function selectorFor(el: Element): string {
-        const doopId = el.getAttribute('data-diagramly-id')
-        if (doopId) return `[data-diagramly-id="${doopId}"]`
+        const diagramlyId = el.getAttribute('data-diagramly-id')
+        if (diagramlyId) return `[data-diagramly-id="${diagramlyId}"]`
         if (el.id && el.id.length < 80) return `#${CSS.escape(el.id)}`
         const parts: string[] = []
         let node: Element | null = el
