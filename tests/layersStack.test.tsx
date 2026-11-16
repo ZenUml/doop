@@ -232,3 +232,6 @@ describe('LayersPanel stacking', () => {
     expect(restackFrames).toHaveBeenCalledTimes(2)
   })
 })
+
+// These cases exercise the legacy HTML design tools.
+vi.mock('../src/lib/product', () => ({ isDiagramly: () => false }))

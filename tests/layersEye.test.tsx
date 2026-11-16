@@ -128,3 +128,6 @@ describe('LayersPanel eye', () => {
     expect(eye(key).getAttribute('aria-label')).toBe('Hide')
   })
 })
+
+// These cases exercise the legacy HTML design tools.
+vi.mock('../src/lib/product', () => ({ isDiagramly: () => false }))

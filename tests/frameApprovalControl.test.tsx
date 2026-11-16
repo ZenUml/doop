@@ -234,3 +234,6 @@ it('keeps approval disabled until every overlapping design request has settled',
   })
   expect(toggle().disabled).toBe(false)
 })
+
+// These cases exercise the legacy HTML design tools.
+vi.mock('../src/lib/product', () => ({ isDiagramly: () => false }))

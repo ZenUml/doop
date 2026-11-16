@@ -114,3 +114,6 @@ it('offers the whole selection as one PDF', async () => {
   expect(dialog.textContent).toContain('Download PDF of 2 frames')
   expect(dialog.textContent).toContain('One vector page per frame')
 })
+
+// These cases exercise the legacy HTML design tools.
+vi.mock('../src/lib/product', () => ({ isDiagramly: () => false }))

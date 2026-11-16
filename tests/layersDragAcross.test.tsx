@@ -252,3 +252,6 @@ describe('LayersPanel drag between frames', () => {
     expect(order[order.length - 1]).toBe('new')
   })
 })
+
+// These cases exercise the legacy HTML design tools.
+vi.mock('../src/lib/product', () => ({ isDiagramly: () => false }))

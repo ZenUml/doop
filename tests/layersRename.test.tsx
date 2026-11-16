@@ -4,6 +4,8 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import type { Canvas, Frame } from '../shared/types'
 
+vi.mock('../src/lib/product', () => ({ isDiagramly: () => false }))
+
 const updateFrame = vi.fn((_id: string, _patch: Partial<Frame>) => Promise.resolve())
 vi.mock('../src/lib/api', () => ({
   api: { updateFrame: (id: string, patch: Partial<Frame>) => updateFrame(id, patch) },
