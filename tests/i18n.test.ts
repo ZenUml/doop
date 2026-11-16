@@ -78,9 +78,9 @@ describe('translateIn', () => {
     expect(i18n.translateIn('pt-BR', missing)).toBe('settings.notThere')
   })
 
-  it('uses document and diagram terms only in Diagramly mode', async () => {
-    expect(i18n.translateIn('en', 'actions.newCanvas')).toBe('New canvas')
-    expect(i18n.translateIn('pt-BR', 'canvas.allCanvases')).toBe('Todos os canvases')
+  it('uses Diagramly branding and diagram terms before and after product bootstrap', async () => {
+    expect(i18n.translateIn('en', 'actions.newCanvas')).toBe('New document')
+    expect(i18n.translateIn('pt-BR', 'canvas.allCanvases')).toBe('Todos os documentos')
 
     vi.stubGlobal(
       'fetch',
@@ -92,12 +92,14 @@ describe('translateIn', () => {
     expect(i18n.translateIn('en', 'connect.claudeDesktopAddTitle')).toBe('Add Diagramly to Claude Desktop')
     expect(i18n.translateIn('pt-BR', 'settings.agentTitle')).toBe('Diagramly Agent')
     expect(i18n.translateIn('en', 'canvas.cardsQueued', { count: 2 })).toBe('2 cards queued — Diagramly is on it')
-    expect(i18n.translateIn('en', 'automations.slackPitch')).toBe('Mention @Doop with a design brief')
+    expect(i18n.translateIn('en', 'automations.slackPitch')).toBe('Mention @diagramly with a design brief')
     expect(product.productCopy('diagramly://auth https://doop.design X-Diagramly-Signature @Doop')).toBe(
       'diagramly://auth https://doop.design X-Diagramly-Signature @Doop',
     )
     expect(product.productCopy('Doop Desktop. doop. Doop.design')).toBe('Diagramly Desktop. Diagramly. Doop.design')
     expect(i18n.translateIn('en', 'auth.openDoop')).toBe('Open Diagramly')
+    expect(i18n.translateIn('en', 'auth.serverLede', { host: 'Doop user content' })).toContain('Doop user content')
+    expect(i18n.translateIn('en', 'connect.cursorApproveBody')).toContain('the diagramly server')
     expect(i18n.translateIn('en', 'actions.newCanvas')).toBe('New document')
     expect(i18n.translateIn('en', 'actions.newDiagram')).toBe('New diagram')
     expect(i18n.translateIn('en', 'canvas.allCanvases')).toBe('All documents')
