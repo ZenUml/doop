@@ -152,7 +152,7 @@ function shellResult(result: LocalAgentResult): LocalAgentResult {
   if (result.success || !/^invalid model$/i.test(result.text.trim())) return result
   return {
     success: false,
-    text: 'The Doop desktop app on this device is too old for that model. Update it, or pick a pinned model id in Settings.',
+    text: 'The Diagramly desktop app on this device is too old for that model. Update it, or pick a pinned model id in Settings.',
   }
 }
 

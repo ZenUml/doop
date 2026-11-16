@@ -132,8 +132,8 @@ describe('get_comments MCP tool', () => {
       text: 'Too small',
       at: 1,
       forAgent: true,
-      targetAgent: 'Doop',
-      claimedBy: 'Doop',
+      targetAgent: 'Diagramly',
+      claimedBy: 'Diagramly',
       claimedAt: 3,
     })
     const stored = [reply, root]
@@ -273,7 +273,7 @@ describe('get_comments MCP tool', () => {
   })
 
   it('does not claim or resolve anything while reading', async () => {
-    const stored = [comment({ id: 'm1', forAgent: true, targetAgent: 'Doop', text: '@Doop bigger' })]
+    const stored = [comment({ id: 'm1', forAgent: true, targetAgent: 'Diagramly', text: '@Diagramly bigger' })]
     vi.spyOn(actions, 'getComments').mockReturnValue(stored)
     const takeFeedback = vi.spyOn(actions, 'takeFeedbackFor')
     const takeComments = vi.spyOn(actions, 'takeAgentCommentsFor')

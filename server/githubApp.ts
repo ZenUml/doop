@@ -95,7 +95,7 @@ async function appFetch(path: string, init: RequestInit = {}): Promise<Response>
       Authorization: `Bearer ${appJwt()}`,
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': 'doop-import',
+      'User-Agent': 'diagramly-import',
       ...init.headers,
     },
   })
@@ -128,7 +128,7 @@ function ghHeaders(token: string) {
     Authorization: `Bearer ${token}`,
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
-    'User-Agent': 'doop-import',
+    'User-Agent': 'diagramly-import',
   }
 }
 
@@ -187,7 +187,7 @@ async function userToken(code: string): Promise<string | undefined> {
   if (!code) return undefined
   const res = await fetch(env.GITHUB_OAUTH_TOKEN_URL, {
     method: 'POST',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'User-Agent': 'doop-import' },
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'User-Agent': 'diagramly-import' },
     body: JSON.stringify({
       client_id: env.GITHUB_APP_CLIENT_ID,
       client_secret: env.GITHUB_APP_CLIENT_SECRET,

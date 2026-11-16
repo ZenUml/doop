@@ -221,7 +221,7 @@ describe('source-first MCP diagrams', () => {
     const diagramly = await connect()
     expect(diagramly.client.getInstructions()).toContain('create_diagram')
     expect(diagramly.client.getInstructions()).not.toContain('call import_webpage FIRST')
-    const guide = await diagramly.call('get_guide', { topic: 'doop-instructions' })
+    const guide = await diagramly.call('get_guide', { topic: 'design-instructions' })
     expect(JSON.stringify(guide)).toContain('Diagram source is the editable document')
     state.product = 'doop'
     const doop = await connect()

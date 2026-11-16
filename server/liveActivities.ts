@@ -159,8 +159,8 @@ export async function deliverLiveActivities(send = sendLiveActivityPush) {
       const ended = !state || (state.phase !== 'working' && state.phase !== 'queued')
       // Revocations send no private canvas/task content; then discard the token.
       const content = state ?? {
-        canvasName: 'Doop',
-        agentName: 'Doop',
+        canvasName: 'Diagramly',
+        agentName: 'Diagramly',
         status: 'Activity ended',
         phase: 'finished',
         activeCount: 0,

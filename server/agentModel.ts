@@ -24,7 +24,7 @@ import {
 } from './chatCompletionsAgent.ts'
 
 /**
- * Which model runs a Doop Agent turn, and on whose bill.
+ * Which model runs a Diagramly Agent turn, and on whose bill.
  *
  * Two layers, resolved in this order:
  *
@@ -86,7 +86,7 @@ let anthropic: Anthropic | null = null
 function anthropicTier(model: string = ANTHROPIC_MODEL): AgentModel | null {
   if (!env.ANTHROPIC_API_KEY) {
     warnOnce(
-      '[doop-agent] ANTHROPIC_API_KEY not set — the free Doop Agent tier is off. Users who connect a model account of their own still get the agent; everyone else sees queued cards and @mentions go unpicked. See README → "The Doop Agent".',
+      '[diagramly-agent] ANTHROPIC_API_KEY not set — the free Diagramly Agent tier is off. Users who connect a model account of their own still get the agent; everyone else sees queued cards and @mentions go unpicked. See README → "The Diagramly Agent".',
     )
     return null
   }
@@ -94,7 +94,7 @@ function anthropicTier(model: string = ANTHROPIC_MODEL): AgentModel | null {
   const client = anthropic
   return {
     provider: 'anthropic',
-    label: `Doop (${model})`,
+    label: `Diagramly (${model})`,
     run: (req) => runAnthropicTurn(client, model, req),
   }
 }
@@ -149,14 +149,14 @@ function azureTier(): AgentModel | null {
   const apiKey = env.AZURE_OPENAI_API_KEY
   if (!endpoint || !deployment || !apiKey) {
     warnOnce(
-      '[doop-agent] DOOP_AGENT_PROVIDER=azure needs AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_DEPLOYMENT and AZURE_OPENAI_API_KEY — the free Doop Agent tier is off until all three are set.',
+      '[diagramly-agent] DOOP_AGENT_PROVIDER=azure needs AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_DEPLOYMENT and AZURE_OPENAI_API_KEY — the free Diagramly Agent tier is off until all three are set.',
     )
     return null
   }
   const config = { endpoint, deployment, apiKey }
   return {
     provider: 'azure',
-    label: `Doop (${deployment})`,
+    label: `Diagramly (${deployment})`,
     async run(req) {
       try {
         return await runAzureTurn(config, {
@@ -446,7 +446,7 @@ export async function pickModel(payerId?: string, pick?: RunnerPick): Promise<Ag
     }
   }
   const connections = await readConnections(payerId).catch((err): Connections => {
-    console.error('[doop-agent] could not read the connected model accounts', err)
+    console.error('[diagramly-agent] could not read the connected model accounts', err)
     return { plan: { enabled: false, model: 'default' }, accounts: [], default: undefined }
   })
   const picked =

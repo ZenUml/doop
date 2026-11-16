@@ -52,9 +52,9 @@ beforeAll(async () => {
         project: null,
         description: owner + ' private brief',
       }
-      const data = query.includes('DoopConnection')
+      const data = query.includes('DiagramlyConnection')
         ? { viewer: { id: owner, name: owner }, organization: { id: 'org', name: 'Workspace' } }
-        : query.includes('DoopIssues')
+        : query.includes('DiagramlyIssues')
           ? { issues: { nodes: [issue], pageInfo: { hasNextPage: true, endCursor: owner + '-cursor' } } }
           : { issue }
       res.end(JSON.stringify({ data }))

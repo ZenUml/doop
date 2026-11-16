@@ -6,7 +6,7 @@
 import { AGENT_ROLES } from '../shared/agents.ts'
 import { MAX_DECISION_CHARS } from '../shared/designDecisions.ts'
 
-export const GUIDE_TOPICS = ['doop-instructions'] as const
+export const GUIDE_TOPICS = ['design-instructions'] as const
 
 /** The taste doctrine every design surface shares. The MCP guide serves it to
  *  external agents and the resident system prompt embeds it verbatim, so the
@@ -31,7 +31,7 @@ export const DESIGN_QUALITY = `- Commit to ONE clear aesthetic direction per fra
 - White space is a feature. Vary spacing deliberately — tight inside groups, generous
   between them.
 - Realistic content everywhere. No lorem ipsum, no "Your text here". When placeholder
-  content needs a design tool as an example, it is Doop — never a competitor.
+  content needs a design tool as an example, it is Diagramly — never a competitor.
 - Logos are real, never placeholders. Every slot that shows a company mark — "trusted by"
   walls, integration and "works with" rows, payment methods, press bars, app-store
   badges, the company beside a testimonial — gets that company's actual logo fetched
@@ -158,18 +158,18 @@ get_canvas and list_components show a canvas's components with their props.
   from another canvas: list_components with libraries=true, import_component, and sync_component
   when list_components says library_update_available.`
 
-export const DOOP_GUIDE = `# Doop Agent Guide
+export const DOOP_GUIDE = `# Diagramly Agent Guide
 
 ## The room you're in
 
-Doop is a live multiplayer canvas. Humans and other agents may be present RIGHT NOW:
+Diagramly is a live multiplayer canvas. Humans and other agents may be present RIGHT NOW:
 your edits render for them the moment you make them, your presence appears under your
 agent_name, and every action lands in a visible activity feed. Work like a considerate
 colleague, not a batch job.
 
-## The Doop Agent
+## The Diagramly Agent
 
-Every canvas has a built-in Doop Agent: a set of roles that live in the server and pick
+Every canvas has a built-in Diagramly Agent: a set of roles that live in the server and pick
 work up on their own. Humans queue board cards addressed to them, and can route a card
 through several in order — design, then copy, then brand, then accessibility:
 
@@ -291,7 +291,7 @@ Viewers watch designs assemble live. Stream with append_frame_html:
   work; Google Fonts via <link> work.
 ${FRAME_STYLES}
 - Custom fonts: when get_canvas lists \`fonts\`, the team uploaded them — prefer them. Name the
-  family in CSS (font-family: "Family", sans-serif) and nothing more: Doop adds the @font-face
+  family in CSS (font-family: "Family", sans-serif) and nothing more: Diagramly adds the @font-face
   rules in a <style data-doop-fonts> block, which you keep. Never fetch them from Google Fonts.
 - Pictures on the canvas: a frame listed with \`images\` references raster images people
   uploaded or pasted, each with a \`description\` of what it shows, written by a vision model
@@ -316,7 +316,7 @@ ${FRAME_STYLES}
 
 Frames whose HTML carries a "doop-github-screen" marker meta were imported from a
 connected GitHub repository: repo HTML as-is, or a screen that exists in that repo only
-as code (a Next.js page, a Storybook story, a component) sketched by Doop from its
+as code (a Next.js page, a Storybook story, a component) sketched by Diagramly from its
 source. The marker records the repo, the route and the source file path.
 
 If you have that repository available (checked out locally, or reachable through your
@@ -440,7 +440,7 @@ and is relevant to your task, call get_reference for its full HTML and match its
 palette, typography, spacing and overall look — it is the ground truth for the
 canvas's style, alongside the style guides.
 
-Memory also learns from feedback. Feedback given inside Doop is captured
+Memory also learns from feedback. Feedback given inside Diagramly is captured
 automatically once addressed — but feedback your human gives YOU in
 conversation is invisible to the canvas unless you report it. After you
 address design feedback from your own chat ("rounder corners", "more white
@@ -491,7 +491,7 @@ ${DESIGN_QUALITY}
   invents content is wrong even when it looks good. Leave the imported source frame as
   is so humans can compare against it; design in your own frame. Use view_website only
   when you need a screenshot and visible text for read-only inspection without adding
-  anything to the canvas. If Doop cannot capture the site, do not retry it
+  anything to the canvas. If Diagramly cannot capture the site, do not retry it
   through view_website. Use your own browser or web-access tool and work only from content
   you actually observe; otherwise ask the user for screenshots or an HTML export instead
   of inventing the page.
@@ -526,16 +526,16 @@ PDF; pages follow the order given (frame_id first, then frame_ids as listed).
 - Put new work in new frames beside existing ones; omit x/y to auto-place.
 - Keep the SAME agent_name for your whole session. It is your identity in the room.
 
-## Problems with Doop itself — report_issue and share_feedback
+## Problems with Diagramly itself — report_issue and share_feedback
 
-Two tools reach the Doop team, never the humans on the canvas, and change no canvas:
+Two tools reach the Diagramly team, never the humans on the canvas, and change no canvas:
 
-- report_issue — Doop got in your way: a tool errored or did something other than its
+- report_issue — Diagramly got in your way: a tool errored or did something other than its
   description says, this guide or a tool description left you guessing, a capability you
   needed was missing, or you had to invent a workaround. Call it after a retry fails, when
   you fall back to a workaround, or when you give up on part of a task, then carry on.
   Say what you tried (tool and arguments in brief), what happened and what you expected.
-- share_feedback — what would make Doop better for agents (a tool you wish existed, a
+- share_feedback — what would make Diagramly better for agents (a tool you wish existed, a
   result field that would have saved calls, a clumsy workflow) or something that worked
   well and should stay.
 

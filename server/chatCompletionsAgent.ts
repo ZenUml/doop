@@ -14,7 +14,7 @@ import type { StopReason, TurnBlock, TurnRequest, TurnResult } from './openaiAge
 import type { CustomTokenParam } from '../shared/customProvider.ts'
 
 /**
- * Runs one Doop Agent turn against an OpenAI-compatible Chat Completions
+ * Runs one Diagramly Agent turn against an OpenAI-compatible Chat Completions
  * endpoint, speaking the Anthropic message shape the agent loop is written
  * in. This is the transport behind the wide-roster providers:
  *
@@ -26,7 +26,7 @@ import type { CustomTokenParam } from '../shared/customProvider.ts'
  *
  * The built-in providers' URLs are fixed constants: a configurable base URL
  * would be a server-side fetch target, i.e. an SSRF into whatever network
- * Doop runs on. The one exception is a custom provider, whose URL a person
+ * Diagramly runs on. The one exception is a custom provider, whose URL a person
  * typed; its config carries server/customProviderFetch.ts as its `fetch`,
  * which only reaches public addresses unless the operator allows more.
  *
@@ -77,7 +77,7 @@ export function openrouterConfig(apiKey: string, model: string, vision: boolean)
   return {
     url: OPENROUTER_URL,
     /* the attribution headers are how OpenRouter credits the calling app */
-    headers: { Authorization: `Bearer ${apiKey}`, 'HTTP-Referer': APP_ORIGIN, 'X-Title': 'Doop' },
+    headers: { Authorization: `Bearer ${apiKey}`, 'HTTP-Referer': APP_ORIGIN, 'X-Title': 'Diagramly' },
     model,
     label: 'OpenRouter',
     vision,
@@ -121,7 +121,7 @@ export function kimiCodeConfig(apiKey: string, model: string, vision: boolean): 
     url: KIMI_CODE_URL,
     /* Kimi Code's terms ask every tool to name itself truthfully; a disguised
        client can cost the member their plan */
-    headers: { Authorization: `Bearer ${apiKey}`, 'User-Agent': `Doop/${packageJson.version}` },
+    headers: { Authorization: `Bearer ${apiKey}`, 'User-Agent': `Diagramly/${packageJson.version}` },
     model,
     label: 'Kimi Code',
     vision,

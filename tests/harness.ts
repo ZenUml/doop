@@ -145,7 +145,7 @@ function waitForBind(proc: ChildProcess, port: number): Promise<boolean> {
     let log = ''
     const onData = (chunk: Buffer) => {
       log += chunk.toString()
-      if (!log.includes(`doop server     http://localhost:${port}`)) return
+      if (!log.includes(`Diagramly server     http://localhost:${port}`)) return
       out.off('data', onData)
       out.resume()
       resolve(true)

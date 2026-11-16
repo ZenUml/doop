@@ -11,7 +11,7 @@ import { frameCenterPosition, stageViewportSize } from '../src/lib/framePlacemen
 import { CAPTURE_PREFIX, parseWebCapture, pasteWebCapture } from '../src/lib/webCapture'
 const payload = (html: string, width = 800) =>
   CAPTURE_PREFIX + JSON.stringify({ name: 'Example', html, width, height: 600 })
-describe('Doop capture clipboard', () => {
+describe('Diagramly capture clipboard', () => {
   it('preserves editable styled content and dimensions', () => {
     const capture = parseWebCapture(payload('<main style="color:red"><h1>Hello</h1></main>'))
     expect(capture.width).toBe(800)

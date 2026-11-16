@@ -25,7 +25,7 @@ export async function postAutomationMessage(step: SlackStep, ownerId: string, co
     if (error instanceof SlackError) {
       if (error.status === 409) throw new AutomationPullError(error.message, 'reconnect')
       if (['not_in_channel', 'channel_not_found', 'no_permission'].includes(error.code ?? ''))
-        throw new Error('Check the Slack channel ID and invite @Doop to that channel.', { cause: error })
+        throw new Error('Check the Slack channel ID and invite @Diagramly to that channel.', { cause: error })
     }
     throw error
   }

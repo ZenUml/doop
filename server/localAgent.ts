@@ -103,7 +103,7 @@ export async function handleLocalAgentMcp(req: Request, res: Response) {
     res.status(405).end()
     return
   }
-  const server = new Server({ name: 'doop', version: '1.0.0' }, { capabilities: { tools: {} } })
+  const server = new Server({ name: 'diagramly', version: '1.0.0' }, { capabilities: { tools: {} } })
   server.setRequestHandler(ListToolsRequestSchema, () => ({
     tools: run.request.tools.map((tool) => ({
       name: tool.name,

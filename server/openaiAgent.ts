@@ -5,7 +5,7 @@ import type { ModelAccount } from './modelAccounts.ts'
 import { ModelStreamInterruptedError } from './modelTurnRetry.ts'
 
 /**
- * Runs one Doop Agent turn on OpenAI, speaking the Anthropic message shape
+ * Runs one Diagramly Agent turn on OpenAI, speaking the Anthropic message shape
  * the agent loop is already written in. Everything OpenAI-specific — the
  * Responses API item format, tool-call ids, streaming — is contained here, so
  * server/resident.ts stays a single provider-neutral loop.
@@ -18,7 +18,7 @@ import { ModelStreamInterruptedError } from './modelTurnRetry.ts'
  *    Azure's api-key header) — SERVER config only, the free tier when
  *    DOOP_AGENT_PROVIDER=azure. Deliberately not a connectable per-user
  *    account: a user-supplied endpoint would be a server-side fetch target,
- *    i.e. an SSRF into whatever network Doop runs on.
+ *    i.e. an SSRF into whatever network Diagramly runs on.
  *
  * The one real impedance mismatch is images. Anthropic returns screenshots
  * inside tool results; the Responses API only accepts text in a

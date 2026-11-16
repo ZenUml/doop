@@ -477,7 +477,7 @@ export function creativeHtml(ad: AdCreative, imageSrc: string | null): string {
 </div></body></html>`
 }
 
-/** Meta's image URLs are signed and expire — copy the bytes into Doop's own
+/** Meta's image URLs are signed and expire — copy the bytes into Diagramly's own
  *  asset store so the frame keeps rendering. A failed copy still lands the
  *  frame, with the remote URL as a best effort. */
 async function keepImage(url: string | null, canvasId: string, ownerId: string): Promise<string | null> {

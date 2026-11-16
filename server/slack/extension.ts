@@ -30,7 +30,7 @@ export const slackExtension: ServerExtension = {
         await finishInstall(userId, query.state ?? '', query.code ?? '')
         return '/integrations?slack=connected'
       } catch (error) {
-        const message = error instanceof SlackError ? error.message : 'Could not install Doop in Slack.'
+        const message = error instanceof SlackError ? error.message : 'Could not install Diagramly in Slack.'
         return `/integrations?slackError=${encodeURIComponent(message)}`
       }
     },
