@@ -115,8 +115,8 @@ export function suspendAnalyticsWhileImpersonating() {
   posthog.stopSessionRecording()
 }
 
-/* The Support widget (PostHog Conversations, switched on in the project
-   settings for doop.design) floats in the bottom-right corner, where it sits
+/* The Support widget (PostHog Conversations, switched on in project
+   settings) floats in the bottom-right corner, where it sits
    on the editor's zoom bar and the prompt bar. It is for the pages around the
    editor, not the canvas itself. The SDK renders it only after the remote
    config arrives, and hide() before that is a no-op, so the wish is kept and

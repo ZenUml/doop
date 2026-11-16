@@ -5,7 +5,7 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Modal, ModalActions, ModalLede, ModalSpacer, ModalTitle } from './ui/modal'
 
-/** A bare host gets https: what a person types as "doop.design" means the site. */
+/** A bare host gets https: what a person types as "example.com" means the site. */
 function normalizeHref(value: string): string {
   const v = value.trim()
   if (!v || /^[a-z][a-z0-9+.-]*:/i.test(v) || v.startsWith('/') || v.startsWith('#')) return v
