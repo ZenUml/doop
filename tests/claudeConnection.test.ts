@@ -50,7 +50,7 @@ it.each([
 
 it('prefills the local server and hands the complete bundle to the shell without a download link', async () => {
   const zip = new JSZip()
-  zip.file('manifest.json', JSON.stringify({ user_config: { server_url: { default: 'https://doop.design/mcp' } } }))
+  zip.file('manifest.json', JSON.stringify({ user_config: { server_url: { default: 'https://diagram.example.invalid/mcp' } } }))
   zip.file('node_modules/proxy.js', 'runtime')
   const fetcher = vi.fn().mockResolvedValue(new Response(await zip.generateAsync({ type: 'arraybuffer' })))
   const invoke = vi.fn().mockResolvedValue(undefined)
@@ -73,7 +73,7 @@ it('does not invoke the shell when preparing the bundle fails', async () => {
   vi.stubGlobal('__DIAGRAMLY_CLAUDE_EXTENSION__', true)
   vi.stubGlobal('__TAURI__', { core: { invoke } })
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('Unavailable', { status: 503 })))
-  await expect(addToClaudeDesktop('https://doop.design/mcp')).rejects.toThrow('Could not prepare')
+  await expect(addToClaudeDesktop('https://diagram.example.invalid/mcp')).rejects.toThrow('Could not prepare')
   expect(invoke).not.toHaveBeenCalled()
 })
 
@@ -81,6 +81,6 @@ it('keeps older shells from invoking an unavailable native command', async () =>
   vi.stubGlobal('__DIAGRAMLY_CLAUDE_EXTENSION__', undefined)
   const fetcher = vi.fn()
   vi.stubGlobal('fetch', fetcher)
-  await expect(addToClaudeDesktop('https://doop.design/mcp')).rejects.toThrow('Update the Diagramly desktop app')
+  await expect(addToClaudeDesktop('https://diagram.example.invalid/mcp')).rejects.toThrow('Update the Diagramly desktop app')
   expect(fetcher).not.toHaveBeenCalled()
 })

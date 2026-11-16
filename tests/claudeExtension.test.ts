@@ -18,8 +18,8 @@ beforeAll(async () => {
   // The Docker build stage runs scripts under Bun; Claude runs the extracted
   // proxy under Node. Exercise that runtime boundary rather than Node-only.
   execFileSync('bun', ['scripts/build-claude-extension.mjs'])
-  archive = await JSZip.loadAsync(await readFile('public/claude-extension/doop.mcpb'))
-  directory = await mkdtemp(join(tmpdir(), 'doop-claude-extension-'))
+  archive = await JSZip.loadAsync(await readFile('public/claude-extension/diagramly.mcpb'))
+  directory = await mkdtemp(join(tmpdir(), 'diagramly-claude-extension-'))
   for (const file of Object.values(archive.files)) {
     if (file.dir) continue
     const destination = join(directory, file.name)
@@ -37,12 +37,12 @@ afterAll(async () => {
 
 it('packages the same installed dependencies under Bun and Node', async () => {
   execFileSync(process.execPath, ['scripts/build-claude-extension.mjs'])
-  const nodeArchive = await JSZip.loadAsync(await readFile('public/claude-extension/doop.mcpb'))
+  const nodeArchive = await JSZip.loadAsync(await readFile('public/claude-extension/diagramly.mcpb'))
   expect(Object.keys(archive.files).sort()).toEqual(Object.keys(nodeArchive.files).sort())
   for (const name of Object.keys(archive.files).filter((name) => name.endsWith('/package.json'))) {
     expect(await archive.file(name)!.async('string'), name).toBe(await nodeArchive.file(name)!.async('string'))
   }
-  // mcp-remote needs undici 7; Doop itself uses 8. Keep the nested dependency.
+  // mcp-remote needs undici 7; the app uses 8. Keep the nested dependency.
   const undici = JSON.parse(
     await archive.file('node_modules/mcp-remote/node_modules/undici/package.json')!.async('string'),
   )
@@ -55,13 +55,14 @@ it('ships an installable manifest and all runtime files without repository crede
   expect(archive.file(manifest.icon)).not.toBeNull()
   expect(archive.file('LICENSE')).not.toBeNull()
   expect(manifest.server.mcp_config.command).toBe('node')
-  expect(manifest.user_config.server_url.default).toBe('https://doop.design/mcp')
+  expect(manifest.user_config.server_url.required).toBe(true)
+  expect(manifest.user_config.server_url.default).toBeUndefined()
   expect(Object.keys(archive.files).some((name) => /(^|\/)\.env($|\.)|\.mcp-auth/.test(name))).toBe(false)
   // open uses a sibling script on Linux; bundling JS alone silently loses it.
   expect(archive.file('node_modules/open/xdg-open')).not.toBeNull()
 })
 
-it('runs the extracted download and forwards real Doop tools, instructions and resources', async () => {
+it('runs the extracted download and forwards real Diagramly tools, instructions and resources', async () => {
   const owner = await new Client(server).signUp('extension@test.dev', 'Extension Owner')
   const { secret } = (await (await owner.post('/api/agent-keys', { name: 'extension-test' })).json()) as {
     secret: string
@@ -98,7 +99,7 @@ it('runs the extracted download and forwards real Doop tools, instructions and r
   }
 }, 30_000)
 
-it('completes OAuth with Doop and reuses the sign-in after restarting the extension', async () => {
+it('completes OAuth with Diagramly and reuses the sign-in after restarting the extension', async () => {
   const owner = await new Client(server).signUp('extension-oauth@test.dev', 'OAuth Owner')
   const stranger = await new Client(server).signUp('extension-stranger@test.dev', 'Stranger')
   const manifest = JSON.parse(await archive.file('manifest.json')!.async('string'))
@@ -128,7 +129,7 @@ it('completes OAuth with Doop and reuses the sign-in after restarting the extens
     const approval = new URL(response.headers.get('location')!, server.base)
     expect(approval.pathname).toBe('/oauth/consent')
     const endpoint = `/api/mcp-consent/${approval.searchParams.get('consent_code')}`
-    expect(await (await owner.get(endpoint)).json()).toEqual({ name: 'Doop for Claude Desktop' })
+    expect(await (await owner.get(endpoint)).json()).toEqual({ name: 'Diagramly for Claude Desktop' })
     expect((await stranger.get(endpoint)).status).toBe(404)
     expect((await stranger.post(endpoint, { accept: true })).status).toBe(404)
     const accepted = await owner.post(endpoint, { accept: true })
