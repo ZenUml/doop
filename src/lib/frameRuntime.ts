@@ -167,6 +167,8 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
   function candidate(start) {
     var el = start && start.nodeType === 3 ? start.parentElement : start
     if (isLocked(el)) return null
+    // Diagram labels are source edits owned by the renderer, not HTML text.
+    if (el && el.closest('[data-doop-diagram-mount]')) return null
     if (activeEl && activeEl.contains(el)) return activeEl
     var root = el && el.closest('[data-doop-text],[data-doop-drawing="text"]')
     if (root && !root.querySelector(LOCKED)) return root
@@ -396,6 +398,8 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
       })
   }
 
+  document.addEventListener('doop:diagram-edited', function () { postEdited(true) })
+
   function postEdited(discrete) {
     parent.postMessage({ type: 'doop:edited', html: serialize(), discrete: discrete === true }, '*')
     /* typing can move/grow the element — keep the parent's toolbar anchored */
@@ -423,6 +427,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
   /* capture-phase: no link navigation or button handlers while editing */
   document.addEventListener('click', function (ev) {
     if (!editing) return
+    if (ev.target.closest && ev.target.closest('[data-doop-diagram-mount]')) return
     ev.preventDefault()
     ev.stopPropagation()
     var el = candidate(ev.target)
@@ -432,6 +437,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
 
   document.addEventListener('mousemove', function (ev) {
     if (!editing) return
+    if (ev.target.closest && ev.target.closest('[data-doop-diagram-mount]')) return
     var el = candidate(ev.target)
     var prev = document.querySelector('[data-v-hover]')
     if (prev && prev !== el) prev.removeAttribute('data-v-hover')
