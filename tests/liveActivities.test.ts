@@ -12,6 +12,7 @@ beforeAll(async () => {
     DIAGRAMLY_APNS_TEAM_ID: 'test',
     DIAGRAMLY_APNS_KEY_ID: 'test',
     DIAGRAMLY_APNS_PRIVATE_KEY: 'not-a-real-key',
+    DIAGRAMLY_APNS_BUNDLE_ID: 'ai.diagramly.test',
   })
   owner = await new Client(server).signUp('activity-owner@test.local', 'Owner')
   stranger = await new Client(server).signUp('activity-other@test.local', 'Other')
