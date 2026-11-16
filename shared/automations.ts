@@ -418,7 +418,7 @@ export const AUTOMATION_EXAMPLES: AutomationExample[] = [
   {
     id: 'ad-variants',
     name: 'Ad variants',
-    blurb: 'Pull this week’s creatives, then have Doop spin up five variants of each.',
+    blurb: 'Pull this week’s creatives, then have Diagramly spin up five variants of each.',
     schedule: { kind: 'weekly', weekday: 1, hour: 9, minute: 0 },
     steps: [
       { type: 'pull', provider: 'meta', accountId: '', filter: 'active' },

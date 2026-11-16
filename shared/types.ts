@@ -239,7 +239,7 @@ export interface WorkspaceMember {
   addedAt: number
 }
 
-/** An outstanding invite to an email with no doop account yet. */
+/** An outstanding invite to an email with no Diagramly account yet. */
 export interface WorkspaceInvite {
   id: string
   email: string
@@ -468,7 +468,7 @@ export interface TaskFeedback {
   deliveredAt?: number
   /** the agent that picked it up */
   claimedBy?: string
-  /** resident Doop finished handling this feedback */
+  /** resident Diagramly finished handling this feedback */
   completedAt?: number
   /** unsuccessful resident-agent attempt; never retried automatically */
   failedAt?: number
@@ -476,7 +476,7 @@ export interface TaskFeedback {
 }
 
 /** A comment pinned to a specific element inside a frame, to a frame as a
- *  whole, or to a point on the canvas itself. Comments that mention @Doop are
+ *  whole, or to a point on the canvas itself. Comments that mention @Diagramly are
  *  routed to the resident agent; others are notes for the humans in the room.
  *
  *  Three anchors (`shared/comments.ts` tells them apart): an element comment
@@ -508,7 +508,7 @@ export interface ElementComment {
   at: number
   /** true when the text @mentions a resident agent — that agent picks it up */
   forAgent?: boolean
-  /** which resident agent was mentioned; defaults to Doop */
+  /** which resident agent was mentioned; defaults to Diagramly */
   targetAgent?: string
   claimedBy?: string
   claimedAt?: number

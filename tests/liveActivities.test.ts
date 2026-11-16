@@ -64,7 +64,10 @@ describe('agent badge state', () => {
     expect(state).not.toHaveProperty('stage')
   })
   it('distinguishes waiting, completed, and failed tasks', () => {
-    expect(agentActivityState('Canvas', [task({ agentName: '' })])?.phase).toBe('queued')
+    expect(agentActivityState('Canvas', [task({ agentName: '' })])).toMatchObject({
+      phase: 'queued',
+      agentName: 'Diagramly',
+    })
     expect(agentActivityState('Canvas', [task({ endedAt: 2000 })])?.phase).toBe('finished')
     expect(
       agentActivityState('Canvas', [task({ failedAt: 2000, failureReason: 'Provider unavailable' })]),

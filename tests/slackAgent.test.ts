@@ -630,9 +630,9 @@ describe('signed webhook boundary', () => {
     expect(await db.select().from(slackSessions)).toHaveLength(0)
   })
 
-  it('takes the /doop slash command as a form and acks in the channel', async () => {
+  it('takes the /diagramly slash command as a form and acks in the channel', async () => {
     const raw = new URLSearchParams({
-      command: '/doop',
+      command: '/diagramly',
       text: 'design a pricing page',
       team_id: teamId,
       channel_id: channelId,
@@ -651,7 +651,7 @@ describe('signed webhook boundary', () => {
     expect(row.prompt).toContain('design a pricing page')
     expect(row.responseUrl).toBe('https://hooks.slack.test/commands/T0DOOP/1/abc')
     const empty = new URLSearchParams({
-      command: '/doop',
+      command: '/diagramly',
       text: '',
       team_id: teamId,
       channel_id: channelId,
@@ -663,7 +663,10 @@ describe('signed webhook boundary', () => {
       body: empty,
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...signed(empty) },
     })
-    expect(await hint.json()).toMatchObject({ response_type: 'ephemeral' })
+    expect(await hint.json()).toMatchObject({
+      response_type: 'ephemeral',
+      text: 'Add a design brief, for example `/diagramly design a pricing page for a note-taking app`.',
+    })
     expect(await db.select().from(slackSessions)).toHaveLength(1)
   })
 

@@ -1,5 +1,5 @@
 /**
- * Which connection a Doop Agent task runs on.
+ * Which connection a Diagramly Agent task runs on.
  *
  * A person can have two connections at once: the one model account
  * (ChatGPT, or an OpenAI / Claude / OpenRouter / Gemini / DeepSeek / Kimi key) and the Claude
@@ -14,7 +14,7 @@ import { isCustomProviderKind, type CustomProviderKind } from './customProvider.
 /** A connection by name, or a custom provider (`custom:<id>`) a person added. */
 export type RunnerProvider = 'claude-local' | AccountKindName | CustomProviderKind
 
-/** The connections Doop knows by name; custom providers are named by their person. */
+/** The connections Diagramly knows by name; custom providers are named by their person. */
 export const RUNNER_PROVIDERS: readonly ('claude-local' | AccountKindName)[] = [
   'claude-local',
   ...(Object.keys(ACCOUNT_KIND_LABELS) as AccountKindName[]),

@@ -81,7 +81,7 @@ export function slackWebhookRouter() {
         if (!parsed.data.text.trim()) {
           return res.json({
             response_type: 'ephemeral',
-            text: 'Add a design brief, for example `/doop design a pricing page for a note-taking app`.',
+            text: 'Add a design brief, for example `/diagramly design a pricing page for a note-taking app`.',
           })
         }
         await receiveRequest({

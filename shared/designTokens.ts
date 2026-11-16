@@ -459,7 +459,7 @@ export function tokensBrief(tokens: readonly DesignToken[], themeOrder: readonly
   const themes = themesOf(tokens, themeOrder)
   return (
     `Design tokens (${names}): use one by writing var(--name) in CSS — background: var(--color-primary) — ` +
-    `never the literal value, so a token change restyles every frame at once. Doop writes the values into ` +
+    `never the literal value, so a token change restyles every frame at once. Diagramly writes the values into ` +
     `each frame's <style ${TOKEN_BLOCK_ATTR}> block by itself; do not define them yourself and keep that block. ` +
     (themes.length
       ? `Themes (${themes.join(', ')}) give some tokens a different value: put ${THEME_ATTR}="${themes[0]}" on a frame's <html> (or on one subtree) to switch it there. `

@@ -122,7 +122,7 @@ export function normalizePipeline(ids: unknown): string[] {
   return out.length > 0 ? out.slice(0, AGENT_ROLES.length) : [DEFAULT_ROLE_ID]
 }
 
-/** Every spelling that addresses a role in a comment: @doop, @UXLead, @ux… */
+/** Every spelling that addresses a role in a comment: @diagramly, @UXLead, @ux… */
 export function mentionsFor(role: AgentRole): string[] {
   return [role.id, role.name.replace(/\s+/g, ''), ...(role.aliases ?? [])].map((m) => m.toLowerCase())
 }

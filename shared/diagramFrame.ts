@@ -2,7 +2,7 @@
  * Diagram frames: a frame whose HTML is generated from diagram source text
  * (ZenUML or Mermaid) and renders it with a script. The source is the
  * document; the HTML is derived from it by `buildDiagramHtml` and read back
- * by `readDiagramFrame`, so the frame stays an ordinary Doop frame for
+ * by `readDiagramFrame`, so the frame stays an ordinary Diagramly frame for
  * storage, realtime sync, screenshots and exports.
  *
  * Spike module: nothing here imports from the rest of the app.
