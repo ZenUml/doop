@@ -39,9 +39,9 @@ describe('admin surface', () => {
     expect((await (await alice.get('/api/me')).json()).admin).toBe(false)
   })
 
-  it('still creates a first canvas on signup (the admin plugin adds its own db hooks)', async () => {
+  it('keeps a new Diagramly library empty on signup', async () => {
     const list = await (await alice.get('/api/canvases')).json()
-    expect(list.some((c: { name: string }) => c.name === "Alice's first canvas")).toBe(true)
+    expect(list.map((c: { id: string }) => c.id)).toEqual([canvasId])
   })
 
   it('hides the admin surface from non-admins as 404, not 403', async () => {
@@ -55,7 +55,7 @@ describe('admin surface', () => {
     const entry = canvases.find((c: { id: string }) => c.id === canvasId)
     expect(entry?.name).toBe("Alice's private work")
     expect(entry?.owner?.email).toBe('alice@test.dev')
-    expect(total).toBeGreaterThanOrEqual(4) // three first-canvases plus Alice's
+    expect(total).toBeGreaterThanOrEqual(1) // Alice explicitly created this document.
   })
 
   it('does not leak other people’s canvases into the admin’s own dashboard', async () => {

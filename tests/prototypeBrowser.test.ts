@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Frame as PuppeteerFrame, Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Canvas, Frame } from '../shared/types'
 
 type Message = { type?: string; interaction?: { action?: string; target?: string } }
@@ -92,6 +93,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 /* The first load transforms the app through a cold Vite dev server, which can
    take longer than the default test timeout on CI. */
 describe.skipIf(!findBrowserPath())('prototype player', { timeout: 30_000 }, () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
 

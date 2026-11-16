@@ -17,7 +17,7 @@ let pageId: string
 
 beforeAll(async () => {
   /* no free resident tasks: an @mention must be refused by the meter */
-  server = await startServer({ RESIDENT_TASK_LIMIT: '0' })
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design', RESIDENT_TASK_LIMIT: '0' })
   owner = await new Client(server).signUp('owner@test.dev', 'Owner')
   stranger = await new Client(server).signUp('stranger@test.dev', 'Stranger')
   const canvas = await (await owner.post('/api/canvases', { name: 'Pins' })).json()
@@ -81,7 +81,12 @@ describe('POST /api/canvases/:id/comments', () => {
   })
 
   it('meters an @mention like an element comment', async () => {
-    const res = await owner.post(`/api/canvases/${canvasId}/comments`, { pageId, x: 0, y: 0, text: '@doop add a hero' })
+    const res = await owner.post(`/api/canvases/${canvasId}/comments`, {
+      pageId,
+      x: 0,
+      y: 0,
+      text: '@diagramly add a hero',
+    })
     expect(res.status).toBe(403)
     expect(await res.json()).toMatchObject({ error: 'resident_limit' })
   })
@@ -96,7 +101,10 @@ describe('POST /api/canvases/:id/comments', () => {
     const { dataDir } = server
     server.stop({ keepData: true })
     await server.stopped
-    server = await startServer({ RESIDENT_TASK_LIMIT: '0', PORT: String(server.port) }, dataDir)
+    server = await startServer(
+      { DIAGRAMLY_PRODUCT: 'design', RESIDENT_TASK_LIMIT: '0', PORT: String(server.port) },
+      dataDir,
+    )
     const ws = new WebSocket(`ws://localhost:${server.port}/ws`, { headers: { Cookie: owner.header() } })
     const init = await new Promise<{ comments: Record<string, unknown>[] }>((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('ws join timed out')), 8000)
@@ -405,7 +413,7 @@ it('retains the element placement across a server restart', async () => {
   const { dataDir, port } = server
   server.stop({ keepData: true })
   await server.stopped
-  server = await startServer({ PORT: String(port), RESIDENT_TASK_LIMIT: '0' }, dataDir)
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design', PORT: String(port), RESIDENT_TASK_LIMIT: '0' }, dataDir)
   const reply = await (await owner.post(`/api/comments/${root.id}/replies`, { text: 'After restart' })).json()
   expect(reply).toMatchObject({ elementId: root.elementId, x: 45, y: 67, elementOrigin: { x: 10, y: 20 } })
 }, 70_000)

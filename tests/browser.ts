@@ -60,13 +60,19 @@ const STEP_TIMEOUT_MS = 15_000
  * fixtures fetch by path at run time (a stylesheet, an image) is not part of
  * the bundle, so those files are copied next to the built pages.
  */
-async function buildFixtures(): Promise<string> {
+export async function buildFixtures(productMode?: 'design'): Promise<string> {
   const dir = mkdtempSync(path.join(tmpdir(), 'doop-test-fixtures-'))
   try {
     await promisify(execFile)(
       process.execPath,
       ['node_modules/vite/bin/vite.js', 'build', '--config', 'tests/fixtures.vite.config.ts', '--outDir', dir],
-      { env: { ...process.env, NODE_ENV: 'production' } },
+      {
+        env: {
+          ...process.env,
+          NODE_ENV: 'production',
+          ...(productMode ? { VITE_PRODUCT_MODE: productMode } : {}),
+        },
+      },
     )
     cpSync(FIXTURES, path.join(dir, FIXTURES), {
       recursive: true,

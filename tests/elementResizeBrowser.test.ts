@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Frame } from '../shared/types'
 import type { ElementInfo, GeometryEdit } from '../src/lib/frameBridge'
 
@@ -53,6 +54,7 @@ const HTML = `<!doctype html><html><head><style>
 </body></html>`
 
 describe.skipIf(!findBrowserPath())('element resize handles', () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   let saved: Frame

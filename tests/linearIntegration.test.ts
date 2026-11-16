@@ -1,10 +1,12 @@
 import { createServer, type Server as HttpServer } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { Client, startServer, type Server } from './harness.ts'
 import { Client as McpClient } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { buildMcpServer } from '../server/mcp.ts'
+
+vi.hoisted(() => vi.stubEnv('DIAGRAMLY_PRODUCT', 'design'))
 
 const TOKEN = 'lin_api_' + 'a'.repeat(40)
 let server: Server
@@ -31,7 +33,7 @@ beforeAll(async () => {
   })
   await new Promise<void>((resolve) => upstream.listen(0, resolve))
   const upstreamPort = (upstream.address() as AddressInfo).port
-  server = await startServer({ LINEAR_API_URL: `http://localhost:${upstreamPort}` })
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design', LINEAR_API_URL: `http://localhost:${upstreamPort}` })
   owner = await new Client(server).signUp('linear-owner@test.dev', 'Owner')
   stranger = await new Client(server).signUp('linear-stranger@test.dev', 'Stranger')
 }, 60_000)
@@ -39,6 +41,7 @@ beforeAll(async () => {
 afterAll(() => {
   server?.stop()
   upstream?.close()
+  vi.unstubAllEnvs()
 })
 
 describe('Linear connection', () => {

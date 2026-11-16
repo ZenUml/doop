@@ -12,7 +12,7 @@ let server: Server
 let BASE: string
 
 beforeAll(async () => {
-  server = await startServer()
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design' })
   BASE = server.base
 }, 70_000)
 

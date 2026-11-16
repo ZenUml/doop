@@ -1,8 +1,9 @@
+import { designFixtureUrl } from './designBrowser'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import sharp from 'sharp'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Canvas, Frame } from '../shared/types'
 
 /* the part of the rulers fixture's harness used here (rulersBrowser.test.ts
@@ -50,6 +51,7 @@ const ZOOMS = [0.1, 0.11, 0.13, 0.18, 0.2, 0.24, 0.29]
 const OFFSETS = [0.13, 0.37, 0.62, 0.88]
 
 describe.skipIf(!findBrowserPath())('frame edge', { timeout: 60_000 }, () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
 
