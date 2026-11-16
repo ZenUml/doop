@@ -38,7 +38,7 @@ async function openMenu(): Promise<Map<string, string | null>> {
 
 it('links the desktop download and the website from the account menu', async () => {
   const links = await openMenu()
-  expect(links.get('Get desktop app')).toBe('https://doop.design/download')
+  expect(links.get('Get desktop app')).toBe('https://apps.apple.com/app/id1602636196')
   expect(links.get('Diagramly website')).toBe('https://diagramly.ai')
 })
 
