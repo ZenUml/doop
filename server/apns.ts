@@ -3,7 +3,12 @@ import { connect } from 'node:http2'
 import { createPrivateKey, sign } from 'node:crypto'
 
 export function apnsConfigured() {
-  return !!(env.DIAGRAMLY_APNS_TEAM_ID && env.DIAGRAMLY_APNS_KEY_ID && env.DIAGRAMLY_APNS_PRIVATE_KEY)
+  return !!(
+    env.DIAGRAMLY_APNS_TEAM_ID &&
+    env.DIAGRAMLY_APNS_KEY_ID &&
+    env.DIAGRAMLY_APNS_PRIVATE_KEY &&
+    env.DIAGRAMLY_APNS_BUNDLE_ID
+  )
 }
 
 let cached: { token: string; until: number } | undefined

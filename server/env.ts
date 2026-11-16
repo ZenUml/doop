@@ -296,7 +296,7 @@ const schema = {
   DIAGRAMLY_APNS_TEAM_ID: str({ default: undefined }),
   DIAGRAMLY_APNS_KEY_ID: str({ default: undefined }),
   DIAGRAMLY_APNS_PRIVATE_KEY: str({ default: undefined }),
-  DIAGRAMLY_APNS_BUNDLE_ID: str({ default: 'design.doop.ios' }),
+  DIAGRAMLY_APNS_BUNDLE_ID: str({ default: undefined }),
 }
 
 /** Every declared variable name, for the .env.example coverage test. */
