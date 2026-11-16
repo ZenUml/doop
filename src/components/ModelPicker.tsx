@@ -1,3 +1,4 @@
+import { productCopy } from '../lib/product'
 import { Fragment, useState } from 'react'
 import { posthog } from '../lib/posthog'
 import { navigate } from '../App'
@@ -84,7 +85,7 @@ export function ModelPicker({ disabled = false }: { disabled?: boolean }) {
   const modelsOf = (runner: AgentRunner): RunnerOption[] =>
     runner.provider === liveKind && catalog?.live ? catalog.models : runner.models
 
-  const label = resolved ? modelName(modelsOf(resolved.runner), resolved.pick.model ?? '') : 'Doop Agent'
+  const label = resolved ? modelName(modelsOf(resolved.runner), resolved.pick.model ?? '') : productCopy('Doop Agent')
   const mark = resolved ? PROVIDER_MARK[resolved.runner.provider] : undefined
   /* the effort reads after the model, lighter, as in Settings */
   const effortId = resolved?.pick.effort

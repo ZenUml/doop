@@ -17,3 +17,8 @@ export async function initProduct(): Promise<void> {
   }
   if (isDiagramly()) document.title = 'Diagramly Desktop'
 }
+
+/** Display copy only: keep external handles, domains and compatibility identifiers intact. */
+export function productCopy(text: string): string {
+  return isDiagramly() ? text.replace(/(?<![\w@./:-])doop\b(?![\w/:-]|\.[\w])/gi, 'Diagramly') : text
+}

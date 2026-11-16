@@ -89,6 +89,15 @@ describe('translateIn', () => {
     const product = await import('../src/lib/product')
     await product.initProduct()
 
+    expect(i18n.translateIn('en', 'connect.claudeDesktopAddTitle')).toBe('Add Diagramly to Claude Desktop')
+    expect(i18n.translateIn('pt-BR', 'settings.agentTitle')).toBe('Diagramly Agent')
+    expect(i18n.translateIn('en', 'canvas.cardsQueued', { count: 2 })).toBe('2 cards queued — Diagramly is on it')
+    expect(i18n.translateIn('en', 'automations.slackPitch')).toBe('Mention @Doop with a design brief')
+    expect(product.productCopy('doop://auth https://doop.design X-Doop-Signature @Doop')).toBe(
+      'doop://auth https://doop.design X-Doop-Signature @Doop',
+    )
+    expect(product.productCopy('Doop Desktop. doop. Doop.design')).toBe('Diagramly Desktop. Diagramly. Doop.design')
+    expect(i18n.translateIn('en', 'auth.openDoop')).toBe('Open Diagramly')
     expect(i18n.translateIn('en', 'actions.newCanvas')).toBe('New document')
     expect(i18n.translateIn('en', 'actions.newDiagram')).toBe('New diagram')
     expect(i18n.translateIn('en', 'canvas.allCanvases')).toBe('All documents')
