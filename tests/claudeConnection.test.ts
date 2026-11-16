@@ -50,7 +50,10 @@ it.each([
 
 it('prefills the local server and hands the complete bundle to the shell without a download link', async () => {
   const zip = new JSZip()
-  zip.file('manifest.json', JSON.stringify({ user_config: { server_url: { default: 'https://diagram.example.invalid/mcp' } } }))
+  zip.file(
+    'manifest.json',
+    JSON.stringify({ user_config: { server_url: { default: 'https://diagram.example.invalid/mcp' } } }),
+  )
   zip.file('node_modules/proxy.js', 'runtime')
   const fetcher = vi.fn().mockResolvedValue(new Response(await zip.generateAsync({ type: 'arraybuffer' })))
   const invoke = vi.fn().mockResolvedValue(undefined)
@@ -81,6 +84,8 @@ it('keeps older shells from invoking an unavailable native command', async () =>
   vi.stubGlobal('__DIAGRAMLY_CLAUDE_EXTENSION__', undefined)
   const fetcher = vi.fn()
   vi.stubGlobal('fetch', fetcher)
-  await expect(addToClaudeDesktop('https://diagram.example.invalid/mcp')).rejects.toThrow('Update the Diagramly desktop app')
+  await expect(addToClaudeDesktop('https://diagram.example.invalid/mcp')).rejects.toThrow(
+    'Update the Diagramly desktop app',
+  )
   expect(fetcher).not.toHaveBeenCalled()
 })
