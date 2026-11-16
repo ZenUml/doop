@@ -131,7 +131,7 @@ NODE
   cd "$ROOT"
   bun install --frozen-lockfile
   # Include the self-contained Claude Desktop extension in the frontend assets.
-  bun run build:claude-extension
+  VITE_PRODUCT_MODE=diagramly bun run build:claude-extension
   VITE_PRODUCT_MODE=diagramly bunx vite build
   cd "$ROOT/desktop"
   bun install --frozen-lockfile
