@@ -1,4 +1,4 @@
-import { isDiagramly } from '../product'
+import { isDiagramly, productCopy } from '../product'
 import { diagramlyMessage } from './diagramly'
 import { en } from './en'
 import { ptBR } from './pt-BR'
@@ -90,7 +90,10 @@ export function translateIn(locale: Locale, key: MessageKey, vars?: Vars): strin
   const message =
     (isDiagramly() ? diagramlyMessage(locale, key) : undefined) ?? lookup(catalogs[locale], key) ?? lookup(en, key)
   if (message === undefined) return key
-  return fill(pick(message, locale, vars), vars)
+  return fill(
+    key === 'connect.cursorApproveBody' ? pick(message, locale, vars) : productCopy(pick(message, locale, vars)),
+    vars,
+  )
 }
 
 /** Translates in the active language. For code outside React; a component
