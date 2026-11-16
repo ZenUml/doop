@@ -1,6 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
-import { describe, expect, it, vi } from 'vitest'
+import { afterAll, describe, expect, it, vi } from 'vitest'
+
+vi.hoisted(() => vi.stubEnv('DIAGRAMLY_PRODUCT', 'design'))
+afterAll(() => vi.unstubAllEnvs())
 import { buildMcpServer } from '../server/mcp.ts'
 import { FRAME_PREVIEW_URI } from '../server/chatgptApp.ts'
 import packageJson from '../package.json' with { type: 'json' }

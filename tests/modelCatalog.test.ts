@@ -163,6 +163,7 @@ beforeAll(async () => {
   await new Promise<void>((resolve) => provider.listen(0, '127.0.0.1', resolve))
   const base = `http://127.0.0.1:${(provider.address() as AddressInfo).port}`
   server = await startServer({
+    DIAGRAMLY_PRODUCT: 'design',
     ANTHROPIC_API_KEY: '',
     ANTHROPIC_BASE_URL: base,
     OPENAI_API_KEY: '',

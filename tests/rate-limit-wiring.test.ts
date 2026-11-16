@@ -61,6 +61,7 @@ afterEach(() => {
 describe('configurable tool rate limits', () => {
   let session: Awaited<ReturnType<typeof connect>>
   beforeEach(async () => {
+    vi.stubEnv('DIAGRAMLY_PRODUCT', 'design')
     vi.stubEnv('MCP_UPLOADS_PER_MIN', '2')
     // Cold MCP module loading belongs to setup, not the rate-limit response budget.
     session = await connect()

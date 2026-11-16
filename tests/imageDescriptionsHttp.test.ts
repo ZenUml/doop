@@ -12,7 +12,11 @@ let server: Server
 let alice: Client
 
 beforeAll(async () => {
-  server = await startServer({ ANTHROPIC_API_KEY: '', DIAGRAMLY_AGENT_PROVIDER: 'anthropic' })
+  server = await startServer({
+    DIAGRAMLY_PRODUCT: 'design',
+    ANTHROPIC_API_KEY: '',
+    DIAGRAMLY_AGENT_PROVIDER: 'anthropic',
+  })
   alice = await new Client(server).signUp('describe-alice@test.dev', 'Alice')
 }, 70_000)
 

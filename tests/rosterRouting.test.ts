@@ -100,7 +100,7 @@ it('routes a Kimi account to Moonshot with vision', async () => {
   expect(String(fetchSpy.mock.calls[0]![0])).toContain('api.moonshot.ai')
 })
 
-it('routes a Kimi Code plan to the membership endpoint, naming Doop as the client', async () => {
+it('routes a Kimi Code plan to the membership endpoint, naming Diagramly as the client', async () => {
   mocks.account.mockResolvedValue({ kind: 'kimi-code', userId: 'e', apiKey: 'kimi-code-test-key-01234' })
   const fetchSpy = vi
     .spyOn(globalThis, 'fetch')
@@ -110,6 +110,6 @@ it('routes a Kimi Code plan to the membership endpoint, naming Doop as the clien
   expect(await model!.run(request)).toMatchObject({ stop_reason: 'end_turn' })
   const [url, init] = fetchSpy.mock.calls[0]!
   expect(String(url)).toBe('https://api.kimi.ai/coding/v1/chat/completions')
-  expect((init!.headers as Record<string, string>)['User-Agent']).toMatch(/^Doop\/\d+\.\d+\.\d+/)
+  expect((init!.headers as Record<string, string>)['User-Agent']).toMatch(/^Diagramly\/\d+\.\d+\.\d+/)
   expect(JSON.parse(String(init!.body))).toMatchObject({ model: 'k3.1-pro' })
 })

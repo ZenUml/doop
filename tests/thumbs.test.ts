@@ -139,7 +139,7 @@ describe('thumbs', () => {
     finishPut()
     await p
     await tick()
-    expect(mocks.deleteObject).toHaveBeenCalledWith('thumb/purged-during-put.jpg')
+    expect(mocks.deleteObject).toHaveBeenCalledWith('thumb/diagramly-home-v1-purged-during-put.jpg')
   })
 
   it('getStored serves stored bytes and refreshes stale ones in the background, deduped', async () => {

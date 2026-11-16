@@ -148,7 +148,9 @@ describe('threads on a canvas comment', () => {
     expect(actions.openThread(root.id)).toBeUndefined()
     expect(seen.at(-1)).toMatchObject({ type: 'comment.resolved', frame: undefined, by: AGENT })
     /* an @agent instruction that got carried out is a decision, frame or not */
-    expect(actions.getDecisions(CANVAS.id)).toMatchObject([{ text: '@doop tighten the gap', source: 'comment' }])
+    expect(actions.getDecisions(CANVAS.id)).toMatchObject([
+      { text: `@${DEFAULT_ROLE_ID} tighten the gap`, source: 'comment' },
+    ])
     expect(actions.getDecisions(CANVAS.id)[0]?.frameId).toBeUndefined()
   })
 

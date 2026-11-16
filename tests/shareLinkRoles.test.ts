@@ -12,7 +12,7 @@ import { Client, startServer, type Server } from './harness.ts'
 let server: Server
 
 beforeAll(async () => {
-  server = await startServer()
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design' })
 }, 70_000)
 
 afterAll(() => server?.stop())
@@ -259,7 +259,7 @@ describe('share link roles', () => {
         pageId,
         x: 1,
         y: 1,
-        text: '@Doop make it red',
+        text: '@Diagramly make it red',
       })
       expect(res.status).toBe(403)
     })

@@ -1,6 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
-import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, expect, it, vi } from 'vitest'
+
+vi.hoisted(() => vi.stubEnv('DIAGRAMLY_PRODUCT', 'design'))
+afterAll(() => vi.unstubAllEnvs())
 import { buildMcpServer } from '../server/mcp.ts'
 import { store } from '../server/store.ts'
 import type { Canvas, Frame } from '../shared/types.ts'

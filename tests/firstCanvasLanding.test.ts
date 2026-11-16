@@ -5,7 +5,7 @@ import { FIRST_CANVAS_PATH, firstCanvasPathAfterSignup } from '../shared/firstCa
 let server: Server
 
 beforeAll(async () => {
-  server = await startServer()
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design' })
 }, 70_000)
 
 afterAll(() => server?.stop())

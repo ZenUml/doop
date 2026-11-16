@@ -264,7 +264,7 @@ describe('app jwt', () => {
 let server: Server
 
 beforeAll(async () => {
-  server = await startServer()
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design' })
 }, 70_000)
 
 afterAll(() => server?.stop())
@@ -310,6 +310,7 @@ describe('app REST when configured', () => {
     fakeGithub = await startFakeGithub()
     const fakeBase = `http://127.0.0.1:${(fakeGithub.address() as AddressInfo).port}`
     configured = await startServer({
+      DIAGRAMLY_PRODUCT: 'design',
       GITHUB_API_URL: fakeBase,
       GITHUB_OAUTH_TOKEN_URL: `${fakeBase}/login/oauth/access_token`,
       GITHUB_APP_ID: '123',

@@ -1,5 +1,8 @@
 // @vitest-environment happy-dom
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.hoisted(() => vi.stubEnv('VITE_PRODUCT_MODE', 'design'))
+afterAll(() => vi.unstubAllEnvs())
 
 vi.mock('../src/lib/posthog', () => ({ posthog: { capture: vi.fn() } }))
 

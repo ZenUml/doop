@@ -83,7 +83,9 @@ describe('stampElementId', () => {
   it('replaces a malformed id instead of doubling the attribute, however it was spelled', () => {
     const out = stampElementId('<p data-diagramly-id="BAD">x</p>', 'body > p', { id: 'good00' })!
     expect(out.html).toBe('<p data-diagramly-id="good00">x</p>')
-    const shouted = stampElementId('<p class="a" DATA-DOOP-ID = BAD title="t">x</p>', 'body > p', { id: 'good00' })!
+    const shouted = stampElementId('<p class="a" DATA-DIAGRAMLY-ID = BAD title="t">x</p>', 'body > p', {
+      id: 'good00',
+    })!
     expect(shouted.html).toBe('<p class="a" title="t" data-diagramly-id="good00">x</p>')
   })
 
@@ -126,7 +128,7 @@ describe('stampElementId', () => {
     for (const html of [
       "<p data-diagramly-id='abc123'>x</p>",
       '<p data-diagramly-id=abc123>x</p>',
-      '<p DATA-DOOP-ID="abc123">x</p>',
+      '<p DATA-DIAGRAMLY-ID="abc123">x</p>',
     ]) {
       expect(hasElementId(html, 'abc123')).toBe(true)
       expect(stampElementId(html, 'body > p')?.id).toBe('abc123')

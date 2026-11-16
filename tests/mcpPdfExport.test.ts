@@ -1,11 +1,15 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { PDFDocument } from 'pdf-lib'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { buildMcpServer } from '../server/mcp.ts'
 import { findBrowserPath } from '../server/screenshot.ts'
 import { store } from '../server/store.ts'
 import type { Canvas, Frame } from '../shared/types.ts'
+
+vi.hoisted(() => vi.stubEnv('DIAGRAMLY_PRODUCT', 'design'))
+afterAll(() => vi.unstubAllEnvs())
 
 /** export_frame's PDF format: the file comes back inside the tool result. */
 

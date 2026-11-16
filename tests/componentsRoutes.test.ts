@@ -16,7 +16,7 @@ describe('component routes', () => {
   let componentId: string
 
   beforeAll(async () => {
-    server = await startServer()
+    server = await startServer({ DIAGRAMLY_PRODUCT: 'design' })
     owner = await new Client(server).signUp('owner@components.test', 'Owner')
     stranger = await new Client(server).signUp('stranger@components.test', 'Stranger')
     canvasId = ((await (await owner.post('/api/canvases', { name: 'Routes' })).json()) as { id: string }).id
@@ -98,7 +98,7 @@ describe('component routes', () => {
     server.stop({ keepData: true })
     await server.stopped
     const dir = server.dataDir
-    server = await startServer({}, dir)
+    server = await startServer({ DIAGRAMLY_PRODUCT: 'design' }, dir)
     const again = new Client(server)
     again.cookies = owner.cookies
     const list = (await (await again.get(`/api/canvases/${canvasId}/components`)).json()) as {

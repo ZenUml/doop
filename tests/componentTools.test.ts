@@ -1,6 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.hoisted(() => vi.stubEnv('DIAGRAMLY_PRODUCT', 'design'))
+afterAll(() => vi.unstubAllEnvs())
 
 vi.mock('../server/db/persist.ts', () => ({
   saveCanvas: () => {},

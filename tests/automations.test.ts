@@ -227,7 +227,7 @@ let owner: Client
 let other: Client
 
 beforeAll(async () => {
-  server = await startServer()
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design' })
   owner = new Client(server)
   await owner.signUp('owner@test.dev', 'Olive Owner')
   other = new Client(server)

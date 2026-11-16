@@ -1,6 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
-import { expect, it, vi } from 'vitest'
+import { afterAll, expect, it, vi } from 'vitest'
+
+vi.hoisted(() => vi.stubEnv('DIAGRAMLY_PRODUCT', 'design'))
+afterAll(() => vi.unstubAllEnvs())
 import { buildMcpServer } from '../server/mcp.ts'
 import { RESIDENT_TOOL_NAMES } from '../server/resident.ts'
 

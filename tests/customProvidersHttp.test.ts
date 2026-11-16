@@ -44,6 +44,7 @@ beforeAll(async () => {
   await new Promise<void>((resolve) => endpoint.listen(0, '127.0.0.1', resolve))
   base = `http://127.0.0.1:${(endpoint.address() as AddressInfo).port}/v1`
   server = await startServer({
+    DIAGRAMLY_PRODUCT: 'design',
     ANTHROPIC_API_KEY: '',
     OPENAI_API_KEY: '',
     DATABASE_URL: '',

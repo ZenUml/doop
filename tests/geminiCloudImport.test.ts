@@ -7,6 +7,7 @@ let bob: Client
 let canvasId: string
 let bobCanvasId: string
 const env = {
+  DIAGRAMLY_PRODUCT: 'design',
   ANTHROPIC_API_KEY: '',
   OPENAI_API_KEY: '',
   DATABASE_URL: '',

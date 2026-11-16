@@ -13,7 +13,7 @@ let server: Server
 let BASE: string
 
 beforeAll(async () => {
-  server = await startServer({ SYNC_PAGE_INTERVAL_MS: '0' })
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design', SYNC_PAGE_INTERVAL_MS: '0' })
   BASE = server.base
 }, 70_000)
 
@@ -318,7 +318,7 @@ describe('design sync freeze', () => {
   let owner: Client
 
   beforeAll(async () => {
-    frozenServer = await startServer({ SYNC_PAGE_INTERVAL_MS: '0', SYNC_FREEZE_MS: '0' })
+    frozenServer = await startServer({ DIAGRAMLY_PRODUCT: 'design', SYNC_PAGE_INTERVAL_MS: '0', SYNC_FREEZE_MS: '0' })
     owner = new Client(frozenServer)
     await owner.signUp('freeze-owner@test.dev', 'Owner')
   }, 70_000)

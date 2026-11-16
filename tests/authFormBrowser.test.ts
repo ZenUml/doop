@@ -83,7 +83,7 @@ describe.skipIf(!findBrowserPath())('sign-up form error handling', { timeout: 30
       request_id: 'Ks3Nn1gLSsmRxT8ZTqA3dQ',
     })
     await noCrash()
-    expect(await errorText()).toContain('doop could not be reached')
+    expect(await errorText()).toContain('Diagramly could not be reached')
     /* the form is usable again, not stuck mid-submit */
     expect(await page.$eval('button[type="submit"]', (el) => el.textContent)).toBe('Sign up')
   })

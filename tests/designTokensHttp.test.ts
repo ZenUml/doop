@@ -15,7 +15,7 @@ let canvasId: string
 let ownerKey: string
 
 beforeAll(async () => {
-  server = await startServer()
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design' })
   owner = await new Client(server).signUp('tokens-owner@test.dev', 'Owner')
   visitor = await new Client(server).signUp('tokens-visitor@test.dev', 'Visitor')
   canvasId = (await (await owner.post('/api/canvases', { name: 'Tokens' })).json()).id
@@ -211,7 +211,7 @@ describe('design tokens over MCP', () => {
   it('survives a restart', async () => {
     const dataDir = server.dataDir
     await server.stop({ keepData: true })
-    server = await startServer(undefined, dataDir)
+    server = await startServer({ DIAGRAMLY_PRODUCT: 'design' }, dataDir)
     const list = (await (await owner.get(`/api/canvases/${canvasId}/tokens`)).json()) as DesignToken[]
     expect(list.map((t) => [t.name, t.value])).toEqual([
       ['--color-ink', '#111'],

@@ -163,6 +163,7 @@ describe('connecting from the desktop app', () => {
     })
     await new Promise<void>((resolve) => slack.listen(0, resolve))
     server = await startServer({
+      DIAGRAMLY_PRODUCT: 'design',
       SLACK_CLIENT_ID: 'slack-client',
       SLACK_CLIENT_SECRET: 'slack-secret',
       SLACK_SIGNING_SECRET: 'signing-secret',

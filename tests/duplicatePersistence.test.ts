@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import { Client, startServer, type Server } from './harness.ts'
 
 it('persists a complete canvas duplicate across a server restart', async () => {
-  let server: Server = await startServer()
+  let server: Server = await startServer({ DIAGRAMLY_PRODUCT: 'design' })
   try {
     const owner = new Client(server)
     await owner.signUp('duplicate@test.dev', 'Duplicate Owner')
@@ -55,7 +55,7 @@ it('persists a complete canvas duplicate across a server restart', async () => {
     const dataDir = server.dataDir
     server.stop({ keepData: true })
     await server.stopped
-    server = await startServer({}, dataDir)
+    server = await startServer({ DIAGRAMLY_PRODUCT: 'design' }, dataDir)
 
     const signedIn = new Client(server)
     expect(

@@ -9,7 +9,13 @@ import { Client, startServer, type Server } from './harness'
 let server: Server
 let alice: Client
 beforeAll(async () => {
-  server = await startServer({ ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', DATABASE_URL: '', SMTP_HOST: '' })
+  server = await startServer({
+    DIAGRAMLY_PRODUCT: 'design',
+    ANTHROPIC_API_KEY: '',
+    OPENAI_API_KEY: '',
+    DATABASE_URL: '',
+    SMTP_HOST: '',
+  })
   alice = await new Client(server).signUp('local-effort-alice@example.test', 'Alice')
 }, 60000)
 afterAll(() => server?.stop())

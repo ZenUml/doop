@@ -13,6 +13,7 @@ let server: Server
 let alice: Client
 beforeAll(async () => {
   server = await startServer({
+    DIAGRAMLY_PRODUCT: 'design',
     ANTHROPIC_API_KEY: '',
     OPENAI_API_KEY: '',
     DATABASE_URL: '',
@@ -62,6 +63,7 @@ it('is not a dial the other providers have', async () => {
 
 it('reports a server default outside the four, which the pickers then show as its own item', async () => {
   const strict = await startServer({
+    DIAGRAMLY_PRODUCT: 'design',
     ANTHROPIC_API_KEY: '',
     OPENAI_API_KEY: '',
     DATABASE_URL: '',
