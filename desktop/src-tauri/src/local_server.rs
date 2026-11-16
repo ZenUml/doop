@@ -182,6 +182,27 @@ fn free_port(data: &Path) -> Result<u16, String> {
 }
 
 fn startup_failed(message: &str) -> ! {
+    #[cfg(target_os = "macos")]
+    {
+        use objc2::MainThreadMarker;
+        use objc2_app_kit::{NSAlert, NSAlertStyle, NSApplication};
+        use objc2_foundation::NSString;
+
+        // Startup runs on the UI thread, before there is a parent window.
+        // rfd's parentless dialog uses CFUserNotificationDisplayAlert, which
+        // can wait invisibly in the App Sandbox. Keep the alert in this app.
+        let mtm = MainThreadMarker::new().expect("startup alert must run on the main thread");
+        let app = NSApplication::sharedApplication(mtm);
+        #[allow(deprecated)]
+        app.activateIgnoringOtherApps(true);
+        let alert = NSAlert::new(mtm);
+        alert.setAlertStyle(NSAlertStyle::Critical);
+        alert.setMessageText(&NSString::from_str("Diagramly could not start"));
+        alert.setInformativeText(&NSString::from_str(message));
+        alert.addButtonWithTitle(&NSString::from_str("Quit Diagramly"));
+        alert.runModal();
+    }
+    #[cfg(not(target_os = "macos"))]
     rfd::MessageDialog::new()
         .set_title("Diagramly could not start")
         .set_description(message)
