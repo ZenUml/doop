@@ -17,4 +17,3 @@ export async function initProduct(): Promise<void> {
   }
   if (isDiagramly()) document.title = 'Diagramly Desktop'
 }
-

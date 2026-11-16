@@ -349,7 +349,10 @@ describe('uploader billing and consent', () => {
   })
 
   it('uses the server when neither account is available, or leaves the image undescribed without it', async () => {
-    expect(await describerFor('missing', 'owner')).toMatchObject({ payerId: null, status: { label: 'Diagramly (haiku)' } })
+    expect(await describerFor('missing', 'owner')).toMatchObject({
+      payerId: null,
+      status: { label: 'Diagramly (haiku)' },
+    })
     mocks.server.mockReturnValue(null)
     const asset = await createAsset(png, { canvasId: canvas(), ownerId: 'missing', uploadedBy: 'Alice' })
     expect(await describeAsset(asset.id)).toBe('skipped')

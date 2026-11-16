@@ -43,21 +43,11 @@
     }
   },
   "compatibility": {
-    "platforms": [
-      "darwin",
-      "win32"
-    ],
+    "platforms": ["darwin", "win32"],
     "runtimes": {
       "node": ">=20.18.1"
     }
   },
   "tools_generated": true,
-  "keywords": [
-    "diagramly",
-    "mermaid",
-    "zenuml",
-    "architecture",
-    "mcp",
-    "claude"
-  ]
+  "keywords": ["diagramly", "mermaid", "zenuml", "architecture", "mcp", "claude"]
 }
