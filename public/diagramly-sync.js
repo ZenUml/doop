@@ -1,7 +1,7 @@
 /**
- * doop design sync — one tag in your app, your live screens on a doop canvas.
+ * Diagramly design sync — one tag in your app, your live screens on a Diagramly canvas.
  *
- *   <script async src="https://yourdoop.example/diagramly-sync.js?key=dk_…"></script>
+ *   <script async src="https://your-diagramly.example/diagramly-sync.js?key=dk_…"></script>
  *
  * Runs in the USER'S browser, so it captures apps no crawler can reach
  * (SSO, VPN, localhost) exactly as the signed-in user sees them. Each
@@ -9,15 +9,15 @@
  * lets the first capture settle, then the screen freezes on the canvas.
  *
  * Options (attributes on the script tag):
- *   data-key   required — a canvas sync key from doop's share dialog
- *   data-host  override the doop origin (defaults to where this file loaded from)
+ *   data-key   required — a canvas sync key from Diagramly's share dialog
+ *   data-host  override the Diagramly origin (defaults to where this file loaded from)
  *   data-mask  extra CSS selector whose text is redacted before upload
  *
  * The key can also ride in the URL itself — the form that survives every
  * tag manager, since src is the one attribute injectors never strip:
- *   <script async src="https://yourdoop.example/diagramly-sync.js?key=dk_…"></script>
+ *   <script async src="https://your-diagramly.example/diagramly-sync.js?key=dk_…"></script>
  * Last resort (injector rewrites the src too): set globals in the same tag:
- *   <script>window.diagramlySyncKey = 'dk_…'; window.diagramlySyncHost = 'https://yourdoop.example'</script>
+ *   <script>window.diagramlySyncKey = 'dk_…'; window.diagramlySyncHost = 'https://your-diagramly.example'</script>
  *
  * Privacy: input values are always dropped, [data-diagramly-mask] subtrees are
  * redacted, scripts never leave the page. `window.diagramlySync.capture()` forces
@@ -300,7 +300,7 @@
   /* ---- flow map: which link sits where, and where people actually went */
 
   /* Same-app link hotspots visible on this screen, in document coordinates —
-     doop draws them as connectors between the synced frames. */
+     Diagramly draws them as connectors between the synced frames. */
   function collectLinks(page) {
     var out = []
     var anchors = document.querySelectorAll('a[href]')
