@@ -176,9 +176,32 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
       expect(geometry.width).toBeGreaterThan(100)
       expect(geometry.height).toBeGreaterThan(30)
     }
+    async function openSourceEditor() {
+      await page.locator('button::-p-text(Edit diagram source)').click()
+      await page.waitForSelector('.CodeMirror', { visible: true })
+    }
+    async function closeSourceEditor() {
+      await page.locator('button::-p-text(Back to board)').click()
+      await page.waitForSelector('.CodeMirror', { hidden: true })
+    }
+    async function sourceInEditor() {
+      await openSourceEditor()
+      const source = await page.$$eval('.CodeMirror-code .CodeMirror-line', (lines) =>
+        lines.map((line) => line.textContent).join('\n'),
+      )
+      await closeSourceEditor()
+      return source
+    }
     await assertCanvas('authorize', 'create')
     const source = 'Order->Payment: upgraded and still editable'
-    await page.locator('textarea[aria-label="Diagram source"]').fill(source)
+    await openSourceEditor()
+    await page.click('.CodeMirror-code')
+    const modifier = process.platform === 'darwin' ? 'Meta' : 'Control'
+    await page.keyboard.down(modifier)
+    await page.keyboard.press('KeyA')
+    await page.keyboard.up(modifier)
+    await page.keyboard.type(source)
+    await closeSourceEditor()
     await page.waitForFunction(
       () => !document.querySelector<HTMLButtonElement>('[aria-label="Diagram page"]')?.disabled,
     )
@@ -195,9 +218,7 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
     await assertCanvas('upgraded and still editable', 'create', 'rgb(220, 238, 255)')
     await selectInnerPage('Order')
     await assertCanvas('create', 'upgraded and still editable', 'rgb(255, 255, 255)', 'rgb(49, 85, 170)')
-    expect(await page.$eval('textarea[aria-label="Diagram source"]', (el) => (el as HTMLTextAreaElement).value)).toBe(
-      'Customer->Order: create',
-    )
+    expect(await sourceInEditor()).toBe('Customer->Order: create')
     const beforeRestart = readDiagramFrame((await documentState()).frames[0]!.html)!
     expect(beforeRestart.source).toBe('Customer->Order: create')
     expect(beforeRestart.pages![0]!.styleSource).toContain('@ink: #3155aa')
@@ -230,9 +251,7 @@ describe.skipIf(!findBrowserPath())('Legacy upgrade in the actual Diagramly appl
     await assertCanvas('create', 'upgraded and still editable', 'rgb(255, 255, 255)', 'rgb(49, 85, 170)')
     await selectInnerPage('Payment')
     await assertCanvas('upgraded and still editable', 'create', 'rgb(220, 238, 255)')
-    expect(await page.$eval('textarea[aria-label="Diagram source"]', (el) => (el as HTMLTextAreaElement).value)).toBe(
-      source,
-    )
+    expect(await sourceInEditor()).toBe(source)
     const reloaded = (await (await page.$('iframe[data-diagramly-frame]'))!.contentFrame())!
     await reloaded.waitForFunction(
       () => document.documentElement.getAttribute('data-diagramly-diagram-state') === 'rendered',
