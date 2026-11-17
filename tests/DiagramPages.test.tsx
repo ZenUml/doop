@@ -31,9 +31,11 @@ const frame: Frame = {
 }
 let root: Root
 let container: HTMLDivElement
-function Harness({ disabled = false }: { disabled?: boolean }) {
+function Harness({ disabled = false, compact = false }: { disabled?: boolean; compact?: boolean }) {
   const current = useStore((state) => state.canvas!.frames[0]!)
-  return <DiagramPages frame={current} diagram={readDiagramFrame(current.html)!} disabled={disabled} />
+  return (
+    <DiagramPages frame={current} diagram={readDiagramFrame(current.html)!} disabled={disabled} compact={compact} />
+  )
 }
 function button(label: string) {
   return [...container.querySelectorAll<HTMLButtonElement>('button')].find((item) => item.textContent === label)!
@@ -73,6 +75,17 @@ it('adds and deletes inner pages while retaining at least one page and the other
   await act(async () => button('Delete').click())
   expect(readDiagramFrame(useStore.getState().canvas!.frames[0]!.html)?.pages).toEqual([pages[1]])
   expect(button('Delete').disabled).toBe(true)
+})
+it('keeps the compact page selector and page actions functional', async () => {
+  act(() => root.render(<Harness compact />))
+  const selector = container.querySelector<HTMLButtonElement>('[aria-label="Diagram page"]')!
+  act(() => selector.click())
+  const order = [...document.body.querySelectorAll<HTMLElement>('[role="option"]')].find(
+    (option) => option.textContent === 'Order',
+  )!
+  await act(async () => order.click())
+  expect(readDiagramFrame(useStore.getState().canvas!.frames[0]!.html)?.activePageId).toBe('order')
+  expect(api.updateFrame).toHaveBeenLastCalledWith('frame', expect.any(Object), 5)
 })
 it('blocks switching and page actions during a queued or in-flight save and a dirty style draft', () => {
   act(() => useFrameSaves.setState({ pending: { frame: 1 } }))

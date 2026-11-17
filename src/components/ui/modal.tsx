@@ -98,6 +98,7 @@ function Modal({
   size,
   className,
   overlayClassName,
+  overlayStyle,
   children,
   ...props
 }: Omit<React.ComponentProps<typeof DialogPrimitive.Content>, 'onOpenChange'> &
@@ -109,6 +110,7 @@ function Modal({
      *  tap. Off only for a modal whose header draws its own */
     showClose?: boolean
     overlayClassName?: string
+    overlayStyle?: React.CSSProperties
   }) {
   const t = useT()
   const overlayRef = React.useRef<HTMLDivElement>(null)
@@ -123,7 +125,7 @@ function Modal({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay ref={overlayRef} className={cn(overlayCls, overlayClassName)} />
+        <DialogPrimitive.Overlay ref={overlayRef} className={cn(overlayCls, overlayClassName)} style={overlayStyle} />
         <DialogPrimitive.Content
           ref={contentRef}
           data-slot="modal"

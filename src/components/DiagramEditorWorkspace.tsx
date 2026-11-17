@@ -118,9 +118,20 @@ export function DiagramEditorWorkspace({
   const [zoom, setZoom] = useState(1)
   const [wrap, setWrap] = useState(false)
   const [renderState, setRenderState] = useState<'loading' | 'rendered' | 'error'>('loading')
+  const [topInset, setTopInset] = useState(0)
   const split = useRef<HTMLDivElement | null>(null)
   const dragging = useRef(false)
   const sourceId = diagram.activePageId ?? 'default'
+  useLayoutEffect(() => {
+    const measure = () => {
+      const pageRoot = document.querySelector<HTMLElement>('[data-canvas-page-root]')
+      setTopInset(Math.max(0, Math.round(pageRoot?.getBoundingClientRect().top ?? 0)))
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
+  const workspaceHeight = `calc(100dvh - ${topInset}px)`
 
   return (
     <Modal
@@ -129,10 +140,12 @@ export function DiagramEditorWorkspace({
       size="xl"
       showClose={false}
       aria-label={t('inspector.diagramWorkspace')}
-      overlayClassName="!top-[var(--app-inset,0px)] !bg-white"
-      className="!left-0 !top-[var(--app-inset,0px)] !m-0 !h-[calc(100dvh-var(--app-inset,0px))] !max-h-none !w-full !max-w-none !translate-x-0 !translate-y-0 !overflow-hidden !rounded-none !p-0"
+      overlayClassName="!bg-white"
+      overlayStyle={{ top: topInset }}
+      style={{ left: 0, top: topInset, width: '100vw', height: workspaceHeight, maxWidth: 'none' }}
+      className="!m-0 !max-h-none !max-w-none !translate-x-0 !translate-y-0 !overflow-hidden !rounded-none !p-0"
     >
-      <div className="flex h-[calc(100dvh-var(--app-inset,0px))] min-h-0 flex-col bg-surface">
+      <div className="flex min-h-0 flex-col bg-surface" style={{ height: workspaceHeight }}>
         <header className="flex h-[58px] flex-none items-center gap-4 border-b border-line-soft px-5">
           <Button variant="ghost" size="sm" onClick={onClose}>
             ‹ {t('inspector.backToBoard')}
@@ -195,7 +208,7 @@ export function DiagramEditorWorkspace({
             <div className="flex flex-none items-center gap-2 border-b border-code-ink/10 bg-surface px-3 py-1.5">
               <span className="text-micro font-medium text-ink-soft">{t('inspector.pages')}</span>
               <div className="min-w-0 flex-1">
-                <DiagramPages frame={frame} diagram={diagram} />
+                <DiagramPages frame={frame} diagram={diagram} compact />
               </div>
             </div>
             <div className="min-h-0 flex-1">

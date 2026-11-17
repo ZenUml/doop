@@ -21,10 +21,12 @@ export function DiagramPages({
   frame,
   diagram,
   disabled = false,
+  compact = false,
 }: {
   frame: Frame
   diagram: DiagramFrame
   disabled?: boolean
+  compact?: boolean
 }) {
   const pending = useFrameSaves((state) => (state.pending[frame.id] ?? 0) > 0)
   const document = ensureDiagramPages(diagram)
@@ -47,6 +49,93 @@ export function DiagramPages({
     } finally {
       finish()
     }
+  }
+
+  function addPage() {
+    const page = {
+      id: crypto.randomUUID(),
+      title: `Page ${pages.length + 1}`,
+      kind: diagram.kind,
+      source: DEFAULT_DIAGRAM_SOURCE[diagram.kind],
+    }
+    void persist(activateDiagramPage({ ...document, pages: [...pages, page] }, page.id))
+  }
+
+  function deleteActivePage() {
+    const remaining = pages.filter((page) => page.id !== active?.id)
+    const next = remaining[0]
+    if (next) void persist({ ...activateDiagramPage(document, next.id), pages: remaining })
+  }
+
+  function startRename() {
+    setTitle(active?.title ?? '')
+    setRenaming(true)
+  }
+
+  function saveRename() {
+    if (!active) return
+    void persist({
+      ...document,
+      pages: pages.map((page) => (page.id === active.id ? { ...page, title: title.trim() } : page)),
+    })
+  }
+
+  if (compact) {
+    return (
+      <section className="flex min-w-0 items-center gap-1.5" aria-label="Diagram pages">
+        <Select
+          value={active?.id}
+          disabled={blocked}
+          onValueChange={(id) => void persist(activateDiagramPage(document, id))}
+        >
+          <SelectTrigger aria-label="Diagram page" className="h-8 w-[132px] shrink-0">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {pages.map((page) => (
+              <SelectItem key={page.id} value={page.id}>
+                {page.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {renaming && active ? (
+          <div className="flex min-w-0 items-center gap-1">
+            <Input
+              aria-label="Page name"
+              className="h-8 min-w-0 w-36"
+              value={title}
+              disabled={blocked}
+              onChange={(event) => setTitle(event.target.value)}
+            />
+            <Button variant="ghost" size="sm" disabled={blocked || !title.trim()} onClick={saveRename}>
+              Save
+            </Button>
+            <Button variant="ghost" size="sm" disabled={pending} onClick={() => setRenaming(false)}>
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          <div className="flex shrink-0 items-center gap-1">
+            <Button variant="ghost" size="sm" className="h-8 px-2" disabled={blocked} onClick={addPage}>
+              Add page
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 px-2" disabled={blocked} onClick={startRename}>
+              Rename
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2"
+              disabled={blocked || pages.length <= 1}
+              onClick={deleteActivePage}
+            >
+              Delete
+            </Button>
+          </div>
+        )}
+      </section>
+    )
   }
 
   return (
