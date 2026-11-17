@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { isDesktopShell } from '../lib/shell'
 import { navigate } from '../lib/navigate'
 import { ConnectModal } from './ConnectModal'
 import { Button } from './ui/button'
@@ -31,7 +32,9 @@ export function DiagramlyShell({
           </Button>
         </nav>
         <p className="mt-auto text-caption text-ink-faint">
-          Local documents stay on this Mac. Cloud actions are separate.
+          {isDesktopShell()
+            ? 'Documents stay in your local library.'
+            : 'Local documents stay on this Mac. Cloud actions are separate.'}
         </p>
       </aside>
       <main className="min-w-0 flex-1 overflow-y-auto">
