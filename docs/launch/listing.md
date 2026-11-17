@@ -18,14 +18,14 @@ Do not list export formats or claim that an export workflow is available until e
 
 Capture actual screens from the signed candidate using synthetic diagrams and documents. Do not depict unavailable cloud features or unverified export formats.
 
-| Order | Message | Evidence to capture |
-| --- | --- | --- |
-| 1 | Edit the source and see the diagram update | Source editor and live preview showing one concrete edit |
-| 2 | Open a diagram from your board | Double-click action and the independent editor for that diagram |
-| 3 | Keep related views in Pages | Page tabs inside one diagram and switching between pages |
-| 4 | Use ZenUML or Mermaid | One synthetic diagram of each supported language |
-| 5 | Bring an older ZenUML library | JSON import with imported documents and Pages reviewed |
-| 6 | Connect your MCP client | A real customer-configured MCP edit appearing in the local diagram |
+| Order | Message                                    | Evidence to capture                                                |
+| ----- | ------------------------------------------ | ------------------------------------------------------------------ |
+| 1     | Edit the source and see the diagram update | Source editor and live preview showing one concrete edit           |
+| 2     | Open a diagram from your board             | Double-click action and the independent editor for that diagram    |
+| 3     | Keep related views in Pages                | Page tabs inside one diagram and switching between pages           |
+| 4     | Use ZenUML or Mermaid                      | One synthetic diagram of each supported language                   |
+| 5     | Bring an older ZenUML library              | JSON import with imported documents and Pages reviewed             |
+| 6     | Connect your MCP client                    | A real customer-configured MCP edit appearing in the local diagram |
 
 Use [demo-fixtures](demo-fixtures/) only as synthetic inputs. Record which steps pass on the shipping candidate before capturing screenshots or video. Remove private prompts, credentials, emails and customer work.
 
