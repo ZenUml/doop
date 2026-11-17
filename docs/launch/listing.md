@@ -31,6 +31,6 @@ Use [demo-fixtures](demo-fixtures/) only as synthetic inputs. Record which steps
 
 ## App Review materials
 
-Confirm the current public support and privacy URLs, seller details, support contact, privacy disclosures, age rating, export-compliance answers and third-party notices from the shipping candidate. The proposed `/desktop` landing page returned 404. `/desktop/support` returned HTTP 200, but its content has not been reviewed. Describe the customer-configured MCP flow and local data handling accurately. Do not include Diagramly cloud-AI, subscription, in-app purchase, purchase-restore, or unverified export claims.
+Confirm the current public support and privacy URLs, seller details, support contact, privacy disclosures, age rating, export-compliance answers and third-party notices from the shipping candidate. The proposed `/desktop` landing page returned 404. `/desktop/support` returned HTTP 200; its content was checked for legacy import steps and the 10 MB limit, renderer-error troubleshooting, external agent/provider billing, and a support email. Recheck the live page before submission. Describe the customer-configured MCP flow and local data handling accurately. Do not include Diagramly cloud-AI, subscription, in-app purchase, purchase-restore, or unverified export claims.
 
 Store requirements: [Apple app information](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/) and [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/). Recheck before submission.

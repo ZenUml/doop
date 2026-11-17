@@ -10,9 +10,9 @@ The proposed v1 focuses on local editing: source editing with live preview, open
 
 ## Current evidence
 
-`origin/main` is `8011907`, including PR #32 (`079a82a`) and PR #34's development signing fix. The focused editor and Pages implementation includes commit `74eb200` on its workstream but is not present in `origin/main` at this snapshot. Confirm its release-audit integration and test the final candidate before treating this copy as shipping behavior.
+`origin/main` is `8011907`, including PR #32 (`079a82a`) and PR #34's development signing fix. The focused editor and Pages implementation through `74eb200` is integrated locally on `codex/release-integration-local-20261118`; it is not in `origin/main` or a released candidate. Verify the exact candidate before treating this copy as shipping behavior.
 
-A public iTunes lookup reports the existing listing as “Sequence Diagram Tool | ZenUML”, version 1.0.7, $29.99 USD in the US storefront, seller Peng Xiao. The `/desktop` URL returned 404; `/desktop/support` returned HTTP 200 but its content is unreviewed. The latest App Store Connect build and submission history remain unchecked. No listing change or submission is recorded here. Read [execution status](execution-status.md) for the candidate gates and [pricing](pricing.md) for the pricing decision.
+A public iTunes lookup reports the existing listing as “Sequence Diagram Tool | ZenUML”, version 1.0.7, $29.99 USD in the US storefront, seller Peng Xiao. The `/desktop` URL returned 404. `/desktop/support` returned HTTP 200; its content was checked for legacy import steps and the 10 MB limit, renderer-error troubleshooting, external agent/provider billing, and a support email. The distribution certificate is available, but App Store Connect login is incomplete, so the latest build and submission history remain unchecked. No listing change or submission is recorded here. Read [execution status](execution-status.md) for the candidate gates and [pricing](pricing.md) for the pricing decision.
 
 ## Release gates
 

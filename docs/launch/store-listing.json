@@ -13,7 +13,7 @@
   "privacyPolicyUrl": "https://diagramly.ai/legal/privacy-policy",
   "termsUrl": "https://diagramly.ai/legal/terms",
   "refundPolicyUrl": "https://diagramly.ai/legal/refund-policy",
-  "urlStatus": "The proposed /desktop URL returned 404. /desktop/support returned HTTP 200; its content has not been reviewed. Desktop coverage of the legal pages is unverified.",
+  "urlStatus": "The proposed /desktop URL returned 404. /desktop/support returned HTTP 200; content was checked for legacy import steps and the 10 MB limit, renderer-error troubleshooting, external agent/provider billing, and a support email. Desktop coverage of the legal pages is unverified; recheck the live page before submission.",
   "bundleId": "com.zenuml.app",
   "sku": null,
   "copyright": "Confirm seller identity and third-party attribution before submission.",
