@@ -3,7 +3,7 @@ import { act } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, expect, it, vi } from 'vitest'
-import { buildDiagramHtml } from '../shared/diagramFrame'
+import { buildDiagramHtml, type DiagramFrame } from '../shared/diagramFrame'
 import { DiagramEditorWorkspace, DiagramPreview } from '../src/components/DiagramEditorWorkspace'
 import type { Frame } from '../shared/types'
 
@@ -41,10 +41,10 @@ vi.mock('../src/components/DiagramCodeEditor', () => ({
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
-const diagram = {
-  kind: 'zenuml' as const,
+const diagram: DiagramFrame = {
+  kind: 'zenuml',
   source: 'A->B: hello',
-  pages: [{ id: 'sequence', title: 'Sequence', kind: 'zenuml' as const, source: 'A->B: hello' }],
+  pages: [{ id: 'sequence', title: 'Sequence', kind: 'zenuml', source: 'A->B: hello' }],
   activePageId: 'sequence',
 }
 const frame: Frame = {
@@ -85,6 +85,52 @@ it('keeps the diagram preview read-only while retaining parent-controlled zoom',
   expect(iframe.tabIndex).toBe(-1)
   expect(iframe.getAttribute('aria-label')).toContain('Read-only preview')
   expect(iframe.parentElement?.style.zoom).toBe('1.2')
+})
+
+it('does not restart preview loading for a page-title change, but still reacts to render content changes', () => {
+  container = document.createElement('div')
+  document.body.append(container)
+  root = createRoot(container)
+  const onRenderState = vi.fn()
+  const renderPreview = (current: typeof diagram) =>
+    root.render(
+      <DiagramPreview
+        diagram={current}
+        source={current.source}
+        title="Live preview"
+        zoom={1}
+        onRenderState={onRenderState}
+      />,
+    )
+
+  act(() => renderPreview(diagram))
+  const iframe = container.querySelector('iframe')!
+  act(() =>
+    window.dispatchEvent(
+      new MessageEvent('message', { source: iframe.contentWindow, data: { type: 'diagramly:frame-ready' } }),
+    ),
+  )
+  expect(onRenderState).toHaveBeenCalledWith('loading')
+  act(() => {
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        source: iframe.contentWindow,
+        data: { type: 'diagramly:diagram-render-state', state: 'rendered', source: diagram.source },
+      }),
+    )
+  })
+  expect(onRenderState).toHaveBeenLastCalledWith('rendered')
+  onRenderState.mockClear()
+
+  const renamed = {
+    ...diagram,
+    pages: [{ ...diagram.pages![0]!, title: 'Renamed sequence' }],
+  }
+  act(() => renderPreview(renamed))
+  expect(onRenderState).not.toHaveBeenCalledWith('loading')
+
+  act(() => renderPreview({ ...renamed, css: '.sequence-diagram { color: red }' }))
+  expect(onRenderState).toHaveBeenCalledWith('loading')
 })
 
 it('fills the desktop viewport, keeps the board header visible, and retains preview zoom controls', () => {

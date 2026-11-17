@@ -45,7 +45,15 @@ export function DiagramPreview({
     currentSource.current = source
     onRenderStateRef.current = onRenderState
   }, [source, onRenderState])
-  const html = buildDiagramHtml({ ...diagram, source })
+  const html = buildDiagramHtml({
+    kind: diagram.kind,
+    source,
+    ...(diagram.css !== undefined ? { css: diagram.css } : {}),
+    ...(diagram.styleSource !== undefined ? { styleSource: diagram.styleSource } : {}),
+    ...(diagram.styleMode !== undefined ? { styleMode: diagram.styleMode } : {}),
+    ...(diagram.styleConfig !== undefined ? { styleConfig: diagram.styleConfig } : {}),
+    ...(diagram.styleHtml !== undefined ? { styleHtml: diagram.styleHtml } : {}),
+  })
 
   useEffect(() => {
     function onMessage(event: MessageEvent) {

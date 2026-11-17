@@ -144,7 +144,7 @@ export function DiagramPages({
                         }}
                         className={`relative h-full max-w-[220px] min-w-[110px] items-center gap-2 border-t-2 px-3 py-0 text-caption transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                           selected
-                            ? 'border-accent bg-accent/10 pr-10 font-medium text-ink'
+                            ? 'rounded-none border-x-0 border-b-0 border-t-2 border-brand bg-brand/10 pr-10 font-medium text-ink shadow-none hover:bg-brand/10 hover:text-ink'
                             : 'border-transparent text-ink-soft hover:bg-sub'
                         }`}
                         title={page.title}
@@ -157,7 +157,7 @@ export function DiagramPages({
                             <Button
                               variant="bare"
                               size="icon-sm"
-                              className="absolute right-1 top-1/2 z-10 size-6 -translate-y-1/2 bg-surface/90"
+                              className="absolute right-1 top-1/2 z-10 size-6 -translate-y-1/2 rounded-none bg-transparent shadow-none hover:bg-paper-deep"
                               aria-label={`Actions for ${page.title}`}
                               disabled={blocked}
                             >

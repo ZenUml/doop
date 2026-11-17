@@ -31,6 +31,8 @@ describe.skipIf(!findBrowserPath())('focused diagram editor desktop layout', () 
       const previewCanvas = modal.querySelector<HTMLElement>('[data-preview-canvas]')!
       const tabStrip = pages.firstElementChild as HTMLElement
       const tabs = [...pages.querySelectorAll<HTMLElement>('[role="tab"]')]
+      const activeTab = tabs.find((tab) => tab.getAttribute('aria-selected') === 'true')!
+      const activeTabStyle = getComputedStyle(activeTab)
       const back = [...header.querySelectorAll('button')].find((button) =>
         button.textContent?.includes('Back to board'),
       )!
@@ -59,6 +61,13 @@ describe.skipIf(!findBrowserPath())('focused diagram editor desktop layout', () 
           tabs: tabs.length,
           active: tabs.find((tab) => tab.getAttribute('aria-selected') === 'true')?.textContent,
           menuCount: pages.querySelectorAll('[aria-label^="Actions for "]').length,
+          activeStyle: {
+            borderTopColor: activeTabStyle.borderTopColor,
+            borderTopWidth: activeTabStyle.borderTopWidth,
+            borderBottomWidth: activeTabStyle.borderBottomWidth,
+            borderRadius: activeTabStyle.borderRadius,
+            backgroundColor: activeTabStyle.backgroundColor,
+          },
         },
         sourceHeading: sourceHeading.textContent,
       }
@@ -78,5 +87,10 @@ describe.skipIf(!findBrowserPath())('focused diagram editor desktop layout', () 
     expect(layout.pages.menuCount).toBe(1)
     expect(layout.pages.tabStripScrollWidth).toBeGreaterThan(layout.pages.tabStripWidth)
     expect(layout.sourceHeading).toContain('Scenario 1')
+    expect(layout.pages.activeStyle.borderTopColor).toBe('rgb(1, 119, 211)')
+    expect(layout.pages.activeStyle.borderTopWidth).toBe('2px')
+    expect(layout.pages.activeStyle.borderBottomWidth).toBe('0px')
+    expect(layout.pages.activeStyle.borderRadius).toBe('0px')
+    expect(layout.pages.activeStyle.backgroundColor).not.toBe('rgb(255, 255, 255)')
   }, 15_000)
 })
