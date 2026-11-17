@@ -19,6 +19,7 @@ export const auth = {
   taglineEmphasis: '& agents',
   taglineAfter: '.',
   taglineSignin: 'Sign in to your canvases.',
+  localTaglineSignup: 'Create a local profile for this library.',
   taglineSignup: 'Sign up to start designing.',
 
   signInWith: 'Sign in with {provider}',

@@ -1,19 +1,21 @@
 # Desktop app execution status
 
-Updated 2026-11-17. **Not yet ready for App Store submission.**
+Updated 2026-11-18. **Draft only; App Store submission has not been verified.**
 
-## Desktop candidate
+## Product and listing
 
-- PR #32 prepares the existing ZenUML app (`com.zenuml.app`) for the Diagramly transition. It includes the renamed Claude extension, local MCP connection, title persistence and desktop workflow fixes. The PR has not yet been merged.
-- The full JavaScript test run passed 3,071 tests with 19 skipped on commit `27025de`; later port and workflow changes have focused checks. The renamed extension was installed in Claude Desktop and used to read and edit an isolated test diagram, which was reopened in the desktop app.
-- A sandboxed debug build showed the port-conflict message and restarted on its saved port once the conflict was removed. This does not verify automatic port discovery or a signed App Store build.
-- Existing legacy diagrams have been imported and edited in an isolated build, including a synthetic diagram with two pages. A final candidate still needs a practical upgrade/import check.
+- The release direction is to update the existing paid ZenUML Mac App Store app, bundle ID `com.zenuml.app` (record ID `1602636196`), and introduce Diagramly branding gradually. No new listing or price change is authorized.
+- `origin/main` is at `8011907` and includes the merge of PR #32 (`079a82a`) and the local StoreKit development-signing change in #34. These commits do not establish that a candidate was uploaded or submitted.
+- A current public iTunes lookup reports the existing US listing as “Sequence Diagram Tool | ZenUML”, version 1.0.7, priced at $29.99 USD, with seller Peng Xiao. The Australia price is unverified. The `/desktop` marketing URL returned 404. `/desktop/support` returned HTTP 200; its content was checked for legacy import steps and the 10 MB limit, renderer-error troubleshooting, external agent/provider billing, and a support email. App Store Connect submission and build history remain unverified because login is incomplete.
+- The proposed v1 is local diagram editing with a source editor and live preview; opening a board diagram in its own editor by double-click; per-diagram Pages tabs; ZenUML and Mermaid; importing an older ZenUML JSON library; and connecting an MCP client the customer provides and configures.
+- The focused editor and Pages implementation through `74eb200` is integrated locally on `codex/release-integration-local-20261118`, but remains outside `origin/main` and has not been verified on a released candidate. Treat the listing as proposed copy until the exact release build is checked.
+- Do not describe Diagramly cloud AI, a Diagramly subscription, in-app purchases, cloud sync, or purchase restore as part of this v1. Do not claim unverified export formats.
 
-## Payments and release
+## Release state to verify
 
-- Apple In-App Purchase remains the desktop payment channel. The native purchase bridge exists; real Apple Sandbox purchase, restore and renewal have not been verified.
-- Backend Apple entitlement integration is on a separate branch. Its isolated database tests passed, while CI and production integration remain open. Do not enable the Apple gate or claim production readiness based on local tests alone.
-- An unsigned macOS review bundle exists; the final source revision has not been signed or uploaded. The current local keychain lacks the required Mac App Store distribution identities. Confirm the App Store Connect product, provisioning and build-number state before packaging.
-- Store listing, screenshots, pricing and support materials remain drafts. Confirm claims against the actual release candidate and complete the Apple review information before submission.
+- Current App Store Connect listing status, app availability, seller, version/build, and current storefront prices have not been checked for this update. Keep the existing paid app and price; record the actual US and AU prices only after checking the live listing.
+- No listing change or submission is recorded here. Draft metadata and screenshots still need review against the candidate. The distribution certificate is available, but App Store Connect login is incomplete; uploaded-build and submission status remain unchecked. Verify provisioning and final signing against the candidate.
+- Complete a clean install and existing-app update check, source editing and preview, board double-click into the independent editor, Pages tabs, both diagram languages, legacy JSON import, customer-owned MCP connection, save/reopen, and relevant failure paths on the exact signed Mac App Store build.
+- Check signing, provisioning, bundle identity, privacy disclosures, third-party notices, support contact, and review notes before submission. Keep `releaseReady` false until the exact candidate passes the release audit and human acceptance.
 
-`docs/launch/current-readiness.json` is not updated by this snapshot. Keep `releaseReady` false until the actual release candidate is verified.
+`docs/launch/current-readiness.json` is a prior snapshot, not evidence for a new candidate. Refresh it only after checking the exact build.

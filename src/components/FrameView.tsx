@@ -1852,7 +1852,11 @@ export const FrameView = memo(function FrameView({
             onDoubleClick={(e) => {
               if (isDiagramly()) {
                 select(frame.id)
-                useStore.getState().setInspectorOpen(true)
+                if (readDiagramFrame(frame.html) && !frame.locked) {
+                  useStore.getState().setDiagramEditorFrameId(frame.id)
+                } else {
+                  useStore.getState().setInspectorOpen(true)
+                }
               } else void enterElementEdit(designPoint(e, e.currentTarget, frame.rotation))
             }}
             onPointerMove={(e) => {

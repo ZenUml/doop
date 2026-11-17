@@ -1,80 +1,25 @@
-# Desktop app: commercial release plan
+# Desktop app release plan
 
-Status: **preparation; not ready for sale or distribution**. Updated 2026-11-11.
+Status: **preparation; no updated listing submission or release is verified.** Updated 2026-11-18.
 
-The working tracker is [launch epic #26](https://github.com/ZenUml/doop/issues/26), with active execution issues #17–25. Issue #16 is closed as an owner decision: Apple In-App Purchase through the Mac App Store is the selected channel. That decision does not resolve the separate AGPL/source/notices review required before distribution.
+## Product and commercial decision
 
-The owner approved a gradual transition from ZenUML to the **Diagramly** brand and reuse of the existing Mac App Store app record, app ID `1602636196`, bundle ID `com.zenuml.app`. No public listing metadata has been changed and no new app record has been created. Apple In-App Purchase through the Mac App Store remains the selected channel. No live product or purchase is verified, and no final signed Mac App Store build has been produced.
+Update the existing paid ZenUML Mac App Store app (`com.zenuml.app`, record ID `1602636196`) and introduce Diagramly branding gradually. Keep the current app record, paid-app model and price. No price change, subscription, in-app purchase, or Diagramly cloud-AI offer is part of this v1. A current public iTunes lookup confirms the US price is $29.99 USD; the Australia price remains unverified. Check App Store Connect before publishing price details.
 
-## Product direction
+The proposed v1 focuses on local editing: source editing with live preview, opening a board diagram in its own editor by double-click, Pages tabs within each diagram, ZenUML and Mermaid, import of an older ZenUML JSON library, and a customer-provided MCP client. Customers provide and configure their MCP client and any related AI provider account. Do not promise cloud AI, cloud sync, purchase restore, or unverified export formats.
 
-The owner selected **Diagramly** as the product brand, with a gradual transition from the existing ZenUML listing. The existing app record and bundle identity remain the update path; do not create a second listing or change customer-facing store metadata until the migration and paid-customer rights plan is reviewed. The candidate icon is still a design asset, not a confirmed shipping icon.
+## Current evidence
 
-The planned local product is for developers and technical teams who need editable Mermaid and ZenUML diagrams, a document/page library, and a way to work with their own AI agent. Its first useful jobs are to create and revise diagrams, import an older ZenUML library, and connect a compatible external MCP client. The external client uses its own AI account, model access and billing. Desktop sign-in, MCP authorization and Apple purchases are separate identities; people must authorize the expected Diagramly account where the client requests it.
+`origin/main` is `8011907`, including PR #32 (`079a82a`) and PR #34's development signing fix. The focused editor and Pages implementation through `74eb200` is integrated locally on `codex/release-integration-local-20261118`; it is not in `origin/main` or a released candidate. Verify the exact candidate before treating this copy as shipping behavior.
 
-The desktop MCP service is intended to bind to loopback on the same Mac. It is not a network-wide MCP service. Local documents do not silently become cloud documents. Paid Diagramly cloud services remain unavailable until account access, server-side entitlements, metering and Apple purchases work together.
+A public iTunes lookup reports the existing listing as “Sequence Diagram Tool | ZenUML”, version 1.0.7, $29.99 USD in the US storefront, seller Peng Xiao. The `/desktop` URL returned 404. `/desktop/support` returned HTTP 200; its content was checked for legacy import steps and the 10 MB limit, renderer-error troubleshooting, external agent/provider billing, and a support email. The distribution certificate is available, but App Store Connect login is incomplete, so the latest build and submission history remain unchecked. No listing change or submission is recorded here. Read [execution status](execution-status.md) for the candidate gates and [pricing](pricing.md) for the pricing decision.
 
-The import path supports the legacy ZenUML JSON library export and a reviewed recovery copy of the old Chromium library. See [legacy upgrade and local rights](legacy-upgrade.md). It is an explicit import, not an account or workspace merge. The earlier Doop Desktop preview uses a separate app container; Diagramly does not automatically copy its data. Keep the old app and its data until an explicit export/import has been checked. Portable backups omit version history, comments and external image files; keep those separately. Before any new subscription gate is enabled, define and verify how existing purchasers retain the primary functionality they paid for. Apple Guideline 3.1.2(a) says an app changing to a subscription model must not remove primary functionality existing users already paid for.
+## Release gates
 
-## Commercial decisions and current evidence
+- Confirm App Store Connect record, seller, current availability and current US/AU prices; preserve the existing price.
+- Integrate and verify the focused source editor, live preview, board double-click behavior and Pages tabs on the release candidate.
+- Verify ZenUML and Mermaid editing, legacy ZenUML JSON import, save/reopen, and the customer-provided MCP flow on the exact signed Mac App Store build.
+- Verify bundle identity, signing, provisioning, privacy disclosures, support details, third-party notices, and App Review materials.
+- Capture screenshots from the candidate and remove claims that do not pass acceptance. Do not publish a listing or claim submission until it is actually done.
 
-| Area            | Decision or intended behavior                                                                   | Current evidence and remaining work                                                                                                                                                                                 |
-| --------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Desktop payment | Apple In-App Purchase through StoreKit; selected in closed issue #16                            | Paid Apps Agreement was accepted and verified active on 2026-11-10. Native StoreKit bridge and purchase UI are implemented. No live products are configured; simulator verification returned StoreKit error code 3. |
-| Distribution    | Reuse the existing Mac App Store record `1602636196` (`com.zenuml.app`); Apple supplies updates | The dedicated profile retains `com.zenuml.app`, ZenUML 1.1.0 build 41. Final sandbox acceptance, fresh Apple signing and submission eligibility remain pending. No listing metadata has changed.                    |
-| Local core      | Local Mermaid/ZenUML editing, import, save/restore and external MCP                             | Product-profile UI/API and backup code are in progress and have focused test evidence. Clean-machine and final signed sandbox acceptance remain.                                                                    |
-| Paid offer      | One Pro tier with monthly and annual options                                                    | $9.99 monthly and $99.99 annual are planning targets only. No price is shown here as live; verify StoreKit price points, costs, entitlements and products before sale. See [pricing](pricing.md).                   |
-| Identity        | Apple purchase identity and Diagramly sign-in are separate                                      | Connection and purchase-context API work exists in a separate backend branch and remains default-off; integration and live verification are pending. See [Apple payments](apple-payments.md).                       |
-| Name and icon   | Diagramly brand, introduced gradually on the existing ZenUML listing                            | Brand direction is approved. The existing listing remains unchanged until the paid-customer rights and migration plan is verified. The candidate icon is not yet approved for the shipping build.                   |
-| Public support  | `/desktop` and `/desktop/support` explain the pre-launch offer and migration boundaries         | Pages are committed locally in branch `codex/desktop-marketing` (`bd17c5ee6`); they are not deployed. There is no published Desktop response-time promise.                                                          |
-
-Product copy uses Document → Page → Diagram as interface vocabulary. Keep storage and protocol names compatible; see [terminology issue #15](https://github.com/ZenUml/doop/issues/15).
-
-## Issue #16 decision and continuing licence work
-
-Issue #16 is closed because the owner selected the Mac App Store and Apple In-App Purchase. This closes the channel-choice question only. The root AGPL licence, modified-source publication obligations, third-party notices, and compatibility of the chosen channel still require a qualified release review. Do not assume that attaching the upstream repository satisfies source obligations, that an App Store EULA resolves compatibility, or that the remote Diagramly service shares the app's licence boundary. Preserve `LICENSE` and all third-party notices throughout packaging and review.
-
-## Evidence and release gates
-
-The current evidence and open dependencies are recorded in [execution-status.md](execution-status.md). The local release audit is [audit-release.mjs](audit-release.mjs). It reads the dedicated App Store profile rather than treating the upstream Doop template config as the selected product profile:
-
-```sh
-node docs/launch/audit-release.mjs \
-  --bundle "/absolute/path/to/ZenUML.app" \
-  --output /tmp/diagramly-release-audit.json
-```
-
-Replace the example path with the exact packaged update. Earlier preview artifacts use a separate identifier and are not release candidates. An audit without a new candidate remains blocked. `current-readiness.json` is a prior snapshot and must not be treated as evidence for the final bundle; refresh it only after the exact final candidate has been built.
-
-The audit checks configuration and bundle facts. Static profile or source-file presence does not prove StoreKit behavior, server verification, sandbox compliance, App Review acceptance, or release readiness. Exit 2 means a known blocker; exit 0 means further human and end-to-end review is still required. `releaseReady` remains false.
-
-The App Store profile retains product name `ZenUML`, identifier `com.zenuml.app`, version 1.1.0 build 41, no self-updater and an Apple-delivered update policy. Diagramly branding is introduced gradually within this existing update path. The base Tauri config intentionally remains the upstream Doop profile for other builds. The local bundle path uses the dedicated candidate profile and `app-store` Cargo feature.
-
-Current release gates include:
-
-- source/licence/notices and distribution-channel review;
-- final production profile build, signing, provisioning and bundle verification;
-- StoreKit product configuration, live purchase/restore/manage testing, and server-side signed transaction verification;
-- confirmation and implementation of existing paid customers' access to the primary functionality they purchased before any subscription gate is enabled;
-- completion and review of the default-off Diagramly connection/entitlement integration;
-- privacy and local-security review, including loopback MCP and generated content;
-- clean-machine install, migration, backup/restore, account switching and failure acceptance;
-- public support/listing publication and App Store review materials.
-
-The bundle-allocation measurement of 1,187 MiB included development dependencies. It is not the signed download size or a reclaimable-space estimate.
-
-## Delivery order
-
-1. Complete source/licence/notices review and confirm the shipping capability set. Keep legacy data and the current app usable.
-2. Finish the dedicated production build, identity/container migration and local-data recovery checks.
-3. Complete account-bound StoreKit delivery, server verification, restore, notifications, product configuration and real sandbox acceptance. Confirm service costs before publishing an allowance or price.
-4. Run clean-install, upgrade, offline-start, account-switch, MCP, import, backup/restore and purchase-failure acceptance on the exact signed build.
-5. Deploy reviewed `/desktop` and `/desktop/support` content; finish App Store metadata, privacy disclosures, review instructions and private beta. Submit only the reviewed candidate after all gates pass.
-
-## Ownership and operating evidence
-
-Prepare reviewable work before any necessary account-holder action. Keep credentials, private account details, banking/tax details, signing secrets and customer data out of this directory. Do not accept legal contracts, alter bank/tax settings, spend money, contact customers, upload a build or publish a release without the required authorization.
-
-Measure first diagrams saved and reopened, successful source edits, visible MCP edits, imported pages remaining editable, retained weekly editors, verified purchases, refunds and net proceeds after usage costs. App opens, button clicks, a token in storage and gross sales do not establish those outcomes.
-
-See [Apple payments](apple-payments.md), [pricing](pricing.md), [listing and screenshots](listing.md), [operations](operations.md), [support playbook](support-playbook.md), [launch issues](issues.json) and [execution status](execution-status.md).
+`current-readiness.json` is a prior snapshot. Keep release readiness false until the exact signed candidate passes the audit and human acceptance. See [listing and screenshots](listing.md), [support playbook](support-playbook.md), and [release issues](issues.json).

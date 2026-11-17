@@ -205,7 +205,7 @@ function agentSteps(
     case 'claude':
       if (claudeConnection === 'desktop') {
         return {
-          lede: t('connect.claudeDesktopLede'),
+          lede: t(isDesktopShell() ? 'connect.localClaudeDesktopLede' : 'connect.claudeDesktopLede'),
           steps: [
             {
               title: t('connect.claudeDesktopAddTitle'),
@@ -213,8 +213,8 @@ function agentSteps(
               action: <ClaudeDesktopInstall mcpUrl={mcpUrl} />,
             },
             {
-              title: t('connect.claudeDesktopConnectTitle'),
-              body: t('connect.claudeDesktopConnectBody'),
+              title: t(isDesktopShell() ? 'connect.localLibraryConnectTitle' : 'connect.claudeDesktopConnectTitle'),
+              body: t(isDesktopShell() ? 'connect.localClaudeDesktopConnectBody' : 'connect.claudeDesktopConnectBody'),
             },
             {
               ...pointAt,
@@ -322,7 +322,7 @@ function agentSteps(
                 {t('connect.chatgptAddReview')}
                 {/* ChatGPT's own button label */}
                 <strong>Create as a plugin</strong>
-                {t('connect.chatgptAddAfter')}
+                {t(isDesktopShell() ? 'connect.localChatgptAddAfter' : 'connect.chatgptAddAfter')}
               </>
             ),
             code: mcpUrl,
@@ -472,6 +472,12 @@ function AgentSteps({
           />
         )}
 
+        {isDesktopShell() &&
+          agent !== 'headless' &&
+          !(agent === 'claude' && claudeConnection === 'desktop') &&
+          !(agent === 'mcp' && mcpConnection === 'key') && (
+            <p className="mt-4 text-body text-ink-soft">{t('connect.localLibraryBrowserApproval')}</p>
+          )}
         <ol className="mt-6">
           {steps.map((step, i) => (
             <li

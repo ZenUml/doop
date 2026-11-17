@@ -19,9 +19,10 @@
       import { createRoot } from 'react-dom/client'
       import { Stage } from '/src/components/Stage.tsx'
       import { LayersPanel } from '/src/components/LayersPanel.tsx'
+      import { DiagramSource } from '/src/components/DiagramSource.tsx'
       import { Inspector } from '/src/components/Inspector.tsx'
       import { useStore } from '/src/lib/store.ts'
-      import { buildDiagramHtml } from '/shared/diagramFrame.ts'
+      import { buildDiagramHtml, readDiagramFrame } from '/shared/diagramFrame.ts'
       import { TooltipProvider } from '/src/components/ui/tooltip.tsx'
       import { initProduct } from '/src/lib/product.ts'
       import '/src/styles.css'
@@ -84,13 +85,26 @@
       function Surface() {
         const canvas = useStore((state) => state.canvas)
         const selectedId = useStore((state) => state.selectedId)
+        const editorFrameId = useStore((state) => state.diagramEditorFrameId)
         const selected = canvas?.frames.find((item) => item.id === selectedId)
+        const editorFrame = canvas?.frames.find((item) => item.id === editorFrameId)
+        const editorDiagram = editorFrame && readDiagramFrame(editorFrame.html)
         return React.createElement(
           'div',
           { className: 'fixed inset-0 bg-canvas' },
           React.createElement(Stage, { onAddFrame: () => {} }),
           React.createElement(LayersPanel, { onAddFrame: () => {} }),
           selected ? React.createElement(Inspector, { frame: selected }) : null,
+          editorFrame && editorDiagram
+            ? React.createElement(DiagramSource, {
+                key: editorFrame.id,
+                frame: editorFrame,
+                diagram: editorDiagram,
+                canvasName: canvas.name,
+                workspace: true,
+                onCloseWorkspace: () => useStore.getState().setDiagramEditorFrameId(null),
+              })
+            : null,
         )
       }
       await initProduct()

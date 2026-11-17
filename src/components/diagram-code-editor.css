@@ -1,0 +1,62 @@
+.diagram-source-editor .CodeMirror {
+  height: 100%;
+  background: #171a20;
+  color: #e5e7eb;
+  font:
+    13px/1.65 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  padding: 12px 0;
+}
+
+.diagram-source-editor .CodeMirror-gutters {
+  background: #171a20;
+  border-right: 1px solid #30343c;
+}
+
+.diagram-source-editor .CodeMirror-linenumber {
+  color: #737b88;
+}
+.diagram-source-editor .CodeMirror-cursor {
+  border-left-color: #f3f4f6;
+}
+.diagram-source-editor .CodeMirror-selected {
+  background: #34465c !important;
+}
+.diagram-source-editor .CodeMirror-activeline-background {
+  background: #20252d;
+}
+.diagram-source-editor .cm-keyword {
+  color: #c4a7e7;
+}
+.diagram-source-editor .cm-operator {
+  color: #89b4fa;
+}
+.diagram-source-editor .cm-string {
+  color: #a6d189;
+}
+.diagram-source-editor .cm-comment {
+  color: #7f8794;
+  font-style: italic;
+}
+.diagram-source-editor .cm-meta {
+  color: #f2a65a;
+}
+.diagram-source-editor .cm-variable-2 {
+  color: #8bd5ca;
+}
+.diagram-source-editor .cm-variable {
+  color: #e5c890;
+}
+.diagram-source-editor .cm-number {
+  color: #f5a97f;
+}
+.diagram-source-editor .cm-bracket {
+  color: #c6d0f5;
+}
+.diagram-source-editor .CodeMirror-focused .CodeMirror-selected {
+  background: #34465c !important;
+}

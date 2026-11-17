@@ -164,4 +164,55 @@ describe.skipIf(!findBrowserPath())('Diagramly product application', () => {
     await page.click('button[aria-label="Open Payment service"]')
     await page.waitForSelector('iframe[data-diagramly-frame]')
   }, 30_000)
+  it('keeps desktop document creation and import while hiding cloud accounts, AI and purchases', async () => {
+    const page = await pages.open()
+    await page.browserContext().deleteCookie(...(await page.browserContext().cookies()))
+    const cloudRequests: string[] = []
+    page.on('request', (request) => {
+      if (new URL(request.url()).pathname.startsWith('/api/diagramly/')) cloudRequests.push(request.url())
+    })
+    await page.evaluateOnNewDocument(() => {
+      ;(globalThis as { __DIAGRAMLY_DESKTOP__?: string }).__DIAGRAMLY_DESKTOP__ = '1.1.0'
+      ;(window as unknown as { __DIAGRAMLY_STOREKIT__: { request: () => Promise<never> } }).__DIAGRAMLY_STOREKIT__ = {
+        request: () => Promise.reject(new Error('Desktop release must not call Apple purchases')),
+      }
+    })
+    await page.goto(web.origin)
+    await page.locator('button::-p-text(No account yet? Sign up)').click()
+    await page.waitForFunction(() => document.body.innerText.includes('Create a local profile for this library.'))
+    expect(await page.$eval('body', (element) => element.innerText)).not.toContain(
+      'Connect your Diagramly cloud account',
+    )
+    await page.evaluate(async () => {
+      const response = await fetch('/api/auth/sign-up/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Local First QA', email: 'local-first@test.dev', password: 'password12345' }),
+      })
+      if (!response.ok) throw new Error('Could not create isolated local profile')
+    })
+    await page.reload()
+    await page.waitForSelector('button[aria-label="New diagram"]')
+    expect(await page.$('textarea[aria-label="Diagram prompt"]')).toBeNull()
+    expect(await page.$('button[aria-label="Import and backups"]')).not.toBeNull()
+    expect(
+      await page.$$eval('button', (buttons) => buttons.some((button) => button.textContent === 'Import library')),
+    ).toBe(true)
+    expect(
+      await page.$$eval('button', (buttons) => buttons.some((button) => button.textContent === 'Connect an agent')),
+    ).toBe(true)
+    await page.click('button[aria-label="New diagram"]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
+    const saved = await page.evaluate(async () => {
+      const documents = (await (await fetch('/api/canvases')).json()) as { id: string }[]
+      return (await (await fetch(`/api/canvases/${documents[0]!.id}`)).json()).frames[0].html as string
+    })
+    expect(saved).toContain('title Order Service')
+    await page.goto(web.origin + '/settings')
+    await page.waitForFunction(() => document.body.textContent?.includes('Local First QA'))
+    expect(await page.$eval('body', (el) => el.textContent)).not.toMatch(
+      /Account & subscription|Sign in to Diagramly|Apple subscription|Cloud actions/,
+    )
+    expect(cloudRequests).toEqual([])
+  }, 30_000)
 })

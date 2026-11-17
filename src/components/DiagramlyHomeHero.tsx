@@ -1,3 +1,4 @@
+import { isDesktopShell } from '../lib/shell'
 import type { DiagramKind } from '../../shared/diagramFrame'
 import { DiagramlyMark } from './Logo'
 import { IconButton } from './ui/icon-button'
@@ -59,52 +60,54 @@ export function DiagramlyHomeHero({
         </Chip>
       </div>
 
-      <div className="relative mx-auto mt-[34px] w-full max-w-[740px] px-4 md:px-0">
-        <div className="rounded-panel bg-surface px-[18px] pb-3 pt-5 shadow-float">
-          <Textarea
-            variant="bare"
-            rows={2}
-            maxLength={5000}
-            value={prompt}
-            disabled={busy}
-            placeholder="Describe the diagram you want to create…"
-            aria-label="Diagram prompt"
-            onChange={(event) => onPromptChange(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && prompt.trim()) {
-                event.preventDefault()
-                onContinue()
-              }
-            }}
-            className="min-h-[52px] text-lead placeholder:text-ink-ghost md:text-lead"
-          />
-          <div className="mt-1 flex items-center gap-3 text-body text-ink-soft md:gap-5">
-            <Pressable
-              layout="inline"
-              focus="ring"
+      {!isDesktopShell() && (
+        <div className="relative mx-auto mt-[34px] w-full max-w-[740px] px-4 md:px-0">
+          <div className="rounded-panel bg-surface px-[18px] pb-3 pt-5 shadow-float">
+            <Textarea
+              variant="bare"
+              rows={2}
+              maxLength={5000}
+              value={prompt}
               disabled={busy}
-              className="gap-[7px] rounded-row text-ink-soft transition-colors hover:text-ink"
-              onClick={onImport}
-              title="Add a source file"
-            >
-              <AttachmentIcon width={14} height={14} /> Files
-            </Pressable>
-            <span className="flex-1" />
-            <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-caption text-ink-faint">
-              <SparkIcon width={14} height={14} /> Diagramly cloud AI
-            </span>
-            <IconButton
-              className="size-[34px] rounded-full bg-ink text-surface hover:bg-ink-soft disabled:bg-paper-deep disabled:text-ink-faint"
-              disabled={busy || !prompt.trim()}
-              aria-label="Continue with Diagramly cloud AI"
-              title="Continue with Diagramly cloud AI"
-              onClick={onContinue}
-            >
-              <ArrowUpIcon width={16} height={16} />
-            </IconButton>
+              placeholder="Describe the diagram you want to create…"
+              aria-label="Diagram prompt"
+              onChange={(event) => onPromptChange(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && prompt.trim()) {
+                  event.preventDefault()
+                  onContinue()
+                }
+              }}
+              className="min-h-[52px] text-lead placeholder:text-ink-ghost md:text-lead"
+            />
+            <div className="mt-1 flex items-center gap-3 text-body text-ink-soft md:gap-5">
+              <Pressable
+                layout="inline"
+                focus="ring"
+                disabled={busy}
+                className="gap-[7px] rounded-row text-ink-soft transition-colors hover:text-ink"
+                onClick={onImport}
+                title="Add a source file"
+              >
+                <AttachmentIcon width={14} height={14} /> Files
+              </Pressable>
+              <span className="flex-1" />
+              <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-caption text-ink-faint">
+                <SparkIcon width={14} height={14} /> Diagramly cloud AI
+              </span>
+              <IconButton
+                className="size-[34px] rounded-full bg-ink text-surface hover:bg-ink-soft disabled:bg-paper-deep disabled:text-ink-faint"
+                disabled={busy || !prompt.trim()}
+                aria-label="Continue with Diagramly cloud AI"
+                title="Continue with Diagramly cloud AI"
+                onClick={onContinue}
+              >
+                <ArrowUpIcon width={16} height={16} />
+              </IconButton>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </section>
   )
 }

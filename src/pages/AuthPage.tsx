@@ -8,6 +8,7 @@ import type { DesktopSignInProvider, ProviderRedirects } from '../lib/desktopAut
 import { safeRelativeTarget } from '../lib/safeTarget'
 import { CODEX_SETUP_PATH } from '../lib/codexConnection'
 import { signupLanding } from '../../shared/firstCanvas'
+import { isDiagramly } from '../lib/product'
 import { isDesktopShell } from '../lib/shell'
 import { posthog } from '../lib/posthog'
 import { AuthCard, AuthCardText, AuthScreen } from '../components/ui/screen'
@@ -434,7 +435,10 @@ export function AuthPage({ initialMode }: { initialMode?: 'signin' | 'signup' } 
           ) : (
             <>
               {t('auth.taglineBefore')} <em className="not-italic text-brand">{t('auth.taglineEmphasis')}</em>
-              {t('auth.taglineAfter')} {mode === 'signin' ? t('auth.taglineSignin') : t('auth.taglineSignup')}
+              {t('auth.taglineAfter')}{' '}
+              {mode === 'signin'
+                ? t('auth.taglineSignin')
+                : t(isDesktopShell() && isDiagramly() ? 'auth.localTaglineSignup' : 'auth.taglineSignup')}
             </>
           )}
         </AuthCardText>

@@ -1,3 +1,4 @@
+import { isDesktopShell } from '../lib/shell'
 import { DiagramlyGenerate } from '../components/DiagramlyGenerate'
 import { LegacyLibraryMigration } from '../components/LegacyLibraryMigration'
 import { useCallback, useEffect, useState } from 'react'
@@ -371,7 +372,7 @@ export function DiagramlyHome() {
         </Modal>
       )}
       {connect && <ConnectModal onClose={() => setConnect(false)} />}
-      {generate && (
+      {!isDesktopShell() && generate && (
         <DiagramlyGenerate
           initialCommand={prompt}
           onClose={() => setGenerate(false)}

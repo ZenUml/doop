@@ -8,6 +8,8 @@ import {
   type DiagramlyAccount,
   type DiagramlyCloudStatus,
 } from '../lib/diagramly'
+import { isDesktopShell } from '../lib/shell'
+import { DiagramlyLocalSettings } from './DiagramlyLocalSettings'
 import { openExternal } from '../lib/desktop'
 import { DiagramlyShell } from '../components/DiagramlyShell'
 import { AgentKeys } from '../components/AgentKeys'
@@ -25,6 +27,10 @@ type Products = Awaited<ReturnType<typeof loadProducts>>
 const loadProducts = () => appleRequest('products').then((result) => result.products)
 
 export function DiagramlySettings() {
+  return isDesktopShell() ? <DiagramlyLocalSettings /> : <DiagramlyCloudSettings />
+}
+
+function DiagramlyCloudSettings() {
   const { data: session } = authClient.useSession()
   const [status, setStatus] = useState<DiagramlyCloudStatus | null>(null)
   const [flow, setFlow] = useState<LoginFlow | null>(null)
