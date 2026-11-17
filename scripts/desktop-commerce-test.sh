@@ -22,6 +22,12 @@ if [[ "${1:-}" == "--storekit" ]]; then
 PLIST
   xcrun swiftc -parse-as-library -F "$FRAMEWORKS" -framework StoreKitTest -Xlinker -rpath -Xlinker "$FRAMEWORKS" \
     "$ROOT/desktop/commerce/CommercePolicy.swift" "$ROOT/desktop/commerce/Tests/StoreKitTesting.swift" -o "$TEST_APP/Contents/MacOS/storekit"
-  codesign --force --sign - "$TEST_APP"
+  # StoreKit's local test service requires a development/debuggable caller.
+  # Keep this entitlement on the disposable test app, never the release app.
+  cat > "$BUILD/test.entitlements" <<'PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0"><dict><key>com.apple.security.get-task-allow</key><true/></dict></plist>
+PLIST
+  codesign --force --sign - --entitlements "$BUILD/test.entitlements" "$TEST_APP"
   "$TEST_APP/Contents/MacOS/storekit" "$ROOT/desktop/commerce/Diagramly.storekit"
 fi

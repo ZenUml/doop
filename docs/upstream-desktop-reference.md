@@ -559,10 +559,36 @@ main-frame dispatch, opaque and same-origin iframe denial, and another-port
 denial. `--storekit` also compiles a local test app using
 `commerce/Diagramly.storekit`, then exercises Apple's StoreKit test service.
 The fixture prices are synthetic test data, not configured App Store prices.
-The test first uses the local-only `SKTestSession.buyProduct` API and stops when
-the test service is unavailable. Xcode's StoreKit configuration/session must work
-on the test Mac; a CLI compile does not establish that session. The initial local
-run compiled but StoreKit rejected configuration with `SKInternalErrorDomain`
-code 3. Product fetch, real purchase sheets, pending/cancel, renewal/refund,
-reinstall restore and a signed sandbox build therefore remain acceptance gates.
-No live purchase or configured App Store Connect product is claimed.
+The test first uses the local-only `SKTestSession.buyProduct` API and asserts
+`Environment.xcode` before any `Product.purchase` call. It stops if that probe
+fails; do not remove that guard to get a green test.
+
+The disposable test app is ad-hoc signed with
+`com.apple.security.get-task-allow=true`. Without that development entitlement,
+macOS rejects StoreKit test configuration/control requests as
+`SKInternalErrorDomain` code 3 and the local purchase probe as `notEntitled`.
+This entitlement belongs only to the temporary test app, not the release app.
+
+Verification on macOS 26.5.1 / Xcode 26.5 (17F42):
+
+| Check                                       | Observed result                                                                                                                         |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Original test signature                     | Code 3; `storekitagent` logs “is not installed for development”; `notEntitled`                                                          |
+| Test signature with development entitlement | Configuration/control errors and `notEntitled` disappear                                                                                |
+| Separate local session/product probe        | One local test transaction and both configured StoreKit 2 products returned                                                             |
+| Full `--storekit` run                       | Still fails at the local-only off-device probe: purchase succeeds but returns no expected transaction JWS, then `StoreKitError.unknown` |
+| Minimal Xcode XCTest app host               | Reproduces `unknown` at the same modern local purchase probe                                                                            |
+
+The original signing defect is fixed. Full StoreKit 2 transaction verification
+remains blocked on this machine; the partial session/product probe does not prove
+verified purchase, account token, unfinished recovery or refund behavior. Apple
+records a matching `StoreKitTest.buyProduct(identifier:)` error as fixed in the
+[Xcode 27 release notes](https://developer.apple.com/documentation/xcode-release-notes/xcode-27-release-notes).
+This is supporting evidence, not proof that upgrading fixes this Mac. Re-run the
+unchanged full test on a toolchain/runtime that returns the local transaction JWS.
+
+Fixture prices are synthetic. Xcode local testing is separate from Apple
+Sandbox; no Sandbox sign-in, real charge or App Store Connect operation is needed
+for this script. Real purchase sheets, pending/cancel, renewal/refund, reinstall
+restore, backend entitlement delivery and a signed Sandbox build remain separate
+acceptance gates. No live purchase or configured App Store product is claimed.
