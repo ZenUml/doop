@@ -32,17 +32,19 @@ describe.skipIf(!findBrowserPath())('Diagramly canvas profile', { timeout: 30_00
     await page.goto(fixtureUrl('diagramly.html'))
     await page.waitForFunction(() => typeof window.seedDiagramly === 'function')
     await page.evaluate(() => window.seedDiagramly())
-    await page.waitForSelector('textarea[aria-label="Diagram source"]')
+    await page.waitForSelector('button::-p-text(Edit diagram source)')
   })
 
   it('shows editable diagrams and pages without the HTML layer or development inspector', async () => {
     expect(await page.$$eval('[role="list"][aria-label="Diagrams"]', (items) => items.length)).toBe(1)
     expect(await page.$$eval('[role="listitem"]', (items) => items.length)).toBe(1)
     expect(await page.$('button[aria-label="Checkout"]')).not.toBeNull()
-    expect(await page.$$eval('textarea', (items) => items.length)).toBe(1)
-    expect(
-      await page.$eval('textarea[aria-label="Diagram source"]', (el) => (el as HTMLTextAreaElement).value),
-    ).toContain('Browser -> Checkout')
+    expect(await page.$$eval('textarea', (items) => items.length)).toBe(0)
+    await page.locator('button::-p-text(Edit diagram source)').click()
+    await page.waitForSelector('.CodeMirror', { visible: true })
+    expect(await page.$eval('.CodeMirror-code', (el) => el.textContent)).toContain('Browser -> Checkout')
+    await page.locator('button::-p-text(Back to board)').click()
+    await page.waitForSelector('.CodeMirror', { hidden: true })
     expect(await page.$$eval('[role="tree"], [role="treeitem"]', (items) => items.length)).toBe(0)
     expect(await page.$('button[aria-label="Tokens"]')).toBeNull()
     expect(await page.$('button[aria-label="Components"]')).toBeNull()
@@ -86,6 +88,6 @@ describe.skipIf(!findBrowserPath())('Diagramly canvas profile', { timeout: 30_00
     await page.waitForFunction(() => window.diagramlyState().selectedId === 'diagram-a')
     expect(await page.evaluate(() => window.diagramlyState().selectedElement)).toBeNull()
     expect(await page.evaluate(() => window.diagramlyMessages)).not.toContain('diagramly:probe-result')
-    expect(await page.$$eval('textarea', (items) => items.length)).toBe(1)
+    expect(await page.$('button::-p-text(Edit diagram source)')).not.toBeNull()
   })
 })
