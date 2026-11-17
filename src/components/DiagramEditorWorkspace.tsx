@@ -23,7 +23,7 @@ function useNarrowLayout() {
   return narrow
 }
 
-function DiagramPreview({
+export function DiagramPreview({
   diagram,
   source,
   title,
@@ -36,6 +36,7 @@ function DiagramPreview({
   zoom: number
   onRenderState: (state: 'loading' | 'rendered' | 'error') => void
 }) {
+  const t = useT()
   const iframe = useRef<HTMLIFrameElement | null>(null)
   const [ready, setReady] = useState(false)
   const currentSource = useRef(source)
@@ -74,6 +75,9 @@ function DiagramPreview({
           ref={iframe}
           className="h-full w-full border-0 bg-white"
           title={title}
+          aria-label={`${title}, ${t('inspector.readOnlyPreview')}`}
+          tabIndex={-1}
+          style={{ pointerEvents: 'none' }}
           sandbox="allow-scripts"
           srcDoc={FRAME_BOOTSTRAP}
         />
@@ -88,8 +92,11 @@ export function DiagramEditorWorkspace({
   canvasName,
   source,
   saving,
+  unsaved,
+  saveFailed,
   onChange,
   onSave,
+  onRetry,
   onClose,
 }: {
   frame: Frame
@@ -97,8 +104,11 @@ export function DiagramEditorWorkspace({
   canvasName: string
   source: string
   saving: boolean
+  unsaved: boolean
+  saveFailed: boolean
   onChange: (source: string) => void
   onSave: () => void
+  onRetry: () => void
   onClose: () => void
 }) {
   const t = useT()
@@ -120,7 +130,7 @@ export function DiagramEditorWorkspace({
       showClose={false}
       aria-label={t('inspector.diagramWorkspace')}
       overlayClassName="!top-[var(--app-inset,0px)] !bg-white"
-      className="!left-0 !top-[var(--app-inset,0px)] !m-0 !h-auto !max-h-none !w-auto !max-w-none !translate-x-0 !translate-y-0 !overflow-hidden !rounded-none !p-0"
+      className="!left-0 !top-[var(--app-inset,0px)] !m-0 !h-[calc(100dvh-var(--app-inset,0px))] !max-h-none !w-full !max-w-none !translate-x-0 !translate-y-0 !overflow-hidden !rounded-none !p-0"
     >
       <div className="flex h-[calc(100dvh-var(--app-inset,0px))] min-h-0 flex-col bg-surface">
         <header className="flex h-[58px] flex-none items-center gap-4 border-b border-line-soft px-5">
@@ -136,8 +146,21 @@ export function DiagramEditorWorkspace({
             role="status"
             aria-live="polite"
           >
-            <span className={`size-1.5 rounded-full ${saving ? 'bg-amber-500' : 'bg-emerald-600'}`} />
-            {saving ? t('inspector.saving') : t('inspector.savedToDiagram')}
+            <span
+              className={`size-1.5 rounded-full ${saveFailed ? 'bg-accent-ink' : saving || unsaved ? 'bg-amber-500' : 'bg-emerald-600'}`}
+            />
+            {saving
+              ? t('inspector.saving')
+              : saveFailed
+                ? t('inspector.saveFailed')
+                : unsaved
+                  ? t('inspector.unsavedDiagramChanges')
+                  : t('inspector.savedToDiagram')}
+            {(unsaved || saveFailed) && !saving && (
+              <Button variant="bare" size="sm" className="h-7 px-2" onClick={onRetry}>
+                {t('inspector.retrySave')}
+              </Button>
+            )}
           </div>
         </header>
 
@@ -236,6 +259,9 @@ export function DiagramEditorWorkspace({
           >
             <div className="flex h-10 flex-none items-center border-b border-line-soft px-5 text-label text-ink-soft">
               <ModalTitle className="text-body">{t('inspector.diagramPreview')}</ModalTitle>
+              <span className="ml-2 rounded-pill bg-sub px-2 py-0.5 text-micro text-ink-faint">
+                {t('inspector.readOnlyPreview')}
+              </span>
               <span
                 className="ml-4 flex items-center gap-1.5 text-caption text-ink-faint"
                 role="status"
@@ -293,7 +319,13 @@ export function DiagramEditorWorkspace({
           </section>
         </div>
         <div className="flex h-7 flex-none items-center border-t border-line-soft bg-surface px-5 text-micro text-ink-faint">
-          {saving ? t('inspector.savingDiagramChanges') : t('inspector.diagramChangesSaved')}
+          {saving
+            ? t('inspector.savingDiagramChanges')
+            : saveFailed
+              ? t('inspector.saveFailed')
+              : unsaved
+                ? t('inspector.unsavedDiagramChanges')
+                : t('inspector.diagramChangesSaved')}
         </div>
       </div>
     </Modal>

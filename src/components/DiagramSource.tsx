@@ -4,7 +4,7 @@ import { buildDiagramHtml, readDiagramFrame, type DiagramFrame } from '../../sha
 import { useStore } from '../lib/store'
 import { receiveSavedDiagramFrame } from '../lib/diagramFrameSaves'
 import { api, errorMessage } from '../lib/api'
-import { beginFrameSave } from '../lib/frameSaves'
+import { beginFrameSave, useFrameSaves } from '../lib/frameSaves'
 import { recordUpdate } from '../lib/history'
 import { authClient } from '../lib/auth'
 import { clearDiagramDraft, readDiagramDraft, writeDiagramDraft } from '../lib/diagramDrafts'
@@ -43,10 +43,14 @@ export function DiagramSource({
   const t = useT()
   const { data: session } = authClient.useSession()
   const userId = session?.user.id
+  const pendingSaveCount = useFrameSaves((state) => state.pending[frame.id] ?? 0)
   const [draft, setDraft] = useState(diagram.source)
   const [draftActive, setDraftActive] = useState(false)
   const [draftOwner, setDraftOwner] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const isSaving = saving || pendingSaveCount > 0
+  const [dirty, setDirty] = useState(false)
+  const [saveFailed, setSaveFailed] = useState(false)
   const [dismissedDraftKey, setDismissedDraftKey] = useState<string | null>(null)
   const queued = useRef<{ timer: number; finish: () => void; source: string; html: string } | null>(null)
   const saveRef = useRef<(source: string, html: string, finish: () => void) => void>(() => undefined)
@@ -57,14 +61,6 @@ export function DiagramSource({
   const latestUpdatedAt = useRef(frame.updatedAt)
   const currentDraftSource = useRef(diagram.source)
   const storageFailureNotified = useRef(false)
-
-  useEffect(() => {
-    if (!draftActive && !saving && !queued.current) {
-      committedSource.current = diagram.source
-      committedHtml.current = frame.html
-      latestUpdatedAt.current = Math.max(latestUpdatedAt.current, frame.updatedAt)
-    }
-  }, [diagram.source, draftActive, frame.html, frame.updatedAt, saving])
 
   useEffect(() => {
     saveRef.current = save
@@ -87,14 +83,28 @@ export function DiagramSource({
   const legacyDraft = userId && originalPage ? readDiagramDraft(userId, frame.id) : null
   const pageDraft = userId ? readDiagramDraft(userId, frame.id, diagram.activePageId) : null
   const localDraft = pageDraft ?? legacyDraft
+  const localFrameIsUnsentDraft = localDraft?.source === diagram.source && localDraft.baseSource !== diagram.source
+  useEffect(() => {
+    if (!draftActive && !saving && !queued.current) {
+      committedSource.current = localFrameIsUnsentDraft ? localDraft.baseSource : diagram.source
+      committedHtml.current = localFrameIsUnsentDraft
+        ? buildDiagramHtml({ ...diagram, source: localDraft.baseSource })
+        : frame.html
+      latestUpdatedAt.current = Math.max(latestUpdatedAt.current, frame.updatedAt)
+    }
+  }, [diagram, diagram.source, draftActive, frame.html, frame.updatedAt, localDraft, localFrameIsUnsentDraft, saving])
   const recoveryPageId = pageDraft ? diagram.activePageId : undefined
   const activeForThisUser = draftActive && draftOwner === (userId ?? null)
   const candidateKey =
     localDraft && userId ? JSON.stringify([userId, frame.id, diagram.activePageId, localDraft.source]) : null
   const recoverableDraft =
-    localDraft && candidateKey !== dismissedDraftKey && !activeForThisUser && localDraft.source !== diagram.source
-      ? { ...localDraft, baseChanged: localDraft.baseSource !== diagram.source }
+    localDraft &&
+    candidateKey !== dismissedDraftKey &&
+    !activeForThisUser &&
+    (localDraft.source !== diagram.source || localDraft.baseSource !== diagram.source)
+      ? { ...localDraft, baseChanged: !localFrameIsUnsentDraft && localDraft.baseSource !== diagram.source }
       : null
+  const hasUnsentChanges = dirty || (localFrameIsUnsentDraft && candidateKey !== dismissedDraftKey)
 
   async function save(source: string, html: string, finish: () => void) {
     const task = saveQueue.current.then(async () => {
@@ -130,9 +140,13 @@ export function DiagramSource({
             setDraft(source)
             setDraftActive(false)
             setDraftOwner(userId ?? null)
+            setDirty(false)
+            setSaveFailed(false)
           }
         }
       } catch (error) {
+        setDirty(true)
+        setSaveFailed(true)
         useStore.getState().pushNotice(errorMessage(error, translate('inspector.saveFailed')))
       } finally {
         finish()
@@ -154,7 +168,37 @@ export function DiagramSource({
     void save(next.source, next.html, next.finish)
   }
 
+  function retryUnsentChanges() {
+    if (isSaving || !hasUnsentChanges) return
+    onSourceChange(activeForThisUser ? draft : diagram.source)
+  }
+
+  function saveOrRetry() {
+    if (queued.current) flushQueuedSave()
+    else retryUnsentChanges()
+  }
+
+  function discardRecoverableDraft() {
+    if (!localDraft || !userId) return
+    clearDiagramDraft(userId, frame.id, localDraft.source, recoveryPageId)
+    if (localFrameIsUnsentDraft) {
+      const restoredHtml = buildDiagramHtml({ ...diagram, source: localDraft.baseSource })
+      useStore.getState().patchFrameLocal(frame.id, { html: restoredHtml })
+      latestLocalHtml.current = null
+      committedSource.current = localDraft.baseSource
+      committedHtml.current = restoredHtml
+      currentDraftSource.current = localDraft.baseSource
+      setDraft(localDraft.baseSource)
+      setDraftActive(false)
+      setDirty(false)
+      setSaveFailed(false)
+    }
+    setDismissedDraftKey(candidateKey)
+  }
+
   function onSourceChange(source: string) {
+    setDirty(true)
+    setSaveFailed(false)
     setDraft(source)
     currentDraftSource.current = source
     setDraftActive(true)
@@ -207,16 +251,9 @@ export function DiagramSource({
             </div>
             <div className="flex flex-wrap gap-2">
               <Button variant="primary" size="sm" onClick={() => onSourceChange(recoverableDraft.source)}>
-                {t('inspector.recoverSource')}
+                {recoverableDraft.source === diagram.source ? t('inspector.retrySave') : t('inspector.recoverSource')}
               </Button>
-              <Button
-                variant="bare"
-                size="sm"
-                onClick={() => {
-                  if (userId) clearDiagramDraft(userId, frame.id, recoverableDraft.source, recoveryPageId)
-                  setDismissedDraftKey(candidateKey)
-                }}
-              >
+              <Button variant="bare" size="sm" onClick={discardRecoverableDraft}>
                 {t('inspector.discardDraft')}
               </Button>
             </div>
@@ -227,9 +264,12 @@ export function DiagramSource({
           diagram={diagram}
           canvasName={canvasName}
           source={activeForThisUser ? draft : diagram.source}
-          saving={saving}
+          saving={isSaving}
+          unsaved={hasUnsentChanges}
+          saveFailed={saveFailed}
           onChange={onSourceChange}
-          onSave={flushQueuedSave}
+          onSave={saveOrRetry}
+          onRetry={retryUnsentChanges}
           onClose={() => {
             flushQueuedSave()
             onCloseWorkspace?.()

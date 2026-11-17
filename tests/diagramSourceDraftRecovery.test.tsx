@@ -13,6 +13,42 @@ import { useStore } from '../src/lib/store'
 
 vi.mock('../src/lib/posthog', () => ({ posthog: { capture: vi.fn() } }))
 vi.mock('../src/lib/auth', () => ({ authClient: { useSession: () => ({ data: { user: { id: 'local-user' } } }) } }))
+vi.mock('../src/components/DiagramEditorWorkspace', async () => {
+  const React = await import('react')
+  return {
+    DiagramEditorWorkspace: (props: {
+      source: string
+      saving: boolean
+      unsaved: boolean
+      saveFailed: boolean
+      onChange: (source: string) => void
+      onRetry: () => void
+      onSave: () => void
+      onClose: () => void
+    }) =>
+      React.createElement(
+        'div',
+        null,
+        React.createElement('textarea', {
+          'aria-label': 'workspace source',
+          value: props.source,
+          onChange: (event: Event) => props.onChange((event.target as HTMLTextAreaElement).value),
+        }),
+        React.createElement(
+          'span',
+          null,
+          props.saving ? 'Saving' : props.saveFailed ? 'Save failed' : props.unsaved ? 'Unsaved' : 'Saved',
+        ),
+        React.createElement(
+          'button',
+          { 'data-testid': 'retry-workspace', disabled: props.saving, onClick: props.onRetry },
+          'Retry workspace',
+        ),
+        React.createElement('button', { 'data-testid': 'save-workspace', onClick: props.onSave }, 'Save workspace'),
+        React.createElement('button', { 'data-testid': 'close-workspace', onClick: props.onClose }, 'Close workspace'),
+      ),
+  }
+})
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 const frame: Frame = {
@@ -33,8 +69,17 @@ const diagram = { kind: 'mermaid' as const, source: 'flowchart LR\n  A --> B', c
 let root: Root
 let container: HTMLDivElement
 
-function renderEditor(currentDiagram = diagram) {
-  act(() => root.render(<DiagramSource frame={frame} diagram={currentDiagram} />))
+function renderEditor(currentDiagram: DiagramFrame = diagram, currentFrame = frame, workspace = false) {
+  act(() =>
+    root.render(
+      <DiagramSource
+        frame={currentFrame}
+        diagram={currentDiagram}
+        workspace={workspace}
+        onCloseWorkspace={() => undefined}
+      />,
+    ),
+  )
 }
 
 function sourceInput() {
@@ -49,11 +94,11 @@ function typeSource(value: string) {
   })
 }
 
-function mount(currentDiagram = diagram) {
+function mount(currentDiagram: DiagramFrame = diagram, currentFrame = frame, workspace = false) {
   container = document.createElement('div')
   document.body.appendChild(container)
   root = createRoot(container)
-  renderEditor(currentDiagram)
+  renderEditor(currentDiagram, currentFrame, workspace)
 }
 
 function unmount() {
@@ -106,6 +151,70 @@ it('recovers an unsent source after its debounced save fails and the editor remo
       .click()
   })
   expect(sourceInput().value).toBe(unsent)
+})
+
+it('keeps a failed focused save unsaved across close and reopen, then clears it after retry', async () => {
+  const unsent = 'flowchart LR\n  A --> offline'
+  let failFirstSave!: (error: Error) => void
+  const update = vi
+    .spyOn(api, 'updateFrame')
+    .mockImplementationOnce(() => new Promise((_, reject) => (failFirstSave = reject)))
+    .mockImplementationOnce(async (_id, patch) => ({ ...frame, ...patch, updatedAt: 6 }))
+
+  unmount()
+  mount(diagram, frame, true)
+  typeSource(unsent)
+  await act(async () => {
+    container.querySelector<HTMLButtonElement>('[data-testid="close-workspace"]')!.click()
+    await Promise.resolve()
+  })
+  expect(update).toHaveBeenCalledOnce()
+  expect(container.textContent).toContain('Saving')
+
+  unmount()
+  const localFrame = useStore.getState().canvas!.frames[0]!
+  const localDiagram = readDiagramFrame(localFrame.html)!
+  mount(localDiagram, localFrame, true)
+  expect(container.textContent).toContain('Saving')
+  expect(container.querySelector<HTMLButtonElement>('[data-testid="retry-workspace"]')!.disabled).toBe(true)
+  await act(async () => failFirstSave(new Error('offline')))
+  expect(container.textContent).toContain('Unsent source changes')
+  expect(container.textContent).toContain('Retry save')
+  expect(container.textContent).not.toContain('Saved to diagram')
+  expect(container.querySelector<HTMLButtonElement>('[data-testid="retry-workspace"]')!.disabled).toBe(false)
+
+  act(() => container.querySelector<HTMLButtonElement>('[data-testid="retry-workspace"]')!.click())
+  await act(async () => vi.advanceTimersByTimeAsync(500))
+  expect(update).toHaveBeenCalledTimes(2)
+  expect(update).toHaveBeenLastCalledWith(
+    frame.id,
+    expect.objectContaining({ html: expect.any(String) }),
+    frame.updatedAt,
+  )
+  expect(container.textContent).toContain('Saved')
+  expect(readDiagramDraft('local-user', frame.id)).toBeNull()
+})
+
+it('shows the save error in the focused editor and retries the current source', async () => {
+  const unsent = 'flowchart LR\n  A --> retry'
+  const update = vi
+    .spyOn(api, 'updateFrame')
+    .mockRejectedValueOnce(new Error('offline'))
+    .mockImplementationOnce(async (_id, patch) => ({ ...frame, ...patch, updatedAt: 6 }))
+
+  unmount()
+  mount(diagram, frame, true)
+  typeSource(unsent)
+  await act(async () => vi.advanceTimersByTimeAsync(500))
+  expect(container.textContent).toContain('Save failed')
+  expect(container.querySelector<HTMLButtonElement>('[data-testid="retry-workspace"]')!.disabled).toBe(false)
+  expect(readDiagramDraft('local-user', frame.id)?.source).toBe(unsent)
+
+  act(() => container.querySelector<HTMLButtonElement>('[data-testid="retry-workspace"]')!.click())
+  await act(async () => vi.advanceTimersByTimeAsync(500))
+  expect(update).toHaveBeenCalledTimes(2)
+  expect(container.textContent).toContain('Saved')
+  expect(readDiagramDraft('local-user', frame.id)).toBeNull()
 })
 
 it('does not clear a newer keystroke when an older save resolves', async () => {
