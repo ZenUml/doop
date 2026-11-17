@@ -77,6 +77,8 @@ interface State {
   /** the Inspector panel is showing — opened by clicking a frame's name, not
    *  by mere selection, so clicking around a frame doesn't slide the panel in */
   inspectorOpen: boolean
+  /** diagram whose source is being edited in the focused canvas overlay */
+  diagramEditorFrameId: string | null
   /** the Page panel (the page's own settings) has the properties slot while
    *  nothing is selected; opened from the rail, it stays until closed */
   pagePanelOpen: boolean
@@ -245,6 +247,7 @@ interface State {
   setPanMode(v: boolean): void
   setFileDragging(v: boolean): void
   setInspectorOpen(v: boolean): void
+  setDiagramEditorFrameId(frameId: string | null): void
   setPagePanelOpen(v: boolean): void
   openCtxMenu(menu: { frameId: string; deferPanel: boolean }): void
   closeCtxMenu(): void
@@ -327,6 +330,7 @@ export const useStore = create<State>((set, get) => ({
   panMode: false,
   fileDragging: false,
   inspectorOpen: false,
+  diagramEditorFrameId: null,
   pagePanelOpen: false,
   ctxMenu: null,
   selectedElement: null,
@@ -361,6 +365,7 @@ export const useStore = create<State>((set, get) => ({
          hide-UI, so the next canvas never opens with its chrome gone; a
          re-join of the same canvas keeps it */
       uiHidden: canvas ? s.uiHidden : false,
+      diagramEditorFrameId: canvas?.id === s.canvas?.id ? s.diagramEditorFrameId : null,
       activePageId: canvas
         ? canvas.id === s.canvas?.id && canvasPages(canvas).some((p) => p.id === s.activePageId)
           ? s.activePageId
@@ -530,6 +535,7 @@ export const useStore = create<State>((set, get) => ({
       const selectedIds = s.selectedIds.filter((id) => id !== frameId)
       return {
         canvas: { ...s.canvas, frames: s.canvas.frames.filter((f) => f.id !== frameId) },
+        ...(s.diagramEditorFrameId === frameId ? { diagramEditorFrameId: null } : {}),
         selectedIds,
         /* losing the primary promotes the last surviving member, so a group
            never sits selected with nothing driving the Inspector/presence */
@@ -671,6 +677,7 @@ export const useStore = create<State>((set, get) => ({
   setPanMode: (panMode) => set({ panMode }),
   setFileDragging: (fileDragging) => set({ fileDragging }),
   setInspectorOpen: (inspectorOpen) => set({ inspectorOpen }),
+  setDiagramEditorFrameId: (diagramEditorFrameId) => set({ diagramEditorFrameId }),
   setPagePanelOpen: (pagePanelOpen) => set({ pagePanelOpen }),
   openCtxMenu: (ctxMenu) => set({ ctxMenu }),
   closeCtxMenu: () => set({ ctxMenu: null }),

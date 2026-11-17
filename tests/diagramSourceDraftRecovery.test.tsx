@@ -126,6 +126,40 @@ it('does not clear a newer keystroke when an older save resolves', async () => {
   expect(readDiagramDraft('local-user', frame.id)?.source).toBe(newer)
 })
 
+it('keeps accepting input during a slow save and serializes the newer source with the returned version', async () => {
+  const complete: Array<(saved: Frame) => void> = []
+  vi.spyOn(api, 'updateFrame').mockImplementation(() => new Promise((resolve) => complete.push(resolve)))
+  const first = 'flowchart LR\n  A --> B\n  B --> C'
+  const newer = `${first}\n  C --> D`
+
+  act(() => sourceInput().focus())
+  typeSource(first)
+  await act(async () => vi.advanceTimersByTimeAsync(500))
+  expect(api.updateFrame).toHaveBeenCalledOnce()
+
+  typeSource(newer)
+  expect(readDiagramDraft('local-user', frame.id)?.source).toBe(newer)
+  await act(async () => vi.advanceTimersByTimeAsync(500))
+  expect(api.updateFrame).toHaveBeenCalledOnce()
+
+  await act(async () => {
+    complete[0]!({ ...frame, html: buildDiagramHtml({ ...diagram, source: first }), updatedAt: 6 })
+    await Promise.resolve()
+  })
+  expect(api.updateFrame).toHaveBeenCalledTimes(2)
+  expect(api.updateFrame).toHaveBeenLastCalledWith(
+    frame.id,
+    expect.objectContaining({ html: buildDiagramHtml({ ...diagram, source: newer }) }),
+    6,
+  )
+  await act(async () => {
+    complete[1]!({ ...frame, html: buildDiagramHtml({ ...diagram, source: newer }), updatedAt: 7 })
+    await Promise.resolve()
+  })
+  expect(readDiagramDraft('local-user', frame.id)).toBeNull()
+  expect(readDiagramFrame(useStore.getState().canvas!.frames[0]!.html)?.source).toBe(newer)
+})
+
 it('keeps the local draft after a compare-and-swap conflict', async () => {
   const staleError = Object.assign(new Error('Frame changed since this source was loaded.'), { status: 409 })
   vi.spyOn(api, 'updateFrame').mockRejectedValue(staleError)

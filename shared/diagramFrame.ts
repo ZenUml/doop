@@ -195,6 +195,7 @@ async function sync() {
     await renderDiagram(mount, source)
     if (!current()) return
     root.setAttribute('${DIAGRAM_STATE_ATTR}', 'rendered')
+    parent.postMessage({ type: 'diagramly:diagram-render-state', state: 'rendered', source }, '*')
     // WebKit may suspend animation frames in a hidden or occluded iframe.
     // Measuring a completed render must not hold the source-update lock forever.
     await new Promise((resolve) => {
@@ -215,6 +216,7 @@ async function sync() {
     if (!current()) return
     /* the last good diagram stays up while the source does not parse */
     root.setAttribute('${DIAGRAM_STATE_ATTR}', 'error')
+    parent.postMessage({ type: 'diagramly:diagram-render-state', state: 'error', source }, '*')
     console.error(error)
   } finally {
     busy = false

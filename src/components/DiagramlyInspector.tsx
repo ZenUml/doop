@@ -7,7 +7,6 @@ import { setFramesLocked } from '../lib/layerEdits'
 import { useStore } from '../lib/store'
 import { useT } from '../lib/i18n'
 import { cn } from '@/lib/utils'
-import { DiagramSource } from './DiagramSource'
 import { DiagramPages } from './DiagramPages'
 import { DiagramStyleEditor } from './DiagramStyleEditor'
 import { FrameHistoryModal } from './FrameHistoryModal'
@@ -79,7 +78,14 @@ export function DiagramlyInspector({
           </h3>
           {diagram ? (
             canEdit ? (
-              <DiagramSource key={editorKey} frame={frame} diagram={diagram} disabled={stylesBusy} />
+              <Button
+                variant="primary"
+                className="h-9 w-full justify-center"
+                disabled={stylesBusy || stylesDirty}
+                onClick={() => useStore.getState().setDiagramEditorFrameId(frame.id)}
+              >
+                {t('inspector.editDiagramSource')}
+              </Button>
             ) : (
               <p className="text-label leading-5 text-ink-faint">{t('inspector.unlockToEditDiagram')}</p>
             )

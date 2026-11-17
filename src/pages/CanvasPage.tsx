@@ -20,6 +20,7 @@ import {
 } from '../lib/api'
 import { navigate } from '../App'
 import { DiagramlyMark } from '../components/Logo'
+import { DiagramSource } from '../components/DiagramSource'
 import {
   BarDivider,
   BarPill,
@@ -247,6 +248,7 @@ export function CanvasPage({
   const connected = useStore((s) => s.connected)
   const presences = useStore((s) => s.presences)
   const selectedId = useStore((s) => s.selectedId)
+  const diagramEditorFrameId = useStore((s) => s.diagramEditorFrameId)
   const select = useStore((s) => s.select)
   /* a view or comment share link: the canvas opens read-only — no imports,
      no property panels, no edit shortcuts. The server refuses those writes
@@ -1422,6 +1424,22 @@ export function CanvasPage({
           </Toast>
         )
       )}
+      {diagramEditorFrameId &&
+        (() => {
+          const frame = canvas?.frames.find((candidate) => candidate.id === diagramEditorFrameId)
+          const diagram = frame && readDiagramFrame(frame.html)
+          if (!frame || !diagram || frame.locked || guest || !canEditOpenCanvas(useStore.getState())) return null
+          return (
+            <DiagramSource
+              key={`${frame.id}:${diagram.activePageId ?? 'default'}`}
+              frame={frame}
+              diagram={diagram}
+              canvasName={canvas?.name ?? ''}
+              workspace
+              onCloseWorkspace={() => useStore.getState().setDiagramEditorFrameId(null)}
+            />
+          )
+        })()}
     </div>
   )
 }
