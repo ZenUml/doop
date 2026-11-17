@@ -81,8 +81,8 @@ describe('diagram frames', () => {
     expect(readDiagramFrame('<!doctype html><html><body><h1>Hello</h1></body></html>')).toBeNull()
     expect(readDiagramFrame('')).toBeNull()
     const unknown = buildDiagramHtml({ kind: 'zenuml', source: SOURCE }).replace(
-      'data-doop-diagram="zenuml"',
-      'data-doop-diagram="plantuml"',
+      'data-diagramly-diagram="zenuml"',
+      'data-diagramly-diagram="plantuml"',
     )
     expect(readDiagramFrame(unknown)).toBeNull()
   })
@@ -167,11 +167,17 @@ it('rejects inconsistent active page metadata instead of overwriting a page', ()
   const html = buildDiagramHtml({ ...pages[0]!, pages, activePageId: 'a' })
   expect(readDiagramFrame(html)?.pages).toHaveLength(2)
   expect(
-    readDiagramFrame(html.replace('data-doop-diagram-source>\nA-&gt;B', 'data-doop-diagram-source>\nchanged')),
+    readDiagramFrame(
+      html.replace('data-diagramly-diagram-source>\nA-&gt;B', 'data-diagramly-diagram-source>\nchanged'),
+    ),
   ).toBeNull()
-  expect(readDiagramFrame(html.replace('data-doop-diagram="zenuml"', 'data-doop-diagram="mermaid"'))).toBeNull()
   expect(
-    readDiagramFrame(html.replace('data-doop-diagram-style-source>\nred', 'data-doop-diagram-style-source>\nblue')),
+    readDiagramFrame(html.replace('data-diagramly-diagram="zenuml"', 'data-diagramly-diagram="mermaid"')),
+  ).toBeNull()
+  expect(
+    readDiagramFrame(
+      html.replace('data-diagramly-diagram-style-source>\nred', 'data-diagramly-diagram-style-source>\nblue'),
+    ),
   ).toBeNull()
   expect(readDiagramFrame(html.replace('"activePageId":"a"', '"activePageId":"b"'))).toBeNull()
 })
@@ -183,7 +189,7 @@ it('round-trips an explicitly empty active page stylesheet', () => {
   const html = buildDiagramHtml({ ...pages[0]!, pages, activePageId: 'a' })
   expect(readDiagramFrame(html)?.pages).toEqual(pages)
   // Earlier v1 builders omitted the block for empty CSS.
-  const previousV1 = html.replace('<pre hidden data-doop-diagram-css>\n</pre>\n', '')
+  const previousV1 = html.replace('<pre hidden data-diagramly-diagram-css>\n</pre>\n', '')
   const parsed = readDiagramFrame(previousV1)!
   expect(parsed.css).toBe('')
   expect(parsed.pages).toEqual(pages)

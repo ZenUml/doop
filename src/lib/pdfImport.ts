@@ -511,7 +511,7 @@ function textElement(run: TextRun, fonts: Map<number, EmbeddedFont>, flags: Map<
     `font-family:${family};font-size:${px(run.size)};line-height:${px(lineHeight)};${weight}${style}` +
     `color:${run.color};white-space:pre;`
   const label = run.text.trim().slice(0, 40)
-  return `<p data-doop-drawing="text" data-name="${escapeHtml(label)}" style="${styles}">${escapeHtml(run.text)}</p>`
+  return `<p data-diagramly-drawing="text" data-name="${escapeHtml(label)}" style="${styles}">${escapeHtml(run.text)}</p>`
 }
 
 /* ---- artwork ---- */
@@ -676,7 +676,7 @@ async function importPage(
   const texts = runs.map((run) => textElement(run, fonts, flags))
   const html =
     '<!doctype html>\n<html><head><meta charset="utf-8">' +
-    (faces.length ? `<style data-doop-pdf-fonts>${faces.join('\n')}</style>` : '') +
+    (faces.length ? `<style data-diagramly-pdf-fonts>${faces.join('\n')}</style>` : '') +
     `</head><body style="margin:0;width:${width}px;height:${height}px;position:relative;overflow:hidden;background:#fff;">` +
     (artwork ? bodyOf(artwork.html) : '') +
     texts.join('') +

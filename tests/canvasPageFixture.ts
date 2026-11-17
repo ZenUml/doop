@@ -51,8 +51,8 @@ export async function prepareCanvasPage(page: Page): Promise<void> {
 }
 
 /** Load the fixture, or load it again, on a prepared page. */
-export async function showCanvasPage(page: Page, frames: Frame[], search = ''): Promise<void> {
-  await page.goto(fixtureUrl(`canvasPage.html${search}`))
+export async function showCanvasPage(page: Page, frames: Frame[], search = '', productMode?: 'design'): Promise<void> {
+  await page.goto(fixtureUrl(`canvasPage.html${search}`, productMode))
   await page.waitForFunction(() => !!window.canvasPageHarness && !!document.querySelector('.stage'))
   await page.evaluate((frames) => window.canvasPageHarness.seed(frames), frames)
   await page.waitForSelector('[data-frame-title]')

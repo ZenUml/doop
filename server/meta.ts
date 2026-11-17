@@ -416,7 +416,7 @@ export async function fetchAds(token: string, accountId: string, filter: PullFil
 /* ------------------------------------------------------------------ */
 /* Frames                                                              */
 
-const MARKER = 'doop-meta-ad'
+const MARKER = 'diagramly-meta-ad'
 const FRAME_W = 480
 /** the copy block under the image; the image adds its own height */
 const COPY_H = 190
@@ -477,7 +477,7 @@ export function creativeHtml(ad: AdCreative, imageSrc: string | null): string {
 </div></body></html>`
 }
 
-/** Meta's image URLs are signed and expire — copy the bytes into Doop's own
+/** Meta's image URLs are signed and expire — copy the bytes into Diagramly's own
  *  asset store so the frame keeps rendering. A failed copy still lands the
  *  frame, with the remote URL as a best effort. */
 async function keepImage(url: string | null, canvasId: string, ownerId: string): Promise<string | null> {

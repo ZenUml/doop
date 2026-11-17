@@ -1,5 +1,5 @@
 //! Hand the extension to Claude's installer. Claude still owns the installation
-//! confirmation; Doop only stages the bundle in its cache and opens it.
+//! confirmation; Diagramly only stages the bundle in its cache and opens it.
 use std::fs;
 use tauri::{AppHandle, Manager};
 #[cfg(not(target_os = "macos"))]
@@ -22,7 +22,7 @@ pub async fn claude_add_extension(app: AppHandle, bundle: Vec<u8>) -> Result<(),
             .map_err(|e| e.to_string())?
             .join("claude-extension");
         fs::create_dir_all(&directory).map_err(|e| e.to_string())?;
-        let path = directory.join("doop.mcpb");
+        let path = directory.join("diagramly.mcpb");
         fs::write(&path, bundle).map_err(|e| e.to_string())?;
 
         #[cfg(target_os = "macos")]

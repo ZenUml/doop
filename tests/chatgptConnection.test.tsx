@@ -46,8 +46,8 @@ it('opens the official ChatGPT setup and copies the production MCP URL without d
   expect(text()).toContain('Add custom MCP server')
   expect(text()).toContain('Create as a plugin')
   expect(text()).toContain('OAuth')
-  expect(text()).toContain('Work on Doop canvas canvas-1.')
-  expect(text()).toContain('listening for ChatGPT')
+  expect(text()).toContain('Work on Diagramly canvas canvas-1.')
+  expect(text()).toContain('Waiting for agent activity on this canvas')
   expect(document.body.querySelector('a[download]')).toBeNull()
 
   const serverBlock = Array.from(document.body.querySelectorAll('[data-slot="code-block"]')).find((block) =>
@@ -71,8 +71,8 @@ it.each([
   expect(link('Open ChatGPT setup')).toBeDefined()
   expect(text()).toContain(`${origin}/mcp`)
   expect(text()).not.toContain('https://doop.design/mcp')
-  expect(text()).not.toContain('Work on Doop canvas')
-  expect(text()).not.toContain('listening for ChatGPT')
+  expect(text()).not.toContain('Work on Diagramly canvas')
+  expect(text()).not.toContain('Waiting for agent activity on this canvas')
   expect(text()).toContain('tell it which canvas to work on')
 })
 
@@ -101,6 +101,6 @@ it.each([
   expect(link('View ChatGPT setup guide')?.href).toBe('https://developers.openai.com/plugins/deploy/connect-chatgpt')
   expect(text()).toContain('ChatGPT cannot reach this address directly')
   expect(text()).toContain('OpenAI Secure MCP Tunnel')
-  expect(text()).not.toContain('Work on Doop canvas')
+  expect(text()).not.toContain('Work on Diagramly canvas')
   expect(text()).not.toContain('https://doop.design/mcp')
 })

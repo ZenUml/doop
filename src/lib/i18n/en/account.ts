@@ -39,7 +39,7 @@ export const account = {
   commentEmailsAria: 'Email me about new comments and replies',
   commentEmailsLabel:
     'New comments and replies on canvases you own, were invited to, or wrote in — bundled into one email per canvas every couple of minutes.',
-  emailNotConfigured: 'This doop has no email set up (SMTP_HOST), so nothing is sent either way.',
+  emailNotConfigured: 'This Diagramly has no email set up (SMTP_HOST), so nothing is sent either way.',
 
   passwordTitle: 'Password',
   passwordDescription: 'Changing it signs out every other browser and device — this one stays signed in.',

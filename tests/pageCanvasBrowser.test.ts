@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Canvas, Frame } from '../shared/types'
 
 declare global {
@@ -50,6 +51,7 @@ const canvas = (frames: Frame[]): Canvas => ({
 /* Each test loads the whole app (hundreds of unbundled modules) in its own body,
    which on a busy CI runner can take longer than the 5 s default test timeout. */
 describe.skipIf(!findBrowserPath())('page camera and snapping', { timeout: 30_000 }, () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest({ permissions: ['clipboard-read', 'clipboard-sanitized-write'] })
   let page: Page
   beforeEach(async () => {
@@ -74,7 +76,7 @@ describe.skipIf(!findBrowserPath())('page camera and snapping', { timeout: 30_00
     await page.goto(fixtureUrl(`pages.html${query}`))
     await page.waitForFunction(() => typeof window.seedPages === 'function')
     await page.evaluate((data) => window.seedPages(data), data)
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
   }
 
   it('centers the linked frame on a different page instead of fitting its distant siblings', async () => {
@@ -95,7 +97,7 @@ describe.skipIf(!findBrowserPath())('page camera and snapping', { timeout: 30_00
   it.each(['first', 'second'])('selects a linked element after its frame mounts on the %s page', async (pageId) => {
     const target = {
       ...frame('target', pageId, 3000),
-      html: '<main id="hero"><h1 data-doop-id="h1h1h1">Design</h1></main>',
+      html: '<main id="hero"><h1 data-diagramly-id="h1h1h1">Design</h1></main>',
     }
     /* the link names the element by id; once found, the selection speaks
        the positional path the Layers panel knows */
@@ -145,7 +147,7 @@ describe.skipIf(!findBrowserPath())('page camera and snapping', { timeout: 30_00
     const elementId = url.searchParams.get('element')!
     expect(elementId).toMatch(/^[a-z0-9]{6}$/)
     const html = await page.evaluate(() => window.frameHtml('target'))
-    expect(html).toContain(`<p data-doop-id="${elementId}">Body</p>`)
+    expect(html).toContain(`<p data-diagramly-id="${elementId}">Body</p>`)
     expect(html).toContain('<h1>Design</h1>')
     /* the stamped document answers the link it produced */
     await load(canvas([{ ...target, html: html! }]), url.search)
@@ -189,7 +191,7 @@ describe.skipIf(!findBrowserPath())('page camera and snapping', { timeout: 30_00
       html: `<main></main><script>
         const chart = document.createElement('h1')
         chart.id = 'chart'
-        chart.setAttribute('data-doop-id', 'chart0')
+        chart.setAttribute('data-diagramly-id', 'chart0')
         chart.textContent = 'Live chart'
         document.querySelector('main').append(chart)
       </script>`,
@@ -219,7 +221,7 @@ describe.skipIf(!findBrowserPath())('page camera and snapping', { timeout: 30_00
   it('falls back to frame details when a script removes an element from the saved HTML', async () => {
     const target = {
       ...frame('target', 'second', 3000),
-      html: '<h1 id="chart" data-doop-id="chart0">Saved chart</h1><script>document.getElementById("chart").remove()</script>',
+      html: '<h1 id="chart" data-diagramly-id="chart0">Saved chart</h1><script>document.getElementById("chart").remove()</script>',
     }
     await load(canvas([target]), '?frame=target&element=chart0')
     await page.waitForFunction(() => !!window.pageState().notice, { timeout: 5000 })
@@ -237,7 +239,7 @@ describe.skipIf(!findBrowserPath())('page camera and snapping', { timeout: 30_00
   it('follows another element link and browser history within the same mounted canvas', async () => {
     const target = {
       ...frame('target', 'first', 0),
-      html: '<h1 id="one" data-doop-id="one000">One</h1><h2 id="two" data-doop-id="two000">Two</h2>',
+      html: '<h1 id="one" data-diagramly-id="one000">One</h1><h2 id="two" data-diagramly-id="two000">Two</h2>',
     }
     await load(canvas([target]), '?frame=target&element=one000')
     await waitState('first link', () => window.pageState().selectedElement?.selector === '#one')

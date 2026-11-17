@@ -24,7 +24,7 @@ import { isDesktopShell } from '../lib/shell'
 /**
  * "Connect AI" is about agents that join the canvas from outside: Claude Code,
  * Codex, Cursor, the Claude or ChatGPT apps, or any MCP client. Pick the agent,
- * then follow its own three steps. Running the built-in Doop Agent on your own
+ * then follow its own three steps. Running the built-in Diagramly Agent on your own
  * ChatGPT or Claude plan is an account setting and lives in Settings, next to
  * the prompt bar's allowance meter — not here.
  */
@@ -39,7 +39,7 @@ type McpConnection = 'browser' | 'key'
 type AgentOption = {
   id: AgentId
   blurb: PlainMessageKey
-  /** its app icon, as Settings → Doop Agent shows the providers */
+  /** its app icon, as Settings → Diagramly Agent shows the providers */
   icon: AppIconBrand
 } & ({ name: string } | { nameKey: PlainMessageKey })
 
@@ -133,7 +133,7 @@ interface StepOptions {
 /** An agent with no browser to sign in with: an agent key, sent as a bearer header. */
 function agentKeySteps(t: Translate, mcpUrl: string, pointAt: Step, openAgentKeys: () => void) {
   const config = JSON.stringify(
-    { mcpServers: { doop: { type: 'http', url: mcpUrl, headers: { Authorization: 'Bearer dpk_…' } } } },
+    { mcpServers: { diagramly: { type: 'http', url: mcpUrl, headers: { Authorization: 'Bearer dpk_…' } } } },
     null,
     2,
   )
@@ -162,7 +162,7 @@ function agentSteps(
   prompt: string,
   { claudeConnection, mcpConnection, canvasId, openAgentKeys }: StepOptions,
 ): { lede: string; steps: Step[] } {
-  const jsonConfig = JSON.stringify({ mcpServers: { doop: { type: 'http', url: mcpUrl } } }, null, 2)
+  const jsonConfig = JSON.stringify({ mcpServers: { diagramly: { type: 'http', url: mcpUrl } } }, null, 2)
   const pointAt: Step = {
     title: t('connect.pointAtTitle'),
     body: prompt ? t('connect.pointAtWithPrompt') : t('connect.pointAtNoPrompt'),
@@ -178,11 +178,11 @@ function agentSteps(
             body: (
               <>
                 {t('connect.claudeCodeAddBefore')}
-                <code>doop</code>
+                <code>diagramly</code>
                 {t('connect.claudeCodeAddAfter')}
               </>
             ),
-            code: `claude mcp add --transport http doop "${mcpUrl}"`,
+            code: `claude mcp add --transport http diagramly "${mcpUrl}"`,
           },
           {
             title: t('connect.claudeCodeSignInTitle'),
@@ -191,7 +191,7 @@ function agentSteps(
                 {t('connect.claudeCodeSignInBefore')}
                 <code>/mcp</code>
                 {t('connect.claudeCodeSignInPick')}
-                <strong>doop</strong>
+                <strong>diagramly</strong>
                 {t('connect.claudeCodeSignInThen')}
                 {/* Claude Code's own menu label, which it shows in English */}
                 <strong>Authenticate</strong>
@@ -316,7 +316,7 @@ function agentSteps(
             body: (
               <>
                 {t('connect.chatgptAddBefore')}
-                <strong>Doop</strong>
+                <strong>Diagramly</strong>
                 {t('connect.chatgptAddDescribe')}
                 <strong>OAuth</strong>
                 {t('connect.chatgptAddReview')}
@@ -345,7 +345,7 @@ function agentSteps(
           {
             title: t('connect.codexSignInTitle'),
             body: t('connect.codexSignInBody'),
-            code: 'codex mcp login doop',
+            code: 'codex mcp login diagramly',
           },
           pointAt,
         ],
@@ -381,7 +381,7 @@ function agentSteps(
             body: (
               <>
                 {t('connect.mcpConfigBefore')}
-                <code>doop</code>
+                <code>diagramly</code>
                 {t('connect.mcpConfigAfter')}
               </>
             ),
@@ -421,7 +421,7 @@ function AgentSteps({
      rest lives behind get_guide. The only thing this prompt knows that they don't is
      which canvas the human is looking at. */
   const prompt = canvasId
-    ? `Work on Doop canvas ${canvasId}. Start with get_guide({ topic: "doop-instructions" }) and follow it.`
+    ? `Work on Diagramly canvas ${canvasId}. Start with get_guide({ topic: "design-instructions" }) and follow it.`
     : ''
   const [mcpConnection, setMcpConnection] = useState<McpConnection>('browser')
   /* a browser keeps these steps open beside the new tab; the desktop shell's
@@ -507,7 +507,7 @@ function AgentSteps({
       </div>
 
       <ModalActions className={footer}>
-        {canvasId && showAgentStatus ? <AgentArrival name={name} /> : <ModalSpacer />}
+        {canvasId && showAgentStatus ? <AgentArrival /> : <ModalSpacer />}
         <button
           type="button"
           className="inline-flex items-center gap-1 rounded-sm px-2 py-2 text-xs font-medium text-ink-soft hover:text-ink"
@@ -561,10 +561,9 @@ function MethodSwitch<T extends string>({
   )
 }
 
-/** Live connection status: flips the moment an outside (non-resident) agent
- *  joins this canvas's presence, so nobody is left wondering whether the
- *  OAuth dance actually worked. */
-export function AgentArrival({ name }: { name?: string }) {
+/** Recent outside-agent activity on this canvas, not the connection state of
+ *  a particular client. Presence expires after a period without tool calls. */
+export function AgentArrival() {
   const t = useT()
   const presences = useStore((s) => s.presences)
   const arrived = useMemo(
@@ -578,8 +577,7 @@ export function AgentArrival({ name }: { name?: string }) {
     </span>
   ) : (
     <span className="mr-auto inline-flex items-center gap-[7px] text-body text-ink-faint">
-      <Dot className="animate-[arrival-pulse_1.6s_ease-in-out_infinite] bg-brand" />{' '}
-      {t('connect.listening', { name: name ?? t('connect.yourAgent') })}
+      <Dot className="animate-[arrival-pulse_1.6s_ease-in-out_infinite] bg-brand" /> {t('connect.listening')}
     </span>
   )
 }

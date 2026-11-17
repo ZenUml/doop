@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { ElementComment, Frame } from '../shared/types'
 
 declare global {
@@ -11,7 +12,7 @@ declare global {
 }
 
 const html = (left: number) =>
-  `<body style="margin:0"><div data-doop-id="aaaaaa" style="position:absolute;left:${left}px;top:50px;width:200px;height:100px;background:#ddd">Target</div></body>`
+  `<body style="margin:0"><div data-diagramly-id="aaaaaa" style="position:absolute;left:${left}px;top:50px;width:200px;height:100px;background:#ddd">Target</div></body>`
 const frame: Frame = {
   id: 'f',
   canvasId: 'c',
@@ -40,6 +41,7 @@ const comment: ElementComment = {
 }
 
 describe.skipIf(!findBrowserPath())('element comment pin placement', () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   const errors: string[] = []

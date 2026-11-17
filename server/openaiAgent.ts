@@ -5,7 +5,7 @@ import type { ModelAccount } from './modelAccounts.ts'
 import { ModelStreamInterruptedError } from './modelTurnRetry.ts'
 
 /**
- * Runs one Doop Agent turn on OpenAI, speaking the Anthropic message shape
+ * Runs one Diagramly Agent turn on OpenAI, speaking the Anthropic message shape
  * the agent loop is already written in. Everything OpenAI-specific — the
  * Responses API item format, tool-call ids, streaming — is contained here, so
  * server/resident.ts stays a single provider-neutral loop.
@@ -16,9 +16,9 @@ import { ModelStreamInterruptedError } from './modelTurnRetry.ts'
  *  - a plain OpenAI API key against api.openai.com (ordinary JSON);
  *  - an Azure OpenAI deployment (same Responses API, authenticated with
  *    Azure's api-key header) — SERVER config only, the free tier when
- *    DOOP_AGENT_PROVIDER=azure. Deliberately not a connectable per-user
+ *    DIAGRAMLY_AGENT_PROVIDER=azure. Deliberately not a connectable per-user
  *    account: a user-supplied endpoint would be a server-side fetch target,
- *    i.e. an SSRF into whatever network Doop runs on.
+ *    i.e. an SSRF into whatever network Diagramly runs on.
  *
  * The one real impedance mismatch is images. Anthropic returns screenshots
  * inside tool results; the Responses API only accepts text in a
@@ -44,8 +44,8 @@ export const AGENT_MODELS = [
   { id: 'gpt-5.6-luna', name: 'GPT-5.6 Luna', blurb: 'Fastest and cheapest — fine for small, mechanical edits' },
 ] as const
 
-export const DEFAULT_OPENAI_MODEL = env.DOOP_AGENT_OPENAI_MODEL
-const REASONING_EFFORT = env.DOOP_AGENT_OPENAI_EFFORT
+export const DEFAULT_OPENAI_MODEL = env.DIAGRAMLY_AGENT_OPENAI_MODEL
+const REASONING_EFFORT = env.DIAGRAMLY_AGENT_OPENAI_EFFORT
 /* Azure deployments are named by their owner and can host non-reasoning
    models, which reject a `reasoning` block outright — so unlike the OpenAI
    paths there is no default effort: unset means the parameter stays home. */

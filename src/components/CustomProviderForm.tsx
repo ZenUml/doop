@@ -23,7 +23,7 @@ import { Textarea } from './ui/textarea'
 import { FieldError } from './ConnectionTable'
 
 /**
- * Settings → Doop Agent → Custom provider: any OpenAI- or Anthropic-
+ * Settings → Diagramly Agent → Custom provider: any OpenAI- or Anthropic-
  * compatible API by its base URL, an optional key and the models it should
  * offer, each with whether it sees images and how much it may write per
  * turn. Fetch models asks the endpoint for its list; Test runs one turn that

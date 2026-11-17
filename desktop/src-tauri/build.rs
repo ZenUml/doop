@@ -79,6 +79,7 @@ fn main() {
             "claude_run",
             "claude_stop",
             "claude_add_extension",
+            "claude_save_bundled_extension",
             "codex_add_mcp",
             "fonts_choose_local",
             "fonts_read_local",

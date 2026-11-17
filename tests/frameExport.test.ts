@@ -64,7 +64,7 @@ afterEach(() => {
   vi.mocked(inspectElement).mockImplementation(async () => null)
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
-  delete (globalThis as { __DOOP_DESKTOP__?: string }).__DOOP_DESKTOP__
+  delete (globalThis as { __DIAGRAMLY_DESKTOP__?: string }).__DIAGRAMLY_DESKTOP__
   useStore.setState({ notice: null })
 })
 
@@ -177,7 +177,7 @@ it('keeps the spinner up while another export is still rendering', async () => {
 })
 
 it('in the desktop shell leaves the outcome to the save panel, which may be cancelled', async () => {
-  ;(globalThis as { __DOOP_DESKTOP__?: string }).__DOOP_DESKTOP__ = '0.4.0'
+  ;(globalThis as { __DIAGRAMLY_DESKTOP__?: string }).__DIAGRAMLY_DESKTOP__ = '0.4.0'
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => new Response('img')),

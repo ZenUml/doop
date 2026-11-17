@@ -41,7 +41,7 @@ export const account: Catalog['account'] = {
   commentEmailsAria: 'Enviar e-mail sobre novos comentários e respostas',
   commentEmailsLabel:
     'Novos comentários e respostas em canvases que são seus, para os quais você foi convidado ou em que você escreveu — reunidos em um e-mail por canvas a cada poucos minutos.',
-  emailNotConfigured: 'Este doop não tem e-mail configurado (SMTP_HOST), então nada é enviado de qualquer forma.',
+  emailNotConfigured: 'Este Diagramly não tem e-mail configurado (SMTP_HOST), então nada é enviado de qualquer forma.',
 
   passwordTitle: 'Senha',
   passwordDescription:

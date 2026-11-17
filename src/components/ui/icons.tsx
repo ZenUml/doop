@@ -1,4 +1,4 @@
-/** Doop's UI icon set: Lucide (ISC), drawn on a 24 grid with round caps and
+/** Diagramly's UI icon set: Lucide (ISC), drawn on a 24 grid with round caps and
  *  joins at a 1.15 stroke — the hairline weight of the white system, so a
  *  glyph sits as quietly as the 1px rings around it.
  *

@@ -87,6 +87,6 @@ it('switches the comment pins and remembers it', async () => {
     ;(item as HTMLElement).click()
   })
   expect(useStore.getState().viewOptions.comments).toBe(false)
-  expect(JSON.parse(localStorage.getItem('doop:view-options')!)).toMatchObject({ comments: false })
+  expect(JSON.parse(localStorage.getItem('diagramly:view-options')!)).toMatchObject({ comments: false })
   useStore.getState().toggleViewOption('comments')
 })

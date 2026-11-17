@@ -138,7 +138,7 @@ it('says so with nothing connected, and carries no pick', async () => {
   mocks.runners.mockResolvedValue({ runners: [] })
   await act(async () => root.render(<ModelPicker />))
   await settle()
-  expect(trigger().textContent).toBe('Doop Agent')
+  expect(trigger().textContent).toBe('Diagramly Agent')
   expect(currentRunnerPick()).toBeUndefined()
   await open()
   expect(document.body.textContent).toContain('Nothing connected yet')

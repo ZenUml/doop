@@ -47,7 +47,7 @@
         iframe.style.cssText = 'display:block;border:0;width:300px;height:300px'
         const ready = new Promise((resolve) => {
           window.addEventListener('message', function onMessage(ev) {
-            if (ev.source === iframe.contentWindow && ev.data?.type === 'doop:frame-ready') {
+            if (ev.source === iframe.contentWindow && ev.data?.type === 'diagramly:frame-ready') {
               window.removeEventListener('message', onMessage)
               resolve()
             }
@@ -66,16 +66,16 @@
                 `Object.defineProperty(document.querySelector('.blobbed'), 'currentSrc', { get: function () { return '' } });${closingScript}`,
               )
             : LIVE_HTML
-        await requestFrame('live', 'doop:html', { html: liveHtml })
+        await requestFrame('live', 'diagramly:html', { html: liveHtml })
         /* until the script has run AND the srcset image has a picked source:
            currentSrc stays empty until the browser resolves srcset, a beat
            after the script on a slow runner, and the snapshot then carries
            no src for it, so the export (rightly) paints nothing there */
         for (let i = 0; i < 50; i++) {
-          const reply = await requestFrame('live', 'doop:snapshot', {})
+          const reply = await requestFrame('live', 'diagramly:snapshot', {})
           if (
             diagram
-              ? reply?.html?.includes('data-doop-diagram-state="rendered"')
+              ? reply?.html?.includes('data-diagramly-diagram-state="rendered"')
               : reply?.html?.includes('class="made"') && /class="picked"[^>]*src="[^"]*blue\.svg"/.test(reply.html)
           )
             return
@@ -87,7 +87,7 @@
       window.diagramSnapshot = () =>
         buildDiagramHtml({ kind: 'zenuml', source: 'A->B: hello' }).replace(
           '</html>',
-          '<div data-doop-diagram-mount><div style="width:100px;height:100px;background:rgb(255,0,0)"></div></div></html>',
+          '<div data-diagramly-diagram-mount><div style="width:100px;height:100px;background:rgb(255,0,0)"></div></div></html>',
         )
 
       window.render = async ({

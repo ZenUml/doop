@@ -9,7 +9,7 @@ globalThis.doopEditSelection = function (html, selector, action, markup) {
   const element = matches[0]
   if (!element) throw new Error('This element has changed. Select it again.')
   if (action === 'copy') return element.outerHTML
-  if (element.closest('[data-doop-locked]')) throw new Error('Unlock this element before editing it.')
+  if (element.closest('[data-diagramly-locked]')) throw new Error('Unlock this element before editing it.')
   if (!doc.body.contains(element)) throw new Error('Select an element inside the frame.')
   if (element === doc.body && action !== 'paste')
     throw new Error('Select an element inside the frame, or select the whole frame from Frames.')

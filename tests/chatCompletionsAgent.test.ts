@@ -191,7 +191,7 @@ describe('the request', () => {
     expect(String(url)).toBe('https://openrouter.ai/api/v1/chat/completions')
     const headers = init!.headers as Record<string, string>
     expect(headers.Authorization).toBe('Bearer sk-or-abc')
-    expect(headers['X-Title']).toBe('Doop')
+    expect(headers['X-Title']).toBe('Diagramly')
     expect(headers['HTTP-Referer']).toBeTruthy()
     const body = JSON.parse(String(init!.body)) as Record<string, unknown>
     expect(body.model).toBe('moonshotai/kimi-k2.6')

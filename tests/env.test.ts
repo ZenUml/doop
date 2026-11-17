@@ -41,7 +41,7 @@ describe('server/env.ts', () => {
     stubEnv('SMTP_SECURE', undefined)
     expect(() => stubEnv('BETTER_AUTH_URL', 'doop.example')).toThrow(/BETTER_AUTH_URL: Invalid URL/)
     stubEnv('BETTER_AUTH_URL', undefined)
-    expect(() => stubEnv('DOOP_AGENT_PROVIDER', 'openai')).toThrow(/DOOP_AGENT_PROVIDER/)
+    expect(() => stubEnv('DIAGRAMLY_AGENT_PROVIDER', 'openai')).toThrow(/DIAGRAMLY_AGENT_PROVIDER/)
   })
 
   it('reports every bad variable in one error', () => {
@@ -62,7 +62,7 @@ describe('server/env.ts', () => {
     vi.stubEnv('BETTER_AUTH_SECRET', undefined)
     vi.stubEnv('BETTER_AUTH_URL', undefined)
     reloadEnv()
-    expect(env.BETTER_AUTH_SECRET).toBe('doop-dev-secret-not-for-production')
+    expect(env.BETTER_AUTH_SECRET).toBe('diagramly-dev-secret-not-for-production')
     expect(env.BETTER_AUTH_URL).toBe('http://localhost:4300')
 
     vi.stubEnv('NODE_ENV', 'production')

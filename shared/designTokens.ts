@@ -6,14 +6,14 @@
  * Tailwind v4's `@theme` namespaces, so the Tailwind export is a pass-through.
  *
  * A frame stays self-contained: the values of the tokens it names live in its
- * own HTML, in one managed `<style data-doop-tokens>` block, so every renderer
+ * own HTML, in one managed `<style data-diagramly-tokens>` block, so every renderer
  * that reads frame HTML (the canvas, screenshots, PDF export, the iOS app)
  * resolves them without knowing about the canvas. `withTokenBlock` writes
  * that block; the browser runs it on its saves, the server on every frame
  * write and again on every frame that names a token whose value changes.
  */
 
-export const TOKEN_BLOCK_ATTR = 'data-doop-tokens'
+export const TOKEN_BLOCK_ATTR = 'data-diagramly-tokens'
 
 export const TOKEN_TYPES = [
   'color',
@@ -92,8 +92,8 @@ export type DesignTokenInput = Pick<DesignToken, 'name' | 'type' | 'value'> & {
 }
 
 /** The attribute that switches a frame (or a subtree) to a token theme:
- *  `<html data-doop-theme="dark">`. */
-export const THEME_ATTR = 'data-doop-theme'
+ *  `<html data-diagramly-theme="dark">`. */
+export const THEME_ATTR = 'data-diagramly-theme'
 export const MAX_TOKEN_THEMES = 8
 /** The theme a token's `value` belongs to: always there, never renamed or removed. */
 export const DEFAULT_THEME = 'default'
@@ -248,7 +248,7 @@ function declarations(pairs: readonly (readonly [string, string])[]): string {
 
 /** `:root{--a:1px;--b:var(--a)}` for a token list in display order, then
  *  one block per theme with the values that differ there, scoped to the
- *  `data-doop-theme` attribute on the root or on any subtree. */
+ *  `data-diagramly-theme` attribute on the root or on any subtree. */
 export function tokensCss(tokens: readonly DesignToken[], themeOrder: readonly string[] = []): string {
   if (!tokens.length) return ''
   const sorted = sortTokens(tokens)
@@ -270,7 +270,7 @@ function allThemes(tokens: readonly DesignToken[], order: readonly string[]): st
 }
 
 /** The HTML with the values of the tokens it names in its own
- *  `<style data-doop-tokens>` block, replaced when they differ and removed
+ *  `<style data-diagramly-tokens>` block, replaced when they differ and removed
  *  when it names none. Returns the input itself when nothing changes, so
  *  callers can compare by identity. */
 export function withTokenBlock(
@@ -321,7 +321,7 @@ export function nextTokenName(tokens: readonly Pick<DesignToken, 'name'>[], type
   }
 }
 
-/** The HTML with every `data-doop-theme="from"` switched to `to`. */
+/** The HTML with every `data-diagramly-theme="from"` switched to `to`. */
 export function renameThemeAttrs(html: string, from: string, to: string): string {
   const escaped = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   return html
@@ -459,7 +459,7 @@ export function tokensBrief(tokens: readonly DesignToken[], themeOrder: readonly
   const themes = themesOf(tokens, themeOrder)
   return (
     `Design tokens (${names}): use one by writing var(--name) in CSS — background: var(--color-primary) — ` +
-    `never the literal value, so a token change restyles every frame at once. Doop writes the values into ` +
+    `never the literal value, so a token change restyles every frame at once. Diagramly writes the values into ` +
     `each frame's <style ${TOKEN_BLOCK_ATTR}> block by itself; do not define them yourself and keep that block. ` +
     (themes.length
       ? `Themes (${themes.join(', ')}) give some tokens a different value: put ${THEME_ATTR}="${themes[0]}" on a frame's <html> (or on one subtree) to switch it there. `

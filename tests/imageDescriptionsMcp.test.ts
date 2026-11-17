@@ -40,7 +40,7 @@ const frame = (id: string, name: string, html: string): Frame => ({
 const shot = frame(
   'shot',
   'Screenshot 2026-11-03.png',
-  '<!doctype html><html><body data-doop-canvas-element="true"><img data-doop-drawing="image" src="/a/pic1.png" alt="Screenshot 2026-11-03.png"></body></html>',
+  '<!doctype html><html><body data-diagramly-canvas-element="true"><img data-diagramly-drawing="image" src="/a/pic1.png" alt="Screenshot 2026-11-03.png"></body></html>',
 )
 const design = frame('design', 'Hero', '<!doctype html><html><body><h1>Hello</h1></body></html>')
 
@@ -119,10 +119,14 @@ it('the kickoff quotes each image under its frame and labels a pasted image', ()
 
 it.each([
   '<article><h1>Buy now</h1><img src="/a/pic1.png"></article>',
-  '<img data-doop-drawing="image" src="/a/pic1.png"><h1>Buy now</h1>',
-  'Buy now<img data-doop-drawing="image" src="/a/pic1.png">',
+  '<img data-diagramly-drawing="image" src="/a/pic1.png"><h1>Buy now</h1>',
+  'Buy now<img data-diagramly-drawing="image" src="/a/pic1.png">',
 ])('does not mark an editable design as a pasted reference: %s', (content) => {
-  const card = frame('card', 'Product card', `<html><body data-doop-canvas-element="true">${content}</body></html>`)
+  const card = frame(
+    'card',
+    'Product card',
+    `<html><body data-diagramly-canvas-element="true">${content}</body></html>`,
+  )
   const text = describeFrameList([card], new Map([['card', [{ src: '/a/pic1.png', description: 'A product photo.' }]]]))
   expect(text).not.toContain('name="Product card" (pasted image)')
 })

@@ -1,6 +1,9 @@
+import { stubEnv, unstubAllEnvs } from './envStub'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+afterEach(unstubAllEnvs)
 import * as actions from '../server/actions.ts'
 import { buildMcpServer } from '../server/mcp.ts'
 import { store } from '../server/store.ts'
@@ -131,6 +134,7 @@ describe('human feedback on read-only MCP tools', () => {
     ['set_page_background', { canvas_id: CANVAS.id, color: '#1e1e1e', agent_name: 'Claude' }],
     ['set_prototype_start', { canvas_id: CANVAS.id, frame_id: FRAME.id, agent_name: 'Claude' }],
   ])('%s claims and delivers feedback like every other write', async (tool, args) => {
+    if (tool === 'set_prototype_start') stubEnv('DIAGRAMLY_PRODUCT', 'design')
     const page = { id: 'c1:page2', name: 'Mobile' }
     vi.spyOn(actions, 'createCanvasPage').mockReturnValue({ page, pages: [{ id: 'c1:page1', name: 'Page 1' }, page] })
     vi.spyOn(actions, 'setCanvasPages').mockImplementation((_id, pages) => pages)

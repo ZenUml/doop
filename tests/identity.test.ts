@@ -40,7 +40,7 @@ it('keeps one identity per session when localStorage reads work but writes throw
   /* once writes work again the stored value, not the stale memory, is read */
   writable = true
   setName('Loud Otter')
-  expect(data.get('doop:name')).toBe('Loud Otter')
-  data.set('doop:name', 'Renamed Elsewhere')
+  expect(data.get('diagramly:name')).toBe('Loud Otter')
+  data.set('diagramly:name', 'Renamed Elsewhere')
   expect(getIdentity().name).toBe('Renamed Elsewhere')
 })

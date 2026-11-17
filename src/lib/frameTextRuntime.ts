@@ -5,7 +5,7 @@ export const FRAME_TEXT_RUNTIME = `
   var textCommands = ${JSON.stringify(TEXT_FORMAT_COMMANDS)}
   var textProps = ${JSON.stringify(TEXT_STYLE_PROPERTIES)}
   var layerTextProps = ${JSON.stringify(LAYER_TEXT_PROPERTIES)}
-  var TEXT_RUN_MARK = 'doop-run'
+  var TEXT_RUN_MARK = 'diagramly-run'
   var textRange = null
   var lastTextSelection = ''
 
@@ -23,13 +23,13 @@ export const FRAME_TEXT_RUNTIME = `
     textRange = range.cloneRange()
     var state = {}
     textCommands.forEach(function (command) { state[command] = document.queryCommandState(command) })
-    parent.postMessage({ type: 'doop:text-state', state: state }, '*')
+    parent.postMessage({ type: 'diagramly:text-state', state: state }, '*')
     // The Design panel shows the selected run's styles: tell it when the run changes.
     var key = range.collapsed ? '' : cssPath(range.startContainer.parentElement || activeEl) + ':' + range.startOffset +
       '-' + cssPath(range.endContainer.parentElement || activeEl) + ':' + range.endOffset
     if (key !== lastTextSelection) {
       lastTextSelection = key
-      parent.postMessage({ type: 'doop:text-selection' }, '*')
+      parent.postMessage({ type: 'diagramly:text-selection' }, '*')
     }
   }
 
@@ -61,7 +61,7 @@ export const FRAME_TEXT_RUNTIME = `
      item of it): such an element is one text layer, as a drawing text, an
      edited paragraph or a bulleted list is. */
   function isTextBlock(el) {
-    if (hasOwnText(el) || el.hasAttribute('data-doop-text') || el.getAttribute('data-doop-drawing') === 'text') return true
+    if (hasOwnText(el) || el.hasAttribute('data-diagramly-text') || el.getAttribute('data-diagramly-drawing') === 'text') return true
     var children = el.querySelectorAll('*')
     if (!children.length || !textNodesIn(el, null).length) return false
     var list = /^(UL|OL)$/.test(el.tagName)
@@ -133,12 +133,12 @@ export const FRAME_TEXT_RUNTIME = `
     var padStart = startNode.nodeType === 3 && range.startOffset > 0 && startNode.nodeValue[range.startOffset - 1] === ' '
     if (padStart) range.setStart(startNode, range.startOffset - 1)
     var partial = []
-    Array.prototype.forEach.call(el.querySelectorAll('[data-doop-id]'), function (node) {
+    Array.prototype.forEach.call(el.querySelectorAll('[data-diagramly-id]'), function (node) {
       if (!range.intersectsNode(node)) return
       var whole = document.createRange()
       whole.selectNode(node)
       if (range.compareBoundaryPoints(Range.START_TO_START, whole) > 0 || range.compareBoundaryPoints(Range.END_TO_END, whole) < 0) {
-        partial.push(node.getAttribute('data-doop-id'))
+        partial.push(node.getAttribute('data-diagramly-id'))
       }
     })
     var host = range.commonAncestorContainer
@@ -172,10 +172,10 @@ export const FRAME_TEXT_RUNTIME = `
       host.appendChild(chain)
       try { patchStyle(run, styles, null, standIn) } finally { host.removeChild(chain) }
       if (!run.getAttribute('style')) run.removeAttribute('style')
-      run.setAttribute('data-doop-run', '')
+      run.setAttribute('data-diagramly-run', '')
     })
-    fragment.querySelectorAll('[data-doop-id]').forEach(function (node) {
-      if (partial.indexOf(node.getAttribute('data-doop-id')) !== -1) node.removeAttribute('data-doop-id')
+    fragment.querySelectorAll('[data-diagramly-id]').forEach(function (node) {
+      if (partial.indexOf(node.getAttribute('data-diagramly-id')) !== -1) node.removeAttribute('data-diagramly-id')
     })
     var holder = document.createElement('div')
     holder.appendChild(fragment)
@@ -187,8 +187,8 @@ export const FRAME_TEXT_RUNTIME = `
     document.execCommand('insertHTML', false, holder.innerHTML)
     restoreSpaces(el, text)
     textSnapshots.set(el, el.textContent)
-    var runs = el.querySelectorAll('[data-doop-run]')
-    runs.forEach(function (run) { run.removeAttribute('data-doop-run') })
+    var runs = el.querySelectorAll('[data-diagramly-run]')
+    runs.forEach(function (run) { run.removeAttribute('data-diagramly-run') })
     if (editTimer) { clearTimeout(editTimer); editTimer = null }
     if (runs.length) {
       var selected = document.createRange()
@@ -198,7 +198,7 @@ export const FRAME_TEXT_RUNTIME = `
       selection.addRange(selected)
       textRange = selected.cloneRange()
     }
-    el.setAttribute('data-doop-text', '')
+    el.setAttribute('data-diagramly-text', '')
   }
 
   /* insertHTML keeps a space at the insertion's edge from collapsing by making
@@ -366,7 +366,7 @@ export const FRAME_TEXT_RUNTIME = `
     selection.addRange(textRange)
     // Native commands preserve the browser's undo stack, including typed text.
     document.execCommand(command, false, null)
-    activeEl.setAttribute('data-doop-text', '')
+    activeEl.setAttribute('data-diagramly-text', '')
     styleLists(activeEl, command, selection)
     if (editTimer) { clearTimeout(editTimer); editTimer = null }
     postEdited(true)
@@ -414,7 +414,7 @@ export const FRAME_TEXT_RUNTIME = `
       el.blur()
       if (editable === null) el.removeAttribute('contenteditable')
       else el.setAttribute('contenteditable', editable)
-      el.setAttribute('data-doop-text', '')
+      el.setAttribute('data-diagramly-text', '')
       changed = true
       var normalized = normalizeTextParagraph(el, paragraphStyleDiff(el))
       if (normalized !== el) retagged = true
@@ -569,8 +569,8 @@ export const FRAME_TEXT_RUNTIME = `
   function serializeText(root) {
     // Normalize the saved clone while native undo is active; deactivate
     // reconciles the live host when the editing session ends.
-    var live = document.querySelectorAll('p[data-doop-text]')
-    root.querySelectorAll('p[data-doop-text]').forEach(function (paragraph, index) {
+    var live = document.querySelectorAll('p[data-diagramly-text]')
+    root.querySelectorAll('p[data-diagramly-text]').forEach(function (paragraph, index) {
       if (paragraph.querySelector('ul,ol,div,p')) normalizeTextParagraph(paragraph, paragraphStyleDiff(live[index]))
     })
   }

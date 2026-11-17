@@ -27,7 +27,7 @@ it('routes both launch and running-app Codex links without installing or redeemi
     const next = codexDesktopLink('https://doop.design', 'second-canvas')
     handlers.get('deep-link://new-url')!({ payload: [next] })
     expect(mocks.navigate).toHaveBeenLastCalledWith(codexSetupTarget(next))
-    handlers.get('deep-link://new-url')!({ payload: ['doop://connect/unknown'] })
+    handlers.get('deep-link://new-url')!({ payload: ['diagramly://connect/unknown'] })
     expect(mocks.navigate).toHaveBeenCalledTimes(2)
     expect(mocks.verify).not.toHaveBeenCalled()
   } finally {

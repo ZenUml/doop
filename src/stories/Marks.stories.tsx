@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { AgentIcon } from '@/components/AgentIcon'
-import { DoopMark, Logo } from '@/components/Logo'
+import { DiagramlyMark, Logo } from '@/components/Logo'
 import { RadioTowerIcon, WebIcon } from '@/components/ui/icons'
 import { APP_ICON_BRANDS, AppIcon, BRANDS, BrandMark } from '@/components/ui/brand-mark'
 import { MetaTile } from '@/components/AutomateShell'
@@ -16,23 +16,23 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Doop: Story = {
+export const Diagramly: Story = {
   render: () => (
     <div className="flex items-center gap-5">
       <Logo />
       <Logo className="size-[26px] rounded-row" />
-      <DoopMark size={24} />
-      <DoopMark size={13} />
+      <DiagramlyMark size={24} />
+      <DiagramlyMark size={13} />
     </div>
   ),
 }
 
 /** The Disc-D with its dot hopping: the home greeting's mark, and the loading mark. */
-export const DoopAnimated: Story = {
+export const DiagramlyAnimated: Story = {
   render: () => (
     <div className="flex items-end gap-6 text-ink">
-      <DoopMark animated size={62} className="block" />
-      <DoopMark animated size={24} className="block" />
+      <DiagramlyMark animated size={62} className="block" />
+      <DiagramlyMark animated size={24} className="block" />
     </div>
   ),
 }
@@ -40,7 +40,7 @@ export const DoopAnimated: Story = {
 export const Agents: Story = {
   render: () => (
     <div className="flex items-center gap-5 text-body">
-      {['Claude Code', 'Codex', 'Cursor', 'Doop'].map((name) => (
+      {['Claude Code', 'Codex', 'Cursor', 'Diagramly'].map((name) => (
         <span key={name} className="flex items-center gap-2" style={{ color: colorFor(name) }}>
           <AgentIcon name={name} size={14} />
           <span className="text-ink-soft">{name}</span>

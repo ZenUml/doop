@@ -171,7 +171,7 @@ it('duplicates a page with its frames right after the source, numbering the name
   } finally {
     socket.close()
   }
-  expect(copy.page.name).toBe('Page 1 copy')
+  expect(copy.page.name).toBe(`${first.name} copy`)
   expect(copy.pages.map((p) => p.id)).toEqual([first.id, copy.page.id, second.id])
   expect(copy.frames).toHaveLength(2)
   const copiedHero = copy.frames.find((f) => f.name === 'Hero')!
@@ -196,10 +196,10 @@ it('duplicates a page with its frames right after the source, numbering the name
   expect(seen.filter((m) => m.type === 'frame:created').map((m) => m.frame!.id)).toEqual(copy.frames.map((f) => f.id))
 
   const again = await (await owner.post(url)).json()
-  expect(again.page.name).toBe('Page 1 copy 2')
+  expect(again.page.name).toBe(`${first.name} copy 2`)
   expect(again.pages.map((p: { id: string }) => p.id)).toEqual([first.id, again.page.id, copy.page.id, second.id])
   const nested = await (await owner.post(`/api/canvases/${canvas.id}/pages/${copy.page.id}/duplicate`)).json()
-  expect(nested.page.name).toBe('Page 1 copy copy')
+  expect(nested.page.name).toBe(`${first.name} copy copy`)
   expect(nested.pages.map((p: { id: string }) => p.id)).toEqual([
     first.id,
     again.page.id,
@@ -242,9 +242,13 @@ it('serializes concurrent duplicates so names stay unique and the page limit hol
   const pair = await Promise.all([owner.post(url), owner.post(url)])
   expect(pair.map((r) => r.status)).toEqual([200, 200])
   const copies = await Promise.all(pair.map((r) => r.json()))
-  expect(copies.map((c) => c.page.name).sort()).toEqual(['Page 1 copy', 'Page 1 copy 2'])
+  expect(copies.map((c) => c.page.name).sort()).toEqual([`${first.name} copy`, `${first.name} copy 2`])
   const after = await (await owner.get(`/api/canvases/${canvas.id}`)).json()
-  expect(after.pages.map((p: { name: string }) => p.name)).toEqual(['Page 1', 'Page 1 copy 2', 'Page 1 copy'])
+  expect(after.pages.map((p: { name: string }) => p.name)).toEqual([
+    first.name,
+    `${first.name} copy 2`,
+    `${first.name} copy`,
+  ])
 
   const filler = Array.from({ length: 96 }, (_, i) => ({ id: `fill-${i}`, name: `Fill ${i}` }))
   expect(

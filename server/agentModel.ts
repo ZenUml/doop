@@ -24,7 +24,7 @@ import {
 } from './chatCompletionsAgent.ts'
 
 /**
- * Which model runs a Doop Agent turn, and on whose bill.
+ * Which model runs a Diagramly Agent turn, and on whose bill.
  *
  * Two layers, resolved in this order:
  *
@@ -32,7 +32,7 @@ import {
  *    key) — the moment one is connected, that user's runs move onto it and
  *    the free-task meter stops applying to them;
  *  - the server tier, which pays for the free tasks every account starts
- *    with. DOOP_AGENT_PROVIDER picks what it runs on: 'anthropic' (the
+ *    with. DIAGRAMLY_AGENT_PROVIDER picks what it runs on: 'anthropic' (the
  *    default, on ANTHROPIC_API_KEY) or 'azure' (the AZURE_OPENAI_* vars).
  *
  * A run bills exactly ONE person: the requester behind the work it claims. The
@@ -79,14 +79,14 @@ export class ModelConfigurationError extends ModelAuthError {}
 /* the server tier: pays for everyone's free tasks                  */
 /* ---------------------------------------------------------------- */
 
-const ANTHROPIC_MODEL = env.DOOP_AGENT_MODEL
+const ANTHROPIC_MODEL = env.DIAGRAMLY_AGENT_MODEL
 
 let anthropic: Anthropic | null = null
 
 function anthropicTier(model: string = ANTHROPIC_MODEL): AgentModel | null {
   if (!env.ANTHROPIC_API_KEY) {
     warnOnce(
-      '[doop-agent] ANTHROPIC_API_KEY not set — the free Doop Agent tier is off. Users who connect a model account of their own still get the agent; everyone else sees queued cards and @mentions go unpicked. See README → "The Doop Agent".',
+      '[diagramly-agent] ANTHROPIC_API_KEY not set — the free Diagramly Agent tier is off. Users who connect a model account of their own still get the agent; everyone else sees queued cards and @mentions go unpicked. See README → "The Diagramly Agent".',
     )
     return null
   }
@@ -94,7 +94,7 @@ function anthropicTier(model: string = ANTHROPIC_MODEL): AgentModel | null {
   const client = anthropic
   return {
     provider: 'anthropic',
-    label: `Doop (${model})`,
+    label: `Diagramly (${model})`,
     run: (req) => runAnthropicTurn(client, model, req),
   }
 }
@@ -149,14 +149,14 @@ function azureTier(): AgentModel | null {
   const apiKey = env.AZURE_OPENAI_API_KEY
   if (!endpoint || !deployment || !apiKey) {
     warnOnce(
-      '[doop-agent] DOOP_AGENT_PROVIDER=azure needs AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_DEPLOYMENT and AZURE_OPENAI_API_KEY — the free Doop Agent tier is off until all three are set.',
+      '[diagramly-agent] DIAGRAMLY_AGENT_PROVIDER=azure needs AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_DEPLOYMENT and AZURE_OPENAI_API_KEY — the free Diagramly Agent tier is off until all three are set.',
     )
     return null
   }
   const config = { endpoint, deployment, apiKey }
   return {
     provider: 'azure',
-    label: `Doop (${deployment})`,
+    label: `Diagramly (${deployment})`,
     async run(req) {
       try {
         return await runAzureTurn(config, {
@@ -186,9 +186,9 @@ const serverTiers: Record<ServerProvider, () => AgentModel | null> = {
   azure: azureTier,
 }
 
-/* an unknown DOOP_AGENT_PROVIDER fails at boot (server/env.ts) */
+/* an unknown DIAGRAMLY_AGENT_PROVIDER fails at boot (server/env.ts) */
 function serverProvider(): ServerProvider {
-  return env.DOOP_AGENT_PROVIDER
+  return env.DIAGRAMLY_AGENT_PROVIDER
 }
 
 /** What the boot banner reports: which provider the free tier would run on,
@@ -446,7 +446,7 @@ export async function pickModel(payerId?: string, pick?: RunnerPick): Promise<Ag
     }
   }
   const connections = await readConnections(payerId).catch((err): Connections => {
-    console.error('[doop-agent] could not read the connected model accounts', err)
+    console.error('[diagramly-agent] could not read the connected model accounts', err)
     return { plan: { enabled: false, model: 'default' }, accounts: [], default: undefined }
   })
   const picked =

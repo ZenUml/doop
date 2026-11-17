@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Frame } from '../shared/types'
 
 declare global {
@@ -11,6 +12,7 @@ declare global {
 }
 
 describe.skipIf(!findBrowserPath())('local frame edits', () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   let saved: Frame
@@ -50,7 +52,7 @@ describe.skipIf(!findBrowserPath())('local frame edits', () => {
     await frame.evaluate(() => {
       window.localEditRenders = 0
       window.addEventListener('message', (event) => {
-        if (event.data?.type === 'doop:html') window.localEditRenders++
+        if (event.data?.type === 'diagramly:html') window.localEditRenders++
       })
     })
     await page.click('[aria-label="Width"]', { count: 3 })

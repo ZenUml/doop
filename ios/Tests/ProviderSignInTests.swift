@@ -3,31 +3,31 @@ import DoopCore
 
 enum ProviderSignInChecks {
     static func run() throws {
-        let server = ServerAddress("https://doop.design")!
+        let server = ServerAddress("https://example.invalid")!
         let attempt = ProviderSignIn(provider: .google, challenge: "0123456789abcdef0123456789abcdef")
 
         // The start page always sits on the chosen server and names the attempt.
         let start = attempt.startURL(on: server)
-        expect(start.absoluteString == "https://doop.design/desktop/signin?provider=google&challenge=0123456789abcdef0123456789abcdef", "start URL")
+        expect(start.absoluteString == "https://example.invalid/desktop/signin?provider=google&challenge=0123456789abcdef0123456789abcdef", "start URL")
         expect(server.contains(start), "start URL stays on the server")
-        let selfHosted = ServerAddress("https://doop.example.com:8443")!
+        let selfHosted = ServerAddress("https://diagramly.example.invalid:8443")!
         expect(ProviderSignIn(provider: .oidc, challenge: attempt.challenge).startURL(on: selfHosted).absoluteString
-                == "https://doop.example.com:8443/desktop/signin?provider=oidc&challenge=0123456789abcdef0123456789abcdef", "self-hosted start URL")
+                == "https://diagramly.example.invalid:8443/desktop/signin?provider=oidc&challenge=0123456789abcdef0123456789abcdef", "self-hosted start URL")
 
-        // Only a doop://auth link answering this attempt's challenge releases its token.
-        let token = attempt.token(from: URL(string: "doop://auth?token=tok-1&challenge=0123456789abcdef0123456789abcdef&to=%2F")!)
+        // Only a diagramly://auth link answering this attempt's challenge releases its token.
+        let token = attempt.token(from: URL(string: "diagramly://auth?token=tok-1&challenge=0123456789abcdef0123456789abcdef&to=%2F")!)
         expect(token == "tok-1", "matching challenge releases the token")
-        expect(attempt.token(from: URL(string: "DOOP://AUTH?challenge=0123456789abcdef0123456789abcdef&token=tok-2")!) == "tok-2", "scheme and host are case-insensitive")
-        for link in ["doop://auth?token=tok&challenge=ffffffffffffffffffffffffffffffff",
-                     "doop://auth?token=tok",
-                     "doop://auth?token=&challenge=0123456789abcdef0123456789abcdef",
-                     "doop://other?token=tok&challenge=0123456789abcdef0123456789abcdef",
-                     "https://doop.design/auth?token=tok&challenge=0123456789abcdef0123456789abcdef",
-                     "doop://auth"] {
+        expect(attempt.token(from: URL(string: "DIAGRAMLY://AUTH?challenge=0123456789abcdef0123456789abcdef&token=tok-2")!) == "tok-2", "scheme and host are case-insensitive")
+        for link in ["diagramly://auth?token=tok&challenge=ffffffffffffffffffffffffffffffff",
+                     "diagramly://auth?token=tok",
+                     "diagramly://auth?token=&challenge=0123456789abcdef0123456789abcdef",
+                     "diagramly://other?token=tok&challenge=0123456789abcdef0123456789abcdef",
+                     "https://example.invalid/auth?token=tok&challenge=0123456789abcdef0123456789abcdef",
+                     "diagramly://auth"] {
             expect(attempt.token(from: URL(string: link)!) == nil, "rejects \(link)")
         }
         // A duplicated challenge parameter cannot smuggle a foreign one in behind the real one.
-        expect(attempt.token(from: URL(string: "doop://auth?token=tok&challenge=ffffffffffffffffffffffffffffffff&challenge=0123456789abcdef0123456789abcdef")!) == nil,
+        expect(attempt.token(from: URL(string: "diagramly://auth?token=tok&challenge=ffffffffffffffffffffffffffffffff&challenge=0123456789abcdef0123456789abcdef")!) == nil,
                "first challenge wins")
 
         // Fresh challenges: 32 hex digits, different every time.

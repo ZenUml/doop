@@ -12,7 +12,7 @@
    `app-menu` event; `key` says a key equivalent fired it rather than a click,
    and such a key keeps the canvas keyboard's rules (not in a field, not while
    presenting, never a key another handler owns). Shells older than this
-   (no `__DOOP_APP_MENU__`) keep their fixed View menu (viewMenu.ts). */
+   (no `__DIAGRAMLY_APP_MENU__`) keep their fixed View menu (viewMenu.ts). */
 
 import { firstChord, type Chord } from './actions/chords'
 import {
@@ -155,7 +155,7 @@ export function runNativeItem(id: string, key: boolean) {
 type Invoke = (command: string, args: Record<string, unknown>) => Promise<unknown>
 type Listen = <T>(event: string, handler: (e: { payload: T }) => void) => Promise<unknown>
 type AppMenuBridge = {
-  __DOOP_APP_MENU__?: boolean
+  __DIAGRAMLY_APP_MENU__?: boolean
   __TAURI__?: { core?: { invoke?: Invoke }; event?: { listen?: Listen } }
 }
 
@@ -163,7 +163,7 @@ const bridge = globalThis as AppMenuBridge
 
 /** Whether this shell builds its menu bar from the page. */
 export function hasAppMenu(): boolean {
-  return bridge.__DOOP_APP_MENU__ === true && !!bridge.__TAURI__?.core?.invoke
+  return bridge.__DIAGRAMLY_APP_MENU__ === true && !!bridge.__TAURI__?.core?.invoke
 }
 
 const SYNC_DELAY_MS = 120

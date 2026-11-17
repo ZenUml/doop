@@ -94,7 +94,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     const content =
       kind === 'svg'
         ? '<svg id="rect" style="position:absolute;left:50px;top:60px" width="100" height="80"><rect width="100" height="80" fill="coral"/></svg>'
-        : rectangle.replace('id="rect"', 'id="rect" data-doop-drawing="rectangle"')
+        : rectangle.replace('id="rect"', 'id="rect" data-diagramly-drawing="rectangle"')
     const source = layerFrame(content)
     await seedFrames([source])
     await page.evaluate(() => window.drawingHarness.viewport({ x: 40, y: 20, zoom: 1 }))
@@ -128,7 +128,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       window.addEventListener(
         'message',
         function hold(event) {
-          if (event.data?.type !== 'doop:probe-result' || event.data.hit?.selector !== '#rect') return
+          if (event.data?.type !== 'diagramly:probe-result' || event.data.hit?.selector !== '#rect') return
           window.removeEventListener('message', hold, true)
           window.delayedLayerProbe = event
           event.stopImmediatePropagation()
@@ -262,7 +262,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
   it('drags a drawing picked with other layers together with them', async () => {
     const source = layerFrame(
       rectangle +
-        '<div id="shape" data-doop-drawing="rectangle" data-name="Rectangle" style="position:absolute;left:300px;top:60px;width:60px;height:40px;background:red"></div>',
+        '<div id="shape" data-diagramly-drawing="rectangle" data-name="Rectangle" style="position:absolute;left:300px;top:60px;width:60px;height:40px;background:red"></div>',
     )
     await seedFrames([source])
     await page.evaluate(() => {
@@ -380,7 +380,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
 
   it('⌥⇧-drags a copy of the picked layer, leaving the original, as one undo step', async () => {
     const source = layerFrame(
-      '<div id="rect" data-doop-id="keep" style="position:absolute;left:40px;top:40px;width:100px;height:80px;background:coral"></div>',
+      '<div id="rect" data-diagramly-id="keep" style="position:absolute;left:40px;top:40px;width:100px;height:80px;background:coral"></div>',
     )
     await seedFrames([source])
     await page.evaluate(() => window.drawingHarness.viewport({ x: 40, y: 20, zoom: 1 }))
@@ -396,7 +396,11 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     expect(saved).toHaveLength(1)
     const [original, copy] = await page.evaluate((html) => {
       const divs = [...new DOMParser().parseFromString(html, 'text/html').querySelectorAll('div')]
-      return divs.map((el) => ({ id: el.id, doopId: el.getAttribute('data-doop-id'), style: el.getAttribute('style') }))
+      return divs.map((el) => ({
+        id: el.id,
+        doopId: el.getAttribute('data-diagramly-id'),
+        style: el.getAttribute('style'),
+      }))
     }, saved[0]!.html)
     expect(original).toMatchObject({ id: 'rect', doopId: 'keep' })
     expect(original!.style).toContain('left:40px')
@@ -415,7 +419,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
   it.each(['canvas', 'frame'])('⌥⇧-drags a copy of the picked layer off its frame onto the %s', async (onto) => {
     /* a source rule with !important, carried along, must not beat the drop's placement */
     const source = layerFrame(
-      '<style>.card { position:absolute !important; left:40px !important }</style><div id="rect" class="card" data-doop-id="keep" style="position:absolute;left:40px;top:40px;width:100px;height:80px;background:coral"></div>',
+      '<style>.card { position:absolute !important; left:40px !important }</style><div id="rect" class="card" data-diagramly-id="keep" style="position:absolute;left:40px;top:40px;width:100px;height:80px;background:coral"></div>',
     )
     /* a positioned, margined body must not shift a copy dropped into it */
     const other: Frame = {
@@ -447,11 +451,11 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       await expect.poll(() => saved.length).toBe(2)
       const copy = saved[1]!
       expect(copy).toMatchObject({ x: 863, y: 120, width: 100, height: 80, pageId: 'first' })
-      expect(copy.html).toContain('data-doop-canvas-element')
-      expect(copy.html).not.toContain('data-doop-id')
+      expect(copy.html).toContain('data-diagramly-canvas-element')
+      expect(copy.html).not.toContain('data-diagramly-id')
     } else {
       await expect.poll(() => patchRequests).toBe(1)
-      expect(saved.find((f) => f.id === 'other')!.html).not.toContain('data-doop-id')
+      expect(saved.find((f) => f.id === 'other')!.html).not.toContain('data-diagramly-id')
       const dest = (await (await page.$('iframe[title="Other"]'))!.contentFrame())!
       await dest.waitForSelector('#rect')
       expect(
@@ -519,7 +523,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
 
   it('⌥⇧-drags a copy of a flow layer onto the room it takes below the original', async () => {
     const source = layerFrame(`<style>body { display:flex; flex-direction:column; padding:40px }</style>
-      <h1 data-doop-id="keep" style="margin:0;font-size:40px">Title</h1><p style="margin:0">Lede</p>`)
+      <h1 data-diagramly-id="keep" style="margin:0;font-size:40px">Title</h1><p style="margin:0">Lede</p>`)
     await seedFrames([source])
     await page.evaluate(() => window.drawingHarness.viewport({ x: 40, y: 20, zoom: 1 }))
     await page.evaluate(() => window.drawingHarness.pick({ frameId: 'layers', selector: 'body > h1' }))
@@ -532,7 +536,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     await expect.poll(() => patchRequests).toBe(1)
     const [original, copy] = await page.evaluate((html) => {
       const h1s = [...new DOMParser().parseFromString(html, 'text/html').querySelectorAll('h1')]
-      return h1s.map((el) => ({ doopId: el.getAttribute('data-doop-id'), next: el.nextElementSibling?.tagName }))
+      return h1s.map((el) => ({ doopId: el.getAttribute('data-diagramly-id'), next: el.nextElementSibling?.tagName }))
     }, saved[0]!.html)
     expect(original).toEqual({ doopId: 'keep', next: 'H1' })
     expect(copy).toEqual({ doopId: null, next: 'P' })

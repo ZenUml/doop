@@ -13,7 +13,7 @@ const job: GeminiCloudJob = {
   id: '1b088126-e936-4339-8c2a-e0593b629865',
   token: 'a'.repeat(64),
   prompt: 'Make a card',
-  system: 'Use Doop tools',
+  system: 'Use Diagramly tools',
   maxTurns: 4,
 }
 const secret = 'worker-secret-'.repeat(4)
@@ -115,8 +115,8 @@ describe('Gemini cloud worker', () => {
     const settings = geminiWorkerSettings(job, 'https://doop.example')
     expect(settings.security.auth).toEqual({ selectedType: 'oauth-personal', enforcedType: 'oauth-personal' })
     expect(settings.tools.core).toEqual([])
-    expect(settings.mcp.allowed).toEqual(['doop'])
-    expect(settings.mcpServers.doop.httpUrl).toBe(`https://doop.example/gemini-cloud/mcp/${job.id}`)
+    expect(settings.mcp.allowed).toEqual(['diagramly'])
+    expect(settings.mcpServers.diagramly.httpUrl).toBe(`https://doop.example/gemini-cloud/mcp/${job.id}`)
     expect(settings.hooksConfig.enabled).toBe(false)
     expect(settings.admin.extensions.enabled).toBe(false)
     expect(() => httpOrigin('https://user:secret@example.com/')).toThrow()
@@ -185,16 +185,19 @@ describe('Gemini cloud worker', () => {
   })
 
   it('rejects shared workers and hides configuration secrets in errors', () => {
-    stubEnv('DOOP_GEMINI_CLOUD_WORKERS', JSON.stringify({ alice: { url: 'https://worker.example', token: secret } }))
+    stubEnv(
+      'DIAGRAMLY_GEMINI_CLOUD_WORKERS',
+      JSON.stringify({ alice: { url: 'https://worker.example', token: secret } }),
+    )
     expect(geminiCloudWorkerFor('bob')).toBeUndefined()
     expect(geminiCloudWorkerFor('alice')?.url).toBe('https://worker.example')
     stubEnv(
-      'DOOP_GEMINI_CLOUD_WORKERS',
+      'DIAGRAMLY_GEMINI_CLOUD_WORKERS',
       JSON.stringify({
         alice: { url: 'https://worker.example', token: secret },
         bob: { url: 'https://worker.example', token: secret },
       }),
     )
-    expect(() => geminiCloudWorkerFor('alice')).toThrow('Invalid DOOP_GEMINI_CLOUD_WORKERS configuration')
+    expect(() => geminiCloudWorkerFor('alice')).toThrow('Invalid DIAGRAMLY_GEMINI_CLOUD_WORKERS configuration')
   })
 })

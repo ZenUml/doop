@@ -403,6 +403,14 @@ app.set('trust proxy', 1)
 
 app.get('/healthz', (_req, res) => res.json({ ok: true }))
 
+// This random per-launch marker is only a startup identity check, not an
+// authentication token. Hosted servers do not expose a desktop-ready marker.
+app.get('/healthz/desktop', (_req, res) => {
+  const token = env.DIAGRAMLY_DESKTOP_STARTUP_TOKEN
+  if (!token) return res.sendStatus(404)
+  res.set('Cache-Control', 'no-store').type('text/plain').send(token)
+})
+
 /* how many canvases have their frame HTML in memory (store.load / evictIdle) */
 app.get('/healthz/store', (_req, res) => {
   res.json(store.stats())
@@ -573,7 +581,7 @@ app.get('/bg/:file', async (req, res) => {
 /* ------------------------------------------------------------------ */
 /* One-time asset uploads: the upload_asset MCP tool mints a ticket and */
 /* the agent curls the file here (curl -T file /u/<token>), so bytes    */
-/* go disk -> doop without ever passing through the model. Mounted      */
+/* go disk -> Diagramly without ever passing through the model. Mounted      */
 /* before express.json — the body IS the file. The token is the         */
 /* capability: unguessable, single-use, 15-minute TTL.                  */
 /* ------------------------------------------------------------------ */
@@ -737,8 +745,8 @@ app.get('/api/oidc-config', (req, res) => {
    client asks before its first render, so sign-in already speaks it. */
 app.get('/api/product-config', (_req, res) => {
   res.json({
-    mode: env.DOOP_PRODUCT,
-    ...(env.DOOP_PRODUCT === 'diagramly' ? { capabilities: DIAGRAMLY_DECISIONS } : {}),
+    mode: env.DIAGRAMLY_PRODUCT,
+    ...(env.DIAGRAMLY_PRODUCT === 'diagramly' ? { capabilities: DIAGRAMLY_DECISIONS } : {}),
   })
 })
 
@@ -748,7 +756,7 @@ app.get('/api/locale-config', (_req, res) => {
 })
 
 /* ------------------------------------------------------------------ */
-/* Design sync ingest: the doop-sync snippet on a foreign origin posts */
+/* Design sync ingest: the diagramly-sync snippet on a foreign origin posts */
 /* DOM snapshots here. The canvas-scoped write-only secret in the path */
 /* is the whole credential (no cookies), so this stays outside the     */
 /* /api session gate and answers its own CORS preflight. The route-    */
@@ -793,7 +801,7 @@ declare global {
 app.get('/api/integrations/:provider/callback', relayDesktopCallback)
 app.use('/api/live-activities', logLiveActivityRequests)
 app.use('/api', async (req, res, next) => {
-  if (env.DOOP_PRODUCT === 'diagramly' && !diagramlyApiAvailable(req.path)) {
+  if (env.DIAGRAMLY_PRODUCT === 'diagramly' && !diagramlyApiAvailable(req.path)) {
     return res.status(404).json({ error: 'This feature is not part of Diagramly Desktop.' })
   }
   try {
@@ -801,7 +809,7 @@ app.use('/api', async (req, res, next) => {
     if (!session) return res.status(401).json({ error: 'unauthorized' })
     req.user = session.user
     req.impersonatedBy = (session.session as { impersonatedBy?: string | null }).impersonatedBy ?? undefined
-    /* Viewing as someone else is read-only, full stop. Every doop mutation is
+    /* Viewing as someone else is read-only, full stop. Every Diagramly mutation is
        a non-GET REST call — the websocket after `join` carries only cursor,
        editing and frame:drag — so this single rule covers the whole surface.
        better-auth's own routes are mounted earlier (/api/auth/*), so signing
@@ -1084,7 +1092,7 @@ app.put('/api/agent-runners/default', async (req, res) => {
   }
 })
 
-/* ---- the user's own model account: what keeps the Doop Agent running once
+/* ---- the user's own model account: what keeps the Diagramly Agent running once
    the free tasks are gone. Tokens live server-side and are never returned. */
 
 /* Every account route answers with the whole Settings view (every account,
@@ -1170,7 +1178,7 @@ app.post('/api/model-account/chatgpt', async (req, res) => {
   }
 })
 
-/* device flow: no redirect URI at all, so it works wherever Doop is hosted.
+/* device flow: no redirect URI at all, so it works wherever Diagramly is hosted.
    We poll OpenAI in the background; the browser polls the status below. */
 app.post('/api/model-account/chatgpt/device', async (req, res) => {
   if (!modelAccounts.chatgptConnectEnabled()) {
@@ -1486,7 +1494,7 @@ app.post('/api/desktop/document-backup', async (req, res) => {
   }
 })
 
-const legacyLibrary = new LegacyLibrary(env.DOOP_LEGACY_LIBRARY_MANIFEST)
+const legacyLibrary = new LegacyLibrary(env.DIAGRAMLY_LEGACY_LIBRARY_MANIFEST)
 app.get('/api/desktop/legacy-library', async (_req, res) => {
   res.setHeader('Cache-Control', 'no-store')
   res.json(await legacyLibrary.status())
@@ -1678,7 +1686,7 @@ app.patch('/api/canvases/:id', (req, res) => {
 })
 
 /* ------------------------------------------------------------------ */
-/* Collaborators: Figma-style invites. The owner invites existing doop */
+/* Collaborators: Figma-style invites. The owner invites existing Diagramly */
 /* accounts by email; members get full edit access regardless of the   */
 /* link setting. Management is owner-only (members may remove          */
 /* themselves); the people list is visible to anyone with access.      */
@@ -1726,7 +1734,7 @@ app.post('/api/canvases/:id/members', async (req, res) => {
     })
     .from(authSchema.user)
     .where(eq(authSchema.user.email, email))
-  if (!row) return res.status(404).json({ error: 'no doop account with that email — ask them to sign up first' })
+  if (!row) return res.status(404).json({ error: 'no Diagramly account with that email — ask them to sign up first' })
   if (row.id === c.ownerId) return res.status(400).json({ error: 'the owner already has access' })
   const isNew = !c.memberIds?.includes(row.id)
   store.addMember(c.id, row.id, req.user!.id)
@@ -2001,7 +2009,7 @@ app.post('/api/canvases/:id/github/:connId/import', async (req, res) => {
     const outcome = await withConnectionLock(conn.id, async () => {
       /* nothing new to queue (all rejected, or already on the board) costs nothing */
       if (!actions.planRepoCards(c.id, input).length) return { cards: [] as string[] }
-      /* the import is the Doop Agent's work, card by card — same gate as a card
+      /* the import is the Diagramly Agent's work, card by card — same gate as a card
          typed on the board: a free task, or the requester's own model account */
       const gate = await allowance.consumeResidentTask(req.user!.id)
       if (!gate.ok) return { limit: gate }
@@ -2357,7 +2365,7 @@ app.put('/api/canvases/:id/stack', (req, res) => {
 })
 
 app.post('/api/frames/:id/diagram-style', async (req, res) => {
-  if (env.DOOP_PRODUCT !== 'diagramly') return res.status(404).json({ error: 'Not available.' })
+  if (env.DIAGRAMLY_PRODUCT !== 'diagramly') return res.status(404).json({ error: 'Not available.' })
   if (req.get('origin') !== new URL(env.BETTER_AUTH_URL).origin)
     return res.status(403).json({ error: 'Apply diagram styles from the application.' })
   const { source, mode, expectedUpdatedAt, diagramPageId } = req.body ?? {}
@@ -2710,7 +2718,7 @@ app.post('/api/frames/:id/comments', async (req, res) => {
   res.json(comment)
 })
 
-/* the stable id of an element inside a frame — stamped as data-doop-id into
+/* the stable id of an element inside a frame — stamped as data-diagramly-id into
    the frame HTML if it has none yet — for a link that outlives edits around
    it. Anyone who may comment may stamp: the write is an annotation, not a
    design change, so it leaves sign-off alone. */
@@ -3334,7 +3342,7 @@ wss.on('connection', (ws, upgradeReq) => {
 })
 
 server.listen(PORT, env.HOST, () => {
-  console.log(`⟡ doop server     http://localhost:${PORT}`)
+  console.log(`⟡ Diagramly server     http://localhost:${PORT}`)
   /* frame HTML is loaded per canvas; a canvas nobody has used for
      CANVAS_IDLE_MS gives it back, unless a room, agent or stream is on it.
      Started here, once the room state it asks about exists. */
@@ -3375,14 +3383,14 @@ server.listen(PORT, env.HOST, () => {
   }
   console.log(`⟡ mcp endpoint      http://localhost:${PORT}/mcp`)
   console.log(`⟡ websocket         ws://localhost:${PORT}/ws`)
-  /* The Doop Agent failing silently is the one "why is nothing happening?"
+  /* The Diagramly Agent failing silently is the one "why is nothing happening?"
      a self-hoster cannot debug from the UI — board cards and @mentions just
      sit there. Say so at boot, not only when the first card is queued. */
   const tier = serverTierInfo()
   console.log(
     tier.ready
-      ? `⟡ doop agent        on — free tier on this server’s ${tier.provider === 'azure' ? 'Azure OpenAI deployment' : 'Anthropic key'}, then each user’s own model account`
-      : `⟡ doop agent        no server ${tier.provider === 'azure' ? 'Azure config' : 'key'} — runs only for users who connect their own ChatGPT subscription or OpenAI key (${tier.provider === 'azure' ? 'set the AZURE_OPENAI_* vars' : 'set ANTHROPIC_API_KEY'} for a free tier; agents connected over MCP work regardless)`,
+      ? `⟡ Diagramly agent        on — free tier on this server’s ${tier.provider === 'azure' ? 'Azure OpenAI deployment' : 'Anthropic key'}, then each user’s own model account`
+      : `⟡ Diagramly agent        no server ${tier.provider === 'azure' ? 'Azure config' : 'key'} — runs only for users who connect their own ChatGPT subscription or OpenAI key (${tier.provider === 'azure' ? 'set the AZURE_OPENAI_* vars' : 'set ANTHROPIC_API_KEY'} for a free tier; agents connected over MCP work regardless)`,
   )
   console.log(
     serverImageGenEnabled()

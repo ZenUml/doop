@@ -24,28 +24,28 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     await page.keyboard.press('r')
     await drag([240, 240], [400, 320])
     await page.waitForFunction(() =>
-      window.drawingHarness.state().frames[0]?.html.includes('data-doop-drawing="rectangle"'),
+      window.drawingHarness.state().frames[0]?.html.includes('data-diagramly-drawing="rectangle"'),
     )
     expect(saved).toHaveLength(1)
     expect(saved[0]).toMatchObject({ x: 80, y: 70, width: 250, height: 150 })
     await page.keyboard.press('o')
     await drag([460, 240], [540, 280])
     await page.waitForFunction(() =>
-      window.drawingHarness.state().frames[0]?.html.includes('data-doop-drawing="circle"'),
+      window.drawingHarness.state().frames[0]?.html.includes('data-diagramly-drawing="circle"'),
     )
     const iframe = await (await page.$('iframe'))!.contentFrame()
-    await iframe!.waitForSelector('[data-doop-drawing="circle"]')
+    await iframe!.waitForSelector('[data-diagramly-drawing="circle"]')
     expect(
-      await iframe!.$eval('[data-doop-drawing="circle"]', (el) => ({
+      await iframe!.$eval('[data-diagramly-drawing="circle"]', (el) => ({
         width: getComputedStyle(el).width,
         height: getComputedStyle(el).height,
       })),
     ).toEqual({ width: '40px', height: '40px' })
     await page.evaluate(() => window.drawingHarness.undo())
-    expect(saved[0]!.html).not.toContain('data-doop-drawing="circle"')
-    expect(saved[0]!.html).toContain('data-doop-drawing="rectangle"')
+    expect(saved[0]!.html).not.toContain('data-diagramly-drawing="circle"')
+    expect(saved[0]!.html).toContain('data-diagramly-drawing="rectangle"')
     await page.evaluate(() => window.drawingHarness.redo())
-    expect(saved[0]!.html).toContain('data-doop-drawing="circle"')
+    expect(saved[0]!.html).toContain('data-diagramly-drawing="circle"')
   })
 
   it('creates standalone transparent circles, constrained rectangles and SVG paths', async () => {
@@ -74,7 +74,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     await page.mouse.click(800, 420)
     await page.mouse.click(900, 500, { count: 2, delay: 60 })
     expect((await waitForFrames(5))[4]!.html).toContain('M 2 2 L 52 42')
-    await page.screenshot({ path: '/tmp/doop-drawing-desktop.png' })
+    await page.screenshot({ path: '/tmp/diagramly-drawing-desktop.png' })
   })
 
   it('types literal multiline text without triggering shortcuts, keeps escaped text and drops empty drafts', async () => {
@@ -149,7 +149,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     await page.screenshot({ path: '/tmp/doop-canvas-drop.png' })
     await page.mouse.up()
     const inserted = await waitForFrames(2)
-    expect(inserted[0]!.html).toContain('data-doop-drawing="circle"')
+    expect(inserted[0]!.html).toContain('data-diagramly-drawing="circle"')
     expect(inserted[0]!.html).toContain('left: 55px; top: 60px; width: 40px; height: 40px;')
     await page.waitForFunction(() => window.drawingHarness.state().selectedElement?.frameId === 'drawn-1')
     await page.waitForSelector('[data-comment-ui] button')
@@ -157,22 +157,22 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     await page.mouse.click(1100, 550)
     await drag([350, 360], [750, 360])
     await page.waitForFunction(() =>
-      window.drawingHarness.state().frames[1]?.html.includes('data-doop-drawing="circle"'),
+      window.drawingHarness.state().frames[1]?.html.includes('data-diagramly-drawing="circle"'),
     )
     /* a transfer saves the destination first; the source's removal is the
        save after it, still on its way when the store already shows the move */
-    await expect.poll(() => saved[0]!.html).not.toContain('data-doop-drawing')
+    await expect.poll(() => saved[0]!.html).not.toContain('data-diagramly-drawing')
     await page.waitForFunction(() => window.drawingHarness.state().selectedElement?.frameId === 'drawn-2')
     await page.waitForSelector('[data-comment-ui] button')
     await page.mouse.click(1100, 550)
     await drag([750, 360], [500, 600])
     const outside = (await waitForFrames(3))[2]!
     expect(outside).toMatchObject({ x: 210, y: 250, width: 40, height: 40, name: 'Circle' })
-    await expect.poll(() => saved[1]!.html).not.toContain('data-doop-drawing')
+    await expect.poll(() => saved[1]!.html).not.toContain('data-diagramly-drawing')
     for (let i = 0; i < 3; i++) await page.evaluate(() => window.drawingHarness.undo())
     const restored = await waitForFrames(3)
     expect(restored[2]).toMatchObject({ x: 105, y: 255, width: 40, height: 40 })
-    expect(restored.slice(0, 2).every((f) => !f.html.includes('data-doop-drawing'))).toBe(true)
+    expect(restored.slice(0, 2).every((f) => !f.html.includes('data-diagramly-drawing'))).toBe(true)
     for (let i = 0; i < 3; i++) await page.evaluate(() => window.drawingHarness.redo())
     expect((await waitForFrames(3))[2]).toMatchObject({ x: 210, y: 250, width: 40, height: 40 })
   })
@@ -343,9 +343,9 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
         height: 300,
         createdAt: 0,
         updatedAt: 0,
-        html: '<svg id="pen" data-doop-drawing="path" viewBox="0 0 140 100" style="position:fixed;left:60px;top:60px;width:140px;height:100px;transform:rotate(20deg) scale(1.2)"><path d="M 10 50 C 30 0 80 100 120 50" stroke="black" fill="none" stroke-width="2" /></svg>',
+        html: '<svg id="pen" data-diagramly-drawing="path" viewBox="0 0 140 100" style="position:fixed;left:60px;top:60px;width:140px;height:100px;transform:rotate(20deg) scale(1.2)"><path d="M 10 50 C 30 0 80 100 120 50" stroke="black" fill="none" stroke-width="2" /></svg>',
       }
-      if (standalone) frame.html = `<body data-doop-canvas-element="true">${frame.html}</body>`
+      if (standalone) frame.html = `<body data-diagramly-canvas-element="true">${frame.html}</body>`
       await seedFrames([frame])
       const rect = await visibleDrawing('Curve frame')
       await page.mouse.click(rect.x + rect.width / 2, rect.y + rect.height / 2, { count: 2, delay: 60 })
@@ -385,7 +385,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       height: 100,
       createdAt: 0,
       updatedAt: 0,
-      html: '<body data-doop-canvas-element="true" style="margin:0"><svg id="pen" data-doop-drawing="path" viewBox="0 0 140 100" preserveAspectRatio="none" style="position:absolute;left:0;top:0;width:100%;height:100%;margin:0"><path d="M 10 50 C 30 0 80 100 120 50" stroke="black" fill="none" stroke-width="2" /></svg></body>',
+      html: '<body data-diagramly-canvas-element="true" style="margin:0"><svg id="pen" data-diagramly-drawing="path" viewBox="0 0 140 100" preserveAspectRatio="none" style="position:absolute;left:0;top:0;width:100%;height:100%;margin:0"><path d="M 10 50 C 30 0 80 100 120 50" stroke="black" fill="none" stroke-width="2" /></svg></body>',
     }
     await seedFrames([frame])
     const rect = await visibleDrawing('Pen')
@@ -443,7 +443,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       iframe.evaluate(() =>
         parent.postMessage(
           {
-            type: 'doop:active',
+            type: 'diagramly:active',
             hit: { selector: '#a', tag: 'p', text: 'Alpha', snippet: '', rect: { x: 0, y: 0, width: 100, height: 20 } },
           },
           '*',
@@ -704,7 +704,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       iframe.evaluate((key) => {
         const code = key.length === 1 ? 'Key' + key.toUpperCase() : key
         const init = { key, code, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, repeat: false }
-        parent.postMessage({ type: 'doop:key', event: 'keydown', ...init }, '*')
+        parent.postMessage({ type: 'diagramly:key', event: 'keydown', ...init }, '*')
         document.dispatchEvent(new KeyboardEvent('keydown', { ...init, bubbles: true }))
       }, key)
     /* nor can it fish the port out of the runtime's send, or make the key
@@ -733,7 +733,9 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
   })
 
   it('keeps the picked element when a press on a layer that cannot move drags the frame', async () => {
-    const source = layerFrame('<p id="text" data-doop-locked style="width:100px;height:80px;margin:50px">Locked</p>')
+    const source = layerFrame(
+      '<p id="text" data-diagramly-locked style="width:100px;height:80px;margin:50px">Locked</p>',
+    )
     await seedFrames([source])
     await page.evaluate(() => window.drawingHarness.viewport({ x: 40, y: 20, zoom: 1 }))
     const text = await visibleDrawing('Layers', '#text')
@@ -781,10 +783,10 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
         document.querySelector('[data-drawing-hint]')!.getBoundingClientRect().top,
     )
     expect(hintClear).toBe(true)
-    await page.screenshot({ path: '/tmp/doop-drawing-mobile-tools.png' })
+    await page.screenshot({ path: '/tmp/diagramly-drawing-mobile-tools.png' })
     await page.touchscreen.tap(180, 250)
     expect((await waitForFrames(1))[0]!.name).toBe('Rectangle')
-    await page.screenshot({ path: '/tmp/doop-drawing-mobile.png' })
+    await page.screenshot({ path: '/tmp/diagramly-drawing-mobile.png' })
     await page.click('[aria-label="Vector path"]')
     await page.touchscreen.touchStart(80, 450)
     await page.touchscreen.touchMove(80, 390)

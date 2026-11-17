@@ -2,7 +2,7 @@ import { isDiagramly } from '../lib/product'
 import { cn } from '@/lib/utils'
 
 /** The Disc-D: a half-disc with a dot resting under its stem, reading as
- *  Doop's initial — the frame and the cursor beside it. (Identity round 10.)
+ *  Diagramly's initial — the frame and the cursor beside it. (Identity round 10.)
  *
  *  The tile is part of the mark, so every call site gets the same lockup
  *  without having to supply its own background. */
@@ -24,7 +24,7 @@ export function Logo({ className = 'size-[30px]' }: { className?: string }) {
 const MARK_BOX = { x: 42, y: 32, w: 118, h: 137 }
 const HOP_HEADROOM = 12
 
-/** The bare Disc-D, no tile: the glyph that stands for a Doop agent inline
+/** The bare Disc-D, no tile: the glyph that stands for a Diagramly agent inline
  *  next to text (presence chips, cursor pills, activity rows). Inherits the
  *  text colour unless a fill is given. The viewBox crops to the mark itself
  *  so it sits on the text baseline like a letter.
@@ -33,7 +33,7 @@ const HOP_HEADROOM = 12
  *  it; still under reduced motion). `size` is the height in px, or `fill` to
  *  take the box a parent sizes, for a mark that changes size across
  *  breakpoints. */
-export function DoopMark({
+export function DiagramlyMark({
   size = 13,
   color,
   animated = false,

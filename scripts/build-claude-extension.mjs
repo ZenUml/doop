@@ -6,6 +6,7 @@ import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import JSZip from 'jszip'
+import { getClaudeExtensionAssets, productModeFromEnvironment } from '../claude-extension/product-assets.mjs'
 
 const root = resolve(fileURLToPath(new URL('../', import.meta.url)))
 const zip = new JSZip()
@@ -56,15 +57,16 @@ async function addPackage(name, parent) {
 }
 
 await addPackage('mcp-remote', root)
-await addFile(join(root, 'claude-extension/manifest.json'), 'manifest.json')
-await addFile(join(root, 'claude-extension/README.md'), 'README.md')
-await addFile(join(root, 'public/logo.png'), 'icon.png')
+const assets = await getClaudeExtensionAssets(productModeFromEnvironment())
+zip.file('manifest.json', JSON.stringify(assets.manifest, null, 2) + '\n', { date })
+zip.file('README.md', assets.readme, { date })
+await addFile(join(root, assets.iconSource), 'icon.png')
 await addFile(join(root, 'LICENSE'), 'LICENSE')
 
 const output = join(root, 'public/claude-extension')
 await mkdir(output, { recursive: true })
 await writeFile(
-  join(output, 'doop.mcpb'),
+  join(output, 'diagramly.mcpb'),
   await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', platform: 'UNIX' }),
 )
-console.log(`Built public/claude-extension/doop.mcpb (${packed.size} bundled packages)`)
+console.log(`Built public/claude-extension/diagramly.mcpb (${packed.size} bundled packages)`)

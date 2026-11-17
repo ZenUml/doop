@@ -10,7 +10,7 @@ const HTML: &str = "<!doctype html><body style='margin:0;background:#fff'>\
 /// Grey levels at 4, 12 and 20 CSS px outside the box's left edge, at mid height.
 fn falloff(scale: f32) -> [u8; 3] {
     let html = CString::new(HTML).unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     let (mut w, mut h, mut len) = (0, 0, 0);
     let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 300, 220, scale);
     let buf = doopblitz_doc_render(doc, &mut w, &mut h, &mut len);
@@ -43,7 +43,7 @@ fn a_masked_element_masks_its_own_shadow() {
          box-shadow:0 30px 30px 0 #000;mask-image:linear-gradient(#000 50%,transparent)'></div>",
     )
     .unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     let (mut w, mut h, mut len) = (0, 0, 0);
     let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 200, 200, 1.0);
     let buf = doopblitz_doc_render(doc, &mut w, &mut h, &mut len);

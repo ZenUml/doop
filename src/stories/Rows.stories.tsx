@@ -28,14 +28,14 @@ export const People: Story = {
         className="py-1.5"
         avatar={<Avatar name="Kevin Goedecke" color={colorFor('kevin')} size={28} />}
         name="Kevin Goedecke (you)"
-        detail="kevin@doop.design"
+        detail="kevin@example.invalid"
         trailing={<span className="text-label text-ink-faint">Owner</span>}
       />
       <PersonRow
         className="py-1.5"
         avatar={<Avatar name="Mia Chen" color={colorFor('mia')} size={28} />}
         name="Mia Chen"
-        detail="mia@example.com · joined 3d ago"
+        detail="mia@example.invalid · joined 3d ago"
         trailing={
           <>
             <Badge>member</Badge>
@@ -52,7 +52,7 @@ export const People: Story = {
             <BuildingIcon width={14} height={14} aria-hidden />
           </span>
         }
-        name="Everyone in Doop"
+        name="Everyone in Diagramly"
         detail="12 people"
         trailing={<span className="text-label text-ink-faint">Can edit</span>}
       />
@@ -112,7 +112,7 @@ export const HowTo: Story = {
   render: () => (
     <Steps className="max-w-[420px]">
       <Step>Copy your frames below.</Step>
-      <Step>In Figma, run Plugins → “Doop — Editable import”.</Step>
+      <Step>In Figma, run Plugins → “Diagramly — Editable import”.</Step>
       <Step>Paste, then add to your current page.</Step>
     </Steps>
   ),

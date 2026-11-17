@@ -16,14 +16,14 @@ describe('component routes', () => {
   let componentId: string
 
   beforeAll(async () => {
-    server = await startServer()
+    server = await startServer({ DIAGRAMLY_PRODUCT: 'design' })
     owner = await new Client(server).signUp('owner@components.test', 'Owner')
     stranger = await new Client(server).signUp('stranger@components.test', 'Stranger')
     canvasId = ((await (await owner.post('/api/canvases', { name: 'Routes' })).json()) as { id: string }).id
     const frame = (await (
       await owner.post(`/api/canvases/${canvasId}/frames`, {
         name: 'Tags',
-        html: doc('<span class="tag" data-doop-id="tagone">One</span><span class="tag">Two</span>'),
+        html: doc('<span class="tag" data-diagramly-id="tagone">One</span><span class="tag">Two</span>'),
       })
     ).json()) as { id: string }
     frameId = frame.id
@@ -48,7 +48,7 @@ describe('component routes', () => {
       frames: { id: string; html: string }[]
     }
     expect(frame.components.map((def) => def.id)).toEqual([componentId])
-    expect(frame.frames.find((f) => f.id === frameId)!.html).toContain(`data-doop-instance="${componentId}"`)
+    expect(frame.frames.find((f) => f.id === frameId)!.html).toContain(`data-diagramly-instance="${componentId}"`)
   })
 
   it('reports errors as messages, not crashes', async () => {
@@ -98,7 +98,7 @@ describe('component routes', () => {
     server.stop({ keepData: true })
     await server.stopped
     const dir = server.dataDir
-    server = await startServer({}, dir)
+    server = await startServer({ DIAGRAMLY_PRODUCT: 'design' }, dir)
     const again = new Client(server)
     again.cookies = owner.cookies
     const list = (await (await again.get(`/api/canvases/${canvasId}/components`)).json()) as {

@@ -105,7 +105,7 @@ it('distinguishes arrival, task announcements, failed work, and an actual frame 
 })
 
 it('isolates progress between accounts and canvases, including legacy browser-wide progress', async () => {
-  localStorage.setItem('doop:onboarding', JSON.stringify({ connected: true, tasked: true }))
+  localStorage.setItem('diagramly:onboarding', JSON.stringify({ connected: true, tasked: true }))
   vi.mocked(api.agentAllowance).mockResolvedValue({ ...allowance, connected: false })
   await render({ id: 'qa', name: 'QA', email: 'qa@example.test' })
   expect(complete('Connect AI')).toBe(false)

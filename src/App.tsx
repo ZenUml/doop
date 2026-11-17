@@ -36,6 +36,7 @@ import { setTabsUser } from './lib/desktop'
 import { isDesktopShell } from './lib/shell'
 import { SIGNUP_PARAM, parseSignupMethod } from '../shared/firstCanvas'
 import { useT } from './lib/i18n'
+import { useResumeMcpOAuth } from './lib/mcpOAuthResume'
 
 export { navigate }
 
@@ -56,6 +57,7 @@ export function App() {
   const [route, setRoute] = useState(location.pathname + location.search)
   const path = route.split('?')[0]!
   const { data: session, isPending } = authClient.useSession()
+  useResumeMcpOAuth(!isPending && !!session)
   /* a signed-out guest on a share link asked for the sign-in form */
   const [guestAuth, setGuestAuth] = useState<'signin' | 'signup' | null>(null)
   const signInRequired = useStore((s) => s.signInRequired)

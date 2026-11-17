@@ -75,7 +75,7 @@ let pendingDrawing: Promise<void> = Promise.resolve()
 /** Standalone elements use the same persistence, layers and export as frames,
  *  with transparent chrome. The marker stays in HTML through undo and copying. */
 export function isCanvasElement(html: string): boolean {
-  return /<body\b[^>]*\bdata-doop-canvas-element=/i.test(html)
+  return /<body\b[^>]*\bdata-diagramly-canvas-element=/i.test(html)
 }
 
 export function drawingTarget(point: Point, tool: DrawingTool): DrawingTarget | null {
@@ -134,7 +134,7 @@ export function drawingElement(doc: Document, drawing: Drawing, standalone: bool
     drawing.tool === 'path'
       ? doc.createElementNS('http://www.w3.org/2000/svg', 'svg')
       : doc.createElement(drawing.tool === 'text' ? 'p' : 'div')
-  el.setAttribute('data-doop-drawing', drawing.tool)
+  el.setAttribute('data-diagramly-drawing', drawing.tool)
   el.setAttribute('data-name', names[drawing.tool])
   // Fixed coordinates inside an existing iframe ignore the imported body's
   // margins, positioning and layout. Standalone elements scale with their frame.
@@ -172,7 +172,7 @@ export function drawingDocument(drawing: Drawing, ink = DRAWING_INK): string {
   doc.body.style.cssText = 'width:100%;height:100%;margin:0;'
   if (drawing.tool === 'frame') doc.body.style.background = '#ffffff'
   else {
-    doc.body.setAttribute('data-doop-canvas-element', 'true')
+    doc.body.setAttribute('data-diagramly-canvas-element', 'true')
     doc.body.append(drawingElement(doc, drawing, true, ink))
   }
   return '<!doctype html>\n' + doc.documentElement.outerHTML
@@ -199,7 +199,7 @@ export function saveDrawing(drawing: Drawing, target: DrawingTarget): Promise<vo
       // Path points and bounds must use the same coordinate system.
       local.points = drawing.points?.map((p) => ({ ...p, x: p.x - frame.x, y: p.y - frame.y }))
       const el = drawingElement(doc, local, false)
-      el.id = `doop-drawing-${crypto.randomUUID()}`
+      el.id = `diagramly-drawing-${crypto.randomUUID()}`
       doc.body.append(el)
       const html = '<!doctype html>\n' + doc.documentElement.outerHTML
       const saved = await api.updateFrame(frame.id, { html })

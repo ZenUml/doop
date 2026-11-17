@@ -178,6 +178,8 @@ test('the packaging command stops before signing when an audit exits zero withou
       await writeFile(path.join(checkout, file), file === 'package.json' ? '{}' : 'fixture')
     for (const directory of ['server', 'shared', 'dist'])
       await writeFile(path.join(checkout, directory, 'fixture'), 'fixture')
+    await mkdir(path.join(checkout, 'dist/claude-extension'), { recursive: true })
+    await writeFile(path.join(checkout, 'dist/claude-extension/diagramly.mcpb'), 'extension fixture')
     git(checkout, 'add', '.')
     git(
       checkout,
@@ -227,13 +229,20 @@ test('the packaging command stops before signing when an audit exits zero withou
         }),
       /audit did not produce a manifest/,
     )
+    assert.equal(
+      await readFile(
+        path.join(output, 'ZenUML.app/Contents/Resources/local-server/app/dist/claude-extension/diagramly.mcpb'),
+        'utf8',
+      ),
+      'extension fixture',
+    )
     await assert.rejects(readFile(signed), { code: 'ENOENT' })
   }))
 
 test('foreground audit parsing rejects execution errors, malformed or incomplete manifests and unsafe paths', () =>
   fixture(async ({ temporary }) => {
     const app = path.join(temporary, 'ZenUML.app')
-    const required = ['Contents/Resources/local-server/node', 'Contents/Helpers/DoopFrameSnapshot']
+    const required = ['Contents/Resources/local-server/node', 'Contents/Helpers/DiagramlyFrameSnapshot']
     for (const relative of required) {
       await mkdir(path.dirname(path.join(app, relative)), { recursive: true })
       await writeFile(path.join(app, relative), 'synthetic executable fixture')

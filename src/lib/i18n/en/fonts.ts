@@ -37,7 +37,7 @@ export const fonts = {
   addLocal: 'Add from this computer',
   addLocalTitle: { one: 'Add {name} to this library?', other: 'Add {count} fonts from this computer?' },
   addLocalDescription:
-    'Everyone this library serves gets the font, and frames that use it carry it into screenshots and exports. Fonts installed with your operating system or bought for one machine are often licensed for your use only; check the font’s licence before sharing it here. Doop does not check licences for you.',
+    'Everyone this library serves gets the font, and frames that use it carry it into screenshots and exports. Fonts installed with your operating system or bought for one machine are often licensed for your use only; check the font’s licence before sharing it here. Diagramly does not check licences for you.',
   addLocalConfirm: 'Add fonts',
   localSkipped: {
     one: '{names} is not a single font file (TTF, OTF, WOFF or WOFF2) and was left out.',

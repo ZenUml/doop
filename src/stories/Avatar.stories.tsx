@@ -88,7 +88,7 @@ export const Agents: Story = {
       <Avatar name="Claude Code" kind="agent" glaze />
       <Avatar name="Codex" kind="agent" glaze glazeDelay={1.3} />
       <Avatar name="Cursor" kind="agent" />
-      <Avatar name="Doop Reviewer" kind="agent" />
+      <Avatar name="Diagramly Reviewer" kind="agent" />
     </div>
   ),
 }

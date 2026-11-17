@@ -23,10 +23,10 @@ export interface Point {
 /** Past this many screen px a press on a pin is a drag, not a click. */
 export const DRAG_THRESHOLD_PX = 3
 
-/** What the runtime answers a `doop:probe` with, as far as a pin needs. */
+/** What the runtime answers a `diagramly:probe` with, as far as a pin needs. */
 export interface CommentDropHit {
   selector: string
-  /** the `data-doop-id` the element already carries, if any */
+  /** the `data-diagramly-id` the element already carries, if any */
   elementId?: string
   snippet: string
   rect?: { x: number; y: number }
@@ -88,7 +88,7 @@ export async function resolveCommentDrop(
 }
 
 async function probeFrame(frameId: string, x: number, y: number): Promise<CommentDropHit | null> {
-  const reply = await requestFrame(frameId, 'doop:probe', { x, y })
+  const reply = await requestFrame(frameId, 'diagramly:probe', { x, y })
   const hit = reply?.hit as CommentDropHit | null | undefined
   if (!hit || typeof hit.selector !== 'string') return null
   return {

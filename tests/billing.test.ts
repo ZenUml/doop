@@ -16,6 +16,7 @@ let server: Server
 
 beforeAll(async () => {
   server = await startServer({
+    DIAGRAMLY_PRODUCT: 'design',
     STRIPE_SECRET_KEY: 'sk_test_doop_fake',
     STRIPE_WEBHOOK_SECRET: WEBHOOK_SECRET,
     STRIPE_PRICE_TEAM_MONTHLY: 'price_month',
@@ -249,6 +250,7 @@ describe('workspaces behind Stripe', () => {
     await server.stopped
     server = await startServer(
       {
+        DIAGRAMLY_PRODUCT: 'design',
         STRIPE_SECRET_KEY: 'sk_test_doop_fake',
         STRIPE_WEBHOOK_SECRET: WEBHOOK_SECRET,
         STRIPE_PRICE_TEAM_MONTHLY: 'price_month',

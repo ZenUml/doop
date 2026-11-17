@@ -74,7 +74,7 @@ export function workspacePanesFor(role: WorkspaceSummary['role'] | undefined): W
 
 /** an agent that worked this recently is treated as still at the desk */
 const LIVE_WINDOW = 5 * 60 * 1000
-const RAIL_STORAGE_KEY = 'doop-rail'
+const RAIL_STORAGE_KEY = 'diagramly-rail'
 
 type RailLists = { canvases: CanvasMeta[]; workspaces: WorkspaceSummary[] }
 

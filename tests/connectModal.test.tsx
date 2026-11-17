@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   native: false,
   desktop: false,
   addToDesktop: vi.fn(),
+  presences: {} as Record<string, { clientId: string; kind: string; name: string; color: string }>,
 }))
 vi.mock('../src/lib/shell', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../src/lib/shell')>()),
@@ -22,9 +23,9 @@ vi.mock('../src/lib/claudeConnection', async (importOriginal) => ({
 vi.mock('../src/App', () => ({ navigate: mocks.navigate }))
 vi.mock('../src/lib/posthog', () => ({ posthog: { capture: mocks.capture } }))
 vi.mock('../src/lib/store', () => ({
-  useStore: (select: (s: { presences: Record<string, never> }) => unknown) => select({ presences: {} }),
+  useStore: (select: (s: { presences: typeof mocks.presences }) => unknown) => select({ presences: mocks.presences }),
 }))
-import { ConnectModal } from '../src/components/ConnectModal'
+import { AgentArrival, ConnectModal } from '../src/components/ConnectModal'
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 let root: Root
@@ -58,6 +59,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mocks.native = false
   mocks.desktop = false
+  mocks.presences = {}
   vi.stubGlobal('location', new URL('http://localhost:4301'))
 })
 afterEach(() => {
@@ -75,9 +77,9 @@ it('opens on the agent picker and walks to an agent’s own steps and back', asy
   await pickAgent('Codex')
   expect(mocks.capture).toHaveBeenCalledWith('connect_ai_agent_chosen', { agent: 'codex' })
   expect(text()).toContain('Connect Codex')
-  expect(text()).toContain(`codex mcp add doop --url ${location.origin}/mcp`)
-  expect(text()).toContain('Work on Doop canvas c1.')
-  expect(text()).toContain('listening for Codex')
+  expect(text()).toContain(`codex mcp add diagramly --url ${location.origin}/mcp`)
+  expect(text()).toContain('Work on Diagramly canvas c1.')
+  expect(text()).toContain('Waiting for agent activity on this canvas')
 
   await click('Back')
   expect(text()).toContain('Choose your agent')
@@ -87,7 +89,7 @@ it('shows Claude Code’s command plus the sign-in step', async () => {
   await mount('c1')
   await pickAgent('Claude Code')
   expect(text()).toContain('Connect Claude Code')
-  expect(text()).toContain(`claude mcp add --transport http doop "${location.origin}/mcp"`)
+  expect(text()).toContain(`claude mcp add --transport http diagramly "${location.origin}/mcp"`)
   expect(text()).toContain('/mcp')
   await click('Done')
   expect(onClose).toHaveBeenCalledOnce()
@@ -122,27 +124,39 @@ it('lists automations as their own agent, straight to the agent-key steps', asyn
   expect(text()).toContain('Connect Headless agent or server')
   expect(text()).toContain('"Authorization": "Bearer dpk_…"')
   expect(button('Sign in with a browser')).toBeUndefined()
-  expect(text()).toContain('Work on Doop canvas c1.')
+  expect(text()).toContain('Work on Diagramly canvas c1.')
 })
 
 it('skips the canvas prompt and the arrival status when opened without a canvas', async () => {
   await mount()
   await pickAgent('Claude Code')
-  expect(text()).not.toContain('Work on Doop canvas')
-  expect(text()).not.toContain('listening for')
+  expect(text()).not.toContain('Work on Diagramly canvas')
+  expect(text()).not.toContain('Waiting for agent activity')
   expect(text()).toContain('Open a canvas and tell the agent to work on it')
 })
 
-it('explains the local desktop path and keeps file installation as a collapsed fallback', async () => {
+it('saves the bundled extension through the App Store shell', async () => {
+  const invoke = vi.fn().mockResolvedValue(true)
+  vi.stubGlobal('__DIAGRAMLY_APP_STORE__', true)
+  vi.stubGlobal('__TAURI__', { core: { invoke } })
   await mount('desktop-canvas')
-  await pickAgent('Add Doop to Claude')
+  await pickAgent('Add Diagramly to Claude')
+  await click('Download extension')
+  expect(invoke).toHaveBeenCalledWith('claude_save_bundled_extension')
+  expect(text()).toContain('Diagramly server URL')
+})
+
+it('shows manual installation directly when the native bridge is unavailable', async () => {
+  await mount('desktop-canvas')
+  await pickAgent('Add Diagramly to Claude')
   expect(button('Desktop app')?.getAttribute('aria-pressed')).toBe('true')
-  const download = document.querySelector<HTMLAnchorElement>('a[download="doop.mcpb"]')
-  expect(download?.getAttribute('href')).toBe('/claude-extension/doop.mcpb')
-  expect(download?.closest('[data-slot="disclosure"] > [data-state]')?.getAttribute('data-state')).toBe('closed')
-  expect(text()).toContain('Doop server URL')
+  const download = document.querySelector<HTMLAnchorElement>('a[download="diagramly.mcpb"]')
+  expect(download?.getAttribute('href')).toBe('/claude-extension/diagramly.mcpb')
+  expect(download?.closest('[data-slot="disclosure"]')).toBeNull()
+  expect(text()).not.toContain('Click Add to Claude in the Diagramly desktop app')
+  expect(text()).toContain('Diagramly server URL')
   expect(text()).toContain(`${location.origin}/mcp`)
-  expect(text()).toContain('Work on Doop canvas desktop-canvas.')
+  expect(text()).toContain('Work on Diagramly canvas desktop-canvas.')
   expect(text()).toContain('Install Extension')
 
   await click('Connect online')
@@ -150,13 +164,13 @@ it('explains the local desktop path and keeps file installation as a collapsed f
   expect(text()).toContain('publicly reachable HTTPS server')
   expect(document.querySelector('a[href*="claude.ai"]')).toBeNull()
   await click('Desktop app')
-  expect(document.querySelector('a[download="doop.mcpb"]')).not.toBeNull()
+  expect(document.querySelector('a[download="diagramly.mcpb"]')).not.toBeNull()
 })
 
-it('defaults to a prefilled Add to Claude link on hosted Doop, without a download', async () => {
+it('defaults to a prefilled Add to Claude link on hosted Diagramly, without a download', async () => {
   vi.stubGlobal('location', new URL('https://design.example.com'))
   await mount('hosted-canvas')
-  await pickAgent('Add Doop to Claude')
+  await pickAgent('Add Diagramly to Claude')
   expect(button('Connect online')?.getAttribute('aria-pressed')).toBe('true')
   const link = document.querySelector<HTMLAnchorElement>('a[href*="claude.ai"]')!
   const url = new URL(link.href)
@@ -164,7 +178,7 @@ it('defaults to a prefilled Add to Claude link on hosted Doop, without a downloa
   expect(url.searchParams.get('modal')).toBe('add-custom-connector')
   expect(url.searchParams.get('connectorUrl')).toBe('https://design.example.com/mcp')
   expect(document.querySelector('a[download]')).toBeNull()
-  expect(text()).toContain('Work on Doop canvas hosted-canvas.')
+  expect(text()).toContain('Work on Diagramly canvas hosted-canvas.')
 })
 
 it('opens Claude directly in a capable shell and waits for Claude’s confirmation', async () => {
@@ -177,7 +191,7 @@ it('opens Claude directly in a capable shell and waits for Claude’s confirmati
       }),
   )
   await mount('local-canvas')
-  await pickAgent('Add Doop to Claude')
+  await pickAgent('Add Diagramly to Claude')
   await click('Add to Claude')
   expect(button('Opening Claude…')?.disabled).toBe(true)
   expect(mocks.addToDesktop).toHaveBeenCalledExactlyOnceWith('http://localhost:4301/mcp')
@@ -190,7 +204,7 @@ it('shows native handoff errors and allows retry', async () => {
   mocks.native = true
   mocks.addToDesktop.mockRejectedValue(new Error('Install Claude Desktop first.'))
   await mount()
-  await pickAgent('Add Doop to Claude')
+  await pickAgent('Add Diagramly to Claude')
   await click('Add to Claude')
   expect(document.querySelector('[role="alert"]')?.textContent).toBe('Install Claude Desktop first.')
   expect(button('Add to Claude')?.disabled).toBe(false)
@@ -209,13 +223,28 @@ it.each(['https://doop.design', 'http://localhost:4301'])(
     expect(installUrl.protocol).toBe('cursor:')
     expect(installUrl.host).toBe('anysphere.cursor-deeplink')
     expect(installUrl.pathname).toBe('/mcp/install')
-    expect(installUrl.searchParams.get('name')).toBe('doop')
+    expect(installUrl.searchParams.get('name')).toBe('diagramly')
     expect(JSON.parse(atob(installUrl.searchParams.get('config')!))).toEqual({ url: `${origin}/mcp` })
     expect(document.querySelector('[data-slot="collapsible-trigger"]')?.getAttribute('aria-expanded')).toBe('false')
     expect(text()).toContain('keeping any existing servers')
-    expect(text()).toContain('Work on Doop canvas cursor-canvas.')
-    expect(text()).toContain('listening for Cursor')
+    expect(text()).toContain('Work on Diagramly canvas cursor-canvas.')
+    expect(text()).toContain('Waiting for agent activity on this canvas')
     expect(text()).not.toContain('it worked')
     expect(document.querySelector('a[download]')).toBeNull()
   },
 )
+
+it('reports recent canvas activity without claiming that a selected client connected', async () => {
+  container = document.createElement('div')
+  document.body.append(container)
+  root = createRoot(container)
+  await act(async () => root.render(<AgentArrival />))
+  expect(text()).toContain('Waiting for agent activity on this canvas')
+  mocks.presences = { cursor: { clientId: 'agent:Cursor', kind: 'agent', name: 'Cursor', color: '#000' } }
+  await act(async () => root.render(<AgentArrival />))
+  expect(text()).toContain('Recent canvas activity: Cursor')
+  expect(text()).not.toContain('it worked')
+  mocks.presences = {}
+  await act(async () => root.render(<AgentArrival />))
+  expect(text()).toContain('Waiting for agent activity on this canvas')
+})

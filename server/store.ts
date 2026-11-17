@@ -314,7 +314,7 @@ class Store {
     this.canvases.set(canvas.id, canvas)
     this.loaded.set(canvas.id, now)
     canvas.pages = canvasPages(canvas)
-    if (env.DOOP_PRODUCT === 'diagramly') canvas.pages[0]!.name = 'Board 1'
+    if (env.DIAGRAMLY_PRODUCT === 'diagramly') canvas.pages[0]!.name = 'Board 1'
     persist.saveCanvas(canvas)
     return canvas
   }
@@ -1064,7 +1064,7 @@ class Store {
     >,
     by: string,
     opts: {
-      /** the html change only marks elements up (a `data-doop-id` stamp):
+      /** the html change only marks elements up (a `data-diagramly-id` stamp):
        *  nothing a reviewer signed off on moved, so sign-off stands */
       annotation?: boolean
     } = {},

@@ -279,8 +279,8 @@ interface State {
   setStream(frameId: string, actor: { name: string; color: string } | null): void
 }
 
-const LAYERS_OPEN_KEY = 'doop:layers-open'
-const RULERS_KEY = 'doop:rulers'
+const LAYERS_OPEN_KEY = 'diagramly:layers-open'
+const RULERS_KEY = 'diagramly:rulers'
 /* longer than the slowest real export (Canva: render + verify, ~3 min) */
 const BUSY_NOTICE_MAX_MS = 5 * 60_000
 

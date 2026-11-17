@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { DOOP_GUIDE, FRAME_STYLES } from '../server/guide'
+import { DESIGN_GUIDE, FRAME_STYLES } from '../server/guide'
 import { systemFor } from '../server/resident'
 import { AGENT_ROLES } from '../shared/agents'
 
 describe('where frame CSS goes', () => {
   it('reaches MCP agents and every resident role in the same words', () => {
-    expect(DOOP_GUIDE).toContain(FRAME_STYLES)
+    expect(DESIGN_GUIDE).toContain(FRAME_STYLES)
     for (const role of AGENT_ROLES) expect(systemFor(role)).toContain(FRAME_STYLES)
   })
 

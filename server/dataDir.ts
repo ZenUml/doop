@@ -4,7 +4,7 @@ import { env } from './env.ts'
 
 /**
  * Where the server keeps what it writes: the embedded database and uploaded
- * assets. `./data` under the working directory unless `DOOP_DATA_DIR` names
+ * assets. `./data` under the working directory unless `DIAGRAMLY_DATA_DIR` names
  * another place. A packaged desktop app needs that: it runs from its
  * read-only bundle and may write only inside its container (spike).
  */
@@ -13,7 +13,7 @@ export function resolveDataDir(configured: string | undefined, cwd: string, ...p
 }
 
 export function dataDir(...parts: string[]): string {
-  return resolveDataDir(env.DOOP_DATA_DIR, process.cwd(), ...parts)
+  return resolveDataDir(env.DIAGRAMLY_DATA_DIR, process.cwd(), ...parts)
 }
 
 /**

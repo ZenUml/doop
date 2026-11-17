@@ -13,7 +13,7 @@ fn pixel(html: &str, x: usize, y: usize) -> [u8; 3] {
         "<!doctype html><body style='margin:0;background:white'>{html}"
     ))
     .unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     let (mut w, mut h, mut len) = (0, 0, 0);
     unsafe {
         let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 100, 100, 1.0);

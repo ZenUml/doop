@@ -116,7 +116,7 @@ export const stage = {
   waitingFor: 'waiting for {name}',
   agentDidNotFinish: 'The agent did not finish.',
   retry: 'Retry',
-  replyAskAgent: 'Reply… (@doop to ask the agent)',
+  replyAskAgent: 'Reply… (@diagramly to ask the agent)',
   replyEllipsis: 'Reply…',
   replyFailed: 'That reply did not go through — it may be resolved already. Try again.',
   resolve: 'Resolve',
@@ -133,7 +133,7 @@ export const stage = {
   resolvedBy: 'resolved by {name}',
   replies: { one: '{count} reply', other: '{count} replies' },
   resolvedReplies: 'Resolved replies',
-  replyPanelPlaceholder: 'Reply… @doop to ask the agent',
+  replyPanelPlaceholder: 'Reply… @diagramly to ask the agent',
   replyTo: 'Reply to {name}',
   markResolved: 'Mark this thread as resolved',
 } as const

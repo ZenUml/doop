@@ -125,7 +125,7 @@ function agent(): Step {
     canvasId: canvas.id,
     title: 'Make sizes',
     prompt: 'Make 1080×1080 and 1080×1920 drafts.',
-    roles: ['doop'],
+    roles: ['diagramly'],
   }
 }
 function slack(): Step {
@@ -198,7 +198,7 @@ it('waits for generated drafts, then creates a Linear ticket and posts its link 
   expect(onFeedback).toHaveBeenCalledWith(canvas.id)
   await advanceRun(run.id)
   expect(sent).toHaveLength(0)
-  const output = store.createFrame(canvas.id, { name: 'Square', width: 1080, height: 1080 }, 'Doop')!
+  const output = store.createFrame(canvas.id, { name: 'Square', width: 1080, height: 1080 }, 'Diagramly')!
   await db.update(tasks).set({ endedAt: Date.now(), frameIds: output.id }).where(eq(tasks.id, card!.id))
   await advanceRun(run.id)
   await advanceRun(run.id)
@@ -283,7 +283,7 @@ it('surfaces Slack membership errors without exposing upstream response text', a
   const a = await workflow()
   approve()
   await tickWorkflows()
-  expect((await runs(a.id))[0]!.error).toBe('Check the Slack channel ID and invite @Doop to that channel.')
+  expect((await runs(a.id))[0]!.error).toBe('Check the Slack channel ID and invite @Diagramly to that channel.')
 })
 
 it('does not replay an interrupted external step after its lease expires', async () => {
@@ -373,7 +373,7 @@ it('gives later agents the draft outputs of earlier steps as well as the approve
   approve()
   await tickWorkflows()
   const run = await rawRun(a.id)
-  const output = store.createFrame(canvas.id, { name: 'Square', width: 1080, height: 1080 }, 'Doop')!
+  const output = store.createFrame(canvas.id, { name: 'Square', width: 1080, height: 1080 }, 'Diagramly')!
   await db.update(tasks).set({ endedAt: Date.now(), frameIds: output.id }).where(eq(tasks.id, run.state!.taskId!))
   await advanceRun(run.id)
   await advanceRun(run.id)
@@ -427,7 +427,7 @@ it('keeps advancing other workflows while one integration request is slow', asyn
     await expect.poll(async () => (await rawRun(fast.id))?.state?.stepIndex).toBe(1)
     secondTick = tickWorkflows()
     await expect
-      .poll(() => sent.some((request) => String(request.body.query).includes('DoopAutomationIssue')))
+      .poll(() => sent.some((request) => String(request.body.query).includes('DiagramlyAutomationIssue')))
       .toBe(true)
     expect((await runs(fast.id))[0]!.status).toBe('ok')
   } finally {

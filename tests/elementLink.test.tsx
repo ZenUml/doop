@@ -117,3 +117,6 @@ it('copies the right-clicked layer even when another element is selected', async
   expect(writeText).toHaveBeenCalledWith(elementLink(frame, 'he4o00'))
   expect(useStore.getState().notice?.text).toBe('Element link copied')
 })
+
+// These cases exercise the legacy HTML design tools.
+vi.mock('../src/lib/product', () => ({ isDiagramly: () => false }))

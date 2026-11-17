@@ -93,7 +93,7 @@ export const COMPONENT_TOOLS: ComponentTool[] = [
     name: 'list_components',
     title: 'List components',
     description:
-      'List the reusable components on a canvas: each name, its props and slots as a one-line signature, a ready-to-paste <doop-use> and how often it is used. Check this BEFORE writing markup: anything on this list must be used through <doop-use>, never redrawn. With libraries=true, also lists components on other canvases this account can read, ready for import_component.',
+      'List the reusable components on a canvas: each name, its props and slots as a one-line signature, a ready-to-paste <diagramly-use> and how often it is used. Check this BEFORE writing markup: anything on this list must be used through <diagramly-use>, never redrawn. With libraries=true, also lists components on other canvases this account can read, ready for import_component.',
     readOnly: true,
     shape: {
       query: z.string().optional().describe('Only components whose name or description contains this'),
@@ -131,7 +131,7 @@ export const COMPONENT_TOOLS: ComponentTool[] = [
     name: 'get_component',
     title: 'Read a component',
     description:
-      'Read one component in full: its template (each element keyed with data-doop-part, the keys overrides use), its CSS, props, slots, where it is used, earlier revisions and where it lives in code. Read this before update_component.',
+      'Read one component in full: its template (each element keyed with data-diagramly-part, the keys overrides use), its CSS, props, slots, where it is used, earlier revisions and where it lives in code. Read this before update_component.',
     readOnly: true,
     shape: { component: COMPONENT_REF },
     run({ component }, { canvas }) {
@@ -144,13 +144,13 @@ export const COMPONENT_TOOLS: ComponentTool[] = [
     name: 'create_component',
     title: 'Create a component',
     description:
-      'Make a reusable component, one of two ways. From an element already in a frame (frame_id + element: a data-doop-id, or the element of a find_component_candidates result): that element stays where it is and becomes the main; pass replace_matching=true to turn every other element of the same shape on the canvas into a linked instance in one go, differing text and links becoming props. From new markup (html + css): the main lands on the canvas\'s Components page. Unless the markup already says otherwise, leaf text, image sources and link targets become props; mark your own with data-doop-prop="label" (text), data-doop-prop="href:link,--accent:accent" (attributes, custom properties), data-doop-if="tone=ghost" or "show-icon" (conditional elements), data-doop-slot="actions" (content each instance supplies, add data-doop-slot-suggest="Button"). An enum prop in props sets data-<name> on the root, so variants are plain CSS: .btn[data-tone="ghost"] { … }. Give it a description saying when to use it: it is how the next agent knows.',
+      'Make a reusable component, one of two ways. From an element already in a frame (frame_id + element: a data-diagramly-id, or the element of a find_component_candidates result): that element stays where it is and becomes the main; pass replace_matching=true to turn every other element of the same shape on the canvas into a linked instance in one go, differing text and links becoming props. From new markup (html + css): the main lands on the canvas\'s Components page. Unless the markup already says otherwise, leaf text, image sources and link targets become props; mark your own with data-diagramly-prop="label" (text), data-diagramly-prop="href:link,--accent:accent" (attributes, custom properties), data-diagramly-if="tone=ghost" or "show-icon" (conditional elements), data-diagramly-slot="actions" (content each instance supplies, add data-diagramly-slot-suggest="Button"). An enum prop in props sets data-<name> on the root, so variants are plain CSS: .btn[data-tone="ghost"] { … }. Give it a description saying when to use it: it is how the next agent knows.',
     readOnly: false,
     shape: {
       name: z.string().describe('Short and unique, e.g. "Button", "Pricing Card"'),
       description: z.string().optional().describe('When to use this. Later agents choose by it'),
       frame_id: z.string().optional().describe('With element: make this existing element the main'),
-      element: z.string().optional().describe('A data-doop-id, or the element from find_component_candidates'),
+      element: z.string().optional().describe('A data-diagramly-id, or the element from find_component_candidates'),
       replace_matching: z
         .boolean()
         .optional()
@@ -221,7 +221,7 @@ export const COMPONENT_TOOLS: ComponentTool[] = [
     name: 'update_component',
     title: 'Update a component',
     description:
-      "Change a component's main; every instance on the canvas follows at once, keeping its props and overrides, so this is how a sweeping design change is one call rather than one edit per screen. Small changes: find + replace on the template (from get_component). Rewrites: html, keeping data-doop-part attributes where you can so overrides stay attached. The result reports the impact: which frames changed, which approved frames lost sign-off, which overrides no longer have an element to apply to. Pass dry_run=true to read that report first, which you should for a component with many instances. A changed main is one undo-able revision: restore_component_version goes back.",
+      "Change a component's main; every instance on the canvas follows at once, keeping its props and overrides, so this is how a sweeping design change is one call rather than one edit per screen. Small changes: find + replace on the template (from get_component). Rewrites: html, keeping data-diagramly-part attributes where you can so overrides stay attached. The result reports the impact: which frames changed, which approved frames lost sign-off, which overrides no longer have an element to apply to. Pass dry_run=true to read that report first, which you should for a component with many instances. A changed main is one undo-able revision: restore_component_version goes back.",
     readOnly: false,
     destructive: true,
     shape: {
@@ -274,7 +274,7 @@ export const COMPONENT_TOOLS: ComponentTool[] = [
       frame_id: FRAME_ID,
       component: COMPONENT_REF,
       props: z.record(z.string()).optional().describe('Prop values, e.g. { "label": "Sign up", "tone": "ghost" }'),
-      target: z.string().optional().describe('A data-doop-id. Defaults to the page body'),
+      target: z.string().optional().describe('A data-diagramly-id. Defaults to the page body'),
       position: z
         .enum(['append', 'prepend', 'before', 'after'])
         .optional()

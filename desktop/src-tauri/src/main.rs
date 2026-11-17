@@ -1,4 +1,4 @@
-// doop desktop shell: a single webview over the hosted app. The window is
+// diagramly desktop shell: a single webview over the hosted app. The window is
 // built in code (not tauri.conf.json) because the navigation handler below
 // needs the app handle. It opens on /auth, not /: someone launching the
 // installed app never wants the marketing landing page — /auth shows the
@@ -19,7 +19,7 @@
 // Sign-in with Google / Microsoft / SSO cannot happen in the webview —
 // identity providers refuse embedded browsers — so the page opens the
 // provider in the system browser and the finished sign-in comes back as a
-// doop://auth?token=… link (src/lib/desktopAuth.ts). The deep-link plugin
+// diagramly://auth?token=… link (src/lib/desktopAuth.ts). The deep-link plugin
 // registers the scheme (tauri.conf.json) and forwards each URL to the page
 // as a `deep-link://new-url` event; the shell only brings its window to the
 // front so the person sees the result of the click.
@@ -50,6 +50,8 @@ mod app_menu;
 mod appimage;
 mod claude;
 mod claude_extension;
+#[cfg(feature = "app-store")]
+mod claude_extension_save;
 mod codex;
 mod commerce;
 mod fonts;
@@ -83,7 +85,7 @@ type ShellRuntime = tauri::Wry;
 #[cfg(chromium)]
 type ShellRuntime = tauri::DynRuntime;
 
-/// Bring the (only) window forward: after a doop:// link, or when a second
+/// Bring the (only) window forward: after a diagramly:// link, or when a second
 /// instance was launched to deliver one.
 fn focus_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
@@ -95,12 +97,12 @@ fn focus_main_window(app: &AppHandle) {
 /// The hosted app this shell wraps unless the person picks another server
 /// (src/server.rs). Self-hosters can also build a shell that opens their own
 /// instance by default:
-///   DOOP_APP_URL=https://doop.example.com npm run build
+///   DIAGRAMLY_APP_URL=https://diagramly.example.com npm run build
 /// (When overriding, also put the origin in capabilities/default.json or the
 /// page cannot reach the shell's IPC — external links then open in-window.)
-const APP_URL: &str = match option_env!("DOOP_APP_URL") {
+const APP_URL: &str = match option_env!("DIAGRAMLY_APP_URL") {
     Some(url) => url,
-    None => "https://doop.design",
+    None => "http://127.0.0.1:4300",
 };
 
 /// The server this launch opens (src/server.rs), without a trailing slash.
@@ -288,7 +290,7 @@ impl MenuEntries {
 /// under Caches, which cache cleaners and low-disk purges empty; debug builds
 /// keep their own, since they encrypt cookies with a mock keychain a release
 /// build cannot read (and the reverse). A debug build opens Chrome's remote
-/// debugging on the port named by DOOP_CEF_DEBUG_PORT (chrome://inspect, or a
+/// debugging on the port named by DIAGRAMLY_CEF_DEBUG_PORT (chrome://inspect, or a
 /// CDP client), which is how the frames' renderer processes are inspected;
 /// release builds never listen.
 #[cfg(chromium)]
@@ -297,7 +299,7 @@ fn chromium_runtime() -> tauri_runtime_cef::Cef {
     if let Some(profile) = chromium_profile_dir() {
         cef = cef.root_cache_path(profile);
     }
-    let port = std::env::var("DOOP_CEF_DEBUG_PORT")
+    let port = std::env::var("DIAGRAMLY_CEF_DEBUG_PORT")
         .ok()
         .and_then(|port| port.parse().ok())
         .filter(|_| cfg!(debug_assertions));
@@ -315,7 +317,7 @@ fn chromium_runtime() -> tauri_runtime_cef::Cef {
 /// identifier in step with both tauri.conf.json files.
 #[cfg(chromium)]
 fn chromium_profile_dir() -> Option<PathBuf> {
-    const IDENTIFIER: &str = "design.doop.desktop";
+    const IDENTIFIER: &str = "ai.diagramly.desktop";
     let home = std::env::var_os("HOME")?;
     let profile = if cfg!(debug_assertions) {
         "cef-dev"
@@ -343,6 +345,7 @@ fn main() {
     #[cfg(feature = "app-store")]
     let builder = builder.invoke_handler(tauri::generate_handler![
         legacy_library_bridge::legacy_library_choose,
+        claude_extension_save::claude_save_bundled_extension,
         fonts::fonts_choose_local,
         fonts::fonts_read_local,
         view_menu::view_menu_state,
@@ -419,7 +422,7 @@ fn main() {
             if cfg!(feature = "app-store") && app.config().identifier != "com.zenuml.app" {
                 return Err("The App Store build requires the com.zenuml.app configuration.".into());
             }
-            // macOS registers doop:// from the bundle's Info.plist, so it
+            // macOS registers diagramly:// from the bundle's Info.plist, so it
             // only works installed; Windows and Linux can register at
             // runtime, which also makes `tauri dev` receive links.
             #[cfg(any(windows, target_os = "linux"))]
@@ -465,7 +468,7 @@ fn main() {
             // and the platform tells it which window framing it lives under.
             #[cfg(not(feature = "app-store"))]
             let desktop_marker = format!(
-                "window.__DOOP_DESKTOP__ = '{}'; window.__DOOP_DESKTOP_PLATFORM__ = '{}'; window.__DOOP_CLAUDE_CLI__ = true; window.__DOOP_CLAUDE_INSTALL__ = true; window.__DOOP_CLAUDE_CHOOSE__ = true; window.__DOOP_CLAUDE_EXTENSION__ = {}; window.__DOOP_CODEX_SETUP__ = true; window.__DOOP_VIEW_MENU__ = true; window.__DOOP_APP_MENU__ = {}; window.__DOOP_LOCAL_FONTS__ = true; window.__DOOP_UPDATE_CARD__ = true; window.__DOOP_SERVER_CHOOSE__ = true;",
+                "window.__DIAGRAMLY_DESKTOP__ = '{}'; window.__DIAGRAMLY_DESKTOP_PLATFORM__ = '{}'; window.__DIAGRAMLY_CLAUDE_CLI__ = true; window.__DIAGRAMLY_CLAUDE_INSTALL__ = true; window.__DIAGRAMLY_CLAUDE_CHOOSE__ = true; window.__DIAGRAMLY_CLAUDE_EXTENSION__ = {}; window.__DIAGRAMLY_CODEX_SETUP__ = true; window.__DIAGRAMLY_VIEW_MENU__ = true; window.__DIAGRAMLY_APP_MENU__ = {}; window.__DIAGRAMLY_LOCAL_FONTS__ = true; window.__DIAGRAMLY_UPDATE_CARD__ = true; window.__DIAGRAMLY_SERVER_CHOOSE__ = true;",
                 app.package_info().version,
                 std::env::consts::OS,
                 cfg!(any(target_os = "macos", target_os = "windows")),
@@ -555,7 +558,7 @@ fn main() {
                             }
                         }
                     })
-                    .title(if cfg!(feature = "app-store") { "ZenUML" } else { "doop" })
+                    .title(if cfg!(feature = "app-store") { "ZenUML" } else { "Diagramly" })
                     .visible(!migrating)
                     .inner_size(1440.0, 900.0)
                     .min_inner_size(900.0, 600.0)
@@ -585,7 +588,7 @@ fn main() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("failed to start doop")
+        .expect("failed to start diagramly")
         .run(|app, event| {
             if matches!(event, tauri::RunEvent::ExitRequested { .. }) {
                 claude::shutdown(&app.state::<claude::ClaudeState>());

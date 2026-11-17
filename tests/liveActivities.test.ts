@@ -9,9 +9,10 @@ let stranger: Client
 let canvasId: string
 beforeAll(async () => {
   server = await startServer({
-    DOOP_APNS_TEAM_ID: 'test',
-    DOOP_APNS_KEY_ID: 'test',
-    DOOP_APNS_PRIVATE_KEY: 'not-a-real-key',
+    DIAGRAMLY_APNS_TEAM_ID: 'test',
+    DIAGRAMLY_APNS_KEY_ID: 'test',
+    DIAGRAMLY_APNS_PRIVATE_KEY: 'not-a-real-key',
+    DIAGRAMLY_APNS_BUNDLE_ID: 'ai.diagramly.test',
   })
   owner = await new Client(server).signUp('activity-owner@test.local', 'Owner')
   stranger = await new Client(server).signUp('activity-other@test.local', 'Other')
@@ -50,7 +51,7 @@ describe('Live Activity registration', () => {
 })
 
 function task(overrides: Partial<AgentTask> = {}): AgentTask {
-  return { id: 't', agentName: 'Doop', color: '#2743ee', status: 'Designing', startedAt: 1000, ...overrides }
+  return { id: 't', agentName: 'Diagramly', color: '#2743ee', status: 'Designing', startedAt: 1000, ...overrides }
 }
 describe('agent badge state', () => {
   it('does not invent progress and excludes completed/failed work from the active count', () => {
@@ -64,7 +65,10 @@ describe('agent badge state', () => {
     expect(state).not.toHaveProperty('stage')
   })
   it('distinguishes waiting, completed, and failed tasks', () => {
-    expect(agentActivityState('Canvas', [task({ agentName: '' })])?.phase).toBe('queued')
+    expect(agentActivityState('Canvas', [task({ agentName: '' })])).toMatchObject({
+      phase: 'queued',
+      agentName: 'Diagramly',
+    })
     expect(agentActivityState('Canvas', [task({ endedAt: 2000 })])?.phase).toBe('finished')
     expect(
       agentActivityState('Canvas', [task({ failedAt: 2000, failureReason: 'Provider unavailable' })]),
@@ -94,7 +98,7 @@ describe('agent badge state', () => {
   })
   it('shows actual pipeline stages and bounds user content for APNs', () => {
     const state = agentActivityState('📐'.repeat(500), [
-      task({ status: '🪄'.repeat(1000), pipeline: ['doop', 'brand'], stage: 1 }),
+      task({ status: '🪄'.repeat(1000), pipeline: ['diagramly', 'brand'], stage: 1 }),
     ])
     expect(state).toMatchObject({ stage: 2, stageCount: 2 })
     expect(Buffer.byteLength(JSON.stringify({ aps: { 'content-state': state } }))).toBeLessThan(4096)
@@ -111,7 +115,7 @@ describe('working agents dashboard', () => {
     ])
     expect(result.map((item) => item.id)).toEqual(['running', 'queued'])
     expect(result[0]).not.toHaveProperty('owner')
-    expect(result[0]).toMatchObject({ agentName: 'Doop', status: 'Designing' })
+    expect(result[0]).toMatchObject({ agentName: 'Diagramly', status: 'Designing' })
   })
   it('only exposes activity for canvases in the signed-in users library', async () => {
     const privateId = (await (await owner.post('/api/canvases', { name: 'Only mine' })).json()).id

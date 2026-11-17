@@ -9,7 +9,7 @@ it('uses Claude’s documented install link and preserves the exact server URL',
   const link = new URL(claudeConnectorInstallUrl(server)!)
   expect(link.origin + link.pathname).toBe('https://claude.ai/customize/connectors')
   expect(link.searchParams.get('connectorUrl')).toBe(server)
-  expect(link.searchParams.get('connectorName')).toBe('Doop')
+  expect(link.searchParams.get('connectorName')).toBe('Diagramly')
   expect(link.searchParams.get('modal')).toBe('add-custom-connector')
 })
 
@@ -50,15 +50,18 @@ it.each([
 
 it('prefills the local server and hands the complete bundle to the shell without a download link', async () => {
   const zip = new JSZip()
-  zip.file('manifest.json', JSON.stringify({ user_config: { server_url: { default: 'https://doop.design/mcp' } } }))
+  zip.file(
+    'manifest.json',
+    JSON.stringify({ user_config: { server_url: { default: 'https://diagram.example.invalid/mcp' } } }),
+  )
   zip.file('node_modules/proxy.js', 'runtime')
   const fetcher = vi.fn().mockResolvedValue(new Response(await zip.generateAsync({ type: 'arraybuffer' })))
   const invoke = vi.fn().mockResolvedValue(undefined)
   vi.stubGlobal('fetch', fetcher)
-  vi.stubGlobal('__DOOP_CLAUDE_EXTENSION__', true)
+  vi.stubGlobal('__DIAGRAMLY_CLAUDE_EXTENSION__', true)
   vi.stubGlobal('__TAURI__', { core: { invoke } })
   await addToClaudeDesktop('http://localhost:4301/mcp')
-  expect(fetcher).toHaveBeenCalledExactlyOnceWith('/claude-extension/doop.mcpb')
+  expect(fetcher).toHaveBeenCalledExactlyOnceWith('/claude-extension/diagramly.mcpb')
   expect(invoke).toHaveBeenCalledOnce()
   const [command, payload] = invoke.mock.calls[0] as [string, { bundle: number[] }]
   expect(command).toBe('claude_add_extension')
@@ -70,17 +73,19 @@ it('prefills the local server and hands the complete bundle to the shell without
 
 it('does not invoke the shell when preparing the bundle fails', async () => {
   const invoke = vi.fn()
-  vi.stubGlobal('__DOOP_CLAUDE_EXTENSION__', true)
+  vi.stubGlobal('__DIAGRAMLY_CLAUDE_EXTENSION__', true)
   vi.stubGlobal('__TAURI__', { core: { invoke } })
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('Unavailable', { status: 503 })))
-  await expect(addToClaudeDesktop('https://doop.design/mcp')).rejects.toThrow('Could not prepare')
+  await expect(addToClaudeDesktop('https://diagram.example.invalid/mcp')).rejects.toThrow('Could not prepare')
   expect(invoke).not.toHaveBeenCalled()
 })
 
 it('keeps older shells from invoking an unavailable native command', async () => {
-  vi.stubGlobal('__DOOP_CLAUDE_EXTENSION__', undefined)
+  vi.stubGlobal('__DIAGRAMLY_CLAUDE_EXTENSION__', undefined)
   const fetcher = vi.fn()
   vi.stubGlobal('fetch', fetcher)
-  await expect(addToClaudeDesktop('https://doop.design/mcp')).rejects.toThrow('Update the Doop desktop app')
+  await expect(addToClaudeDesktop('https://diagram.example.invalid/mcp')).rejects.toThrow(
+    'Update the Diagramly desktop app',
+  )
   expect(fetcher).not.toHaveBeenCalled()
 })

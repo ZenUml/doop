@@ -13,7 +13,7 @@ import {
 import { parseAuthCode } from '../server/modelAccounts.ts'
 
 /**
- * The Doop Agent loop is written against Anthropic's message shape. When a run
+ * The Diagramly Agent loop is written against Anthropic's message shape. When a run
  * moves onto a user's ChatGPT subscription, every turn goes through this
  * translation — so these tests pin the parts that would silently corrupt a run:
  * tool-call round-tripping and the screenshots the agent verifies its work with.
@@ -172,7 +172,7 @@ describe('model menu', () => {
   })
 
   it('defaults to Terra when no override is set, whatever this shell exports', async () => {
-    vi.stubEnv('DOOP_AGENT_OPENAI_MODEL', '')
+    vi.stubEnv('DIAGRAMLY_AGENT_OPENAI_MODEL', '')
     vi.resetModules()
     const fresh = await import('../server/openaiAgent.ts')
     expect(fresh.DEFAULT_OPENAI_MODEL).toBe('gpt-5.6-terra')

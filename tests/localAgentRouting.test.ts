@@ -27,7 +27,7 @@ afterEach(() => {
 describe('local provider routing', () => {
   it('routes an explicitly configured pilot user through the cloud harness without touching paid API accounts', async () => {
     stubEnv(
-      'DOOP_GEMINI_CLOUD_WORKERS',
+      'DIAGRAMLY_GEMINI_CLOUD_WORKERS',
       JSON.stringify({ alice: { url: 'https://worker.example', token: 'x'.repeat(32) } }),
     )
     const model = await pickModel('alice')

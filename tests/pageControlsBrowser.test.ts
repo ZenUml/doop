@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { pagePerTest, serveBuilt, type BuiltServer } from './browser'
+import { pagePerTest, serveDesignBuilt, type BuiltServer } from './browser'
 import { freePort, startServer, type Server } from './harness'
 
 describe.skipIf(!findBrowserPath())('page list controls and keyboard history', () => {
@@ -16,12 +16,12 @@ describe.skipIf(!findBrowserPath())('page list controls and keyboard history', (
     /* the web server needs the backend's port for its proxy and the backend needs its
        origin as BETTER_AUTH_URL, so the port is picked before either starts */
     const port = await freePort()
-    web = await serveBuilt({
+    web = await serveDesignBuilt({
       '/api': { target: `http://localhost:${port}` },
       '/ws': { target: `ws://localhost:${port}`, ws: true },
     })
     origin = web.origin
-    server = await startServer({ PORT: String(port), BETTER_AUTH_URL: origin })
+    server = await startServer({ DIAGRAMLY_PRODUCT: 'design', PORT: String(port), BETTER_AUTH_URL: origin })
   }, 60_000)
   beforeEach(async () => {
     page = await pages.open()
@@ -136,13 +136,13 @@ describe.skipIf(!findBrowserPath())('page list controls and keyboard history', (
       (button) => getComputedStyle(button.parentElement!).backgroundColor,
     )
     await page.click('button[aria-label="New frame"]')
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
     await page.waitForSelector('[role="treeitem"][aria-selected="true"]')
     expect(selectedColor).toBe(
       await page.$eval('[role="treeitem"][aria-selected="true"]', (row) => getComputedStyle(row).backgroundColor),
     )
     await page.keyboard.press('Delete')
-    await page.waitForFunction(() => document.querySelectorAll('iframe[data-doop-frame]').length === 0)
+    await page.waitForFunction(() => document.querySelectorAll('iframe[data-diagramly-frame]').length === 0)
     await page.screenshot({ path: '/tmp/doop-pages-controls.png' })
     await page.click('[data-page-id] button[aria-current="page"]', { button: 'right' })
     await page.waitForSelector('[role="menuitem"]')
@@ -151,12 +151,12 @@ describe.skipIf(!findBrowserPath())('page list controls and keyboard history', (
     await shortcut()
     await page.waitForFunction(() => document.querySelector('[data-page-id]')?.textContent?.includes('Ideas'))
     expect(await page.$eval('[data-page-id]', (row) => row.textContent)).toContain('Ideas')
-    expect(await page.$('iframe[data-doop-frame]')).toBeNull()
+    expect(await page.$('iframe[data-diagramly-frame]')).toBeNull()
     await shortcut()
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
     expect(await page.$eval('[aria-current="page"]', (button) => button.textContent)).toBe('Ideas')
     await shortcut(true)
-    await page.waitForFunction(() => document.querySelectorAll('iframe[data-doop-frame]').length === 0)
+    await page.waitForFunction(() => document.querySelectorAll('iframe[data-diagramly-frame]').length === 0)
     await shortcut(true)
     await page.waitForFunction(() => document.querySelectorAll('[data-page-id]').length === 1)
     await page.click('[data-page-id] button[aria-current="page"]', { button: 'right' })
@@ -187,7 +187,7 @@ describe.skipIf(!findBrowserPath())('page list controls and keyboard history', (
       (button) => button.textContent!,
     )
     await page.click('button[aria-label="New frame"]')
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
     /* the room's broadcast can paint the frame before the create response
        selects it, and the picker only shows for a selection */
     await page.waitForSelector('[aria-label="Move selection to page"]:not([disabled])')
@@ -199,7 +199,7 @@ describe.skipIf(!findBrowserPath())('page list controls and keyboard history', (
        moved, nor a letter switch the canvas tool */
     await page.keyboard.press('Backspace')
     await page.keyboard.press('r')
-    expect(await page.$$('iframe[data-doop-frame]')).toHaveLength(1)
+    expect(await page.$$('iframe[data-diagramly-frame]')).toHaveLength(1)
     expect(await page.$eval('button[aria-label="Rectangle"]', (b) => b.getAttribute('aria-pressed'))).toBe('false')
     expect(await page.$('[role="option"]')).not.toBeNull()
     await page.screenshot({ path: '/tmp/doop-page-move.png' })
@@ -209,26 +209,26 @@ describe.skipIf(!findBrowserPath())('page list controls and keyboard history', (
       {},
       destination,
     )
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
     await shortcut()
     await page.waitForFunction(
       (id) => document.querySelector(`[data-page-id="${id}"] [aria-current="page"]`),
       {},
       source,
     )
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
     await shortcut(true)
     await page.waitForFunction(
       (name) => document.querySelector('[aria-current="page"]')?.textContent === name,
       {},
       destination,
     )
-    await page.waitForSelector('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
   }, 20_000)
 
   it('claims Backspace on the canvas: deletes the selection, never leaves the page', async () => {
     await page.keyboard.press('Escape')
-    const before = (await page.$$('iframe[data-doop-frame]')).length
+    const before = (await page.$$('iframe[data-diagramly-frame]')).length
     const url = page.url()
     await page.evaluate(() => {
       window.addEventListener('keydown', (e) => {
@@ -239,7 +239,7 @@ describe.skipIf(!findBrowserPath())('page list controls and keyboard history', (
     /* nothing selected: the key does nothing, and the browser never sees an
        unhandled Backspace (some engines take one as "back") */
     await page.keyboard.press('Backspace')
-    expect(await page.$$('iframe[data-doop-frame]')).toHaveLength(before)
+    expect(await page.$$('iframe[data-diagramly-frame]')).toHaveLength(before)
     expect(page.url()).toBe(url)
     expect(await page.evaluate(() => (window as unknown as { prevented: boolean[] }).prevented)).toEqual([true])
     /* a selected frame goes */
@@ -247,14 +247,18 @@ describe.skipIf(!findBrowserPath())('page list controls and keyboard history', (
     /* the room's broadcast can paint the frame before the create response
        selects it; a canvas with one page has no page picker to wait on */
     await page.waitForSelector('[role="treeitem"][aria-selected="true"]')
-    expect(await page.$$('iframe[data-doop-frame]')).toHaveLength(before + 1)
+    expect(await page.$$('iframe[data-diagramly-frame]')).toHaveLength(before + 1)
     const deleted = page.waitForResponse(
       (response) =>
         response.request().method() === 'DELETE' && /^\/api\/frames\//.test(new URL(response.url()).pathname),
     )
     await page.keyboard.press('Backspace')
     expect((await deleted).ok()).toBe(true)
-    await page.waitForFunction((n) => document.querySelectorAll('iframe[data-doop-frame]').length === n, {}, before)
+    await page.waitForFunction(
+      (n) => document.querySelectorAll('iframe[data-diagramly-frame]').length === n,
+      {},
+      before,
+    )
     expect(page.url()).toBe(url)
     expect(await page.evaluate(() => (window as unknown as { prevented: boolean[] }).prevented)).toEqual([true, true])
   }, 20_000)

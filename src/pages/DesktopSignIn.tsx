@@ -8,7 +8,7 @@ import { useT } from '../lib/i18n'
 /* Step 1 of the desktop sign-in (src/lib/desktopAuth.ts), in the system
    browser: begin the provider round trip here so better-auth's state cookie
    and the provider's callback share a cookie jar. If this browser already
-   holds a doop session there is nothing to prove — go straight to the
+   holds a Diagramly session there is nothing to prove — go straight to the
    handoff. Renders only a holding card: the browser leaves within moments. */
 export function DesktopSignIn({ signedIn }: { signedIn: boolean }) {
   const t = useT()

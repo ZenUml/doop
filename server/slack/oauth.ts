@@ -11,7 +11,7 @@ export const publicOrigin = () => env.BETTER_AUTH_URL
 export const redirectUri = () => `${publicOrigin()}/api/integrations/slack/callback`
 export const agentEnabled = () => !!(env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET && env.SLACK_SIGNING_SECRET)
 /** Exactly the saved app manifest: hear mentions, answer in threads, take
- *  /doop, and (reserved for uploads and thread reads) files and history. */
+ *  /Diagramly, and (reserved for uploads and thread reads) files and history. */
 export const BOT_SCOPES = [
   'app_mentions:read',
   'chat:write',
@@ -65,7 +65,7 @@ async function exchange(code: string) {
   }
   const result = tokenSchema.safeParse(await response.json().catch(() => null))
   if (!response.ok || !result.success)
-    throw new SlackError('Slack authorization expired or was rejected. Install Doop again.', 409)
+    throw new SlackError('Slack authorization expired or was rejected. Install Diagramly again.', 409)
   return result.data
 }
 
@@ -105,7 +105,10 @@ export async function finishInstall(userId: string, state: string, code: string)
     })
     .returning()
   if (!rows.length)
-    throw new SlackError('This Slack workspace already has a Doop installer. Ask them to disconnect it first.', 409)
+    throw new SlackError(
+      'This Slack workspace already has a Diagramly installer. Ask them to disconnect it first.',
+      409,
+    )
 }
 
 export async function getInstallation(userId: string) {

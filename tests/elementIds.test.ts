@@ -3,7 +3,7 @@ import { elementIdAt, hasElementId, stampElementId } from '../server/elementIds.
 import { elementIdOf, elementIdSelector, isElementId, newElementId } from '../shared/elementId.ts'
 
 /**
- * Stamping `data-doop-id` into frame HTML from the positional selector the
+ * Stamping `data-diagramly-id` into frame HTML from the positional selector the
  * frame runtime answers a click with. The attribute is written by source
  * offset, so the rest of the document comes through byte for byte.
  */
@@ -37,7 +37,7 @@ describe('stampElementId', () => {
     const out = stampElementId(HTML, path, { id: 'abc123' })!
     expect(out.id).toBe('abc123')
     expect(out.html).toBe(
-      HTML.replace(`<p class="lead" data-x='1'>`, `<p class="lead" data-x='1' data-doop-id="abc123">`),
+      HTML.replace(`<p class="lead" data-x='1'>`, `<p class="lead" data-x='1' data-diagramly-id="abc123">`),
     )
     expect(elementIdAt(out.html, path)).toBe('abc123')
     expect(hasElementId(out.html, 'abc123')).toBe(true)
@@ -55,14 +55,14 @@ describe('stampElementId', () => {
 
   it('resolves paths from an escaped id and self-closing tags', () => {
     const fromId = stampElementId(HTML, '#price\\:usd > button:nth-of-type(1)', { id: 'buy000' })!
-    expect(fromId.html).toContain('<button data-doop-id="buy000">Buy</button>')
+    expect(fromId.html).toContain('<button data-diagramly-id="buy000">Buy</button>')
     const img = stampElementId(HTML, 'body > main > img', { id: 'img000' })!
-    expect(img.html).toContain('<img src="a.png" data-doop-id="img000"/>')
+    expect(img.html).toContain('<img src="a.png" data-diagramly-id="img000"/>')
   })
 
   it('resolves a path given from inside the body, as other clients send it', () => {
     expect(stampElementId(HTML, 'main > p:nth-of-type(1)', { id: 'p00001' })?.html).toContain(
-      '<p data-doop-id="p00001">First</p>',
+      '<p data-diagramly-id="p00001">First</p>',
     )
   })
 
@@ -77,28 +77,30 @@ describe('stampElementId', () => {
 
   it('stamps a fragment without a document shell the way the browser parses it', () => {
     const out = stampElementId('<h1>Hi</h1><p>There</p>', 'body:nth-of-type(1) > p:nth-of-type(1)', { id: 'frag00' })!
-    expect(out.html).toBe('<h1>Hi</h1><p data-doop-id="frag00">There</p>')
+    expect(out.html).toBe('<h1>Hi</h1><p data-diagramly-id="frag00">There</p>')
   })
 
   it('replaces a malformed id instead of doubling the attribute, however it was spelled', () => {
-    const out = stampElementId('<p data-doop-id="BAD">x</p>', 'body > p', { id: 'good00' })!
-    expect(out.html).toBe('<p data-doop-id="good00">x</p>')
-    const shouted = stampElementId('<p class="a" DATA-DOOP-ID = BAD title="t">x</p>', 'body > p', { id: 'good00' })!
-    expect(shouted.html).toBe('<p class="a" title="t" data-doop-id="good00">x</p>')
+    const out = stampElementId('<p data-diagramly-id="BAD">x</p>', 'body > p', { id: 'good00' })!
+    expect(out.html).toBe('<p data-diagramly-id="good00">x</p>')
+    const shouted = stampElementId('<p class="a" DATA-DIAGRAMLY-ID = BAD title="t">x</p>', 'body > p', {
+      id: 'good00',
+    })!
+    expect(shouted.html).toBe('<p class="a" title="t" data-diagramly-id="good00">x</p>')
   })
 
   it('does not throw on an escape past Unicode or on deeply nested markup', () => {
     expect(stampElementId(HTML, '#\\ffffff > p')).toBeUndefined()
     const deep = '<div>'.repeat(20_000) + '<p id="x">bottom</p>' + '</div>'.repeat(20_000)
-    expect(stampElementId(deep, '#x', { id: 'deep00' })?.html).toContain('<p id="x" data-doop-id="deep00">')
+    expect(stampElementId(deep, '#x', { id: 'deep00' })?.html).toContain('<p id="x" data-diagramly-id="deep00">')
     // parsing 20k nested elements takes several seconds on a CI runner
   }, 30_000)
 
   it('goes after the last attribute, so an unquoted value ending in a slash keeps it', () => {
     const out = stampElementId('<p><img src=/assets/logo/></p>', 'body > p > img', { id: 'img001' })!
-    expect(out.html).toBe('<p><img src=/assets/logo/ data-doop-id="img001"></p>')
+    expect(out.html).toBe('<p><img src=/assets/logo/ data-diagramly-id="img001"></p>')
     const bare = stampElementId('<p><br/></p>', 'body > p > br', { id: 'br0000' })!
-    expect(bare.html).toBe('<p><br data-doop-id="br0000"/></p>')
+    expect(bare.html).toBe('<p><br data-diagramly-id="br0000"/></p>')
   })
 
   it('matches an unchanged SVG element whose attributes carry a namespace or camel case', () => {
@@ -111,20 +113,22 @@ describe('stampElementId', () => {
   it('with two stale attributes, either puts the new id first or refuses', () => {
     /* a parser keeps the first of duplicate attributes: the stamp takes the
        first one's place, so it wins… */
-    expect(stampElementId('<p data-doop-id="BAD" data-doop-id="OTHER">x</p>', 'body > p', { id: 'new000' })?.html).toBe(
-      '<p data-doop-id="new000" data-doop-id="OTHER">x</p>',
-    )
+    expect(
+      stampElementId('<p data-diagramly-id="BAD" data-diagramly-id="OTHER">x</p>', 'body > p', { id: 'new000' })?.html,
+    ).toBe('<p data-diagramly-id="new000" data-diagramly-id="OTHER">x</p>')
     /* …unless another attribute pushes it behind the duplicate, in which
        case the output is checked and the stamp refused rather than returned
        as an id nothing resolves */
-    expect(stampElementId('<p data-doop-id="BAD" data-doop-id="OTHER" class="a">x</p>', 'body > p')).toBeUndefined()
+    expect(
+      stampElementId('<p data-diagramly-id="BAD" data-diagramly-id="OTHER" class="a">x</p>', 'body > p'),
+    ).toBeUndefined()
   })
 
   it('finds an existing id however the attribute is quoted or cased', () => {
     for (const html of [
-      "<p data-doop-id='abc123'>x</p>",
-      '<p data-doop-id=abc123>x</p>',
-      '<p DATA-DOOP-ID="abc123">x</p>',
+      "<p data-diagramly-id='abc123'>x</p>",
+      '<p data-diagramly-id=abc123>x</p>',
+      '<p DATA-DIAGRAMLY-ID="abc123">x</p>',
     ]) {
       expect(hasElementId(html, 'abc123')).toBe(true)
       expect(stampElementId(html, 'body > p')?.id).toBe('abc123')
@@ -134,7 +138,7 @@ describe('stampElementId', () => {
   it('splits a path only on unescaped child separators', () => {
     const html = '<div id="a>b"><span>in</span></div>'
     const out = stampElementId(html, '#a\\>b > span:nth-of-type(1)', { id: 'span00' })!
-    expect(out.html).toBe('<div id="a>b"><span data-doop-id="span00">in</span></div>')
+    expect(out.html).toBe('<div id="a>b"><span data-diagramly-id="span00">in</span></div>')
   })
 
   it('refuses a path whose saved element is not the one the live document described', () => {

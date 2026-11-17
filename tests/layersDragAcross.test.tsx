@@ -100,9 +100,9 @@ describe('LayersPanel drag between frames', () => {
         {
           ...frameWith(
             's1',
-            page('<div data-doop-drawing="rect" style="position:absolute">x</div>').replace(
+            page('<div data-diagramly-drawing="rect" style="position:absolute">x</div>').replace(
               '<body>',
-              '<body data-doop-canvas-element="true">',
+              '<body data-diagramly-canvas-element="true">',
             ),
           ),
           name: 'Rectangle',
@@ -186,7 +186,7 @@ describe('LayersPanel drag between frames', () => {
     expect(container.querySelector('[data-row-key="s1"]')).toBeNull()
     act(() => row('f2').querySelector<HTMLElement>('[data-icon]')!.click())
     dragRow(`s1|${SHAPE}`, 'f2')
-    expect(html('f2')).toMatch(/<div data-doop-drawing="rect" style="position: ?absolute"[^>]*>x<\/div>/)
+    expect(html('f2')).toMatch(/<div data-diagramly-drawing="rect" style="position: ?absolute"[^>]*>x<\/div>/)
     expect(useStore.getState().canvas?.frames.some((f) => f.id === 's1')).toBe(false)
     await flush()
     expect(deleteFrame).toHaveBeenCalledTimes(1)
@@ -197,8 +197,8 @@ describe('LayersPanel drag between frames', () => {
     act(() =>
       useStore.getState().patchFrameLocal('s1', {
         html: page(
-          '<div data-doop-drawing="rect" data-doop-locked="true" data-doop-hidden="true" style="position:absolute">x</div>',
-        ).replace('<body>', '<body data-doop-canvas-element="true">'),
+          '<div data-diagramly-drawing="rect" data-diagramly-locked="true" data-diagramly-hidden="true" style="position:absolute">x</div>',
+        ).replace('<body>', '<body data-diagramly-canvas-element="true">'),
       }),
     )
     act(() => row(`s1|${SHAPE}`).click())
@@ -211,7 +211,7 @@ describe('LayersPanel drag between frames', () => {
     const eye = row(`s1|${SHAPE}`).querySelector<HTMLButtonElement>('button[aria-label="Show"]')!
     expect(eye.getAttribute('aria-pressed')).toBe('true')
     act(() => eye.click())
-    expect(html('s1')).not.toContain('data-doop-hidden')
+    expect(html('s1')).not.toContain('data-diagramly-hidden')
   })
 
   it('lifts a layer onto the canvas when dropped at the root', async () => {
@@ -252,3 +252,6 @@ describe('LayersPanel drag between frames', () => {
     expect(order[order.length - 1]).toBe('new')
   })
 })
+
+// These cases exercise the legacy HTML design tools.
+vi.mock('../src/lib/product', () => ({ isDiagramly: () => false }))

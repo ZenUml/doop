@@ -17,7 +17,7 @@ export async function automationTeams(userId: string) {
   const token = await tokenFor(userId)
   const result = await linearQuery(
     token,
-    'query DoopAutomationTeams { teams(first: 250) { nodes { id name key } } }',
+    'query DiagramlyAutomationTeams { teams(first: 250) { nodes { id name key } } }',
     {},
     z.object({ teams: z.object({ nodes: z.array(z.object({ id: z.string(), name: z.string(), key: z.string() })) }) }),
   )
@@ -29,7 +29,7 @@ export async function createAutomationIssue(step: LinearStep, ownerId: string, c
     const token = await tokenFor(ownerId)
     const result = await linearQuery(
       token,
-      `mutation DoopAutomationIssue($input: IssueCreateInput!) {
+      `mutation DiagramlyAutomationIssue($input: IssueCreateInput!) {
         issueCreate(input: $input) { success issue { identifier url } }
       }`,
       {

@@ -13,11 +13,12 @@ let server: Server
 let alice: Client
 beforeAll(async () => {
   server = await startServer({
+    DIAGRAMLY_PRODUCT: 'design',
     ANTHROPIC_API_KEY: '',
     OPENAI_API_KEY: '',
     DATABASE_URL: '',
     SMTP_HOST: '',
-    DOOP_AGENT_OPENAI_EFFORT: 'medium',
+    DIAGRAMLY_AGENT_OPENAI_EFFORT: 'medium',
   })
   alice = await new Client(server).signUp('effort-alice@example.test', 'Alice')
 }, 60000)
@@ -62,11 +63,12 @@ it('is not a dial the other providers have', async () => {
 
 it('reports a server default outside the four, which the pickers then show as its own item', async () => {
   const strict = await startServer({
+    DIAGRAMLY_PRODUCT: 'design',
     ANTHROPIC_API_KEY: '',
     OPENAI_API_KEY: '',
     DATABASE_URL: '',
     SMTP_HOST: '',
-    DOOP_AGENT_OPENAI_EFFORT: 'max',
+    DIAGRAMLY_AGENT_OPENAI_EFFORT: 'max',
   })
   try {
     const bob = await new Client(strict).signUp('effort-bob@example.test', 'Bob')

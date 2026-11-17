@@ -1,6 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { stubEnv, unstubAllEnvs } from './envStub.ts'
 import {
   fetchThumb,
@@ -158,6 +158,8 @@ describe('/bg key mapping', () => {
 })
 
 describe('list_backgrounds MCP tool', () => {
+  beforeEach(() => stubEnv('DIAGRAMLY_PRODUCT', 'design'))
+  afterEach(unstubAllEnvs)
   afterEach(() => setCatalogForTests([]))
 
   it('is registered, filters by enum, and returns css with the results', async () => {

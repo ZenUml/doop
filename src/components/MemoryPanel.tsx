@@ -11,7 +11,7 @@ import { PanelBody } from './ui/panel'
 import { ListHint, ListItem, ListMeta, ListRow, ListSection, ListSummary, ListTitle } from './ui/list'
 import { MarkdownBlock, Modal, ModalActions, ModalLede, ModalSpacer, ModalTitle } from './ui/modal'
 import { ConfirmDialog } from './ui/alert-dialog'
-import { DoopMark } from './Logo'
+import { DiagramlyMark } from './Logo'
 import { getLocale, t as translate, useT } from '@/lib/i18n'
 
 const MAX_GUIDELINE_CHARS = 24_000
@@ -86,7 +86,7 @@ export function MemoryPanel() {
       {pending.map((p) => (
         <div key={p.id} className="mx-4 mt-3 rounded-[12px] border border-brand bg-surface px-3.5 py-3 shadow-card">
           <div className="text-[10.5px] font-extrabold uppercase tracking-[0.08em] text-accent-ink">
-            <DoopMark size={11} /> {t('panels.memorySuggestion')}
+            <DiagramlyMark size={11} /> {t('panels.memorySuggestion')}
           </div>
           <div className="mt-1.5 text-[13px] font-semibold leading-[1.45] text-ink">{p.rule.replace(/^-\s*/, '')}</div>
           <div className="mt-1.5 text-[11.5px] leading-[1.45] text-ink-faint">

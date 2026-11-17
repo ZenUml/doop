@@ -3,7 +3,7 @@
 //! signed in and keeps what the page remembered (theme, panel layout, the
 //! agent pick, onboarding).
 //!
-//! Both shells are the same bundle (design.doop.desktop), so this process's
+//! Both shells are the same bundle (ai.diagramly.desktop), so this process's
 //! default WKWebsiteDataStore is the WebKit shell's store. Its cookies come
 //! from WKHTTPCookieStore; its localStorage has no API, so a hidden WKWebView
 //! loads a blank document at the app's origin and reads it there. Nothing is
@@ -66,7 +66,7 @@ enum SameSite {
 struct MigratedCookie {
     name: String,
     value: String,
-    /// Set for a domain cookie (".doop.design"); none keeps it host-only,
+    /// Set for a domain cookie (".diagramly.ai"); none keeps it host-only,
     /// which `__Host-` cookies need.
     domain: Option<String>,
     path: String,
@@ -479,10 +479,10 @@ mod tests {
 
     #[test]
     fn restores_entries_then_loads_the_app() {
-        let entry = Url::parse("https://doop.design/auth").unwrap();
-        let script = restore_script(&[("doop-theme".into(), "dark\"</script>".into())], &entry);
-        assert!(script.contains(r#"[["doop-theme","dark\"</script>"]]"#));
-        assert!(script.ends_with(r#"location.replace("https://doop.design/auth") })()"#));
+        let entry = Url::parse("https://diagramly.ai/auth").unwrap();
+        let script = restore_script(&[("diagramly-theme".into(), "dark\"</script>".into())], &entry);
+        assert!(script.contains(r#"[["diagramly-theme","dark\"</script>"]]"#));
+        assert!(script.ends_with(r#"location.replace("https://diagramly.ai/auth") })()"#));
     }
 
     #[test]
@@ -493,17 +493,17 @@ mod tests {
 
     #[test]
     fn keeps_host_only_cookies_to_their_host() {
-        assert!(applies_to("doop.design", "doop.design"));
-        assert!(!applies_to("doop.design", "www.doop.design"));
-        assert!(applies_to(".doop.design", "www.doop.design"));
-        assert!(applies_to(".doop.design", "doop.design"));
-        assert!(!applies_to(".evil.design", "doop.design"));
-        assert!(!applies_to("localhost", "doop.design"));
+        assert!(applies_to("diagramly.ai", "diagramly.ai"));
+        assert!(!applies_to("diagramly.ai", "www.diagramly.ai"));
+        assert!(applies_to(".diagramly.ai", "www.diagramly.ai"));
+        assert!(applies_to(".diagramly.ai", "diagramly.ai"));
+        assert!(!applies_to(".evil.design", "diagramly.ai"));
+        assert!(!applies_to("localhost", "diagramly.ai"));
     }
 
     #[test]
     fn lands_on_the_origins_icon() {
-        let origin = Url::parse("https://doop.design").unwrap();
-        assert_eq!(landing(&origin).as_str(), "https://doop.design/favicon.ico");
+        let origin = Url::parse("https://diagramly.ai").unwrap();
+        assert_eq!(landing(&origin).as_str(), "https://diagramly.ai/favicon.ico");
     }
 }

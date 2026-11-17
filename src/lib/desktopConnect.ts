@@ -1,8 +1,8 @@
 /* The app's half of connecting an integration from the desktop shell (the
-   flow is described in shared/desktopConnect.ts): the doop:// link the
+   flow is described in shared/desktopConnect.ts): the diagramly:// link the
    browser hands back, and the pending connections the app waits for.
 
-   The pending record is what makes an unsolicited doop://integration link
+   The pending record is what makes an unsolicited diagramly://integration link
    harmless and the replayed launch link spent: without a matching pending
    connection for that provider the link is ignored. The server's own check
    (the OAuth state belongs to the signed-in user) is the real guard; this
@@ -37,7 +37,7 @@ export function parseDesktopConnectQuery(search: string): DesktopConnectLink | n
   return { provider, query: Object.fromEntries(params) }
 }
 
-/** Null for anything that is not a well-formed doop://integration link. */
+/** Null for anything that is not a well-formed diagramly://integration link. */
 export function parseDesktopConnectLink(url: string): DesktopConnectLink | null {
   let parsed: URL
   try {
@@ -53,7 +53,7 @@ export function parseDesktopConnectLink(url: string): DesktopConnectLink | null 
 
 /* ---------- the app's pending connection ---------- */
 
-const PENDING_KEY = 'doop-desktop-connect'
+const PENDING_KEY = 'diagramly-desktop-connect'
 
 /** How long the app listens for the browser to come back. Provider states
  *  expire after ten minutes too, so a later link could not finish anyway. */

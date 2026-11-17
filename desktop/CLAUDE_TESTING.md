@@ -17,13 +17,13 @@ cancellation, installer download failure, and run ID validation.
 ## Fresh sign-in and consent smoke test
 
 Use a test OS account or machine without an existing Claude login, and a rebuilt
-Doop desktop shell. Do not log out of a primary account just to perform this test.
+Diagramly desktop shell. Do not log out of a primary account just to perform this test.
 
-1. With the CLI installed, open Settings → Doop Agent → Claude Plan and sign in.
+1. With the CLI installed, open Settings → Diagramly Agent → Claude Plan and sign in.
    Complete browser authorization. Verify the desktop returns to the connected
    state and displays the expected account. This verifies the actual non-TTY
    invocation, including its callback and exit status.
-2. Connect Claude Plan for a Doop account that has not granted local consent.
+2. Connect Claude Plan for a Diagramly account that has not granted local consent.
    Cancel the native dialog first and confirm the provider is not enabled.
    Connect again and accept; confirm the app remains responsive and the provider
    becomes active.
@@ -33,7 +33,7 @@ Doop desktop shell. Do not log out of a primary account just to perform this tes
 
 The macOS `rfd` 0.16 synchronous message dialog implementation calls `run_on_main`,
 which dispatches to the main thread while the application event loop is running.
-Doop calls it from a blocking worker so the event loop remains available. Calling
+Diagramly calls it from a blocking worker so the event loop remains available. Calling
 from a worker is therefore supported; keep the real-window smoke test above for
 platform regressions.
 

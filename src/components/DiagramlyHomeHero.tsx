@@ -1,5 +1,5 @@
 import type { DiagramKind } from '../../shared/diagramFrame'
-import { DoopMark } from './Logo'
+import { DiagramlyMark } from './Logo'
 import { IconButton } from './ui/icon-button'
 import { Chip } from './ui/chip'
 import { ArrowUpIcon, AttachmentIcon, BracesIcon, SparkIcon, WorkflowIcon } from './ui/icons'
@@ -40,7 +40,7 @@ export function DiagramlyHomeHero({
 
       <div className="relative px-4 pt-14 text-center">
         <span className="mx-auto mb-5 block h-[62px] w-[48px] text-ink">
-          <DoopMark animated size="fill" className="block object-contain" />
+          <DiagramlyMark animated size="fill" className="block object-contain" />
         </span>
         <h1 className="font-hero text-title font-light leading-none md:text-display">
           What would you like to diagram?

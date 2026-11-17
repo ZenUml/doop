@@ -45,12 +45,12 @@ describe('replaceInHtml', () => {
   })
 
   it('finds text in a locked layer but never replaces it, keeping the numbering', () => {
-    const html = doc('<p data-doop-locked="true">cat</p><p>cat</p>')
+    const html = doc('<p data-diagramly-locked="true">cat</p><p>cat</p>')
     expect(findInHtml(html, 'cat').map((m) => m.locked)).toEqual([true, false])
-    expect(bodyOf(replaceInHtml(html, 'cat', 'dog')!.html)).toBe('<p data-doop-locked="true">cat</p><p>dog</p>')
+    expect(bodyOf(replaceInHtml(html, 'cat', 'dog')!.html)).toBe('<p data-diagramly-locked="true">cat</p><p>dog</p>')
     expect(replaceInHtml(html, 'cat', 'dog', { only: 0 })).toBeNull()
     expect(bodyOf(replaceInHtml(html, 'cat', 'dog', { only: 1 })!.html)).toBe(
-      '<p data-doop-locked="true">cat</p><p>dog</p>',
+      '<p data-diagramly-locked="true">cat</p><p>dog</p>',
     )
   })
 

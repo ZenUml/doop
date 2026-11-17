@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { useT } from '@/lib/i18n'
 import { XIcon } from './icons'
 
-/* Doop's modal, measured off the reference design: a white card with 22px corners on a
+/* Diagramly's modal, measured off the reference design: a white card with 22px corners on a
    half-pixel ring and a short layered shadow, over a canvas dimmed only 15%.
    20px padding, a 15px medium title with a lede under it, the × a 24px soft
    circle in the corner, the actions bottom-right. Built on Radix so it brings a focus trap, Escape and scroll-locking

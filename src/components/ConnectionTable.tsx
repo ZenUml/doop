@@ -19,7 +19,7 @@ import {
 } from './ui/dropdown-menu'
 
 /**
- * Settings → Doop Agent as two grouped lists. "Connected" holds a row per
+ * Settings → Diagramly Agent as two grouped lists. "Connected" holds a row per
  * connection: its tile, the name with a Default (or Off) badge, a
  * short line, and on the right the model dropdown (models, then the effort
  * as tabs), the on/off switch and a "…" menu (Make default, the provider's

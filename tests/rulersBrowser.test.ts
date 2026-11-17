@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import type { HTTPRequest, Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Canvas, CanvasGuide, ElementComment, Frame } from '../shared/types'
 
 declare global {
@@ -40,6 +41,7 @@ const FRAME: Frame = {
 }
 
 describe.skipIf(!findBrowserPath())('rulers and guides', { timeout: 30_000 }, () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   let guideRequests: { method: string; id: string; body: Partial<CanvasGuide> | null }[] = []
@@ -100,7 +102,7 @@ describe.skipIf(!findBrowserPath())('rulers and guides', { timeout: 30_000 }, ()
        every test starts with it unset (a sandboxed frame has no storage) */
     await page.evaluateOnNewDocument(() => {
       try {
-        localStorage.removeItem('doop:rulers')
+        localStorage.removeItem('diagramly:rulers')
       } catch {
         /* a frame's document */
       }
@@ -133,10 +135,10 @@ describe.skipIf(!findBrowserPath())('rulers and guides', { timeout: 30_000 }, ()
     await toggleRulers()
     await page.waitForSelector('[data-ruler="top"]')
     expect(await page.$('[data-ruler="left"]')).not.toBeNull()
-    expect(await page.evaluate(() => localStorage.getItem('doop:rulers'))).toBe('1')
+    expect(await page.evaluate(() => localStorage.getItem('diagramly:rulers'))).toBe('1')
     await toggleRulers()
     await page.waitForFunction(() => !document.querySelector('[data-ruler]'))
-    expect(await page.evaluate(() => localStorage.getItem('doop:rulers'))).toBe('0')
+    expect(await page.evaluate(() => localStorage.getItem('diagramly:rulers'))).toBe('0')
 
     /* the zoom menu carries the same switch */
     await page.click('[aria-label="Zoom level"]')

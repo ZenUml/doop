@@ -42,7 +42,8 @@ pub fn start(app: &AppHandle) -> Option<String> {
     }
     let data = data_dir(app)?;
     std::fs::create_dir_all(&data).ok()?;
-    let port = free_port(&data)?;
+    let port = free_port(&data).unwrap_or_else(|error| startup_failed(&error));
+    let startup_token = random_token()?;
     let origin = format!("http://127.0.0.1:{port}");
     let loader = Url::from_file_path(root.join("node_modules/tsx/dist/loader.mjs")).ok()?;
     let shutdown = Url::from_file_path(shutdown).ok()?;
@@ -68,7 +69,7 @@ pub fn start(app: &AppHandle) -> Option<String> {
             .env_clear()
             .env("PATH", "/usr/bin:/bin")
             .env("LANG", "en_US.UTF-8")
-            .env("DOOP_PRODUCT", "diagramly")
+            .env("DIAGRAMLY_PRODUCT", "diagramly")
             .env("DIAGRAMLY_ORIGIN", "https://diagramly.ai");
         if let Some(value) = home {
             command.env("HOME", value);
@@ -78,10 +79,10 @@ pub fn start(app: &AppHandle) -> Option<String> {
         }
     }
     #[cfg(feature = "app-store")]
-    command.env("DOOP_LEGACY_LIBRARY_MANIFEST", legacy_manifest);
-    let snapshot_helper = resources.parent()?.join("Helpers/DoopFrameSnapshot");
+    command.env("DIAGRAMLY_LEGACY_LIBRARY_MANIFEST", legacy_manifest);
+    let snapshot_helper = resources.parent()?.join("Helpers/DiagramlyFrameSnapshot");
     if snapshot_helper.is_file() {
-        command.env("DOOP_FRAME_SNAPSHOT_HELPER", snapshot_helper);
+        command.env("DIAGRAMLY_FRAME_SNAPSHOT_HELPER", snapshot_helper);
     }
     let child = command
         .arg("--import")
@@ -91,19 +92,20 @@ pub fn start(app: &AppHandle) -> Option<String> {
         .arg(&entry)
         .env("NODE_ENV", "production")
         .env("PORT", port.to_string())
+        .env("DIAGRAMLY_DESKTOP_STARTUP_TOKEN", &startup_token)
         .env("HOST", "127.0.0.1")
         .env("BETTER_AUTH_URL", &origin)
         .env("BETTER_AUTH_SECRET", secret(&data)?)
-        .env("DOOP_DATA_DIR", &data)
+        .env("DIAGRAMLY_DATA_DIR", &data)
         .stdin(Stdio::piped())
         .stdout(log.try_clone().ok()?)
         .stderr(log)
         .spawn()
         .ok()?;
     *SERVER.lock().ok()? = Some(child);
-    if !listening(port) {
+    if !listening(port, &startup_token) {
         stop();
-        return None;
+        startup_failed("The local server could not start. Quit Diagramly and reopen it. If the problem continues, check the local server log in the app's data folder.");
     }
     Some(origin)
 }
@@ -111,7 +113,7 @@ pub fn start(app: &AppHandle) -> Option<String> {
 /// The bundle's `Contents/Resources`, found from the executable. The first
 /// call comes while the menu is built, before the app's path resolver exists,
 /// so `app.path()` cannot be used here.
-fn resources() -> Option<PathBuf> {
+pub(crate) fn resources() -> Option<PathBuf> {
     let executable = std::env::current_exe().ok()?;
     Some(executable.parent()?.parent()?.join("Resources"))
 }
@@ -155,32 +157,117 @@ pub fn stop() {
     let _ = child.wait();
 }
 
-/// Reuse this installation's loopback port so MCP clients keep their saved
-/// address and OAuth origin across launches. Pick a new port if it is occupied.
-fn free_port(data: &Path) -> Option<u16> {
+/// Keep the MCP address and OAuth origin stable. Never overwrite a saved
+/// address just because another process owns its port during this launch.
+fn free_port(data: &Path) -> Result<u16, String> {
     let file = data.join("port");
-    let previous = std::fs::read_to_string(&file)
-        .ok()
-        .and_then(|value| value.trim().parse::<u16>().ok())
-        .unwrap_or(0);
-    let listener = TcpListener::bind(("127.0.0.1", previous))
-        .or_else(|_| TcpListener::bind("127.0.0.1:0"))
-        .ok()?;
-    let port = listener.local_addr().ok()?.port();
-    std::fs::write(file, port.to_string()).ok()?;
-    Some(port)
+    let previous = match std::fs::read_to_string(&file) {
+        Ok(value) => value.trim().parse::<u16>().ok().filter(|port| *port != 0)
+            .ok_or("The saved local server port is invalid. Keep the port file for recovery and contact support.".to_string())?,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => 0,
+        Err(error) => return Err(format!("Could not read the local server port: {error}")),
+    };
+    let listener = TcpListener::bind(("127.0.0.1", previous)).map_err(|error| {
+        format!("Diagramly could not use local port {previous}: {error}. Quit any other Diagramly copies or the app using this port, then reopen Diagramly. Your saved Claude connection and library have not been changed.")
+    })?;
+    let port = listener
+        .local_addr()
+        .map_err(|error| error.to_string())?
+        .port();
+    if previous == 0 {
+        std::fs::write(file, port.to_string())
+            .map_err(|error| format!("Could not save the local server port: {error}"))?;
+    }
+    Ok(port)
 }
 
-fn listening(port: u16) -> bool {
-    let address = SocketAddr::from(([127, 0, 0, 1], port));
+fn startup_failed(message: &str) -> ! {
+    #[cfg(target_os = "macos")]
+    {
+        use objc2::MainThreadMarker;
+        use objc2_app_kit::{NSAlert, NSAlertStyle, NSApplication};
+        use objc2_foundation::NSString;
+
+        // Startup runs on the UI thread, before there is a parent window.
+        // rfd's parentless dialog uses CFUserNotificationDisplayAlert, which
+        // can wait invisibly in the App Sandbox. Keep the alert in this app.
+        let mtm = MainThreadMarker::new().expect("startup alert must run on the main thread");
+        let app = NSApplication::sharedApplication(mtm);
+        #[allow(deprecated)]
+        app.activateIgnoringOtherApps(true);
+        let alert = NSAlert::new(mtm);
+        alert.setAlertStyle(NSAlertStyle::Critical);
+        alert.setMessageText(&NSString::from_str("Diagramly could not start"));
+        alert.setInformativeText(&NSString::from_str(message));
+        alert.addButtonWithTitle(&NSString::from_str("Quit Diagramly"));
+        alert.runModal();
+    }
+    #[cfg(not(target_os = "macos"))]
+    rfd::MessageDialog::new()
+        .set_title("Diagramly could not start")
+        .set_description(message)
+        .set_level(rfd::MessageLevel::Error)
+        .show();
+    // A bundled local library must never fall through to a hosted server.
+    std::process::exit(1)
+}
+
+fn listening(port: u16, token: &str) -> bool {
     let started = Instant::now();
     while started.elapsed() < START_TIMEOUT {
-        if TcpStream::connect_timeout(&address, Duration::from_millis(250)).is_ok() {
+        // A successful TCP connect can be an unrelated process that won the
+        // bind race after port selection. Require this launch's random token.
+        if SERVER
+            .lock()
+            .ok()
+            .and_then(|mut server| server.as_mut().and_then(|child| child.try_wait().ok()))
+            .flatten()
+            .is_some()
+        {
+            return false;
+        }
+        if ready_response(port, token) {
             return true;
         }
         std::thread::sleep(Duration::from_millis(150));
     }
     false
+}
+
+fn ready_response(port: u16, token: &str) -> bool {
+    let address = SocketAddr::from(([127, 0, 0, 1], port));
+    let timeout = Duration::from_millis(250);
+    let Ok(mut stream) = TcpStream::connect_timeout(&address, timeout) else {
+        return false;
+    };
+    if stream.set_read_timeout(Some(timeout)).is_err()
+        || stream.set_write_timeout(Some(timeout)).is_err()
+    {
+        return false;
+    }
+    if stream
+        .write_all(b"GET /healthz/desktop HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n")
+        .is_err()
+    {
+        return false;
+    }
+    let mut response = String::new();
+    if stream.take(4096).read_to_string(&mut response).is_err() {
+        return false;
+    }
+    response.starts_with("HTTP/1.1 200 ")
+        && response
+            .split_once("\r\n\r\n")
+            .is_some_and(|(_, body)| body == token)
+}
+
+fn random_token() -> Option<String> {
+    let mut bytes = [0u8; 32];
+    File::open("/dev/urandom")
+        .ok()?
+        .read_exact(&mut bytes)
+        .ok()?;
+    Some(bytes.iter().map(|byte| format!("{byte:02x}")).collect())
 }
 
 /// The session-signing secret, made once and kept with the data it protects.
@@ -230,5 +317,78 @@ mod tests {
                 & 0o777,
             0o600
         );
+    }
+}
+
+#[cfg(test)]
+mod port_tests {
+    use super::*;
+
+    #[test]
+    fn occupied_saved_port_is_preserved_and_recovers_after_release() {
+        let data = std::env::temp_dir().join(format!("diagramly-port-test-{}", std::process::id()));
+        std::fs::create_dir_all(&data).unwrap();
+        let first = free_port(&data).unwrap();
+        assert_eq!(free_port(&data).unwrap(), first);
+        let occupied = TcpListener::bind(("127.0.0.1", first)).unwrap();
+        assert!(free_port(&data).is_err());
+        assert_eq!(
+            std::fs::read_to_string(data.join("port")).unwrap(),
+            first.to_string()
+        );
+        drop(occupied);
+        assert_eq!(free_port(&data).unwrap(), first);
+        std::fs::remove_dir_all(data).unwrap();
+    }
+    fn response_server(response: &'static str) -> (u16, std::thread::JoinHandle<()>) {
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let thread = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut request = [0; 1024];
+            stream.read(&mut request).unwrap();
+            stream.write_all(response.as_bytes()).unwrap();
+        });
+        (port, thread)
+    }
+
+    #[test]
+    fn readiness_requires_this_launchs_marker_and_success_status() {
+        for (response, expected) in [
+            ("HTTP/1.1 200 OK\r\nContent-Length: 6\r\n\r\nlaunch", true),
+            ("HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nother", false),
+            (
+                "HTTP/1.1 404 Not Found\r\nContent-Length: 6\r\n\r\nlaunch",
+                false,
+            ),
+        ] {
+            let (port, thread) = response_server(response);
+            assert_eq!(ready_response(port, "launch"), expected);
+            thread.join().unwrap();
+        }
+    }
+
+    #[test]
+    fn unresponsive_tcp_listener_is_not_ready() {
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        assert!(!ready_response(
+            listener.local_addr().unwrap().port(),
+            "launch"
+        ));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn child_exit_stops_readiness_wait() {
+        let mut child = Command::new("/bin/sh")
+            .args(["-c", "exit 1"])
+            .spawn()
+            .unwrap();
+        child.wait().unwrap();
+        *SERVER.lock().unwrap() = Some(child);
+        let started = Instant::now();
+        assert!(!listening(1, "launch"));
+        assert!(started.elapsed() < Duration::from_secs(1));
+        *SERVER.lock().unwrap() = None;
     }
 }

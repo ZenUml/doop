@@ -31,7 +31,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
         height: 250,
         createdAt: 0,
         updatedAt: 0,
-        html: `<div id="transformed" data-doop-drawing="rectangle" data-name="Rectangle" style="position:fixed;left:80px;top:80px;width:60px;height:40px;background:red;transform:${transform}"></div>`,
+        html: `<div id="transformed" data-diagramly-drawing="rectangle" data-name="Rectangle" style="position:fixed;left:80px;top:80px;width:60px;height:40px;background:red;transform:${transform}"></div>`,
       }
       const destination = { ...source, id: 'destination', name: 'Destination', x: 330, width: 220, html: '' }
       await seedFrames([source, destination])
@@ -81,7 +81,9 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
           })
         await page.waitForFunction(
           (name) =>
-            window.drawingHarness.state().frames.some((f) => f.name === name && f.html.includes('data-doop-drawing')),
+            window.drawingHarness
+              .state()
+              .frames.some((f) => f.name === name && f.html.includes('data-diagramly-drawing')),
           {},
           title,
         )
@@ -91,12 +93,12 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
         const position = await page.evaluate((html) => {
           const el = new DOMParser()
             .parseFromString(html, 'text/html')
-            .querySelector<HTMLElement>('[data-doop-drawing]')!
+            .querySelector<HTMLElement>('[data-diagramly-drawing]')!
           return { left: el.style.left, top: el.style.top }
         }, html)
         await iframe.waitForFunction(
           (position) => {
-            const el = document.querySelector<HTMLElement>('[data-doop-drawing]')
+            const el = document.querySelector<HTMLElement>('[data-diagramly-drawing]')
             return el?.style.left === position.left && el.style.top === position.top
           },
           {},
@@ -111,7 +113,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
         const slack = 2.1 + (standalone ? 1 : 0)
         expect(Math.abs(current.x + current.width / 2 - to[0])).toBeLessThanOrEqual(slack)
         expect(Math.abs(current.y + current.height / 2 - to[1])).toBeLessThanOrEqual(slack)
-        expect(await iframe.$eval('[data-doop-drawing]', (el) => getComputedStyle(el).width)).toBe('60px')
+        expect(await iframe.$eval('[data-diagramly-drawing]', (el) => getComputedStyle(el).width)).toBe('60px')
       }
       await page.screenshot({ path: '/tmp/doop-transformed-drawing.png' })
     },
@@ -124,7 +126,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     await page.click('[aria-label="Circle"]')
     await drag([250, 300], [330, 380])
     await waitForFrames(1)
-    await page.waitForFunction(() => window.drawingHarness.state().frames[0]?.html.includes('data-doop-drawing'))
+    await page.waitForFunction(() => window.drawingHarness.state().frames[0]?.html.includes('data-diagramly-drawing'))
     const initial = await visibleDrawing('Frame')
     const iframe = (await (await page.$('iframe[title="Frame"]'))!.contentFrame())!
     await page.evaluate(() => window.drawingHarness.viewport({ x: 40, y: 20, zoom: 3 }))
@@ -151,7 +153,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       height: 250,
       createdAt: 0,
       updatedAt: 0,
-      html: '<div data-doop-drawing="rectangle" data-name="Rectangle" style="position:absolute;left:40px;top:40px;width:60px;height:40px;background:red"></div>',
+      html: '<div data-diagramly-drawing="rectangle" data-name="Rectangle" style="position:absolute;left:40px;top:40px;width:60px;height:40px;background:red"></div>',
     }
     await seedFrames([source])
     await page.evaluate(async () => {
@@ -165,12 +167,12 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     await page.mouse.move(drawing.x + drawing.width / 2 + 60, drawing.y + drawing.height / 2 + 30, { steps: 5 })
     const handle = await page.waitForSelector('iframe[title="Moving drawing"]')
     const preview = (await handle!.contentFrame())!
-    await preview.waitForSelector('[data-doop-drawing]')
+    await preview.waitForSelector('[data-diagramly-drawing]')
     const inside = await preview.evaluate(() => ({ width: innerWidth, dpr: devicePixelRatio }))
     const moving = await visibleDrawing('Moving drawing')
     // the shape itself moves: its original is unpainted while the copy follows
     const original = (await (await page.waitForSelector('iframe[title="Source"]'))!.contentFrame())!
-    const visibility = () => original.$eval('[data-doop-drawing]', (el) => getComputedStyle(el).visibility)
+    const visibility = () => original.$eval('[data-diagramly-drawing]', (el) => getComputedStyle(el).visibility)
     await expect.poll(visibility).toBe('hidden')
     await page.keyboard.press('Escape')
     await page.mouse.up()
@@ -196,10 +198,10 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       updatedAt: 0,
       html:
         '<style>.tinted{background:rgb(0, 128, 0)}</style>' +
-        '<div class="tinted" data-doop-drawing="rectangle" data-name="Rectangle" style="position:absolute;left:40px;top:40px;width:60px;height:40px"></div>' +
-        '<div data-doop-drawing="rectangle" data-name="Sibling" style="position:absolute;left:150px;top:180px;width:50px;height:50px;background:blue"></div>' +
+        '<div class="tinted" data-diagramly-drawing="rectangle" data-name="Rectangle" style="position:absolute;left:40px;top:40px;width:60px;height:40px"></div>' +
+        '<div data-diagramly-drawing="rectangle" data-name="Sibling" style="position:absolute;left:150px;top:180px;width:50px;height:50px;background:blue"></div>' +
         // nearer on both axes than what it snaps to, but nobody sees it
-        '<div data-doop-drawing="rectangle" data-name="Hidden" style="position:absolute;left:152px;top:178px;width:50px;height:50px;visibility:hidden"></div>',
+        '<div data-diagramly-drawing="rectangle" data-name="Hidden" style="position:absolute;left:152px;top:178px;width:50px;height:50px;visibility:hidden"></div>',
     }
     await seedFrames([source])
     await page.evaluate(async () => {
@@ -217,7 +219,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     const moving = (await (await page.waitForSelector('iframe[title="Moving drawing"]'))!.contentFrame())!
     // the copy keeps the look its frame's stylesheet gives it
     await expect
-      .poll(() => moving.$eval('[data-doop-drawing]', (el) => getComputedStyle(el).backgroundColor))
+      .poll(() => moving.$eval('[data-diagramly-drawing]', (el) => getComputedStyle(el).backgroundColor))
       .toBe('rgb(0, 128, 0)')
     expect(await page.$('[data-element-outline]')).toBeNull()
     expect(await page.$('[data-resize-handles]')).toBeNull()
@@ -275,8 +277,8 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       height: 300,
       createdAt: 0,
       updatedAt: 0,
-      html: `<div style="position:relative;z-index:10"><div id="front" data-doop-drawing="rectangle" style="position:fixed;left:60px;top:60px;width:100px;height:100px;background:red"></div></div>
-      <div id="back" data-doop-drawing="rectangle" style="position:fixed;left:60px;top:60px;width:100px;height:100px;background:blue;z-index:5"></div>`,
+      html: `<div style="position:relative;z-index:10"><div id="front" data-diagramly-drawing="rectangle" style="position:fixed;left:60px;top:60px;width:100px;height:100px;background:red"></div></div>
+      <div id="back" data-diagramly-drawing="rectangle" style="position:fixed;left:60px;top:60px;width:100px;height:100px;background:blue;z-index:5"></div>`,
     }
     await seedFrames([source])
     const front = await visibleDrawing('Stacked', '#front')
@@ -308,7 +310,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       height: 250,
       createdAt: 0,
       updatedAt: 0,
-      html: '<div data-doop-drawing="rectangle" data-name="Rectangle" style="position:fixed;left:60px;top:60px;width:100px;height:100px;background:red"></div>',
+      html: '<div data-diagramly-drawing="rectangle" data-name="Rectangle" style="position:fixed;left:60px;top:60px;width:100px;height:100px;background:red"></div>',
     }
     await seedFrames([source])
     const rect = await visibleDrawing('Slow')
@@ -317,7 +319,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       window.addEventListener(
         'message',
         (event) => {
-          if (event.data?.type !== 'doop:drawing-hit' || event.data.delayed) return
+          if (event.data?.type !== 'diagramly:drawing-hit' || event.data.delayed) return
           event.stopImmediatePropagation()
           setTimeout(() => {
             window.dispatchEvent(
@@ -343,7 +345,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       expect(await page.$('iframe[title="Moving drawing"]')).toBeNull()
     } else {
       const result = await waitForFrames(2)
-      expect(result[0]!.html).not.toContain('data-doop-drawing')
+      expect(result[0]!.html).not.toContain('data-diagramly-drawing')
       expect(result[1]).toMatchObject({ width: 100, height: 100, name: 'Rectangle' })
     }
   })
@@ -361,7 +363,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
       height: 300,
       createdAt: 0,
       updatedAt: 0,
-      html: '<div data-doop-drawing="rectangle" style="position:fixed;left:60px;top:60px;width:100px;height:100px;background:red"></div><div id="cover" style="position:fixed;left:60px;top:60px;width:100px;height:100px;background:black;z-index:10">Cover</div>',
+      html: '<div data-diagramly-drawing="rectangle" style="position:fixed;left:60px;top:60px;width:100px;height:100px;background:red"></div><div id="cover" style="position:fixed;left:60px;top:60px;width:100px;height:100px;background:black;z-index:10">Cover</div>',
     }
     await seedFrames([source])
     const covered = await visibleDrawing('Covered')
@@ -398,7 +400,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     )
     await page.click('[aria-label="Rectangle"]')
     await page.click('[title="Alice: Keep this"]')
-    const reply = 'textarea[placeholder="Reply… (@doop to ask the agent)"]'
+    const reply = 'textarea[placeholder="Reply… (@diagramly to ask the agent)"]'
     await page.waitForSelector(reply)
     await page.click(reply)
     await page.keyboard.type('Reply text')
@@ -530,7 +532,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
         height: 300,
         createdAt: 0,
         updatedAt: 0,
-        html: '<p id="a" data-doop-id="aaa000" style="margin:0;width:120px">Alpha</p>',
+        html: '<p id="a" data-diagramly-id="aaa000" style="margin:0;width:120px">Alpha</p>',
       },
     ])
     const handle = await page.waitForSelector('iframe[title="Plain"]')
@@ -577,7 +579,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     expect(Math.abs(Number(commentMoves[0]!.x) - 480)).toBeLessThan(2)
     expect(Math.abs(Number(commentMoves[0]!.y) - 80)).toBeLessThan(2)
     /* no thread opened from the release */
-    expect(await page.$('textarea[placeholder="Reply… (@doop to ask the agent)"]')).toBeNull()
+    expect(await page.$('textarea[placeholder="Reply… (@diagramly to ask the agent)"]')).toBeNull()
     /* the room says where it went: a canvas pin now */
     const onCanvas = {
       ...onElement,
@@ -627,7 +629,7 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
 
     /* a click still opens the thread, and Esc mid-drag puts the pin back without a move */
     await page.mouse.click(pin.x + pin.width / 2, pin.y + pin.height / 2)
-    await page.waitForSelector('textarea[placeholder="Reply… (@doop to ask the agent)"]')
+    await page.waitForSelector('textarea[placeholder="Reply… (@diagramly to ask the agent)"]')
     await page.keyboard.press('Escape')
     await page.mouse.move(pin.x + pin.width / 2, pin.y + pin.height / 2)
     await page.mouse.down()
@@ -641,9 +643,11 @@ describe.skipIf(!findBrowserPath())('drawing on the canvas', { timeout: 30_000 }
     /* the cancelled gesture leaves nothing behind: the next click opens the
        thread, and Escape (no longer swallowed) closes it again */
     await page.mouse.click(pin.x + pin.width / 2, pin.y + pin.height / 2)
-    await page.waitForSelector('textarea[placeholder="Reply… (@doop to ask the agent)"]')
+    await page.waitForSelector('textarea[placeholder="Reply… (@diagramly to ask the agent)"]')
     await page.keyboard.press('Escape')
-    await page.waitForFunction(() => !document.querySelector('textarea[placeholder="Reply… (@doop to ask the agent)"]'))
+    await page.waitForFunction(
+      () => !document.querySelector('textarea[placeholder="Reply… (@diagramly to ask the agent)"]'),
+    )
 
     /* ⇧C mid-drag hides the pins, but the one in hand finishes its move and
        leaves no ghost behind; ⇧C again brings the pins back */

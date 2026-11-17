@@ -33,7 +33,7 @@ it('does not parse frame HTML for closed menus, including after a frame update',
   }
   try {
     act(() => render(frame.html))
-    act(() => render('<div id="layer" data-doop-locked>Updated</div>'))
+    act(() => render('<div id="layer" data-diagramly-locked>Updated</div>'))
     expect(parse).not.toHaveBeenCalled()
     await act(async () => {
       container
@@ -69,7 +69,7 @@ it('pastes a copied standalone shape as a new element on the canvas', async () =
     y: 20,
     width: 100,
     height: 50,
-    html: '<body data-doop-canvas-element><div id="layer" data-doop-drawing="rect"></div></body>',
+    html: '<body data-diagramly-canvas-element><div id="layer" data-diagramly-drawing="rect"></div></body>',
   } as Frame
   useStore.getState().setCanvas({ id: 'c', name: 'Canvas', frames: [shape], createdAt: 0, updatedAt: 0 })
   const create = vi.spyOn(api, 'createFrame').mockResolvedValue({ ...shape, id: 'new' })

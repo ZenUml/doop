@@ -1,14 +1,14 @@
 /**
  * The one way anything outside a frame refers to an element inside it: a
- * `data-doop-id` attribute stamped onto the element the first time something
+ * `data-diagramly-id` attribute stamped onto the element the first time something
  * needs to point at it (a comment, an element link). It lives in the frame's
  * HTML, so it travels with the element through moves, re-orders and copies,
  * where a positional CSS path (`main > div:nth-of-type(2)`) would break.
- * Agents are told to keep every `data-doop-*` attribute when they rewrite
+ * Agents are told to keep every `data-diagramly-*` attribute when they rewrite
  * markup; an element that lost its id is simply stamped again next time.
  */
 
-export const ELEMENT_ID_ATTR = 'data-doop-id'
+export const ELEMENT_ID_ATTR = 'data-diagramly-id'
 
 const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789'
 const ID_LENGTH = 6

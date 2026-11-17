@@ -3,18 +3,23 @@ import { connect } from 'node:http2'
 import { createPrivateKey, sign } from 'node:crypto'
 
 export function apnsConfigured() {
-  return !!(env.DOOP_APNS_TEAM_ID && env.DOOP_APNS_KEY_ID && env.DOOP_APNS_PRIVATE_KEY)
+  return !!(
+    env.DIAGRAMLY_APNS_TEAM_ID &&
+    env.DIAGRAMLY_APNS_KEY_ID &&
+    env.DIAGRAMLY_APNS_PRIVATE_KEY &&
+    env.DIAGRAMLY_APNS_BUNDLE_ID
+  )
 }
 
 let cached: { token: string; until: number } | undefined
 function authorization() {
   if (cached && cached.until > Date.now()) return cached.token
-  const header = Buffer.from(JSON.stringify({ alg: 'ES256', kid: env.DOOP_APNS_KEY_ID })).toString('base64url')
+  const header = Buffer.from(JSON.stringify({ alg: 'ES256', kid: env.DIAGRAMLY_APNS_KEY_ID })).toString('base64url')
   const claims = Buffer.from(
-    JSON.stringify({ iss: env.DOOP_APNS_TEAM_ID, iat: Math.floor(Date.now() / 1000) }),
+    JSON.stringify({ iss: env.DIAGRAMLY_APNS_TEAM_ID, iat: Math.floor(Date.now() / 1000) }),
   ).toString('base64url')
   const input = `${header}.${claims}`
-  const key = createPrivateKey((env.DOOP_APNS_PRIVATE_KEY ?? '').replace(/\\n/g, '\n'))
+  const key = createPrivateKey((env.DIAGRAMLY_APNS_PRIVATE_KEY ?? '').replace(/\\n/g, '\n'))
   const signature = sign('sha256', Buffer.from(input), { key, dsaEncoding: 'ieee-p1363' }).toString('base64url')
   cached = { token: `${input}.${signature}`, until: Date.now() + 40 * 60_000 }
   return cached.token
@@ -46,7 +51,7 @@ export async function sendLiveActivityPush(
       ':method': 'POST',
       ':path': `/3/device/${token}`,
       authorization: `bearer ${jwt}`,
-      'apns-topic': `${env.DOOP_APNS_BUNDLE_ID}.push-type.liveactivity`,
+      'apns-topic': `${env.DIAGRAMLY_APNS_BUNDLE_ID}.push-type.liveactivity`,
       'apns-push-type': 'liveactivity',
       'apns-priority': String(priority),
       'apns-expiration': '0',

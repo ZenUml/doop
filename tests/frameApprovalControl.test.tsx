@@ -69,7 +69,7 @@ afterEach(() => {
   container.remove()
   vi.clearAllTimers()
   vi.useRealTimers()
-  localStorage.removeItem('doop:inspector-html')
+  localStorage.removeItem('diagramly:inspector-html')
   vi.restoreAllMocks()
 })
 
@@ -156,7 +156,7 @@ it('reports partial batch failures without claiming every selected screen was ap
 
 it('blocks context-menu approval from the first HTML keystroke until the debounced save completes', async () => {
   vi.useFakeTimers()
-  localStorage.setItem('doop:inspector-html', '1')
+  localStorage.setItem('diagramly:inspector-html', '1')
   let finish!: (result: Frame) => void
   const update = vi.spyOn(api, 'updateFrame').mockImplementationOnce(
     () =>
@@ -234,3 +234,6 @@ it('keeps approval disabled until every overlapping design request has settled',
   })
   expect(toggle().disabled).toBe(false)
 })
+
+// These cases exercise the legacy HTML design tools.
+vi.mock('../src/lib/product', () => ({ isDiagramly: () => false }))

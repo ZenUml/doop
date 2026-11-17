@@ -2,7 +2,7 @@
  * Web fonts: the open families the Design panel's font menu offers, served by
  * Google Fonts. Like a library font (shared/fonts.ts), one is used by naming
  * its family in CSS; the frame then carries the stylesheet link that loads it,
- * in one managed `<link data-doop-webfonts>`, so the canvas, screenshots, PDF
+ * in one managed `<link data-diagramly-webfonts>`, so the canvas, screenshots, PDF
  * export and every collaborator's machine render the same glyphs at the same
  * metrics. `withWebFontLinks` adds that link; the browser runs it on its saves,
  * the server on every frame write, next to `withFontFaces`.
@@ -13,7 +13,7 @@
 
 import { decodeQuotes, usesFamily, type CustomFont } from './fonts.ts'
 
-export const WEB_FONT_LINK_ATTR = 'data-doop-webfonts'
+export const WEB_FONT_LINK_ATTR = 'data-diagramly-webfonts'
 
 export const WEB_FONTS_ORIGIN = 'https://fonts.googleapis.com'
 
@@ -177,8 +177,8 @@ export function webFontsBrief(): string {
   )
   return (
     `Hosted fonts, which render identically for every viewer and in every export (${groups.join('; ')}): ` +
-    `use one by naming it in CSS (font-family: "Family", sans-serif); Doop links it from Google Fonts by itself, ` +
-    `so do not add the <link> yourself and keep the <link data-doop-webfonts> it adds. OS fonts such as Georgia, ` +
+    `use one by naming it in CSS (font-family: "Family", sans-serif); Diagramly links it from Google Fonts by itself, ` +
+    `so do not add the <link> yourself and keep the <link data-diagramly-webfonts> it adds. OS fonts such as Georgia, ` +
     `Verdana or Helvetica render differently on each machine and in exports; prefer these or the canvas's custom fonts.`
   )
 }

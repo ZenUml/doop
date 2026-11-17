@@ -158,7 +158,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
 
   /* a locked element, or anything inside a locked box, is off limits to the
      stage: not hovered, not picked, not edited (src/lib/layers.ts LOCK_ATTR) */
-  var LOCKED = '[data-doop-locked]'
+  var LOCKED = '[data-diagramly-locked]'
   function isLocked(el) {
     return !!(el && el.closest && el.closest(LOCKED))
   }
@@ -167,8 +167,10 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
   function candidate(start) {
     var el = start && start.nodeType === 3 ? start.parentElement : start
     if (isLocked(el)) return null
+    // Diagram labels are source edits owned by the renderer, not HTML text.
+    if (el && el.closest('[data-diagramly-diagram-mount]')) return null
     if (activeEl && activeEl.contains(el)) return activeEl
-    var root = el && el.closest('[data-doop-text],[data-doop-drawing="text"]')
+    var root = el && el.closest('[data-diagramly-text],[data-diagramly-drawing="text"]')
     if (root && !root.querySelector(LOCKED)) return root
     while (el && el !== document.body && el !== document.documentElement) {
       if (hasOwnText(el)) {
@@ -216,7 +218,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
   }
 
   function postActive() {
-    parent.postMessage({ type: 'doop:active', hit: activeInfo() }, '*')
+    parent.postMessage({ type: 'diagramly:active', hit: activeInfo() }, '*')
     postTextState()
   }
 
@@ -396,8 +398,10 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
       })
   }
 
+  document.addEventListener('diagramly:diagram-edited', function () { postEdited(true) })
+
   function postEdited(discrete) {
-    parent.postMessage({ type: 'doop:edited', html: serialize(), discrete: discrete === true }, '*')
+    parent.postMessage({ type: 'diagramly:edited', html: serialize(), discrete: discrete === true }, '*')
     /* typing can move/grow the element — keep the parent's toolbar anchored */
     if (editing && activeEl) postActive()
   }
@@ -423,6 +427,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
   /* capture-phase: no link navigation or button handlers while editing */
   document.addEventListener('click', function (ev) {
     if (!editing) return
+    if (ev.target.closest && ev.target.closest('[data-diagramly-diagram-mount]')) return
     ev.preventDefault()
     ev.stopPropagation()
     var el = candidate(ev.target)
@@ -432,6 +437,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
 
   document.addEventListener('mousemove', function (ev) {
     if (!editing) return
+    if (ev.target.closest && ev.target.closest('[data-diagramly-diagram-mount]')) return
     var el = candidate(ev.target)
     var prev = document.querySelector('[data-v-hover]')
     if (prev && prev !== el) prev.removeAttribute('data-v-hover')
@@ -440,7 +446,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
 
   document.addEventListener('input', function () {
     if (!editing || !activeEl) return
-    activeEl.setAttribute('data-doop-text', '')
+    activeEl.setAttribute('data-diagramly-text', '')
     postTextState()
     if (editTimer) clearTimeout(editTimer)
     editTimer = setTimeout(postEdited, 400)
@@ -451,8 +457,8 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
     ev.preventDefault()
     ev.stopPropagation()
     setEdit(false)
-    parent.postMessage({ type: 'doop:edit-esc' }, '*')
-    parent.postMessage({ type: 'doop:context-menu', x: ev.clientX, y: ev.clientY }, '*')
+    parent.postMessage({ type: 'diagramly:edit-esc' }, '*')
+    parent.postMessage({ type: 'diagramly:context-menu', x: ev.clientX, y: ev.clientY }, '*')
   }, true)
 
   /* Focus stays in the frame after text editing ends, and the canvas page
@@ -541,9 +547,9 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
     if (protoOn && ev.defaultPrevented) return // the design's own script took it
     if (editing) {
       setEdit(false)
-      parent.postMessage({ type: 'doop:edit-esc' }, '*')
+      parent.postMessage({ type: 'diagramly:edit-esc' }, '*')
     } else {
-      parent.postMessage({ type: 'doop:esc' }, '*')
+      parent.postMessage({ type: 'diagramly:esc' }, '*')
     }
   })
 
@@ -681,7 +687,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
     return {
       selector: cssPath(el),
       /* the stable id comments and links use, when something has stamped one */
-      elementId: el.getAttribute('data-doop-id') || undefined,
+      elementId: el.getAttribute('data-diagramly-id') || undefined,
       tag: el.tagName.toLowerCase(),
       text: (el.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 80),
       snippet: snippet,
@@ -703,7 +709,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
     var rects = parent === document.body || parent === document.documentElement ? [] : [designRect(parent)]
     for (var i = 0; i < parent.children.length && rects.length < 80; i++) {
       var sibling = parent.children[i]
-      if (sibling === el || sibling.hasAttribute('data-doop-defs')) continue
+      if (sibling === el || sibling.hasAttribute('data-diagramly-defs')) continue
       if (getComputedStyle(sibling).visibility !== 'visible') continue
       var r = designRect(sibling)
       if (r.width > 0 && r.height > 0) rects.push(r)
@@ -727,8 +733,8 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
 
   function drawingHit(x, y, standalone, selected) {
     var top = elementAt(x, y)
-    var el = standalone ? document.body.firstElementChild : top && top.closest('[data-doop-drawing]')
-    if (!el || !el.matches('[data-doop-drawing]') || isLocked(el)) return null
+    var el = standalone ? document.body.firstElementChild : top && top.closest('[data-diagramly-drawing]')
+    if (!el || !el.matches('[data-diagramly-drawing]') || isLocked(el)) return null
     var picked = pickedAround(selected, el)
     if (!standalone && picked && elementGeometry(picked).enabled) return null
     // A drawing picked with other layers moves with them, through the layer
@@ -793,7 +799,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
   }
   function pathInfo(d) {
     var hit = d.selector ? document.querySelector(d.selector) : vectorAt(d.x, d.y)
-    var svg = hit && hit.closest('svg[data-doop-drawing="path"]')
+    var svg = hit && hit.closest('svg[data-diagramly-drawing="path"]')
     var path = svg && shapePath(svg)
     // Native pen paths and imported shapes have one direct path child. Other SVG artwork keeps its normal editor.
     if (!svg || !path || (svg.parentElement && svg.parentElement.closest('svg')) || isLocked(svg)) return null
@@ -829,7 +835,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
      is one thing to point at: whatever is under the pointer, the hit is
      its root, until a double-click enters it the way a group is entered */
   function standaloneRoot() {
-    if (editing || !document.body.hasAttribute('data-doop-canvas-element')) return null
+    if (editing || !document.body.hasAttribute('data-diagramly-canvas-element')) return null
     return document.body.firstElementChild
   }
 
@@ -847,7 +853,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
 
   function probe(x, y) {
     var el = elementAt(x, y)
-    if (el) el = el.closest('[data-doop-drawing]') || el
+    if (el) el = el.closest('[data-diagramly-drawing]') || el
     return el ? hitInfo(el) : null
   }
 
@@ -856,7 +862,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
   function contextHit(x, y) {
     var el = document.elementFromPoint(x, y)
     if (!el || el === document.body || el === document.documentElement) return null
-    el = el.closest('[data-doop-locked]') || el.closest('[data-doop-drawing]') || el.closest('svg') || el
+    el = el.closest('[data-diagramly-locked]') || el.closest('[data-diagramly-drawing]') || el.closest('svg') || el
     return hitInfo(el)
   }
 
@@ -891,7 +897,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
      whole, the way probe() picks it, so the hover and the pick agree */
   function hoverProbe(x, y) {
     var el = elementAt(x, y)
-    if (el) el = el.closest('[data-doop-drawing]') || el
+    if (el) el = el.closest('[data-diagramly-drawing]') || el
     return el ? { tag: el.tagName.toLowerCase(), selector: cssPath(el), rect: designRect(el) } : null
   }
 
@@ -918,7 +924,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
      a summary of one element and writes changes back as inline styles; the
      edited document then goes to the parent through the usual save path. */
   function notifyFrameUpdated() {
-    parent.postMessage({ type: 'doop:frame-updated' }, '*')
+    parent.postMessage({ type: 'diagramly:frame-updated' }, '*')
   }
   document.fonts.addEventListener('loadingdone', notifyFrameUpdated)
   /* A linked sheet can declare unused faces without loading any font files.
@@ -1354,7 +1360,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
       movable.push({ selector: selector, el: other, original: other.getAttribute('style') })
     })
     // A picked parent carries its picked descendants, whatever order the pick
-    // names them in (as doop:nudge does).
+    // names them in (as diagramly:nudge does).
     return movable.filter(function (m) {
       return !movable.some(function (other) { return other.el !== m.el && other.el.contains(m.el) })
     })
@@ -1476,12 +1482,12 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
     if (!d) return
     /* the first port offered is the one for life: a later message carrying
        one could be answering a design script's forged ready signal */
-    if (d.type === 'doop:key-port' && !keyPort && ev.ports && ev.ports[0]) keyPort = ev.ports[0]
-    if (d.type === 'doop:inspect') {
-      parent.postMessage({ type: 'doop:inspect-result', reqId: d.reqId, info: inspect(d.selector) }, '*')
+    if (d.type === 'diagramly:key-port' && !keyPort && ev.ports && ev.ports[0]) keyPort = ev.ports[0]
+    if (d.type === 'diagramly:inspect') {
+      parent.postMessage({ type: 'diagramly:inspect-result', reqId: d.reqId, info: inspect(d.selector) }, '*')
     }
-    if (d.type === 'doop:outlines') setOutlines(d.on === true)
-    if (d.type === 'doop:computed' && Array.isArray(d.properties)) {
+    if (d.type === 'diagramly:outlines') setOutlines(d.on === true)
+    if (d.type === 'diagramly:computed' && Array.isArray(d.properties)) {
       var computedEl = styleTarget(d.selector)
       var values = null
       if (computedEl) {
@@ -1492,52 +1498,52 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
           values[name] = name === 'text-decoration-line' && run !== computedEl ? runDecoration(run, computedEl) : cs.getPropertyValue(name)
         })
       }
-      parent.postMessage({ type: 'doop:computed-result', reqId: d.reqId, values: values }, '*')
+      parent.postMessage({ type: 'diagramly:computed-result', reqId: d.reqId, values: values }, '*')
     }
-    if (d.type === 'doop:settle') {
+    if (d.type === 'diagramly:settle') {
       if (styleTimer) {
         clearTimeout(styleTimer)
         styleTimer = null
         postEdited()
       }
-      parent.postMessage({ type: 'doop:settle-result', reqId: d.reqId }, '*')
+      parent.postMessage({ type: 'diagramly:settle-result', reqId: d.reqId }, '*')
     }
-    if (d.type === 'doop:style' && d.styles && typeof d.styles === 'object') {
+    if (d.type === 'diagramly:style' && d.styles && typeof d.styles === 'object') {
       var applied = applyStyle(d.selector, d.styles, d.uniformText === true)
-      parent.postMessage({ type: 'doop:style-result', reqId: d.reqId, ok: applied, info: applied ? inspect(d.selector) : null }, '*')
+      parent.postMessage({ type: 'diagramly:style-result', reqId: d.reqId, ok: applied, info: applied ? inspect(d.selector) : null }, '*')
     }
-    if (d.type === 'doop:replace-image') {
+    if (d.type === 'diagramly:replace-image') {
       var replaced = replaceImage(d.selector, d.image, d.url)
-      parent.postMessage({ type: 'doop:replace-image-result', reqId: d.reqId, info: replaced ? inspect(d.selector) : null }, '*')
+      parent.postMessage({ type: 'diagramly:replace-image-result', reqId: d.reqId, info: replaced ? inspect(d.selector) : null }, '*')
     }
-    if (d.type === 'doop:nudge' && Array.isArray(d.selectors)) {
+    if (d.type === 'diagramly:nudge' && Array.isArray(d.selectors)) {
       var movable = d.selectors.map(function (selector) {
         try { return { selector: selector, el: document.querySelector(selector) } } catch (e) { return { selector: selector, el: null } }
       }).filter(function (p) { return p.el && elementGeometry(p.el).enabled })
       var moved = movable.filter(function (p) {
         return !movable.some(function (other) { return other.el !== p.el && other.el.contains(p.el) })
       }).map(function (p) { return editGeometry(p.selector, { kind: 'nudge', dx: d.dx, dy: d.dy }) })
-      parent.postMessage({ type: 'doop:nudge-result', reqId: d.reqId, ok: moved.indexOf(true) !== -1 }, '*')
+      parent.postMessage({ type: 'diagramly:nudge-result', reqId: d.reqId, ok: moved.indexOf(true) !== -1 }, '*')
     }
-    if (d.type === 'doop:geometry') {
+    if (d.type === 'diagramly:geometry') {
       var changed = editGeometry(d.selector, d.edit)
-      parent.postMessage({ type: 'doop:geometry-result', reqId: d.reqId, ok: changed, info: changed ? inspect(d.selector) : null }, '*')
+      parent.postMessage({ type: 'diagramly:geometry-result', reqId: d.reqId, ok: changed, info: changed ? inspect(d.selector) : null }, '*')
     }
-    if (d.type === 'doop:style-gesture') {
+    if (d.type === 'diagramly:style-gesture') {
       var changed = d.phase === 'begin' ? beginStyleEdit(d.selector, d.followers)
         : d.phase === 'commit' || d.phase === 'cancel' ? endStyleEdit(d.selector, d.phase === 'cancel') : false
-      parent.postMessage({ type: 'doop:style-gesture-result', reqId: d.reqId, info: changed ? inspect(d.selector) : null }, '*')
+      parent.postMessage({ type: 'diagramly:style-gesture-result', reqId: d.reqId, info: changed ? inspect(d.selector) : null }, '*')
     }
-    if (d.type === 'doop:html' && typeof d.html === 'string' && !editing) {
+    if (d.type === 'diagramly:html' && typeof d.html === 'string' && !editing) {
       render(d.html)
       notifyFrameUpdated()
       protoHtmlChanged()
-      if (d.reqId) parent.postMessage({ type: 'doop:html-result', reqId: d.reqId }, '*')
+      if (d.reqId) parent.postMessage({ type: 'diagramly:html-result', reqId: d.reqId }, '*')
     }
-    if (d.type === 'doop:text-format' && Array.isArray(d.selectors)) {
-      parent.postMessage({ type: 'doop:text-format-result', reqId: d.reqId, selectors: formatLayers(d.selectors, d.command) }, '*')
-    } else if (d.type === 'doop:text-format') formatText(d.command)
-    if (d.type === 'doop:edit') {
+    if (d.type === 'diagramly:text-format' && Array.isArray(d.selectors)) {
+      parent.postMessage({ type: 'diagramly:text-format-result', reqId: d.reqId, selectors: formatLayers(d.selectors, d.command) }, '*')
+    } else if (d.type === 'diagramly:text-format') formatText(d.command)
+    if (d.type === 'diagramly:edit') {
       setEdit(!!d.on)
       if (d.on && typeof d.x === 'number' && typeof d.y === 'number') {
         var dblEl = candidate(document.elementFromPoint(d.x, d.y))
@@ -1547,37 +1553,37 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
         }
       }
     }
-    if (d.type === 'doop:rename') {
+    if (d.type === 'diagramly:rename') {
       var namedEl = null
       try { namedEl = d.selector ? document.querySelector(d.selector) : null } catch (e) { /* bad selector */ }
       if (namedEl) {
-        if (typeof d.name === 'string') namedEl.setAttribute('data-doop-name', d.name)
-        else if (d.name === null) namedEl.removeAttribute('data-doop-name')
+        if (typeof d.name === 'string') namedEl.setAttribute('data-diagramly-name', d.name)
+        else if (d.name === null) namedEl.removeAttribute('data-diagramly-name')
         /* the saved document stamps the element's id with its name; the live
            one follows, and a rolled-back stamp (null) comes off again */
-        if (typeof d.elementId === 'string' && !namedEl.hasAttribute('data-doop-id')) namedEl.setAttribute('data-doop-id', d.elementId)
-        else if (d.elementId === null) namedEl.removeAttribute('data-doop-id')
+        if (typeof d.elementId === 'string' && !namedEl.hasAttribute('data-diagramly-id')) namedEl.setAttribute('data-diagramly-id', d.elementId)
+        else if (d.elementId === null) namedEl.removeAttribute('data-diagramly-id')
       }
-      parent.postMessage({ type: 'doop:rename-result', reqId: d.reqId, ok: !!namedEl }, '*')
+      parent.postMessage({ type: 'diagramly:rename-result', reqId: d.reqId, ok: !!namedEl }, '*')
     }
     // Mirror the Layers eye in the live document, including during text edits.
-    if (d.type === 'doop:visibility') {
+    if (d.type === 'diagramly:visibility') {
       var hideEl = null
       try { hideEl = d.selector ? document.querySelector(d.selector) : null } catch (e) { /* bad selector */ }
-      if (hideEl && hideEl.hasAttribute('data-doop-hidden') !== !!d.hidden) {
+      if (hideEl && hideEl.hasAttribute('data-diagramly-hidden') !== !!d.hidden) {
         var hideStyle = hideEl.style
         if (d.hidden) {
           if (hideStyle.display) {
             var priority = hideStyle.getPropertyPriority('display')
-            hideEl.setAttribute('data-doop-display', hideStyle.display + (priority ? ' !' + priority : ''))
+            hideEl.setAttribute('data-diagramly-display', hideStyle.display + (priority ? ' !' + priority : ''))
           }
-          hideEl.setAttribute('data-doop-hidden', 'true')
+          hideEl.setAttribute('data-diagramly-hidden', 'true')
           hideStyle.setProperty('display', 'none', 'important')
           if (activeEl && hideEl.contains(activeEl)) deactivate()
         } else {
-          var prior = hideEl.getAttribute('data-doop-display')
-          hideEl.removeAttribute('data-doop-hidden')
-          hideEl.removeAttribute('data-doop-display')
+          var prior = hideEl.getAttribute('data-diagramly-display')
+          hideEl.removeAttribute('data-diagramly-hidden')
+          hideEl.removeAttribute('data-diagramly-display')
           if (prior) {
             var parts = prior.split(' !')
             hideStyle.setProperty('display', parts[0], parts[1] || '')
@@ -1585,65 +1591,65 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
           if (!hideEl.getAttribute('style')) hideEl.removeAttribute('style')
         }
       }
-      parent.postMessage({ type: 'doop:visibility-result', reqId: d.reqId, ok: !!hideEl }, '*')
+      parent.postMessage({ type: 'diagramly:visibility-result', reqId: d.reqId, ok: !!hideEl }, '*')
     }
     /* a lock set from the Layers panel lands on the live element too: while
        editing, the parent withholds html, and the next text save serializes
        this document — the attribute has to be here or the save drops it. A
        lock over the element being typed in ends that edit. */
-    if (d.type === 'doop:lock') {
+    if (d.type === 'diagramly:lock') {
       var lockEl = null
       try { lockEl = d.selector ? document.querySelector(d.selector) : null } catch (e) { /* bad selector */ }
       if (lockEl) {
         if (d.locked) {
-          lockEl.setAttribute('data-doop-locked', 'true')
+          lockEl.setAttribute('data-diagramly-locked', 'true')
           if (activeEl && lockEl.contains(activeEl)) deactivate()
-        } else lockEl.removeAttribute('data-doop-locked')
+        } else lockEl.removeAttribute('data-diagramly-locked')
       }
-      parent.postMessage({ type: 'doop:lock-result', reqId: d.reqId, ok: !!lockEl }, '*')
+      parent.postMessage({ type: 'diagramly:lock-result', reqId: d.reqId, ok: !!lockEl }, '*')
     }
-    if (d.type === 'doop:probe') {
-      parent.postMessage({ type: 'doop:probe-result', reqId: d.reqId, hit: probe(d.x, d.y) }, '*')
+    if (d.type === 'diagramly:probe') {
+      parent.postMessage({ type: 'diagramly:probe-result', reqId: d.reqId, hit: probe(d.x, d.y) }, '*')
     }
-    if (d.type === 'doop:context-hit') {
-      parent.postMessage({ type: 'doop:context-hit-result', reqId: d.reqId, hit: contextHit(d.x, d.y) }, '*')
+    if (d.type === 'diagramly:context-hit') {
+      parent.postMessage({ type: 'diagramly:context-hit-result', reqId: d.reqId, hit: contextHit(d.x, d.y) }, '*')
     }
-    if (d.type === 'doop:drawing-hit') {
-      parent.postMessage({ type: 'doop:drawing-hit-result', reqId: d.reqId, hit: drawingHit(d.x, d.y, d.standalone, d.selected) }, '*')
+    if (d.type === 'diagramly:drawing-hit') {
+      parent.postMessage({ type: 'diagramly:drawing-hit-result', reqId: d.reqId, hit: drawingHit(d.x, d.y, d.standalone, d.selected) }, '*')
     }
-    if (d.type === 'doop:move-hit') {
-      parent.postMessage({ type: 'doop:move-hit-result', reqId: d.reqId, hit: moveHit(d.x, d.y, d.selected) }, '*')
+    if (d.type === 'diagramly:move-hit') {
+      parent.postMessage({ type: 'diagramly:move-hit-result', reqId: d.reqId, hit: moveHit(d.x, d.y, d.selected) }, '*')
     }
-    if (d.type === 'doop:move-target') {
-      parent.postMessage({ type: 'doop:move-target-result', reqId: d.reqId, result: moveTarget(d.selector, d.x, d.y) }, '*')
+    if (d.type === 'diagramly:move-target') {
+      parent.postMessage({ type: 'diagramly:move-target-result', reqId: d.reqId, result: moveTarget(d.selector, d.x, d.y) }, '*')
     }
-    if (d.type === 'doop:path') {
-      parent.postMessage({ type: 'doop:path-result', reqId: d.reqId, hit: pathInfo(d) }, '*')
+    if (d.type === 'diagramly:path') {
+      parent.postMessage({ type: 'diagramly:path-result', reqId: d.reqId, hit: pathInfo(d) }, '*')
     }
-    if (d.type === 'doop:path-editing') {
+    if (d.type === 'diagramly:path-editing') {
       pathEditingSelector = d.selector || null
       syncPathVisibility()
-      parent.postMessage({ type: 'doop:path-editing-result', reqId: d.reqId }, '*')
+      parent.postMessage({ type: 'diagramly:path-editing-result', reqId: d.reqId }, '*')
     }
-    if (d.type === 'doop:drawing-moving') {
+    if (d.type === 'diagramly:drawing-moving') {
       movingDrawingSelector = d.selector || null
       syncPathVisibility()
-      parent.postMessage({ type: 'doop:drawing-moving-result', reqId: d.reqId }, '*')
+      parent.postMessage({ type: 'diagramly:drawing-moving-result', reqId: d.reqId }, '*')
     }
-    if (d.type === 'doop:hover') {
-      parent.postMessage({ type: 'doop:hover-result', reqId: d.reqId, hit: hoverProbe(d.x, d.y) }, '*')
+    if (d.type === 'diagramly:hover') {
+      parent.postMessage({ type: 'diagramly:hover-result', reqId: d.reqId, hit: hoverProbe(d.x, d.y) }, '*')
     }
-    if (d.type === 'doop:select') {
-      parent.postMessage({ type: 'doop:select-result', reqId: d.reqId, hit: describe(d.selector) }, '*')
+    if (d.type === 'diagramly:select') {
+      parent.postMessage({ type: 'diagramly:select-result', reqId: d.reqId, hit: describe(d.selector) }, '*')
     }
-    if (d.type === 'doop:code') {
-      parent.postMessage({ type: 'doop:code-result', reqId: d.reqId, html: elementCode(d.selector) }, '*')
+    if (d.type === 'diagramly:code') {
+      parent.postMessage({ type: 'diagramly:code-result', reqId: d.reqId, html: elementCode(d.selector) }, '*')
     }
-    if (d.type === 'doop:snapshot') {
+    if (d.type === 'diagramly:snapshot') {
       /* the document as it stands, script-made elements included, for an
          export of what the person sees */
       var answer = function (html) {
-        parent.postMessage({ type: 'doop:snapshot-result', reqId: d.reqId, html: html }, '*')
+        parent.postMessage({ type: 'diagramly:snapshot-result', reqId: d.reqId, html: html }, '*')
       }
       try {
         exportSnapshot().then(answer, function () { answer(null) })
@@ -1651,7 +1657,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
         answer(null)
       }
     }
-    if (d.type === 'doop:locate') {
+    if (d.type === 'diagramly:locate') {
       var found = null
       try {
         var target = d.selector ? document.querySelector(d.selector) : null
@@ -1659,13 +1665,13 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
       } catch (e) { /* bad selector -> null */ }
       var canSize = !!target && sizable(target)
       parent.postMessage({
-        type: 'doop:located', reqId: d.reqId, selector: d.selector, rect: found,
+        type: 'diagramly:located', reqId: d.reqId, selector: d.selector, rect: found,
         sizable: canSize,
         rotation: canSize ? ownRotation(target) || 0 : 0,
         box: target && found ? renderedBox(target, found) : null,
       }, '*')
     }
   })
-  parent.postMessage({ type: 'doop:frame-ready' }, '*')
+  parent.postMessage({ type: 'diagramly:frame-ready' }, '*')
 })()
 </script></body></html>`

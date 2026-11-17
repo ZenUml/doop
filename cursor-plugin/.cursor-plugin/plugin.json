@@ -1,16 +1,14 @@
 {
-  "name": "doop",
-  "displayName": "Doop",
-  "version": "0.1.0",
-  "description": "Create and edit HTML designs on a shared canvas with your team and Cursor.",
+  "name": "diagramly",
+  "displayName": "Diagramly",
+  "version": "0.1.1",
+  "description": "Work on diagrams in a Diagramly instance you connect to Cursor.",
   "author": {
-    "name": "Doop"
+    "name": "Diagramly"
   },
-  "homepage": "https://doop.design",
+  "homepage": "https://github.com/kgoedecke/doop",
   "repository": "https://github.com/kgoedecke/doop",
   "license": "AGPL-3.0-only",
-  "keywords": ["design", "canvas", "html", "multiplayer", "mcp"],
-  "logo": "assets/logo.png",
-  "mcpServers": "./mcp.json",
+  "keywords": ["diagram", "diagramly", "canvas", "mcp"],
   "skills": "./skills/"
 }

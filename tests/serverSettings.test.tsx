@@ -6,7 +6,7 @@ import { ServerSettings } from '../src/components/ServerSettings'
 import { canChooseServer, chooseServer, serverErrorMessage, serverHost } from '../src/lib/desktopServer'
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
-type Bridge = { __DOOP_SERVER_CHOOSE__?: boolean; __TAURI__?: unknown }
+type Bridge = { __DIAGRAMLY_SERVER_CHOOSE__?: boolean; __TAURI__?: unknown }
 const g = globalThis as Bridge
 
 let container: HTMLDivElement
@@ -21,7 +21,7 @@ beforeEach(() => {
 afterEach(() => {
   act(() => root.unmount())
   container.remove()
-  delete g.__DOOP_SERVER_CHOOSE__
+  delete g.__DIAGRAMLY_SERVER_CHOOSE__
   delete g.__TAURI__
 })
 
@@ -31,7 +31,7 @@ function shell(status: { url: string; defaultUrl: string; custom: boolean }, cho
     if (command === 'server_choose') return choose(args!.url)
     throw new Error(`unexpected ${command}`)
   })
-  g.__DOOP_SERVER_CHOOSE__ = true
+  g.__DIAGRAMLY_SERVER_CHOOSE__ = true
   g.__TAURI__ = { core: { invoke } }
   return invoke
 }
@@ -57,7 +57,7 @@ describe('the desktop server bridge', () => {
   it('is offered only in a shell that advertises it and carries the Tauri bridge', async () => {
     expect(canChooseServer()).toBe(false)
     await expect(chooseServer('https://doop.example.com')).rejects.toThrow(/desktop app/)
-    g.__DOOP_SERVER_CHOOSE__ = true
+    g.__DIAGRAMLY_SERVER_CHOOSE__ = true
     expect(canChooseServer()).toBe(false)
     g.__TAURI__ = { core: { invoke: vi.fn() } }
     expect(canChooseServer()).toBe(true)

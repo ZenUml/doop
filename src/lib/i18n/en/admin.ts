@@ -44,7 +44,7 @@ export const admin = {
   feedbackNav: 'Agent feedback',
   feedbackTab: 'Feedback · {count}',
   feedbackEmpty:
-    'No agent has sent anything yet. Agents call report_issue when Doop gets in their way and share_feedback with ideas.',
+    'No agent has sent anything yet. Agents call report_issue when Diagramly gets in their way and share_feedback with ideas.',
   feedbackKind: 'Kind',
   feedbackAll: 'All · {count}',
   feedbackIssues: 'Issues · {count}',

@@ -11,9 +11,9 @@ import os
 /// scripted camera over a loaded board when the app is launched with
 /// `-stressTest 1`, printing a JSON summary the simulator console captures:
 ///
-///   xcrun simctl launch --console booted design.doop.ios -serverOrigin https://localhost:18443 \
+///   xcrun simctl launch --console booted "$DIAGRAMLY_IOS_BUNDLE_IDENTIFIER" -serverOrigin https://localhost:18443 \
 ///     -testEmail … -testPassword … -openCanvas <id> -stressTest 1
-let canvasLog = Logger(subsystem: "design.doop.ios", category: "canvas.perf")
+let canvasLog = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Diagramly", category: "canvas.perf")
 
 struct PhaseStats: Encodable {
     var phase: String

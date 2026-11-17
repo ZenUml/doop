@@ -9,6 +9,7 @@ import { api } from '../src/lib/api'
 import { clearHistory, undo } from '../src/lib/history'
 import { useStore } from '../src/lib/store'
 
+vi.mock('../src/lib/product', () => ({ isDiagramly: () => false }))
 vi.mock('../src/lib/posthog', () => ({ posthog: { capture: vi.fn() } }))
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 

@@ -125,7 +125,7 @@ describe('which URLs the server may reach', () => {
   })
 
   it('reaches private hosts and plain http once the operator allows them', () => {
-    stubEnv('DOOP_CUSTOM_PROVIDER_PRIVATE_HOSTS', 'true')
+    stubEnv('DIAGRAMLY_CUSTOM_PROVIDER_PRIVATE_HOSTS', 'true')
     expect(reachableUrl('http://127.0.0.1:11434/v1').host).toBe('127.0.0.1:11434')
     expect(() => reachableUrl('file:///etc/passwd')).toThrow(CustomProviderUrlError)
   })
@@ -199,7 +199,7 @@ const screenshot: Anthropic.MessageParam = {
 }
 
 describe('a custom provider’s turns', () => {
-  beforeAll(() => stubEnv('DOOP_CUSTOM_PROVIDER_PRIVATE_HOSTS', 'true'))
+  beforeAll(() => stubEnv('DIAGRAMLY_CUSTOM_PROVIDER_PRIVATE_HOSTS', 'true'))
   afterAll(unstubAllEnvs)
   afterEach(() => {
     seen.length = 0

@@ -27,9 +27,10 @@ export const Cards: Story = {
     <div className="flex max-w-[640px] flex-col gap-4">
       <Card>
         <CardHeader>
-          <CardTitle>Doop Agent</CardTitle>
+          <CardTitle>Diagramly Agent</CardTitle>
           <CardDescription>
-            Choose how the Doop Agent runs on your canvases: a connected model account or Claude CLI on your desktop.
+            Choose how the Diagramly Agent runs on your canvases: a connected model account or Claude CLI on your
+            desktop.
           </CardDescription>
         </CardHeader>
         <CardBody>
@@ -62,7 +63,7 @@ export const Settings: Story = {
         <CardRow
           label="Webhook URL"
           controlWidth="lg"
-          control={<Input placeholder="https://hooks.example.com/doop" />}
+          control={<Input placeholder="https://hooks.example.com/diagramly" />}
         />
         <CardRow label="Created">
           <span className="text-body text-ink-soft">2d ago</span>
@@ -109,8 +110,8 @@ export const Notices: Story = {
         </Badge>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Badge shape="pill">kgoedecke/doop@main</Badge>
-        <Badge shape="pill">doop.design</Badge>
+        <Badge shape="pill">diagramly/example@main</Badge>
+        <Badge shape="pill">Diagramly</Badge>
         <Badge shape="pill">A Figma file with a name long enough to truncate at the pill’s limit</Badge>
       </div>
       <div className="flex flex-wrap items-center gap-4">
@@ -223,8 +224,8 @@ export const Loading: Story = {
 export const Code: Story = {
   render: () => (
     <div className="flex max-w-[520px] flex-col gap-3">
-      <CodeBlock text="claude mcp add --transport http doop https://doop.design/mcp" />
-      <CodeBlock density="rail" text="claude mcp add --transport http doop https://doop.design/mcp" />
+      <CodeBlock text="claude mcp add --transport http diagramly https://example.invalid/mcp" />
+      <CodeBlock density="rail" text="claude mcp add --transport http diagramly https://example.invalid/mcp" />
     </div>
   ),
 }

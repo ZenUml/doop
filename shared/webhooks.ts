@@ -1,5 +1,5 @@
 /** Canvas events an outbound webhook can subscribe to. Names are stable API:
- *  they appear in the X-Doop-Event header and the payload's `type`. */
+ *  they appear in the X-Diagramly-Event header and the payload's `type`. */
 export const WEBHOOK_EVENTS = [
   'comment.created',
   'comment.replied',

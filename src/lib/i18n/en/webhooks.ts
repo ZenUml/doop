@@ -28,7 +28,7 @@ export const webhooks = {
 
   title: 'Webhooks',
   descriptionBefore:
-    'doop POSTs a signed JSON event to each URL below when something happens on a canvas you own, were invited to, or that lives in one of your workspaces — route it to Slack, n8n, an issue tracker, anything with an HTTP endpoint. Each delivery carries an ',
+    'Diagramly POSTs a signed JSON event to each URL below when something happens on a canvas you own, were invited to, or that lives in one of your workspaces — route it to Slack, n8n, an issue tracker, anything with an HTTP endpoint. Each delivery carries an ',
   descriptionAfter:
     ' header (HMAC-SHA256 with the webhook’s secret) so the receiver can trust it. Failed deliveries are retried three times; a hook that keeps failing pauses itself.',
   newWebhookRow: 'New webhook',
@@ -39,7 +39,7 @@ export const webhooks = {
   signingSecretRow: 'Signing secret',
   copyNow: 'Copy it now — it is shown once. Verify deliveries with it on your side.',
   signatureFormula:
-    'signature = “sha256=” + HMAC-SHA256(secret, X-Doop-Timestamp + “.” + raw body). The docs have a ready-made check.',
+    'signature = “sha256=” + HMAC-SHA256(secret, X-Diagramly-Timestamp + “.” + raw body). The docs have a ready-made check.',
 
   sendTest: 'Send test',
   rotateSecret: 'Rotate secret',

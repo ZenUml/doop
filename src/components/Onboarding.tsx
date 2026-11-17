@@ -26,7 +26,7 @@ const obCopy =
  * account, so switching accounts cannot reuse someone else's checks.
  */
 
-const LS_KEY = 'doop:onboarding'
+const LS_KEY = 'diagramly:onboarding'
 
 interface Progress {
   dismissed?: boolean
@@ -69,7 +69,7 @@ export function Onboarding({ canvasId, user }: { canvasId: string; user: Pick<Me
   /* live detection — flips only ever go false -> true */
   const live = useMemo(() => {
     /* "connected" means an OUTSIDE agent over MCP — the resident team
-       (Doop and the specialists) doesn't count towards the setup steps */
+       (Diagramly and the specialists) doesn't count towards the setup steps */
     const outside = (name: string) => name !== '' && !roleByAgentName(name)
     const agentHere = Object.values(presences).some((p) => p.kind === 'agent' && outside(p.name))
     const agentWorked = tasks.some((task) => outside(task.agentName))
@@ -156,7 +156,7 @@ export function Onboarding({ canvasId, user }: { canvasId: string; user: Pick<Me
   /* the same one-line prompt the Connect AI modal hands out: the MCP server
      ships its own instructions on connect, so the prompt only needs to name
      the canvas */
-  const prompt = `Work on Doop canvas ${canvasId}. Start with get_guide({ topic: "doop-instructions" }) and follow it.`
+  const prompt = `Work on Diagramly canvas ${canvasId}. Start with get_guide({ topic: "design-instructions" }) and follow it.`
 
   const checklist = (
     <>

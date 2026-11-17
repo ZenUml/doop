@@ -148,7 +148,9 @@ describe('threads on a canvas comment', () => {
     expect(actions.openThread(root.id)).toBeUndefined()
     expect(seen.at(-1)).toMatchObject({ type: 'comment.resolved', frame: undefined, by: AGENT })
     /* an @agent instruction that got carried out is a decision, frame or not */
-    expect(actions.getDecisions(CANVAS.id)).toMatchObject([{ text: '@doop tighten the gap', source: 'comment' }])
+    expect(actions.getDecisions(CANVAS.id)).toMatchObject([
+      { text: `@${DEFAULT_ROLE_ID} tighten the gap`, source: 'comment' },
+    ])
     expect(actions.getDecisions(CANVAS.id)[0]?.frameId).toBeUndefined()
   })
 
@@ -238,7 +240,7 @@ describe('where a canvas comment leads', () => {
     ))!
     expect(c.elementId).toMatch(/^[a-z0-9]{6}$/)
     expect(describeCommentAnchor(c, CANVAS)).toBe(
-      `on frame f1 "Hero", the element with data-doop-id="${c.elementId}"\n  element HTML at comment time: <h1>Hi</h1>`,
+      `on frame f1 "Hero", the element with data-diagramly-id="${c.elementId}"\n  element HTML at comment time: <h1>Hi</h1>`,
     )
     /* the element lost its id (an agent rewrote the frame): the snippet is what is left */
     expect(describeCommentAnchor({ ...c, elementId: undefined }, CANVAS)).toBe(

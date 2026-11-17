@@ -43,7 +43,7 @@ final class DoopClient {
         guard (200..<300).contains(http.statusCode) else {
             let payload = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
             let detail = payload?["message"] as? String ?? payload?["error"] as? String
-            let message = detail == "resident_limit" ? "Your agent allowance is used up. Connect a model account in Doop’s account settings." : detail
+            let message = detail == "resident_limit" ? "Your agent allowance is used up. Connect a model account in Diagramly’s account settings." : detail
             throw APIError(status: http.statusCode, message: message ?? "Request failed (\(http.statusCode)).")
         }
         return data
@@ -87,21 +87,28 @@ final class AppModel: ObservableObject {
     @Published var canvases: [CanvasSummary] = []
     @Published var workspaces: [WorkspaceSummary] = []
     @Published var loading = true
+    @Published var serverConfigured = false
     @Published var error: String?
     /// Provider buttons the sign-in screen offers for the current server.
     @Published var providers = LoginProviders.none
     @Published var client: DoopClient
 
     init() {
-        let address = UserDefaults.standard.string(forKey: "serverOrigin").flatMap(ServerAddress.init) ?? .hosted
+        let configuredAddress = UserDefaults.standard.string(forKey: "serverOrigin").flatMap(ServerAddress.init)
+        serverConfigured = configuredAddress != nil
+        let address = configuredAddress ?? ServerAddress("https://example.invalid")!
         client = DoopClient(server: address)
+        if !serverConfigured { loading = false }
         // Start following Live Activities at once: iOS may have launched the app in
         // the background only to hand over a server-started activity's push token.
         let client = self.client
-        Task { await client.importWebSession(); AgentLiveActivities.shared.observeSystem(client: client) }
+        if serverConfigured {
+            Task { await client.importWebSession(); AgentLiveActivities.shared.observeSystem(client: client) }
+        }
     }
 
     func restore() async {
+        guard serverConfigured else { loading = false; return }
         let client = self.client
         loading = true
         error = nil
@@ -256,10 +263,13 @@ final class AppModel: ObservableObject {
     }
 
     func changeServer(_ server: ServerAddress) async {
-        await AgentLiveActivities.shared.stopSystem(client: client)
-        await AgentLiveActivities.shared.endAll(client: client)
+        if serverConfigured {
+            await AgentLiveActivities.shared.stopSystem(client: client)
+            await AgentLiveActivities.shared.endAll(client: client)
+        }
         client = DoopClient(server: server)
         UserDefaults.standard.set(server.origin.absoluteString, forKey: "serverOrigin")
+        serverConfigured = true
         user = nil
         canvases = []
         workspaces = []

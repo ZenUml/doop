@@ -95,7 +95,7 @@ function canvas(ownerId = 'owner') {
 beforeEach(() => {
   mocks.account.mockReset().mockResolvedValue(null)
   mocks.own.mockReset().mockReturnValue(null)
-  mocks.server.mockReset().mockReturnValue(fake('Doop (haiku)'))
+  mocks.server.mockReset().mockReturnValue(fake('Diagramly (haiku)'))
   mocks.run.mockReset().mockResolvedValue(answer('A checkout screen with a blue Pay button.'))
 })
 
@@ -132,13 +132,13 @@ describe('which model describes', () => {
 
   it('falls through to the server tier for a text-only account, and says so when there is none', async () => {
     mocks.account.mockResolvedValue({ kind: 'openrouter-key', userId: 'owner' })
-    expect(await describerFor('owner')).toMatchObject({ status: { label: 'Doop (haiku)' } })
+    expect(await describerFor('owner')).toMatchObject({ status: { label: 'Diagramly (haiku)' } })
     mocks.server.mockReturnValue(null)
     expect(await describerFor('owner')).toEqual({ model: null, status: { label: null, reason: 'text-only' } })
   })
 
   it('uses the server tier for an owner without an account, and reports no-model without a key', async () => {
-    expect(await describerFor('owner')).toMatchObject({ status: { label: 'Doop (haiku)' } })
+    expect(await describerFor('owner')).toMatchObject({ status: { label: 'Diagramly (haiku)' } })
     mocks.server.mockReturnValue(null)
     expect(await describerFor('owner')).toEqual({ model: null, status: { label: null, reason: 'no-model' } })
   })
@@ -149,7 +149,7 @@ describe('which model describes', () => {
     await saveImageDescriptionMode('picky', 'off')
     expect(await describerFor('picky')).toEqual({ model: null, status: { label: null, reason: 'off' } })
     await saveImageDescriptionMode('picky', 'server')
-    expect(await describerFor('picky')).toMatchObject({ status: { label: 'Doop (haiku)' } })
+    expect(await describerFor('picky')).toMatchObject({ status: { label: 'Diagramly (haiku)' } })
     expect(mocks.own).not.toHaveBeenCalled()
   })
 })
@@ -167,7 +167,7 @@ describe('the worker', () => {
     await describeIdle()
     expect(await row(asset.id)).toMatchObject({
       description: 'A checkout screen with a blue Pay button.',
-      describedBy: 'Doop (haiku)',
+      describedBy: 'Diagramly (haiku)',
       describeAttempts: 0,
     })
     expect(sent).toContainEqual([
@@ -349,7 +349,10 @@ describe('uploader billing and consent', () => {
   })
 
   it('uses the server when neither account is available, or leaves the image undescribed without it', async () => {
-    expect(await describerFor('missing', 'owner')).toMatchObject({ payerId: null, status: { label: 'Doop (haiku)' } })
+    expect(await describerFor('missing', 'owner')).toMatchObject({
+      payerId: null,
+      status: { label: 'Diagramly (haiku)' },
+    })
     mocks.server.mockReturnValue(null)
     const asset = await createAsset(png, { canvasId: canvas(), ownerId: 'missing', uploadedBy: 'Alice' })
     expect(await describeAsset(asset.id)).toBe('skipped')
@@ -445,7 +448,7 @@ describe('uploader billing and consent', () => {
     expect(await describeAsset(asset.id)).toBe('described')
     expect(mocks.account).not.toHaveBeenCalled()
     expect(mocks.server).toHaveBeenLastCalledWith('anthropic')
-    expect(await row(asset.id)).toMatchObject({ describePayerId: null, describedBy: 'Doop (haiku)' })
+    expect(await row(asset.id)).toMatchObject({ describePayerId: null, describedBy: 'Diagramly (haiku)' })
   })
 })
 

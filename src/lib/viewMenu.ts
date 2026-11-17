@@ -47,9 +47,9 @@ export const NO_CANVAS: ViewMenuState = {
 }
 
 type ViewMenuBridge = {
-  __DOOP_VIEW_MENU__?: boolean
+  __DIAGRAMLY_VIEW_MENU__?: boolean
   /** the shell builds its whole menu bar from the page (appMenu.ts) */
-  __DOOP_APP_MENU__?: boolean
+  __DIAGRAMLY_APP_MENU__?: boolean
   __TAURI__?: { core?: { invoke: (command: string, args: ViewMenuState) => Promise<void> } }
 }
 
@@ -71,7 +71,7 @@ export function runViewCommand(command: ViewCommand) {
 /** Mirror the page's view state into the shell's menu; a shell whose menu bar
  *  the page builds (appMenu.ts) has no fixed View menu to keep in step. */
 export function syncViewMenu(state: ViewMenuState) {
-  const fixedMenu = bridge.__DOOP_VIEW_MENU__ === true && bridge.__DOOP_APP_MENU__ !== true
+  const fixedMenu = bridge.__DIAGRAMLY_VIEW_MENU__ === true && bridge.__DIAGRAMLY_APP_MENU__ !== true
   const invoke = fixedMenu ? bridge.__TAURI__?.core?.invoke : undefined
   invoke?.('view_menu_state', state).catch(console.error)
 }

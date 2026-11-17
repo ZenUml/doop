@@ -78,9 +78,9 @@ describe('translateIn', () => {
     expect(i18n.translateIn('pt-BR', missing)).toBe('settings.notThere')
   })
 
-  it('uses document and diagram terms only in Diagramly mode', async () => {
-    expect(i18n.translateIn('en', 'actions.newCanvas')).toBe('New canvas')
-    expect(i18n.translateIn('pt-BR', 'canvas.allCanvases')).toBe('Todos os canvases')
+  it('uses Diagramly branding and diagram terms before and after product bootstrap', async () => {
+    expect(i18n.translateIn('en', 'actions.newCanvas')).toBe('New document')
+    expect(i18n.translateIn('pt-BR', 'canvas.allCanvases')).toBe('Todos os documentos')
 
     vi.stubGlobal(
       'fetch',
@@ -89,6 +89,13 @@ describe('translateIn', () => {
     const product = await import('../src/lib/product')
     await product.initProduct()
 
+    expect(i18n.translateIn('en', 'connect.claudeDesktopAddTitle')).toBe('Add Diagramly to Claude Desktop')
+    expect(i18n.translateIn('pt-BR', 'settings.agentTitle')).toBe('Diagramly Agent')
+    expect(i18n.translateIn('en', 'canvas.cardsQueued', { count: 2 })).toBe('2 cards queued — Diagramly is on it')
+    expect(i18n.translateIn('en', 'automations.slackPitch')).toBe('Mention @diagramly with a design brief')
+    expect(i18n.translateIn('en', 'auth.openDiagramly')).toBe('Open Diagramly')
+    expect(i18n.translateIn('en', 'auth.serverLede', { host: 'Doop user content' })).toContain('Doop user content')
+    expect(i18n.translateIn('en', 'connect.cursorApproveBody')).toContain('the diagramly server')
     expect(i18n.translateIn('en', 'actions.newCanvas')).toBe('New document')
     expect(i18n.translateIn('en', 'actions.newDiagram')).toBe('New diagram')
     expect(i18n.translateIn('en', 'canvas.allCanvases')).toBe('All documents')
@@ -111,12 +118,12 @@ describe('locale', () => {
 
     i18n.setLocale('en')
     expect(i18n.getLocale()).toBe('en')
-    expect(store.get('doop-locale')).toBe('en')
+    expect(store.get('diagramly-locale')).toBe('en')
     expect(document.documentElement.lang).toBe('en')
   })
 
   it('does not ask the server when the browser already picked', async () => {
-    store.set('doop-locale', 'pt-BR')
+    store.set('diagramly-locale', 'pt-BR')
     serverSays({ defaultLocale: 'en' })
     await i18n.initLocale()
     expect(fetch).not.toHaveBeenCalled()

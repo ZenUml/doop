@@ -5,7 +5,7 @@
  * A role IS an agent identity: `name` is what shows up in presence, in the
  * activity feed and in @mentions, and colorFor(name) gives it its colour, so
  * two roles never look like the same worker on the canvas. `color` is the
- * role's crew colour, used only to tint its Doop mark.
+ * role's crew colour, used only to tint its Diagramly mark.
  */
 
 export interface AgentRole {
@@ -27,8 +27,8 @@ export interface AgentRole {
 
 export const AGENT_ROLES: AgentRole[] = [
   {
-    id: 'doop',
-    name: 'Doop',
+    id: 'diagramly',
+    name: 'Diagramly',
     color: '#E8432E',
     blurb: 'Generalist designer — makes the thing',
     brief:
@@ -85,13 +85,13 @@ export const AGENT_ROLES: AgentRole[] = [
   },
 ]
 
-export const DEFAULT_ROLE_ID = 'doop'
+export const DEFAULT_ROLE_ID = 'diagramly'
 
 /** Ready-made pipelines for the board's compose box. */
 export const PIPELINE_PRESETS: { id: string; label: string; roles: string[] }[] = [
-  { id: 'solo', label: 'Just Doop', roles: ['doop'] },
-  { id: 'ship', label: 'Design → polish', roles: ['doop', 'polish'] },
-  { id: 'full', label: 'Full pipeline', roles: ['doop', 'copy', 'brand', 'a11y', 'polish'] },
+  { id: 'solo', label: 'Just Diagramly', roles: ['diagramly'] },
+  { id: 'ship', label: 'Design → polish', roles: ['diagramly', 'polish'] },
+  { id: 'full', label: 'Full pipeline', roles: ['diagramly', 'copy', 'brand', 'a11y', 'polish'] },
   { id: 'audit', label: 'Review only', roles: ['ux', 'brand', 'a11y'] },
 ]
 
@@ -122,7 +122,7 @@ export function normalizePipeline(ids: unknown): string[] {
   return out.length > 0 ? out.slice(0, AGENT_ROLES.length) : [DEFAULT_ROLE_ID]
 }
 
-/** Every spelling that addresses a role in a comment: @doop, @UXLead, @ux… */
+/** Every spelling that addresses a role in a comment: @diagramly, @UXLead, @ux… */
 export function mentionsFor(role: AgentRole): string[] {
   return [role.id, role.name.replace(/\s+/g, ''), ...(role.aliases ?? [])].map((m) => m.toLowerCase())
 }

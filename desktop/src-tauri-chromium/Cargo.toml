@@ -5,14 +5,14 @@
 # and sets `cfg(chromium)` (see the cfg(chromium) blocks in main.rs).
 #
 # On macOS this is the app that ships: the release workflow builds it as
-# `doop` (design.doop.desktop), the same bundle the WebKit build was, so the
+# `diagramly` (ai.diagramly.desktop), the same bundle the WebKit build was, so the
 # WebKit app updates into it in place. Windows and Linux stay on the WebKit
 # build. Tauri 3 and its CEF runtime are alphas, pinned exactly. Keep the
 # shared dependencies below in step with ../src-tauri.
 [package]
-name = "doop-desktop-chromium"
+name = "diagramly-desktop-chromium"
 version = "0.13.0"
-description = "Desktop shell for doop on Chromium (CEF) — the same thin shell over the hosted app"
+description = "Desktop shell for diagramly on Chromium (CEF) — the same thin shell over the hosted app"
 edition = "2021"
 build = "../src-tauri/build.rs"
 autobins = false
@@ -20,7 +20,7 @@ autobins = false
 # the executable keeps the WebKit app's name: the updater relaunches the
 # bundle by its old executable path once it has swapped the bundle
 [[bin]]
-name = "doop-desktop"
+name = "diagramly-desktop"
 path = "../src-tauri/src/main.rs"
 
 [build-dependencies]
@@ -48,7 +48,7 @@ sha2 = "0.10"
 libc = "0.2"
 rfd = "0.16"
 tokio = { version = "1", features = ["time"] }
-# The check that a server picked in the app is a Doop server (src/server.rs);
+# The check that a server picked in the app is a Diagramly server (src/server.rs);
 # the same reqwest and ring-backed rustls the updater already links.
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls-no-provider"] }
 rustls = { version = "0.23", default-features = false, features = ["ring"] }

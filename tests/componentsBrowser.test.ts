@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { openBrowser, serveBuilt, type BuiltServer, type TestBrowser } from './browser'
+import { openBrowser, serveDesignBuilt, type BuiltServer, type TestBrowser } from './browser'
 import { freePort, startServer, type Server } from './harness'
 
 /* The whole loop in the real editor, over the real server: make a component
@@ -84,13 +84,13 @@ describe.skipIf(!findBrowserPath())('components in the editor', { timeout: 60_00
 
   beforeAll(async () => {
     const port = await freePort()
-    web = await serveBuilt({
+    web = await serveDesignBuilt({
       '/api': { target: `http://localhost:${port}` },
       '/ws': { target: `ws://localhost:${port}`, ws: true },
       '/i': { target: `http://localhost:${port}` },
     })
     const origin = web.origin
-    server = await startServer({ PORT: String(port), BETTER_AUTH_URL: origin })
+    server = await startServer({ DIAGRAMLY_PRODUCT: 'design', PORT: String(port), BETTER_AUTH_URL: origin })
     browser = await openBrowser()
     page = await browser.newPage()
     page.setDefaultTimeout(10_000)
@@ -154,13 +154,13 @@ describe.skipIf(!findBrowserPath())('components in the editor', { timeout: 60_00
     await until(async () => ((await canvas()).components?.length ?? 0) === 1, 'the component')
     const made = (await canvas()).components![0]!
     expect(made.name).toBe('Pill')
-    expect(await frameHtml()).toContain(`data-doop-component="${made.id}"`)
+    expect(await frameHtml()).toContain(`data-diagramly-component="${made.id}"`)
 
     /* undo takes back this step, not whatever came before it, and redo links the main again */
     await shortcut('z')
-    await until(async () => !(await frameHtml()).includes('data-doop-component='), 'undo of the create')
+    await until(async () => !(await frameHtml()).includes('data-diagramly-component='), 'undo of the create')
     await shortcut('z', true)
-    await until(async () => (await frameHtml()).includes(`data-doop-component="${made.id}"`), 'redo of the create')
+    await until(async () => (await frameHtml()).includes(`data-diagramly-component="${made.id}"`), 'redo of the create')
   })
 
   it('lists it in the panel with a preview, and places it into the selected frame', async () => {
@@ -170,10 +170,10 @@ describe.skipIf(!findBrowserPath())('components in the editor', { timeout: 60_00
     /* a click on the card places nothing; its menu does */
     await page.click('[data-component-card="Pill"] iframe')
     await new Promise((resolve) => setTimeout(resolve, 300))
-    expect(await frameHtml()).not.toContain(' data-doop-instance=')
+    expect(await frameHtml()).not.toContain(' data-diagramly-instance=')
     await page.click('[data-component-card="Pill"] [data-component-menu]')
     await clickByText('Insert instance')
-    await until(async () => (await frameHtml()).includes(' data-doop-instance='), 'the instance')
+    await until(async () => (await frameHtml()).includes(' data-diagramly-instance='), 'the instance')
     expect(await frameHtml()).toContain('Buy now')
   })
 
@@ -191,7 +191,7 @@ describe.skipIf(!findBrowserPath())('components in the editor', { timeout: 60_00
     await field!.type('Sign up')
     await page.keyboard.press('Enter')
     await until(async () => (await frameHtml()).includes('Sign up'), 'the prop to save')
-    expect(await frameHtml()).toMatch(/data-doop-props="[^"]*Sign up/)
+    expect(await frameHtml()).toMatch(/data-diagramly-props="[^"]*Sign up/)
 
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
     await shortcut('z')
@@ -238,7 +238,7 @@ describe.skipIf(!findBrowserPath())('components in the editor', { timeout: 60_00
       const frames = page.frames()
       for (const frame of frames) {
         const count = await frame
-          .evaluate(() => document.querySelectorAll('[data-doop-instance].live-update').length)
+          .evaluate(() => document.querySelectorAll('[data-diagramly-instance].live-update').length)
           .catch(() => 0)
         if (count > 0) return true
       }
@@ -254,9 +254,9 @@ describe.skipIf(!findBrowserPath())('components in the editor', { timeout: 60_00
       button: 'right',
     })
     await clickByText('Detach instance')
-    await until(async () => !(await frameHtml()).includes(' data-doop-instance='), 'the detach')
+    await until(async () => !(await frameHtml()).includes(' data-diagramly-instance='), 'the detach')
     const html = await frameHtml()
-    expect(html).toContain(' data-doop-component=')
+    expect(html).toContain(' data-diagramly-component=')
     expect(html.match(/live-update/g)!.length).toBeGreaterThanOrEqual(2)
 
     /* cut loose, it still wears the component's styles: a ghost-free dark pill on the page */
@@ -264,7 +264,7 @@ describe.skipIf(!findBrowserPath())('components in the editor', { timeout: 60_00
       for (const frame of page.frames()) {
         const background = await frame
           .evaluate(() => {
-            const el = document.querySelector('[data-doop-detached-from]')
+            const el = document.querySelector('[data-diagramly-detached-from]')
             return el ? getComputedStyle(el).backgroundColor : null
           })
           .catch(() => null)
@@ -330,7 +330,7 @@ describe.skipIf(!findBrowserPath())('components in the editor', { timeout: 60_00
         y: 100,
         width: 80,
         height: 80,
-        html: '<!doctype html><html><head></head><body data-doop-canvas-element="true"><div data-doop-id="dotdot" data-doop-drawing="rect" style="width:80px;height:80px;background:#0177d3"></div></body></html>',
+        html: '<!doctype html><html><head></head><body data-diagramly-canvas-element="true"><div data-diagramly-id="dotdot" data-diagramly-drawing="rect" style="width:80px;height:80px;background:#0177d3"></div></body></html>',
       })
       const { component } = await post(`/api/canvases/${id}/components`, {
         name: 'Dot',

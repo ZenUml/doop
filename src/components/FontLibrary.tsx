@@ -24,7 +24,7 @@ const ACCEPT = '.ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2'
 
 /* previews load under an alias of their own: an uploaded "Inter" must never
    replace the Inter the app itself is set in */
-const previewFamily = (font: CustomFont) => `doop-preview-${font.id}`
+const previewFamily = (font: CustomFont) => `diagramly-preview-${font.id}`
 const loadedPreviews = new Set<string>()
 
 function loadPreview(font: CustomFont) {

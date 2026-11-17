@@ -1,12 +1,12 @@
 ;(() => {
-  if (window.__doopCapture) return
-  window.__doopCapture = (mode) => {
-    window.__doopCaptureCleanup?.()
+  if (window.__diagramlyCapture) return
+  window.__diagramlyCapture = (mode) => {
+    window.__diagramlyCaptureCleanup?.()
     const host = document.createElement('div')
     host.style.cssText = 'position:fixed;inset:0;z-index:2147483647;pointer-events:none'
     const shadow = host.attachShadow({ mode: 'closed' })
     shadow.innerHTML =
-      '<style>*{box-sizing:border-box}.box{position:fixed;border:2px solid #0177d3;background:#0177d312;pointer-events:none}.bar{position:fixed;top:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);padding:12px 16px;background:#fdfdfd;color:#111;border-radius:10px;font:12px "Helvetica Neue",Helvetica,Arial,sans-serif;pointer-events:auto;box-shadow:0 12px 40px -10px #0003,0 0 0 1px #0000000f}button{margin-left:12px;padding:8px 12px;border:0;border-radius:6px;background:#191919;color:white;font:inherit;cursor:pointer}button:hover{background:#333}button:focus-visible{outline:2px solid #0177d3;outline-offset:3px}.brand{font-weight:600;border-right:1px solid #dcdcdc;padding-right:14px;white-space:nowrap}.close{background:#f0f0f0;color:#555}.close:hover{background:#e5e5e5}</style><div class="box"></div><div class="bar"><div class="brand">Doop Cature</div><span role="status" aria-live="polite"></span><button class="close" aria-label="Close capture">Close</button></div>'
+      '<style>*{box-sizing:border-box}.box{position:fixed;border:2px solid #0177d3;background:#0177d312;pointer-events:none}.bar{position:fixed;top:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);padding:12px 16px;background:#fdfdfd;color:#111;border-radius:10px;font:12px "Helvetica Neue",Helvetica,Arial,sans-serif;pointer-events:auto;box-shadow:0 12px 40px -10px #0003,0 0 0 1px #0000000f}button{margin-left:12px;padding:8px 12px;border:0;border-radius:6px;background:#191919;color:white;font:inherit;cursor:pointer}button:hover{background:#333}button:focus-visible{outline:2px solid #0177d3;outline-offset:3px}.brand{font-weight:600;border-right:1px solid #dcdcdc;padding-right:14px;white-space:nowrap}.close{background:#f0f0f0;color:#555}.close:hover{background:#e5e5e5}</style><div class="box"></div><div class="bar"><div class="brand">Diagramly Capture</div><span role="status" aria-live="polite"></span><button class="close" aria-label="Close capture">Close</button></div>'
     document.documentElement.append(host)
     const label = shadow.querySelector('span')
     const box = shadow.querySelector('.box')
@@ -17,7 +17,7 @@
       document.removeEventListener('click', click, true)
       document.removeEventListener('keydown', key, true)
     }
-    window.__doopCaptureCleanup = cleanup
+    window.__diagramlyCaptureCleanup = cleanup
     shadow.querySelector('button').onclick = cleanup
     const move = (event) => {
       if (event.target === host) return
@@ -125,16 +125,16 @@
         if (new TextEncoder().encode(html).length > 3000000)
           throw new Error('Capture exceeds 3 MB. Select a smaller section.')
         const payload =
-          'DOOP_CAPTURE_V1\n' + JSON.stringify({ name: document.title || 'Website capture', width, height, html })
+          'DIAGRAMLY_CAPTURE_V1\n' + JSON.stringify({ name: document.title || 'Website capture', width, height, html })
         // A visible copy button provides a fresh gesture after capture and keeps failure recoverable.
         label.textContent = 'Ready. '
         const button = document.createElement('button')
-        button.textContent = 'Copy to Doop'
+        button.textContent = 'Copy to Diagramly'
         label.append(button)
         button.onclick = async () => {
           try {
             await navigator.clipboard.writeText(payload)
-            label.textContent = 'Copied! Paste into your Doop canvas.'
+            label.textContent = 'Copied! Paste into your Diagramly canvas.'
           } catch {
             label.textContent = 'Clipboard denied. Keep this tab focused and capture again.'
           }

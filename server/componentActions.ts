@@ -163,7 +163,7 @@ export function validProps(props: unknown): ComponentProp[] {
   return props.map((raw: Partial<ComponentProp>) => {
     if (!isPropName(raw?.name))
       fail(
-        `prop name “${String(raw?.name)}” must be lowercase letters, digits and hyphens, and not one <doop-use> keeps for itself (component, id, class, style, overrides, slot, data-doop-*)`,
+        `prop name “${String(raw?.name)}” must be lowercase letters, digits and hyphens, and not one <diagramly-use> keeps for itself (component, id, class, style, overrides, slot, data-diagramly-*)`,
       )
     const type = raw.type ?? (raw.options?.length ? 'enum' : 'text')
     if (!PROP_TYPES.includes(type)) fail(`prop “${raw.name}” has unknown type “${String(type)}”`)
@@ -297,7 +297,7 @@ export interface CreateFromElement {
   props?: ComponentProp[]
   code?: ComponentCode
   frameId: string
-  /** a data-doop-id, or a selector from find_component_candidates */
+  /** a data-diagramly-id, or a selector from find_component_candidates */
   element: string
   autoProps?: boolean
   /** also turn every other element of the same shape on the canvas into an instance */
@@ -335,7 +335,7 @@ export function createComponentFromElement(canvasId: string, input: CreateFromEl
   const props = validProps(input.props)
   const frame = requireFrame(canvasId, input.frameId)
   const located = locate(frame.html, input.element)
-  if (!located) fail(`no element “${input.element}” in frame ${frame.id} — use a data-doop-id from get_frame`)
+  if (!located) fail(`no element “${input.element}” in frame ${frame.id} — use a data-diagramly-id from get_frame`)
   const { el } = located
   if (['html', 'head', 'body'].includes(el.tagName)) fail('pick an element inside the page, not the whole document')
   if (attrOf(el, COMPONENT_ATTR)) fail('that element is already a component’s main')
@@ -650,7 +650,7 @@ export interface InsertInput {
   frameId: string
   component: string
   props?: Record<string, string>
-  /** inside or beside this element (a data-doop-id or selector); the page body when unset */
+  /** inside or beside this element (a data-diagramly-id or selector); the page body when unset */
   target?: string
   position?: InstancePosition
 }
@@ -686,7 +686,7 @@ function insertAt(html: string, markup: string, target: string | undefined, posi
     const doc = parse(html, { sourceCodeLocationInfo: true })
     const el = resolveElement(doc, selectorFor(target))
     const location = el?.sourceCodeLocation
-    if (!location) fail(`no element “${target}” in this frame — use a data-doop-id from get_frame`)
+    if (!location) fail(`no element “${target}” in this frame — use a data-diagramly-id from get_frame`)
     if (position === 'before')
       return splice(html, [{ start: location.startOffset, end: location.startOffset, text: markup }])
     if (position === 'after')

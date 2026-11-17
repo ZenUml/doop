@@ -121,3 +121,6 @@ describe('LayersPanel ⌫', () => {
     expect(row(P).getAttribute('aria-selected')).toBe('false')
   })
 })
+
+// These cases exercise the legacy HTML design tools.
+vi.mock('../src/lib/product', () => ({ isDiagramly: () => false }))

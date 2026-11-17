@@ -22,14 +22,14 @@ import { t as translate, useT, type PlainMessageKey } from '../lib/i18n'
 import { cn } from '@/lib/utils'
 
 /**
- * "Keep the Doop Agent running on my own subscription."
+ * "Keep the Diagramly Agent running on my own subscription."
  *
  * OpenAI issues no redirect URI for a hosted app, so connecting ChatGPT takes
  * one of three shapes, cheapest first:
  *
- *  - Doop on this machine: it holds the loopback port and catches the redirect
+ *  - Diagramly on this machine: it holds the loopback port and catches the redirect
  *    itself. Approve in the OpenAI tab, nothing to copy.
- *  - Doop hosted: device code — type a short code at auth.openai.com while the
+ *  - Diagramly hosted: device code — type a short code at auth.openai.com while the
  *    server polls. Needs "device code authorization" on in ChatGPT settings.
  *  - Fallback: paste the dead redirect page's address back here.
  *
@@ -600,7 +600,7 @@ export function ModelAccountPanel({ onChange }: { onChange?: () => void }) {
     </>
   ) : waiting ? (
     <>
-      {/* Doop holds the loopback port itself, so approving is the whole job —
+      {/* Diagramly holds the loopback port itself, so approving is the whole job —
           this row flips on its own. */}
       <p className={cn(maWaiting, 'mt-0')}>
         <Dot className="animate-[arrival-pulse_1.6s_ease-in-out_infinite] bg-brand" /> {t('models.waitingOtherTab')}

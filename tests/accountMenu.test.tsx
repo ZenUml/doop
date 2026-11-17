@@ -38,13 +38,13 @@ async function openMenu(): Promise<Map<string, string | null>> {
 
 it('links the desktop download and the website from the account menu', async () => {
   const links = await openMenu()
-  expect(links.get('Get desktop app')).toBe('https://doop.design/download')
-  expect(links.get('Doop website')).toBe('https://doop.design/?site')
+  expect(links.get('Get desktop app')).toBe('https://apps.apple.com/app/id1602636196')
+  expect(links.get('Diagramly website')).toBe('https://diagramly.ai')
 })
 
 it('offers no download inside the desktop app', async () => {
   shell.desktop = true
   const links = await openMenu()
   expect(links.has('Get desktop app')).toBe(false)
-  expect(links.get('Doop website')).toBe('https://doop.design/?site')
+  expect(links.get('Diagramly website')).toBe('https://diagramly.ai')
 })

@@ -17,7 +17,7 @@ let pageId: string
 
 beforeAll(async () => {
   /* no free resident tasks: an @mention must be refused by the meter */
-  server = await startServer({ RESIDENT_TASK_LIMIT: '0' })
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design', RESIDENT_TASK_LIMIT: '0' })
   owner = await new Client(server).signUp('owner@test.dev', 'Owner')
   stranger = await new Client(server).signUp('stranger@test.dev', 'Stranger')
   const canvas = await (await owner.post('/api/canvases', { name: 'Pins' })).json()
@@ -81,7 +81,12 @@ describe('POST /api/canvases/:id/comments', () => {
   })
 
   it('meters an @mention like an element comment', async () => {
-    const res = await owner.post(`/api/canvases/${canvasId}/comments`, { pageId, x: 0, y: 0, text: '@doop add a hero' })
+    const res = await owner.post(`/api/canvases/${canvasId}/comments`, {
+      pageId,
+      x: 0,
+      y: 0,
+      text: '@diagramly add a hero',
+    })
     expect(res.status).toBe(403)
     expect(await res.json()).toMatchObject({ error: 'resident_limit' })
   })
@@ -96,7 +101,10 @@ describe('POST /api/canvases/:id/comments', () => {
     const { dataDir } = server
     server.stop({ keepData: true })
     await server.stopped
-    server = await startServer({ RESIDENT_TASK_LIMIT: '0', PORT: String(server.port) }, dataDir)
+    server = await startServer(
+      { DIAGRAMLY_PRODUCT: 'design', RESIDENT_TASK_LIMIT: '0', PORT: String(server.port) },
+      dataDir,
+    )
     const ws = new WebSocket(`ws://localhost:${server.port}/ws`, { headers: { Cookie: owner.header() } })
     const init = await new Promise<{ comments: Record<string, unknown>[] }>((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('ws join timed out')), 8000)
@@ -139,7 +147,7 @@ describe('POST /api/frames/:id/comments on the frame as a whole', () => {
     expect(reply.elementId).toBeUndefined()
   })
 
-  it('stamps the element with a data-doop-id, keeps sign-off, and drops the point', async () => {
+  it('stamps the element with a data-diagramly-id, keeps sign-off, and drops the point', async () => {
     const frame = await (
       await owner.post(`/api/canvases/${canvasId}/frames`, {
         name: 'Other',
@@ -166,7 +174,7 @@ describe('POST /api/frames/:id/comments on the frame as a whole', () => {
     expect(comment.elementId).toMatch(/^[a-z0-9]{6}$/)
     expect(comment).toMatchObject({ x: 5, y: 5, elementOrigin: { x: 0, y: 0 } })
     const stamped = await frameNow(frame.id)
-    expect(stamped.html).toBe(`<p data-doop-id="${comment.elementId}">Hi</p>`)
+    expect(stamped.html).toBe(`<p data-diagramly-id="${comment.elementId}">Hi</p>`)
     /* an annotation, not a design change: the reviewer's sign-off stands */
     expect(stamped.approval?.status).toBe('ready_for_dev')
     /* the same element again carries the same id; no second stamp */
@@ -248,11 +256,11 @@ describe('POST /api/frames/:id/element-id', () => {
     expect(res.status).toBe(200)
     expect(elementId).toMatch(/^[a-z0-9]{6}$/)
     const again = await (
-      await owner.post(`/api/frames/${frame.id}/element-id`, { selector: `[data-doop-id="${elementId}"]` })
+      await owner.post(`/api/frames/${frame.id}/element-id`, { selector: `[data-diagramly-id="${elementId}"]` })
     ).json()
     expect(again.elementId).toBe(elementId)
     const html = (await frameNow(frame.id)).html
-    expect(html).toBe(`<main><h1>Title</h1><p data-doop-id="${elementId}">Body</p></main>`)
+    expect(html).toBe(`<main><h1>Title</h1><p data-diagramly-id="${elementId}">Body</p></main>`)
     expect((await owner.post(`/api/frames/${frame.id}/element-id`, { selector: '' })).status).toBe(400)
     /* the live excerpt, when sent, has to describe the saved element at that path */
     const drifted = await owner.post(`/api/frames/${frame.id}/element-id`, {
@@ -344,7 +352,7 @@ describe('PATCH /api/comments/:id/anchor', () => {
     expect(moved.elementId).toMatch(/^[a-z0-9]{6}$/)
     expect(moved).toMatchObject({ x: 1, y: 2, elementOrigin: { x: 0, y: 0 } })
     expect(moved.pageId).toBeUndefined()
-    expect((await frameNow(frame.id)).html).toContain(`<button data-doop-id="${moved.elementId}">Go</button>`)
+    expect((await frameNow(frame.id)).html).toContain(`<button data-diagramly-id="${moved.elementId}">Go</button>`)
     /* a later reply inherits the new anchor */
     const later = await (await owner.post(`/api/comments/${root.id}/replies`, { text: 'Still here' })).json()
     expect(later).toMatchObject({
@@ -405,7 +413,7 @@ it('retains the element placement across a server restart', async () => {
   const { dataDir, port } = server
   server.stop({ keepData: true })
   await server.stopped
-  server = await startServer({ PORT: String(port), RESIDENT_TASK_LIMIT: '0' }, dataDir)
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design', PORT: String(port), RESIDENT_TASK_LIMIT: '0' }, dataDir)
   const reply = await (await owner.post(`/api/comments/${root.id}/replies`, { text: 'After restart' })).json()
   expect(reply).toMatchObject({ elementId: root.elementId, x: 45, y: 67, elementOrigin: { x: 10, y: 20 } })
 }, 70_000)

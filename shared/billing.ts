@@ -32,7 +32,7 @@ export const PLANS: readonly Plan[] = [
     features: [
       'Unlimited personal canvases',
       'Invite collaborators per canvas',
-      'AI agents over MCP and the Doop Agent',
+      'AI agents over MCP and the Diagramly Agent',
       'Community gallery, imports, design memory',
     ],
   },
@@ -59,7 +59,7 @@ export const PLANS: readonly Plan[] = [
 
 export const TEAM_PLAN = PLANS.find((p) => p.id === 'team')!
 
-export const ENTERPRISE_CONTACT = 'mailto:hello@doop.design?subject=Doop%20Enterprise'
+export const ENTERPRISE_CONTACT = 'mailto:support@diagramly.ai?subject=Diagramly%20Enterprise'
 
 /** A workspace whose members may grow it: create canvases in it, invite
  *  people, move canvases in. past_due counts — Stripe is retrying the card,

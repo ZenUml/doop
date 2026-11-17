@@ -18,7 +18,7 @@ export interface LayoutDrop {
 }
 
 export async function elementMoveTarget(frameId: string, selector: string, x: number, y: number) {
-  const reply = await requestFrame(frameId, 'doop:move-target', { selector, x, y })
+  const reply = await requestFrame(frameId, 'diagramly:move-target', { selector, x, y })
   return reply?.result as { free: boolean; drop: LayoutDrop | null } | undefined
 }
 
@@ -118,11 +118,11 @@ export type GeometryEdit =
   | { kind: 'nudge'; dx: number; dy: number }
 
 export function nudgeElements(frameId: string, selectors: string[], dx: number, dy: number) {
-  return requestFrame(frameId, 'doop:nudge', { selectors, dx, dy })
+  return requestFrame(frameId, 'diagramly:nudge', { selectors, dx, dy })
 }
 
 export function settleFrames() {
-  return Promise.all([...windows.keys()].map((frameId) => requestFrame(frameId, 'doop:settle', {})))
+  return Promise.all([...windows.keys()].map((frameId) => requestFrame(frameId, 'diagramly:settle', {})))
 }
 
 export async function editElementGeometry(
@@ -130,10 +130,10 @@ export async function editElementGeometry(
   selector: string,
   edit: GeometryEdit,
 ): Promise<ElementInfo | null> {
-  return infoOf(await requestFrame(frameId, 'doop:geometry', { selector, edit }))
+  return infoOf(await requestFrame(frameId, 'diagramly:geometry', { selector, edit }))
 }
 
-/* A request `doop:<name>` is answered by `doop:<name>-result` carrying the
+/* A request `diagramly:<name>` is answered by `diagramly:<name>-result` carrying the
    same reqId — the convention every runtime request already follows. */
 interface PendingAsk {
   win: Window
@@ -157,8 +157,8 @@ function listen() {
   listening = true
   window.addEventListener('message', (ev: MessageEvent) => {
     const data = ev.data as { type?: string; reqId?: number } | null
-    if (data?.type === 'doop:frame-updated' || data?.type === 'doop:text-selection') {
-      const listeners = data.type === 'doop:frame-updated' ? changeListeners : selectionListeners
+    if (data?.type === 'diagramly:frame-updated' || data?.type === 'diagramly:text-selection') {
+      const listeners = data.type === 'diagramly:frame-updated' ? changeListeners : selectionListeners
       for (const [frameId, win] of windows) {
         if (ev.source === win) listeners.get(frameId)?.forEach((cb) => cb())
       }
@@ -176,7 +176,7 @@ function listen() {
 
 export function registerFrameWindow(frameId: string, win: Window) {
   windows.set(frameId, win)
-  if (outlines) win.postMessage({ type: 'doop:outlines', on: true }, '*')
+  if (outlines) win.postMessage({ type: 'diagramly:outlines', on: true }, '*')
   changeListeners.get(frameId)?.forEach((cb) => cb())
 }
 
@@ -249,7 +249,7 @@ function subscribe(listeners: Map<string, Set<() => void>>, frameId: string, cb:
  *  null when the frame is not registered or never answers. */
 export function requestFrame(
   frameId: string,
-  type: `doop:${string}`,
+  type: `diagramly:${string}`,
   payload: Record<string, unknown>,
   timeoutMs = REPLY_TIMEOUT_MS,
 ): Promise<Record<string, unknown> | null> {
@@ -285,7 +285,7 @@ export interface FrameSnapshot {
  *  render without what the runtime shows. */
 export async function snapshotFrame(frameId: string): Promise<FrameSnapshot | null> {
   if (!windows.has(frameId)) return null
-  const reply = await requestFrame(frameId, 'doop:snapshot', {}, SNAPSHOT_TIMEOUT_MS)
+  const reply = await requestFrame(frameId, 'diagramly:snapshot', {}, SNAPSHOT_TIMEOUT_MS)
   return { html: typeof reply?.html === 'string' ? reply.html : null }
 }
 
@@ -296,7 +296,7 @@ function infoOf(reply: Record<string, unknown> | null): ElementInfo | null {
 
 /** Computed properties of the element, or null when the selector no longer resolves. */
 export async function inspectElement(frameId: string, selector: string): Promise<ElementInfo | null> {
-  return infoOf(await requestFrame(frameId, 'doop:inspect', { selector }))
+  return infoOf(await requestFrame(frameId, 'diagramly:inspect', { selector }))
 }
 
 /** Write inline styles onto the element. The runtime saves the edited
@@ -310,7 +310,7 @@ export async function styleElement(
   styles: StylePatch,
   { uniformText = false }: { uniformText?: boolean } = {},
 ): Promise<ElementInfo | null> {
-  return infoOf(await requestFrame(frameId, 'doop:style', { selector, styles, uniformText }))
+  return infoOf(await requestFrame(frameId, 'diagramly:style', { selector, styles, uniformText }))
 }
 
 /** Replace image content through the same live edit/undo path as styles. */
@@ -320,7 +320,7 @@ export async function replaceElementImage(
   image: NonNullable<ElementInfo['image']>,
   url: string,
 ): Promise<ElementInfo | null> {
-  return infoOf(await requestFrame(frameId, 'doop:replace-image', { selector, image, url }))
+  return infoOf(await requestFrame(frameId, 'diagramly:replace-image', { selector, image, url }))
 }
 
 /** One element with interactions, as the frame runtime reports it. */
@@ -333,7 +333,7 @@ export interface ScannedHotspot {
 /** Every element of the live document that carries prototype interactions,
  *  including ones a script created; empty when the frame is not mounted. */
 export async function scanHotspots(frameId: string): Promise<ScannedHotspot[]> {
-  const reply = await requestFrame(frameId, 'doop:proto-scan', {})
+  const reply = await requestFrame(frameId, 'diagramly:proto-scan', {})
   return Array.isArray(reply?.items) ? (reply.items as ScannedHotspot[]) : []
 }
 
@@ -346,7 +346,7 @@ export async function styleGesture(
   phase: 'begin' | 'commit' | 'cancel',
   followers: string[] = [],
 ): Promise<ElementInfo | null> {
-  return infoOf(await requestFrame(frameId, 'doop:style-gesture', { selector, phase, followers }))
+  return infoOf(await requestFrame(frameId, 'diagramly:style-gesture', { selector, phase, followers }))
 }
 
 /** Toggle a text format over whole layers, as ⌘B does with a text layer
@@ -357,7 +357,7 @@ export async function formatElementText(
   selectors: string[],
   command: TextFormatCommand,
 ): Promise<string[] | null> {
-  const reply = await requestFrame(frameId, 'doop:text-format', { selectors, command })
+  const reply = await requestFrame(frameId, 'diagramly:text-format', { selectors, command })
   return Array.isArray(reply?.selectors) ? (reply.selectors as string[]) : null
 }
 
@@ -371,7 +371,11 @@ export async function computedStyles(
   properties: readonly string[],
   { fromTextRun = false }: { fromTextRun?: boolean } = {},
 ): Promise<Record<string, string> | null> {
-  const reply = await requestFrame(frameId, 'doop:computed', { selector, properties: [...properties], fromTextRun })
+  const reply = await requestFrame(frameId, 'diagramly:computed', {
+    selector,
+    properties: [...properties],
+    fromTextRun,
+  })
   return reply && reply.values && typeof reply.values === 'object' ? (reply.values as Record<string, string>) : null
 }
 
@@ -379,7 +383,7 @@ export async function computedStyles(
  *  `outlinesOn`) as outlines. Nothing is saved. */
 export function setOutlines(on: boolean) {
   outlines = on
-  for (const win of windows.values()) win.postMessage({ type: 'doop:outlines', on }, '*')
+  for (const win of windows.values()) win.postMessage({ type: 'diagramly:outlines', on }, '*')
 }
 export function outlinesOn() {
   return outlines

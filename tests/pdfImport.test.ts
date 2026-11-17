@@ -23,7 +23,7 @@ describe('importPdf', () => {
   it('keeps text editable, in the fonts the PDF embeds', async () => {
     const [page] = await importPdf(report, 'Report', { importSvg: importSvgMarkup })
     const doc = new DOMParser().parseFromString(page!.html, 'text/html')
-    const texts = [...doc.querySelectorAll('p[data-doop-drawing="text"]')]
+    const texts = [...doc.querySelectorAll('p[data-diagramly-drawing="text"]')]
     const heading = texts.find((p) => p.textContent === 'Quarterly report')!
     expect(heading).toBeTruthy()
     expect(heading.getAttribute('style')).toContain("font-family:'pdf-Helvetica-Bold', 'Helvetica', sans-serif;")
@@ -34,7 +34,7 @@ describe('importPdf', () => {
     expect(texts.map((p) => p.textContent)).toEqual(
       expect.arrayContaining(['24%', 'churn', 'fell to a record low. Lorem ipsum dolor sit amet.', 'Get started']),
     )
-    const faces = doc.querySelector('style[data-doop-pdf-fonts]')!.textContent!
+    const faces = doc.querySelector('style[data-diagramly-pdf-fonts]')!.textContent!
     for (const family of [
       'pdf-Helvetica-Bold',
       'pdf-Georgia',
@@ -48,9 +48,9 @@ describe('importPdf', () => {
   it('turns the artwork into editable layers and leaves no SVG text behind', async () => {
     const [page] = await importPdf(report, 'Report', { importSvg: importSvgMarkup })
     const doc = new DOMParser().parseFromString(page!.html, 'text/html')
-    expect(doc.querySelectorAll('[data-doop-drawing="path"]').length).toBeGreaterThanOrEqual(3)
+    expect(doc.querySelectorAll('[data-diagramly-drawing="path"]').length).toBeGreaterThanOrEqual(3)
     expect(doc.querySelector('text')).toBeNull()
-    expect(doc.body.hasAttribute('data-doop-canvas-element')).toBe(false)
+    expect(doc.body.hasAttribute('data-diagramly-canvas-element')).toBe(false)
     expect(page!.layers).toBeGreaterThan(0)
     expect(page!.texts).toBe(7)
   })

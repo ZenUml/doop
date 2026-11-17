@@ -469,7 +469,7 @@ pub extern "C" fn doopblitz_doc_element_from_point(doc: *mut Doc, x: f32, y: f32
 }
 
 /// The element a tap at a CSS point selects, or 0, as the web runtime's
-/// `probe` picks it: the drawing (`[data-doop-drawing]`) the hit is part of,
+/// `probe` picks it: the drawing (`[data-diagramly-drawing]`) the hit is part of,
 /// so a text layer is selected whole rather than the run of bold inside it.
 /// Outside a drawing, a hit without a box of its own (inline formatting, whose
 /// glyphs live in the parent's inline layout) resolves to the nearest ancestor
@@ -501,7 +501,7 @@ fn self_or_ancestor(base: &BaseDocument, id: NodeId, matches: impl Fn(NodeId) ->
 fn is_drawing(base: &BaseDocument, id: NodeId) -> bool {
     base.get_node(id)
         .and_then(|n| n.element_data())
-        .is_some_and(|e| e.attrs().iter().any(|a| &*a.name.local == "data-doop-drawing"))
+        .is_some_and(|e| e.attrs().iter().any(|a| &*a.name.local == "data-diagramly-drawing"))
 }
 
 fn has_box(base: &BaseDocument, id: NodeId) -> bool {

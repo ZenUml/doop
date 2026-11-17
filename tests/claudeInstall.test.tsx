@@ -136,9 +136,9 @@ it('hides the choice from desktop shells that cannot make it', async () => {
   expect(container.textContent).not.toContain('Claude Code 2.1')
 })
 
-it('lets a person choose an install Doop did not find', async () => {
+it('lets a person choose an install Diagramly did not find', async () => {
   await render({ installed: false, connected: false, enabled: false })
-  expect(container.textContent).toContain('Installed somewhere Doop did not look?')
+  expect(container.textContent).toContain('Installed somewhere Diagramly did not look?')
   expect(container.textContent).not.toContain('Claude Code 2.1')
   mocks.invoke.mockResolvedValue(true)
   await act(async () => button('Choose…')!.click())

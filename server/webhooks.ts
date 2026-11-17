@@ -20,12 +20,12 @@ import type { AgentTask, Canvas, ElementComment, Frame } from '../shared/types.t
 
 /**
  * Outbound webhooks: the push counterpart of polling get_comments over MCP.
- * A person registers a URL and the events they care about; doop POSTs each
+ * A person registers a URL and the events they care about; Diagramly POSTs each
  * matching event on every canvas that person durably has access to (owner,
  * invited member, workspace member — the same rule as design-sync keys, so
  * a share-link visit never subscribes anyone to a canvas for good).
  *
- * Deliveries are signed (X-Doop-Signature, HMAC-SHA256 over
+ * Deliveries are signed (X-Diagramly-Signature, HMAC-SHA256 over
  * `<timestamp>.<body>` with the hook's secret) and retried a few times from
  * memory on failure. There is no durable queue: an event that fails every
  * retry is dropped, and a hook that fails DISABLE_AFTER_FAILURES times in a
@@ -42,7 +42,7 @@ export const MAX_WEBHOOKS = 10
 export const RETRY_DELAYS_MS = [10_000, 60_000, 5 * 60_000]
 export const DISABLE_AFTER_FAILURES = 100
 export const TIMEOUT_MS = 10_000
-const USER_AGENT = 'doop-webhooks/1'
+const USER_AGENT = 'diagramly-webhooks/1'
 const allowPrivate = () => env.WEBHOOK_ALLOW_PRIVATE_URLS
 
 interface WebhookRecord extends WebhookInfo {
@@ -390,10 +390,10 @@ async function post(
       headers: {
         'content-type': 'application/json',
         'user-agent': USER_AGENT,
-        'x-doop-event': String(payload.type),
-        'x-doop-delivery': String(payload.id),
-        'x-doop-timestamp': String(timestamp),
-        'x-doop-signature': sign(hook.secret, timestamp, body),
+        'x-diagramly-event': String(payload.type),
+        'x-diagramly-delivery': String(payload.id),
+        'x-diagramly-timestamp': String(timestamp),
+        'x-diagramly-signature': sign(hook.secret, timestamp, body),
       },
       body,
       redirect: 'manual',
@@ -496,7 +496,7 @@ export async function testWebhook(userId: string, id: string): Promise<WebhookDe
     id: `evt_${nanoid(12)}`,
     type: 'ping',
     at: Date.now(),
-    message: 'Hello from doop — this webhook is wired up.',
+    message: 'Hello from Diagramly — this webhook is wired up.',
   })
   if (!result) return undefined
   record(hook, ticket, result)

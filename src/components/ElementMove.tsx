@@ -90,7 +90,7 @@ export function useElementMove(frame: Frame, layoutZoom: number) {
   function hideDrawing(owner: object, selector: string) {
     if (ended.current.has(owner)) return
     hiddenBy.current = owner
-    void requestFrame(frame.id, 'doop:drawing-moving', { selector })
+    void requestFrame(frame.id, 'diagramly:drawing-moving', { selector })
   }
   function endPreview(owner: object) {
     ended.current.add(owner)
@@ -98,7 +98,7 @@ export function useElementMove(frame: Frame, layoutZoom: number) {
     setMovingOwner((current) => (current === owner ? null : current))
     if (hiddenBy.current !== owner) return
     hiddenBy.current = null
-    void requestFrame(frame.id, 'doop:drawing-moving', { selector: null })
+    void requestFrame(frame.id, 'diagramly:drawing-moving', { selector: null })
   }
 
   function start(
@@ -256,7 +256,7 @@ export function useElementMove(frame: Frame, layoutZoom: number) {
       const planned = planCopy()
       if (!planned) return null
       noteFrameDocument(frame.id, null)
-      if (!(await requestFrame(frame.id, 'doop:html', { html: planned.html }))) return null
+      if (!(await requestFrame(frame.id, 'diagramly:html', { html: planned.html }))) return null
       noteFrameDocument(frame.id, planned.html)
       return planned.selector
     }
@@ -266,14 +266,14 @@ export function useElementMove(frame: Frame, layoutZoom: number) {
       setPreview((current) => (current?.owner === owner ? null : current))
       if (hiddenBy.current !== owner) return
       hiddenBy.current = null
-      void requestFrame(frame.id, 'doop:drawing-moving', { selector: null })
+      void requestFrame(frame.id, 'diagramly:drawing-moving', { selector: null })
     }
     /** Show the store's document again after a copy that did not land */
     async function removeCopy() {
       const html = useStore.getState().canvas?.frames.find((f) => f.id === frame.id)?.html
       if (html === undefined) return
       noteFrameDocument(frame.id, null)
-      if (await requestFrame(frame.id, 'doop:html', { html })) noteFrameDocument(frame.id, html)
+      if (await requestFrame(frame.id, 'diagramly:html', { html })) noteFrameDocument(frame.id, html)
     }
     /* where the pressed layer may go: a layout drop (a new place in the
        flow) is for one layer alone, so several picked layers always move
@@ -549,8 +549,8 @@ export function useElementMove(frame: Frame, layoutZoom: number) {
     const drawingHit = finishing.current.then(async () => {
       if (!(await frameShows(frame.id, frame.html))) return undefined
       /* a copy is made of a layer, a drawing included, by the layer move */
-      return frame.html.includes('data-doop-drawing') && !duplicating
-        ? requestFrame(frame.id, 'doop:drawing-hit', {
+      return frame.html.includes('data-diagramly-drawing') && !duplicating
+        ? requestFrame(frame.id, 'diagramly:drawing-hit', {
             ...frameDesignPoint(origin, frame),
             standalone,
             selected: pickedHere.length > 1 ? pickedHere : selected,
@@ -562,7 +562,7 @@ export function useElementMove(frame: Frame, layoutZoom: number) {
       if (reply === undefined) return cancel()
       hit = (reply?.hit ?? null) as DrawingHit | null
       if (!hit) {
-        const response = await requestFrame(frame.id, 'doop:move-hit', {
+        const response = await requestFrame(frame.id, 'diagramly:move-hit', {
           ...frameDesignPoint(origin, frame),
           selected: pickedHere.length > 1 ? pickedHere : selected,
         })

@@ -9,7 +9,7 @@ fn main() {
     let (w, h): (u32, u32) = (a[2].parse().unwrap(), a[3].parse().unwrap());
     let scale: f32 = a[4].parse().unwrap();
     let (x, y, rw, rh): (f32, f32, f32, f32) = (a[5].parse().unwrap(), a[6].parse().unwrap(), a[7].parse().unwrap(), a[8].parse().unwrap());
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     unsafe {
         let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), w, h, scale);
         let (mut ow, mut oh, mut len) = (0u32, 0u32, 0usize);

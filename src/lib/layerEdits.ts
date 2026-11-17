@@ -185,7 +185,7 @@ export function setLayersLocked(frame: Frame, selectors: string[], locked: boole
     html = next
   }
   saveFrameHtml(frame, html)
-  for (const selector of selectors) void requestFrame(frame.id, 'doop:lock', { selector, locked })
+  for (const selector of selectors) void requestFrame(frame.id, 'diagramly:lock', { selector, locked })
   return true
 }
 
@@ -401,7 +401,7 @@ export function setLayersHidden(frame: Frame, selectors: string[], hidden: boole
   if (html === null) return false
   if (html !== frame.html) saveFrameHtml(frame, html)
   // Text editing withholds HTML updates; its next save serializes the live iframe.
-  for (const selector of selectors) void requestFrame(frame.id, 'doop:visibility', { selector, hidden })
+  for (const selector of selectors) void requestFrame(frame.id, 'diagramly:visibility', { selector, hidden })
   return true
 }
 
@@ -913,7 +913,7 @@ function standaloneDocument(markup: string): string {
   const doc = new DOMParser().parseFromString('<!doctype html><html><head></head><body></body></html>', 'text/html')
   doc.documentElement.style.cssText = 'width:100%;height:100%;margin:0;'
   doc.body.style.cssText = 'width:100%;height:100%;margin:0;'
-  doc.body.setAttribute('data-doop-canvas-element', 'true')
+  doc.body.setAttribute('data-diagramly-canvas-element', 'true')
   doc.body.innerHTML = markup
   const el = doc.body.firstElementChild as HTMLElement | SVGElement | null
   if (!el || doc.body.children.length !== 1) return ''

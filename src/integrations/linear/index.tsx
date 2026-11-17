@@ -93,7 +93,7 @@ function LinearSettingsCard({ status, busy, setBusy, setStatus, requestDisconnec
         name="Linear"
         detail={
           linear.agent?.connected
-            ? t('automations.doopAgentIn', { workspace: linear.agent.workspaceName ?? '' })
+            ? t('automations.diagramlyAgentIn', { workspace: linear.agent.workspaceName ?? '' })
             : linear.connected
               ? (linear.accountName ?? t('automations.linearAccount'))
               : t('automations.linearPitch')

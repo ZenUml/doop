@@ -128,27 +128,33 @@ describe('multi-element html edits', () => {
   })
 
   it('leaves the comment and link ids on the original: a copy or a paste starts without one', () => {
-    const marked = page('<section data-doop-id="sec000"><p data-doop-id="par000">in</p></section>')
+    const marked = page('<section data-diagramly-id="sec000"><p data-diagramly-id="par000">in</p></section>')
     const section = 'body:nth-of-type(1) > section:nth-of-type(1)'
     const doc = (html: string) => new DOMParser().parseFromString(html, 'text/html')
     const duplicated = doc(duplicateElements(marked, [section])!.html)
-    expect([...duplicated.querySelectorAll('section')].map((s) => s.getAttribute('data-doop-id'))).toEqual([
+    expect([...duplicated.querySelectorAll('section')].map((s) => s.getAttribute('data-diagramly-id'))).toEqual([
       'sec000',
       null,
     ])
-    expect([...duplicated.querySelectorAll('p')].map((p) => p.getAttribute('data-doop-id'))).toEqual(['par000', null])
-    const pasted = doc(insertElements(marked, section, '<p data-doop-id="par000">pasted</p>')!.html)
-    expect([...pasted.querySelectorAll('p')].map((p) => p.getAttribute('data-doop-id'))).toEqual(['par000', null])
+    expect([...duplicated.querySelectorAll('p')].map((p) => p.getAttribute('data-diagramly-id'))).toEqual([
+      'par000',
+      null,
+    ])
+    const pasted = doc(insertElements(marked, section, '<p data-diagramly-id="par000">pasted</p>')!.html)
+    expect([...pasted.querySelectorAll('p')].map((p) => p.getAttribute('data-diagramly-id'))).toEqual(['par000', null])
     /* a layer moving in (from a duplicated frame) keeps its id only while this document is free of it */
     const paragraph = `${section} > p:nth-of-type(1)`
     const clash = doc(
-      placeElement(marked, { selector: paragraph, place: 'before' }, '<p data-doop-id="par000">moved</p>')!.html,
+      placeElement(marked, { selector: paragraph, place: 'before' }, '<p data-diagramly-id="par000">moved</p>')!.html,
     )
-    expect([...clash.querySelectorAll('p')].map((p) => p.getAttribute('data-doop-id'))).toEqual([null, 'par000'])
+    expect([...clash.querySelectorAll('p')].map((p) => p.getAttribute('data-diagramly-id'))).toEqual([null, 'par000'])
     const free = doc(
-      placeElement(marked, { selector: paragraph, place: 'before' }, '<p data-doop-id="new000">moved</p>')!.html,
+      placeElement(marked, { selector: paragraph, place: 'before' }, '<p data-diagramly-id="new000">moved</p>')!.html,
     )
-    expect([...free.querySelectorAll('p')].map((p) => p.getAttribute('data-doop-id'))).toEqual(['new000', 'par000'])
+    expect([...free.querySelectorAll('p')].map((p) => p.getAttribute('data-diagramly-id'))).toEqual([
+      'new000',
+      'par000',
+    ])
   })
 
   it('copies in document order and pastes the layers together', () => {
@@ -180,16 +186,16 @@ describe('multi-element selection commands', () => {
     load(THREE)
     pickAll(P(1), P(2))
     toggleSelectionHidden()
-    expect(liveHtml().match(/data-doop-hidden/g)).toHaveLength(2)
+    expect(liveHtml().match(/data-diagramly-hidden/g)).toHaveLength(2)
     toggleSelectionHidden()
-    expect(liveHtml()).not.toContain('data-doop-hidden')
+    expect(liveHtml()).not.toContain('data-diagramly-hidden')
   })
 
   it('locks the set together', () => {
     load(THREE)
     pickAll(P(2), P(3))
     expect(toggleLockSelection()).toBe(true)
-    expect(liveHtml().match(/data-doop-locked/g)).toHaveLength(2)
+    expect(liveHtml().match(/data-diagramly-locked/g)).toHaveLength(2)
   })
 
   it('picks the copies after duplicating the pick, so a later delete hits the right elements', () => {
@@ -202,7 +208,7 @@ describe('multi-element selection commands', () => {
   })
 
   it('refuses to delete a set holding a locked element', () => {
-    load(page('<p>one</p><p data-doop-locked="true">two</p>'))
+    load(page('<p>one</p><p data-diagramly-locked="true">two</p>'))
     pickAll(P(1), P(2))
     deleteSelection()
     expect(texts(liveHtml())).toEqual(['one', 'two'])

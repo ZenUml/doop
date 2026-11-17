@@ -6,7 +6,7 @@ import { isCanvasElement } from '../src/lib/drawing'
 import { buildLayerTree } from '../src/lib/layers'
 
 const doc = (html: string) => new DOMParser().parseFromString(html, 'text/html')
-const shapes = (html: string) => [...doc(html).querySelectorAll<SVGSVGElement>('svg[data-doop-drawing="path"]')]
+const shapes = (html: string) => [...doc(html).querySelectorAll<SVGSVGElement>('svg[data-diagramly-drawing="path"]')]
 const style = (el: Element) => (el as HTMLElement).style
 const imported = (markup: string, name = 'icon') => importSvgMarkup(markup, name, { key: 'k' })!
 
@@ -20,7 +20,7 @@ describe('importing an SVG file', () => {
     const body = doc(result.html).body
     expect(body.children).toHaveLength(1)
     const svg = body.firstElementChild!
-    expect(svg.getAttribute('data-doop-drawing')).toBe('path')
+    expect(svg.getAttribute('data-diagramly-drawing')).toBe('path')
     expect(svg.getAttribute('data-name')).toBe('arrow')
     expect(style(svg).width).toBe('100%')
     /* the shell is the ink plus the pen's two px pad, and the viewBox is that box */
@@ -55,7 +55,7 @@ describe('importing an SVG file', () => {
     expect(result.width).toBeCloseTo(94, 5)
     expect(style(rect!).left).toMatch(/%$/)
     expect(style(rect!).width).toMatch(/%$/)
-    expect(doc(result.html).body.firstElementChild!.getAttribute('data-doop-drawing')).toBe('group')
+    expect(doc(result.html).body.firstElementChild!.getAttribute('data-diagramly-drawing')).toBe('group')
     expect(doc(result.html).body.firstElementChild!.getAttribute('data-name')).toBe('icon')
   })
 
@@ -108,7 +108,7 @@ describe('importing an SVG file', () => {
     expect(html).toContain('id="k-g"')
     expect(html).toContain('fill="url(#k-g)"')
     const d = doc(html)
-    const clipped = [...d.querySelectorAll<HTMLElement>('[data-doop-drawing="group"]')].find((el) =>
+    const clipped = [...d.querySelectorAll<HTMLElement>('[data-diagramly-drawing="group"]')].find((el) =>
       el.getAttribute('style')!.includes('clip-path:url(#k-c-clip-'),
     )
     expect(clipped).toBeTruthy()
@@ -120,7 +120,7 @@ describe('importing an SVG file', () => {
     expect(baked.getAttribute('gradientTransform')).toBe('matrix(2 0 0 2 2 0)')
     expect(html).toContain(`fill="url(#${baked.getAttribute('id')})"`)
     /* the defs host is one hidden element the Layers panel does not list */
-    expect(d.querySelector('[data-doop-defs]')).toBeTruthy()
+    expect(d.querySelector('[data-diagramly-defs]')).toBeTruthy()
     expect(buildLayerTree(html)[0]!.children.map((c) => c.label)).not.toContain('svg')
   })
 
@@ -132,7 +132,7 @@ describe('importing an SVG file', () => {
         <image href="data:image/png;base64,AAAA" width="20" height="20"/>
       </svg>`)
     const d = doc(result.html)
-    const layers = d.querySelectorAll('[data-doop-drawing="svg"]')
+    const layers = d.querySelectorAll('[data-diagramly-drawing="svg"]')
     expect(layers).toHaveLength(2)
     const text = layers[0]!
     expect(text.getAttribute('data-name')).toBe('Text')
@@ -182,7 +182,7 @@ describe('importing an SVG file', () => {
       </svg>`)
     const d = doc(result.html)
     /* the file's one group became the root, opacity and all */
-    const group = d.querySelector<HTMLElement>('[data-doop-drawing="group"]')!
+    const group = d.querySelector<HTMLElement>('[data-diagramly-drawing="group"]')!
     expect(group.style.opacity).toBe('0.5')
     const [first, second] = shapes(result.html)
     expect(shapePath(first!)!.getAttribute('stroke-width')).toBe('2')
@@ -197,9 +197,9 @@ describe('importing an SVG file', () => {
         <g mask="url(#m)" filter="url(#f)"><rect width="10" height="10"/><rect width="2" height="2"/></g>
       </svg>`)
     const d = doc(result.html)
-    const root = d.querySelector<HTMLElement>('body > [data-doop-drawing="group"]')!
+    const root = d.querySelector<HTMLElement>('body > [data-diagramly-drawing="group"]')!
     expect(root.getAttribute('style')).toContain('opacity:0.5')
-    const masked = [...d.querySelectorAll<HTMLElement>('[data-doop-drawing="group"]')].find((el) =>
+    const masked = [...d.querySelectorAll<HTMLElement>('[data-diagramly-drawing="group"]')].find((el) =>
       el.getAttribute('style')!.includes('mask:url(#k-m-mask-'),
     )!
     expect(masked.getAttribute('style')).toContain('filter:url(#k-f)')
@@ -292,7 +292,7 @@ describe('importing an SVG file', () => {
       'effects',
       { key: 'k', styles: styled },
     )!
-    const [text, image] = [...doc(result.html).querySelectorAll('[data-doop-drawing="svg"]')]
+    const [text, image] = [...doc(result.html).querySelectorAll('[data-diagramly-drawing="svg"]')]
     expect(text!.getAttribute('opacity')).toBe('0.5')
     expect(text!.querySelector('text')!.hasAttribute('opacity')).toBe(false)
     expect(text!.querySelector('text')!.getAttribute('style')).toContain('filter:url(#k-f)')

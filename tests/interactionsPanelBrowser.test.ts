@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Frame } from '../shared/types'
 
 /* the part of tests/fixtures/elementPanel.html's harness this suite drives */
@@ -16,6 +17,7 @@ type Harness = {
 /* The Prototype tab of the element panel writes interactions into the frame
    HTML through the ordinary save path, one undo step per change. */
 describe.skipIf(!findBrowserPath())('interactions panel', { timeout: 30_000 }, () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   let saved: Frame
@@ -57,19 +59,19 @@ describe.skipIf(!findBrowserPath())('interactions panel', { timeout: 30_000 }, (
     await tab!.click()
     await page.locator('button[aria-label="Add interaction"]').click()
     await page.waitForFunction(() => !!document.querySelector('select[aria-label="Trigger 1"]'))
-    expect(saved.html).toContain('data-doop-on="click"')
-    expect(saved.html).toContain('data-doop-action="back"')
+    expect(saved.html).toContain('data-diagramly-on="click"')
+    expect(saved.html).toContain('data-diagramly-action="back"')
 
     await page.select('select[aria-label="Trigger 1"]', 'key')
     await page.waitForFunction(() => !!document.querySelector('input[aria-label="Key 1"]'))
-    expect(saved.html).toContain('data-doop-on="key:ArrowRight"')
+    expect(saved.html).toContain('data-diagramly-on="key:ArrowRight"')
 
     await page.evaluate(() => (window as unknown as Harness).elementPanelHarness.undo())
     await page.waitForFunction(() => !document.querySelector('input[aria-label="Key 1"]'))
-    expect(saved.html).toContain('data-doop-on="click"')
+    expect(saved.html).toContain('data-diagramly-on="click"')
 
     await page.locator('button[aria-label="Remove interaction 1"]').click()
     await page.waitForFunction(() => !document.querySelector('select[aria-label="Trigger 1"]'))
-    expect(saved.html).not.toContain('data-doop-')
+    expect(saved.html).not.toContain('data-diagramly-')
   })
 })

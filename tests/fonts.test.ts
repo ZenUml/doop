@@ -116,7 +116,7 @@ describe('withFontFaces', () => {
 
   it('adds a managed block with every face of each used family, and nothing else', () => {
     const html = withFontFaces(page('font-family: &quot;Brand Sans&quot;, sans-serif'), LIBRARY)
-    expect(html).toContain('<head><style data-doop-fonts>')
+    expect(html).toContain('<head><style data-diagramly-fonts>')
     expect(html).toContain(fontFaceRule(BRAND))
     expect(html).toContain(fontFaceRule(BRAND_BOLD))
     expect(html).not.toContain(SERIF.url)
@@ -132,7 +132,7 @@ describe('withFontFaces', () => {
   it('appends to the existing block when another family comes into use', () => {
     const once = withFontFaces(page('font-family: "Brand Sans"'), LIBRARY)
     const twice = withFontFaces(once.replace('<h1>', '<h1 style="font-family:\'Display Serif\'">'), LIBRARY)
-    expect(twice.match(/<style data-doop-fonts>/g)).toHaveLength(1)
+    expect(twice.match(/<style data-diagramly-fonts>/g)).toHaveLength(1)
     expect(twice).toContain(fontFaceRule(SERIF))
     expect(twice).toContain(fontFaceRule(BRAND))
   })
@@ -152,10 +152,10 @@ describe('withFontFaces', () => {
 
   it('places the block in a document without a head', () => {
     expect(withFontFaces('<div style="font-family:\'Brand Sans\'">x</div>', LIBRARY)).toMatch(
-      /^<style data-doop-fonts>[\s\S]*<\/style><div/,
+      /^<style data-diagramly-fonts>[\s\S]*<\/style><div/,
     )
     expect(withFontFaces('<!doctype html><html><body style="font-family:Brand Sans">x</body></html>', LIBRARY)).toMatch(
-      /^<!doctype html><html><style data-doop-fonts>/,
+      /^<!doctype html><html><style data-diagramly-fonts>/,
     )
   })
 

@@ -132,15 +132,17 @@ beforeEach(async () => {
         variables,
         authorization: (options?.headers as Record<string, string> | undefined)?.Authorization ?? '',
       })
-      if (query.includes('DoopAgentIdentity'))
+      if (query.includes('DiagramlyAgentIdentity'))
         return Response.json({
           data: {
-            viewer: { id: appUserId, name: 'Doop' },
+            viewer: { id: appUserId, name: 'Diagramly' },
             organization: { id: organizationId, name: 'Design workspace' },
           },
         })
-      if (query.includes('DoopSessionLink')) return Response.json({ data: { agentSessionUpdate: { success: true } } })
-      if (query.includes('DoopActivityExists')) return Response.json({ data: { agentActivity: { id: variables.id } } })
+      if (query.includes('DiagramlySessionLink'))
+        return Response.json({ data: { agentSessionUpdate: { success: true } } })
+      if (query.includes('DiagramlyActivityExists'))
+        return Response.json({ data: { agentActivity: { id: variables.id } } })
       return Response.json({ data: { agentActivityCreate: { success: true } } })
     }),
   )
@@ -174,10 +176,10 @@ describe('Linear agent installation', () => {
     )
   })
 
-  it('does not transfer installation or billing to another Doop user', async () => {
+  it('does not transfer installation or billing to another Diagramly user', async () => {
     const { url } = await startInstall('stranger')
     await expect(finishInstall('stranger', new URL(url).searchParams.get('state')!, 'code')).rejects.toThrow(
-      'already has a Doop installer',
+      'already has a Diagramly installer',
     )
     expect((await db.select().from(linearInstallations))[0]?.userId).toBe(userId)
   })
@@ -213,7 +215,7 @@ describe('delegation jobs', () => {
     await receiveSession(event())
     await tickLinear()
     await tickLinear()
-    expect(sent.some((request) => request.query.includes('DoopSessionLink'))).toBe(true)
+    expect(sent.some((request) => request.query.includes('DiagramlySessionLink'))).toBe(true)
     expect((await session()).reported).toBe(false)
     const row = await session()
     actions.completeCard(row.canvasId!, row.taskId!)

@@ -138,7 +138,7 @@ export const workspaceMembers = pgTable(
   (t) => [primaryKey({ columns: [t.workspaceId, t.userId] }), index('workspace_members_user_idx').on(t.userId)],
 )
 
-/** An invitation to someone who has no doop account yet. Accepted
+/** An invitation to someone who has no Diagramly account yet. Accepted
  *  automatically the moment an account with that email is created; a seat
  *  is only billed from then on. */
 export const workspaceInvites = pgTable(
@@ -224,7 +224,7 @@ export const frameVersions = pgTable(
 )
 
 /** Design-sync keys: the write-only capability behind the /ingest endpoint.
- *  An app embeds the doop-sync snippet with a key's secret, and its live
+ *  An app embeds the diagramly-sync snippet with a key's secret, and its live
  *  screens land on ONE canvas as frames — the secret grants no reads and no
  *  other writes, so shipping it in an internal app's bundle is safe. `id` is
  *  the public handle (stamped into synced frame HTML to match page → frame);
@@ -394,7 +394,7 @@ export const comments = pgTable(
   {
     id: text('id').primaryKey(),
     canvasId: text('canvas_id').notNull(),
-    /* element comment: the frame + the element's data-doop-id + snippet;
+    /* element comment: the frame + the element's data-diagramly-id + snippet;
        frame comment: the frame and a design point; canvas comment: no frame,
        a page and a world point instead. `selector` is the positional CSS path
        comments were anchored by before element ids: read once at boot to
@@ -660,7 +660,7 @@ export const residentUsage = pgTable('resident_usage', {
   updatedAt: bigint('updated_at', { mode: 'number' }).notNull(),
 })
 
-/** A user's own model subscription, connected so the Doop Agent keeps running
+/** A user's own model subscription, connected so the Diagramly Agent keeps running
  *  once their free tasks are gone. Today that is ChatGPT (OAuth against
  *  auth.openai.com, refreshed here) or a plain OpenAI API key — `kind` says
  *  which, and the token columns are empty for the key path. Secrets: these
@@ -918,7 +918,7 @@ export const linearSessions = pgTable(
   (t) => [index('linear_sessions_status_idx').on(t.status)],
 )
 
-/** One bot installation per Slack workspace, billed to its Doop installer. */
+/** One bot installation per Slack workspace, billed to its Diagramly installer. */
 export const slackInstallations = pgTable('slack_installations', {
   teamId: text('team_id').primaryKey(),
   userId: text('user_id').notNull().unique(),
@@ -944,7 +944,7 @@ export const slackSessions = pgTable(
     teamId: text('team_id').notNull(),
     userId: text('user_id').notNull(),
     channelId: text('channel_id').notNull(),
-    /** the thread Doop answers in; a slash command has none until Doop posts */
+    /** the thread Diagramly answers in; a slash command has none until Diagramly posts */
     threadTs: text('thread_ts'),
     requesterId: text('requester_id').notNull(),
     /** slash commands only: Slack's response_url fallback when the bot is not in the channel */
@@ -954,10 +954,10 @@ export const slackSessions = pgTable(
     status: text('status').notNull().default('pending'),
     canvasId: text('canvas_id'),
     taskId: text('task_id'),
-    /** a follow-up mention in a thread Doop already designed for: reuse that canvas */
+    /** a follow-up mention in a thread Diagramly already designed for: reuse that canvas */
     followUp: boolean('follow_up').notNull().default(false),
     error: text('error'),
-    /** ts of the "Doop is on it" message, updated in place with the canvas link */
+    /** ts of the "Diagramly is on it" message, updated in place with the canvas link */
     ackTs: text('ack_ts'),
     nextAttemptAt: bigint('next_attempt_at', { mode: 'number' }).notNull().default(0),
     acknowledged: boolean('acknowledged').notNull().default(false),
@@ -972,7 +972,7 @@ export const slackSessions = pgTable(
   ],
 )
 
-/** Agents' own reports about Doop: problems (report_issue, kind 'issue') and
+/** Agents' own reports about Diagramly: problems (report_issue, kind 'issue') and
  *  ideas or praise (share_feedback, kind 'feedback'). Read by instance admins,
  *  not shown on any canvas. */
 export const agentFeedback = pgTable(

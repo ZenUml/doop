@@ -14,7 +14,7 @@ export function DesktopCodexSetup() {
         <AuthCard title={t('connect.codexSetupTitle')}>
           <AuthCardText>{t('connect.codexSetupBody')}</AuthCardText>
           <Button className="self-start" onClick={() => navigate('/')}>
-            {t('connect.backToDoop')}
+            {t('connect.backToDiagramly')}
           </Button>
         </AuthCard>
       </AuthScreen>

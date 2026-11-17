@@ -1,4 +1,4 @@
-/* Doop in the desktop shell (desktop/src-tauri). The shell is one webview
+/* Diagramly in the desktop shell (desktop/src-tauri). The shell is one webview
    with an overlay title bar; canvases open Figma-style in a tab strip the
    web app draws itself (src/components/DesktopTabs.tsx). Tabs are ordinary
    in-page navigations — this module only keeps the strip's state and the
@@ -40,7 +40,7 @@ const shellWindow = window as ShellWindow
 
 /* ---------- tab strip state ---------- */
 
-/* Tabs persist per account (`doop-open-tabs:<userId>`): on a shared machine
+/* Tabs persist per account (`diagramly-open-tabs:<userId>`): on a shared machine
    the next person to sign in must not see the previous account's canvas
    names, and each account gets its own tabs back — like Figma. Until the
    session resolves, tabs live only in memory. */
@@ -48,7 +48,7 @@ const shellWindow = window as ShellWindow
 let userId: string | null = null
 
 function storageKey(id: string) {
-  return `doop-open-tabs:${id}`
+  return `diagramly-open-tabs:${id}`
 }
 
 function load(id: string): CanvasTab[] {
@@ -160,7 +160,7 @@ export function closeActiveTab() {
 
 /* ---------- sign-in handoff from the system browser ---------- */
 
-/** Whether this shell can receive a doop:// link: shells from 0.2.1 register
+/** Whether this shell can receive a diagramly:// link: shells from 0.2.1 register
  *  the scheme and inject the deep-link plugin's API. Older shells have no
  *  way to get the session back, so the sign-in form keeps its in-webview
  *  attempt there. Detected by the API rather than the version so a local
@@ -169,7 +169,7 @@ export function supportsBrowserSignIn(): boolean {
   return receivesDesktopLinks()
 }
 
-/** Whether this shell delivers doop:// links to the page (from 0.2.1): the
+/** Whether this shell delivers diagramly:// links to the page (from 0.2.1): the
  *  way back for anything the system browser finishes on the app's behalf. */
 export function receivesDesktopLinks(): boolean {
   return typeof shellWindow.__TAURI__?.deepLink?.getCurrent === 'function'
@@ -197,7 +197,7 @@ export async function beginBrowserSignIn(
   }
 }
 
-/** Step 3: the deep-link plugin delivered doop:// URLs. Redeem the one that
+/** Step 3: the deep-link plugin delivered diagramly:// URLs. Redeem the one that
  *  answers this app's pending sign-in — the server responds with the session
  *  cookie — and reload onto the target so every session-aware piece of the
  *  app starts from the cookie. Links answering nothing pending are ignored:
@@ -208,7 +208,7 @@ async function completeBrowserSignIn(urls: readonly string[]) {
   if (!link) return
   /* the pending record outlives a verify that never got an answer (the
      request threw: offline, server restarting) so the person can click
-     "Open doop" in the browser again; it is cleared once the server has
+     "Open Diagramly" in the browser again; it is cleared once the server has
      ruled on the token, before the reload that follows either ruling */
   const res = await authClient.oneTimeToken.verify({ token: link.token })
   forgetPendingSignIn()
@@ -231,13 +231,13 @@ const connectsInFlight = new Set<string>()
  *  so the Integrations page reads the fresh status and shows the notice.
  *  Links answering no pending connection are ignored. If the request never
  *  got an answer (offline, server restarting) the pending record stays, so
- *  "Open doop" in the browser can deliver the link again. */
+ *  "Open Diagramly" in the browser can deliver the link again. */
 async function completeDesktopConnect(urls: readonly string[]) {
   const link = urls
     .map(parseDesktopConnectLink)
     .find((l) => l !== null && isPendingConnect(l.provider) && !connectsInFlight.has(l.provider))
   if (!link) return
-  /* a second "Open doop" during a slow exchange must not spend the
+  /* a second "Open Diagramly" during a slow exchange must not spend the
      single-use state twice and replace the success with an error */
   connectsInFlight.add(link.provider)
   let response: Response
@@ -272,7 +272,7 @@ function listenForDesktopLinks() {
   tauri?.event
     ?.listen?.<string[]>('deep-link://new-url', (e) => void handleDesktopLinks(e.payload).catch(console.error))
     .catch(console.error)
-  /* the link that launched the app: the person quit doop while the browser
+  /* the link that launched the app: the person quit Diagramly while the browser
      was still busy, and the callback relaunched it */
   tauri?.deepLink
     ?.getCurrent?.()

@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import { Client, startServer, type Server } from './harness.ts'
 
 it('persists a complete canvas duplicate across a server restart', async () => {
-  let server: Server = await startServer()
+  let server: Server = await startServer({ DIAGRAMLY_PRODUCT: 'design' })
   try {
     const owner = new Client(server)
     await owner.signUp('duplicate@test.dev', 'Duplicate Owner')
@@ -23,7 +23,7 @@ it('persists a complete canvas duplicate across a server restart', async () => {
     expect(
       (
         await owner.patch(`/api/frames/${sourceFrame.id}`, {
-          html: `<img src="${asset.url}" alt="persistent duplicate"><span class="tag" data-doop-id="tagone">One</span><span class="tag">Two</span>`,
+          html: `<img src="${asset.url}" alt="persistent duplicate"><span class="tag" data-diagramly-id="tagone">One</span><span class="tag">Two</span>`,
         })
       ).status,
     ).toBe(200)
@@ -55,7 +55,7 @@ it('persists a complete canvas duplicate across a server restart', async () => {
     const dataDir = server.dataDir
     server.stop({ keepData: true })
     await server.stopped
-    server = await startServer({}, dataDir)
+    server = await startServer({ DIAGRAMLY_PRODUCT: 'design' }, dataDir)
 
     const signedIn = new Client(server)
     expect(
@@ -80,7 +80,7 @@ it('persists a complete canvas duplicate across a server restart', async () => {
 
     expect(restored.components).toHaveLength(1)
     const copiedComponent = restored.components[0]
-    expect(restored.frames[0].html).toContain(`data-doop-instance="${copiedComponent.id}"`)
+    expect(restored.frames[0].html).toContain(`data-diagramly-instance="${copiedComponent.id}"`)
     const componentUpdate = await signedIn.patch(`/api/canvases/${duplicate.id}/components/${copiedComponent.id}`, {
       find: 'class="tag"',
       replace: 'class="tag after-copy-restart"',

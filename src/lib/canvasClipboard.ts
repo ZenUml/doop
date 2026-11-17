@@ -2,11 +2,11 @@ import { nanoid } from 'nanoid'
 import { useStore } from './store'
 import { t } from './i18n'
 
-const TOKEN_KEY = 'doop:clipboard-token'
+const TOKEN_KEY = 'diagramly:clipboard-token'
 
 /** Replace the saved selection only after the system clipboard accepts the write. */
 export function writeCanvasClipboard(copy: () => boolean | void, data?: DataTransfer): boolean {
-  const token = `doop:clipboard:${nanoid()}`
+  const token = `diagramly:clipboard:${nanoid()}`
   const failed = () => {
     useStore.getState().pushNotice(t('stage.copyClipboardFailed'))
   }

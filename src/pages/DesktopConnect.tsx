@@ -8,7 +8,7 @@ import { useT } from '../lib/i18n'
 /* Step 2 of connecting an integration from the desktop app
    (shared/desktopConnect.ts): the provider sent the system browser back,
    and the server relayed its answer here untouched. Hand it to the app
-   over the doop:// scheme; the app finishes the connection under its own
+   over the diagramly:// scheme; the app finishes the connection under its own
    account, whoever is signed in to this browser. */
 export function DesktopConnect() {
   const t = useT()
@@ -28,7 +28,7 @@ export function DesktopConnect() {
           <>
             <AuthCardText>{t('auth.desktopConnectBody')}</AuthCardText>
             <Button asChild className="mt-1">
-              <a href={link}>{t('auth.openDoop')}</a>
+              <a href={link}>{t('auth.openDiagramly')}</a>
             </Button>
           </>
         ) : (

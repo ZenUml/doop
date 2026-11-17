@@ -1,6 +1,6 @@
 import type { ProductMode } from '../../shared/product'
 
-let mode: ProductMode = import.meta.env.VITE_PRODUCT_MODE === 'diagramly' ? 'diagramly' : 'doop'
+let mode: ProductMode = import.meta.env.VITE_PRODUCT_MODE === 'design' ? 'design' : 'diagramly'
 
 export function isDiagramly(): boolean {
   return mode === 'diagramly'

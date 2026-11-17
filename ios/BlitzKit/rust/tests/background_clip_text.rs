@@ -11,7 +11,7 @@ fn render(body: &str) -> (usize, Vec<u8>) {
          background-clip:text}}</style>{body}"
     ))
     .unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     let (mut w, mut h, mut len) = (0, 0, 0);
     let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), 400, 100, 1.0);
     let buf = doopblitz_doc_render(doc, &mut w, &mut h, &mut len);

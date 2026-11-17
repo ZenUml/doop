@@ -1,9 +1,9 @@
-//! Add fonts installed on this computer to a Doop font library. The files come
+//! Add fonts installed on this computer to a Diagramly font library. The files come
 //! from the native file panel, opened in the fonts folder, never from a
 //! page-supplied path: the page may read a file only by the path the panel
 //! returned, once per pick, and then uploads it through the ordinary font
 //! upload, so the server reads the face's metadata exactly as it does for a
-//! dropped file. Doop checks no font licences; the page says so before the
+//! dropped file. Diagramly checks no font licences; the page says so before the
 //! upload, and the choice stays with the person.
 use serde_json::{json, Value};
 use std::collections::HashSet;

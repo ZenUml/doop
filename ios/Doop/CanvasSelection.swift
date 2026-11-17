@@ -37,7 +37,7 @@ struct CanvasClipboard: Codable {
               let value = try? JSONDecoder().decode(Self.self, from: data),
               value.frame.width.isFinite, value.frame.height.isFinite,
               (1...10000).contains(value.frame.width), (1...10000).contains(value.frame.height) else {
-            throw SelectionError.message("Copy an element or frame in Doop first.")
+            throw SelectionError.message("Copy an element or frame in Diagramly first.")
         }
         return value
     }

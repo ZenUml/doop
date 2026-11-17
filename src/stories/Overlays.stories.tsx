@@ -99,7 +99,7 @@ export const SheetStory: Story = {
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Getting started</SheetTitle>
-          <SheetDescription>Connect your own agent, or give the Doop Agent a task.</SheetDescription>
+          <SheetDescription>Connect your own agent, or give the Diagramly Agent a task.</SheetDescription>
         </SheetHeader>
       </SheetContent>
     </Sheet>
@@ -164,7 +164,7 @@ function DropdownDemo() {
           <MenuButton aria-label="Model">Model</MenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" width="lg">
-          <DropdownMenuCaption>Doop Agent model</DropdownMenuCaption>
+          <DropdownMenuCaption>Diagramly Agent model</DropdownMenuCaption>
           <DropdownMenuItem description="The everyday workhorse. A good default for design work">
             GPT-5.6 Terra
           </DropdownMenuItem>

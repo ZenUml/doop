@@ -35,7 +35,7 @@ import type { Canvas } from '../shared/types.ts'
 
 /**
  * Where components meet the frame store. Every frame write is prepared here
- * first: `<doop-use>` written out, a changed main folded into its component,
+ * first: `<diagramly-use>` written out, a changed main folded into its component,
  * instances reconciled and brought up to the current revision, and exactly the
  * right stylesheets put in the head. Sync, so no write can slip between the
  * read and the commit. Spec: .context/specs/components.md.
@@ -281,7 +281,7 @@ function removedInstanceIssues(prior: string, next: string): ComponentIssue[] {
   return [
     {
       code: 'instance_removed',
-      message: `${gone} component instance${gone === 1 ? ' is' : 's are'} gone from this frame. If you meant to keep ${gone === 1 ? 'it' : 'them'}, write <doop-use> (get_frame shows it) rather than plain markup.`,
+      message: `${gone} component instance${gone === 1 ? ' is' : 's are'} gone from this frame. If you meant to keep ${gone === 1 ? 'it' : 'them'}, write <diagramly-use> (get_frame shows it) rather than plain markup.`,
     },
   ]
 }

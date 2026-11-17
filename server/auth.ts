@@ -38,7 +38,7 @@ const SIGNUP_EMAIL_DOMAINS = env.SIGNUP_EMAIL_DOMAINS.map((s) => s.toLowerCase()
 
 /**
  * Whether an unverified account may sign in. Set REQUIRE_EMAIL_VERIFICATION
- * to "false" to let people use doop the moment they sign up — fewer people
+ * to "false" to let people use Diagramly the moment they sign up — fewer people
  * fall out of the funnel at a "check your inbox" screen, at the cost of
  * letting anyone hold an address they don't own.
  *
@@ -262,7 +262,7 @@ export function loginProvidersConfig(): {
 }
 
 /**
- * Shared by every external identity provider doop signs people in through
+ * Shared by every external identity provider Diagramly signs people in through
  * (the OIDC SSO plugin and the Google and Microsoft social providers — each
  * hands this its raw profile: `email` + `email_verified`, or for Microsoft,
  * which only sends email_verified when the app registration asks for it,
@@ -373,7 +373,7 @@ function buildAuth() {
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
     /* the provider tokens a social or SSO sign-in leaves on its account row,
-       sealed with the auth secret; doop never reads them back */
+       sealed with the auth secret; Diagramly never reads them back */
     account: { encryptOAuthTokens: true },
     /* prod: the public origin, plus any extras from env, plus Apple when its
        web flow is on: Apple returns the authorization code by POSTing a form
@@ -440,10 +440,11 @@ function buildAuth() {
       enabled: true,
       requireEmailVerification: REQUIRE_VERIFICATION,
       sendResetPassword: async ({ user, url }) => {
+        const productName = 'Diagramly'
         await sendMail({
           to: user.email,
-          subject: 'Reset your doop password',
-          text: `Hi ${user.name || 'there'},\n\nSomeone asked to reset the password for this doop account. If that was you, open this link (valid for 1 hour):\n\n${url}\n\nIf it wasn't you, ignore this email — nothing changes.`,
+          subject: `Reset your ${productName} password`,
+          text: `Hi ${user.name || 'there'},\n\nSomeone asked to reset the password for this ${productName} account. If that was you, open this link (valid for 1 hour):\n\n${url}\n\nIf it wasn't you, ignore this email — nothing changes.`,
         })
       },
     },
@@ -460,10 +461,11 @@ function buildAuth() {
         joinDefaultWorkspace(user.id, defaultWorkspaceId())
       },
       sendVerificationEmail: async ({ user, url }) => {
+        const productName = 'Diagramly'
         await sendMail({
           to: user.email,
-          subject: 'Verify your doop email',
-          text: `Hi ${user.name || 'there'},\n\nConfirm this email address to activate your doop account:\n\n${url}\n\nIf you didn't sign up for doop, ignore this email.`,
+          subject: `Verify your ${productName} email`,
+          text: `Hi ${user.name || 'there'},\n\nConfirm this email address to activate your ${productName} account:\n\n${url}\n\nIf you didn't sign up for ${productName}, ignore this email.`,
         })
       },
     },
@@ -487,7 +489,7 @@ function buildAuth() {
             assertSignupDomainAllowed(user.email)
           },
           after: async (user) => {
-            if (env.DOOP_PRODUCT !== 'diagramly') {
+            if (env.DIAGRAMLY_PRODUCT !== 'diagramly') {
               const first = (user.name || 'Your').split(/\s+/)[0]
               const canvas = store.createCanvas(`${first}'s first canvas`, user.id)
               demo.markPending(canvas.id)
@@ -542,7 +544,7 @@ function buildAuth() {
          system browser reaches the desktop app (src/lib/desktopAuth.ts). The
          browser session mints a token, the app redeems it and gets the same
          session's cookie. Single use, hashed at rest, two minutes to live —
-         it travels through a doop:// URL that lands in browser history. */
+         it travels through a diagramly:// URL that lands in browser history. */
       oneTimeToken({ storeToken: 'hashed', expiresIn: 2 }),
       ...(oidc
         ? [

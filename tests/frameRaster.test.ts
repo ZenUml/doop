@@ -213,10 +213,10 @@ it('drops what would run once the file is opened as a page', async () => {
 it('keeps a rendered source diagram visible when its live root mount is parsed into the body', async () => {
   const snapshot = buildDiagramHtml({ kind: 'zenuml', source: 'A->B: hello' }).replace(
     '</html>',
-    '<div data-doop-diagram-mount><div>Diagram</div></div></html>',
+    '<div data-diagramly-diagram-mount><div>Diagram</div></div></html>',
   )
   const svg = await inlineDocument(snapshot, opts())
-  expect(svg).toContain('data-doop-diagram-export')
+  expect(svg).toContain('data-diagramly-diagram-export')
   expect(svg).toMatch(/body\s*\{\s*height:\s*auto\s*!important;\s*overflow:\s*visible\s*!important/)
 })
 

@@ -41,10 +41,12 @@ describe.skipIf(!findBrowserPath())('imported diagram bounds', () => {
       return (await response.json()).canvases[0].id as string
     }, source)
     await page.goto(`${web.origin}/c/${id}`)
-    await page.waitForSelector('iframe[data-doop-frame]')
-    const element = await page.$('iframe[data-doop-frame]')
+    await page.waitForSelector('iframe[data-diagramly-frame]')
+    const element = await page.$('iframe[data-diagramly-frame]')
     const diagram = (await element!.contentFrame())!
-    await diagram.waitForFunction(() => document.documentElement.getAttribute('data-doop-diagram-state') === 'rendered')
+    await diagram.waitForFunction(
+      () => document.documentElement.getAttribute('data-diagramly-diagram-state') === 'rendered',
+    )
     const height = await diagram.$eval('.sequence-diagram', (el) => Math.ceil(el.getBoundingClientRect().bottom + 16))
     expect(height).toBeGreaterThan(900)
     await expect

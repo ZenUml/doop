@@ -34,19 +34,19 @@ function randomName() {
 }
 
 export function getIdentity(): { clientId: string; name: string } {
-  let clientId = storage.get('doop:clientId')
+  let clientId = storage.get('diagramly:clientId')
   if (!clientId) {
     clientId = nanoid(12)
-    storage.set('doop:clientId', clientId)
+    storage.set('diagramly:clientId', clientId)
   }
-  let name = storage.get('doop:name')
+  let name = storage.get('diagramly:name')
   if (!name) {
     name = randomName()
-    storage.set('doop:name', name)
+    storage.set('diagramly:name', name)
   }
   return { clientId, name }
 }
 
 export function setName(name: string) {
-  storage.set('doop:name', name)
+  storage.set('diagramly:name', name)
 }

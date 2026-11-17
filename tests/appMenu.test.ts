@@ -1,5 +1,8 @@
 // @vitest-environment happy-dom
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.hoisted(() => vi.stubEnv('VITE_PRODUCT_MODE', 'design'))
+afterAll(() => vi.unstubAllEnvs())
 
 vi.mock('../src/lib/posthog', () => ({ posthog: { capture: vi.fn() } }))
 
@@ -193,7 +196,7 @@ describe('the shell bridge', () => {
   })
 
   it('sends the menus, then only the items whose state moved', () => {
-    vi.stubGlobal('__DOOP_APP_MENU__', true)
+    vi.stubGlobal('__DIAGRAMLY_APP_MENU__', true)
     initAppMenu()
     expect(invoke.mock.calls[0]).toEqual(['app_menu_set', { menus: nativeMenus() }])
     expect(invoke.mock.calls[1]).toEqual(['app_menu_state', { items: nativeStates() }])
@@ -208,7 +211,7 @@ describe('the shell bridge', () => {
   })
 
   it('runs what the menu picks', () => {
-    vi.stubGlobal('__DOOP_APP_MENU__', true)
+    vi.stubGlobal('__DIAGRAMLY_APP_MENU__', true)
     initAppMenu()
     const [event, handler] = listen.mock.calls[0] as [string, (e: { payload: unknown }) => void]
     expect(event).toBe('app-menu')

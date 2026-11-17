@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Frame } from '../shared/types'
 import type { ElementInfo, GeometryEdit } from '../src/lib/frameBridge'
 
@@ -39,7 +40,7 @@ const HTML = `<!doctype html><html><head><style>
   <div id="pad"></div>
   <p id="text">A paragraph with <span id="run">an inline run</span> of text.</p>
   <img id="pic" width="160" height="80" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='80'%3E%3C/svg%3E">
-  <div id="locked" data-doop-locked=""></div>
+  <div id="locked" data-diagramly-locked=""></div>
   <div id="scaled" style="width: 100px; height: 50px; transform: scale(2); transform-origin: 0 0; background: #ccf"></div>
   <div id="turned" style="width: 100px; height: 50px; margin-top: 60px; transform: rotate(30deg); background: #fcf"></div>
   <div id="individual-rotate" style="width: 100px; height: 50px; rotate: 30deg"></div>
@@ -53,6 +54,7 @@ const HTML = `<!doctype html><html><head><style>
 </body></html>`
 
 describe.skipIf(!findBrowserPath())('element resize handles', () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   let saved: Frame
@@ -119,7 +121,7 @@ describe.skipIf(!findBrowserPath())('element resize handles', () => {
     // Install before frameBridge so the reply cannot resolve its promise early.
     await page.evaluateOnNewDocument(() => {
       window.addEventListener('message', (ev: MessageEvent) => {
-        if (!window.holdResizeReply || ev.data?.type !== 'doop:style-gesture-result') return
+        if (!window.holdResizeReply || ev.data?.type !== 'diagramly:style-gesture-result') return
         ev.stopImmediatePropagation()
         window.holdResizeReply = false
         window.heldResizeReply = ev
@@ -178,7 +180,7 @@ describe.skipIf(!findBrowserPath())('element resize handles', () => {
           const replay = new MessageEvent('message', { data: held.data, source: held.source })
           window.heldResizeReply = null
           function ended(ev: MessageEvent) {
-            if (ev === replay || ev.data?.type !== 'doop:style-gesture-result') return
+            if (ev === replay || ev.data?.type !== 'diagramly:style-gesture-result') return
             window.removeEventListener('message', ended)
             resolve()
           }
@@ -628,7 +630,7 @@ describe.skipIf(!findBrowserPath())('element resize handles', () => {
        grips size the shape, so the shape wears no grips or outline of its
        own even while it is the pick (a click, its Layers row) */
     await reset(
-      '<body data-doop-canvas-element="true" style="margin:0"><p data-doop-drawing="text" style="position:absolute;left:0;top:0;width:100%;height:100%;margin:0;font:48px/1.2 Arial">Text</p></body>',
+      '<body data-diagramly-canvas-element="true" style="margin:0"><p data-diagramly-drawing="text" style="position:absolute;left:0;top:0;width:100%;height:100%;margin:0;font:48px/1.2 Arial">Text</p></body>',
     )
     await page.waitForSelector('[data-frame-resize-handle="nw"]')
     await page.evaluate((s) => window.elementPanelHarness.select(s), 'body:nth-of-type(1) > p:nth-of-type(1)')
@@ -643,7 +645,7 @@ describe.skipIf(!findBrowserPath())('element resize handles', () => {
     /* a lock on the shape (its Layers row) is a lock on its size: the
        shell's grips would resize the shape with it */
     await reset(
-      '<body data-doop-canvas-element="true" style="margin:0"><div data-doop-drawing="rectangle" data-doop-locked="" style="position:absolute;left:0;top:0;width:100%;height:100%;background:#ddd"></div></body>',
+      '<body data-diagramly-canvas-element="true" style="margin:0"><div data-diagramly-drawing="rectangle" data-diagramly-locked="" style="position:absolute;left:0;top:0;width:100%;height:100%;background:#ddd"></div></body>',
     )
     await page.waitForFunction(() => !document.querySelector('[data-frame-resize-handle]'))
     await page.evaluate((s) => window.elementPanelHarness.select(s), 'body:nth-of-type(1) > div:nth-of-type(1)')

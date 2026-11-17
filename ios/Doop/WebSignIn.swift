@@ -5,9 +5,9 @@ import UIKit
 struct SignInCancelled: Error {}
 
 /// Runs a provider sign-in (`ProviderSignIn`) in the system browser sheet and
-/// returns the `doop://auth` callback it ends on. The sheet shares Safari's
+/// returns the `diagramly://auth` callback it ends on. The sheet shares Safari's
 /// cookies, so a Google or Microsoft account already signed in there is one
-/// tap away, and a browser that already holds a doop session skips the
+/// tap away, and a browser that already holds a Diagramly session skips the
 /// provider entirely.
 @MainActor
 final class WebSignIn: NSObject, ASWebAuthenticationPresentationContextProviding {

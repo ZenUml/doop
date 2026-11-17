@@ -26,27 +26,27 @@ struct ServerAddressChecks {
         print("All core checks passed.")
     }
     func testNormalizesOriginAndStartsAtAuthentication() {
-        let server = ServerAddress("  https://DOOP.design/ \n")!
-        checkEqual(server.origin.absoluteString, "https://doop.design")
-        checkEqual(server.home.absoluteString, "https://doop.design/auth")
+        let server = ServerAddress("  https://EXAMPLE.INVALID/ \n")!
+        checkEqual(server.origin.absoluteString, "https://example.invalid")
+        checkEqual(server.home.absoluteString, "https://example.invalid/auth")
     }
 
     func testRejectsUnsafeOrUnsupportedServerAddresses() {
-        for value in ["", "doop.design", "http://doop.design", "javascript:alert(1)",
-                      "https://user:secret@doop.design", "https://doop.design/path",
-                      "https://doop.design?token=secret", "https://doop.design#fragment",
-                      "https://doop.design:0", "https://doop.design:65536"] {
+        for value in ["", "example.invalid", "http://example.invalid", "javascript:alert(1)",
+                      "https://user:secret@example.invalid", "https://example.invalid/path",
+                      "https://example.invalid?token=secret", "https://example.invalid#fragment",
+                      "https://example.invalid:0", "https://example.invalid:65536"] {
             checkNil(ServerAddress(value), value)
         }
     }
 
     func testNavigationUsesExactOrigin() {
-        let server = ServerAddress.hosted
-        checkTrue(server.contains(URL(string: "https://doop.design/c/abc?tab=board")!))
-        checkTrue(server.contains(URL(string: "https://doop.design:443/auth")!))
-        for value in ["https://doop.design.evil.test", "https://evil.test/doop.design",
-                      "https://doop.design:444/c/abc", "http://doop.design",
-                      "https://user@doop.design", "file:///tmp/doop.design"] {
+        let server = ServerAddress("https://example.invalid")!
+        checkTrue(server.contains(URL(string: "https://example.invalid/c/abc?tab=board")!))
+        checkTrue(server.contains(URL(string: "https://example.invalid:443/auth")!))
+        for value in ["https://example.invalid.evil.test", "https://evil.test/example.invalid",
+                      "https://example.invalid:444/c/abc", "http://example.invalid",
+                      "https://user@example.invalid", "file:///tmp/example.invalid"] {
             checkFalse(server.contains(URL(string: value)!), value)
         }
     }
@@ -67,7 +67,7 @@ struct ServerAddressChecks {
         checkTrue(FileManager.default.fileExists(atPath: second.deletingLastPathComponent().path))
         for name in ["", ".", "..", "\n"] {
             let url = try storage.destination(suggestedFilename: name)
-            checkEqual(url.lastPathComponent, "Doop export")
+            checkEqual(url.lastPathComponent, "Diagramly export")
         }
         let outside = root.appendingPathComponent("keep.txt")
         try Data("keep".utf8).write(to: outside)

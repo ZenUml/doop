@@ -228,10 +228,10 @@ export function LayersPanel(props: {
   onClose?: () => void
   resize?: PanelResize
 }) {
-  return isDiagramly() ? <DiagramlyContents {...props} /> : <DoopLayersPanel {...props} />
+  return isDiagramly() ? <DiagramlyContents {...props} /> : <HtmlLayersPanel {...props} />
 }
 
-function DoopLayersPanel({
+function HtmlLayersPanel({
   onAddFrame,
   surface = 'floating',
   onClose,

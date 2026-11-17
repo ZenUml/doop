@@ -11,7 +11,7 @@ let stranger: Client
 let agent: McpClient
 
 beforeAll(async () => {
-  server = await startServer()
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design' })
   owner = await new Client(server).signUp('approval@test.dev', 'Review Owner')
   stranger = await new Client(server).signUp('approval-stranger@test.dev', 'Stranger')
   const { secret } = await (await owner.post('/api/agent-keys', { name: 'Implementation agent' })).json()
@@ -215,7 +215,7 @@ it('persists current approvals and stale approvals through a server restart', as
   await agent.close()
   server.stop({ keepData: true })
   await server.stopped
-  server = await startServer({}, dataDir)
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'design' }, dataDir)
   owner = new Client(server)
   await owner.post('/api/auth/sign-in/email', { email: 'approval@test.dev', password: 'password12345' })
   expect((await read(frame)).approval).toEqual(approved.approval)

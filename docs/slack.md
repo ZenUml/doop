@@ -11,9 +11,9 @@ and posts the finished design back in the thread with a link to the canvas.
 2. Under **OAuth & Permissions**, add the bot scopes `app_mentions:read`,
    `chat:write`, `commands`, `files:write`, `channels:history`,
    `groups:history`, `im:history` and `mpim:history`, and set the redirect URL to
-   `https://YOUR_DOOP_HOST/api/integrations/slack/callback`.
+   `https://YOUR_DIAGRAMLY_HOST/api/integrations/slack/callback`.
 3. Under **Event Subscriptions**, set the request URL to
-   `https://YOUR_DOOP_HOST/webhooks/slack` and subscribe the bot to
+   `https://YOUR_DIAGRAMLY_HOST/webhooks/slack` and subscribe the bot to
    `app_mention`, `app_uninstalled` and `tokens_revoked`. The URL must be
    publicly reachable over HTTPS; Slack only enables the subscriptions once
    the running server answers its `url_verification` challenge.

@@ -107,7 +107,7 @@ const appleEvidenceFiles = [
 ]
 const appleEvidence = Object.fromEntries(appleEvidenceFiles.map((file) => [file, fs.existsSync(path.join(root, file))]))
 const doopProductDefaultsOff =
-  /DOOP_PRODUCT:\s*str\(\{\s*choices:\s*\[[^\]]*diagramly[^\]]*\],\s*default:\s*'doop'/s.test(
+  /DIAGRAMLY_PRODUCT:\s*str\(\{\s*choices:\s*\[[^\]]*diagramly[^\]]*\],\s*default:\s*'doop'/s.test(
     fs.readFileSync(path.join(root, 'server/env.ts'), 'utf8'),
   )
 add(

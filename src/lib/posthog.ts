@@ -46,7 +46,7 @@ const INTERNAL_DOMAINS: string[] = (import.meta.env.VITE_POSTHOG_INTERNAL_DOMAIN
   .map((d: string) => d.trim().toLowerCase())
   .filter(Boolean)
 const isInternalEmail = (email: string) => INTERNAL_DOMAINS.some((d) => email.toLowerCase().endsWith(`@${d}`))
-const NO_REPLAY_KEY = 'doop:internal-no-replay'
+const NO_REPLAY_KEY = 'diagramly:internal-no-replay'
 
 if (!key) {
   console.warn('VITE_POSTHOG_KEY is unset — PostHog is disabled and no events will be sent.')
@@ -115,8 +115,8 @@ export function suspendAnalyticsWhileImpersonating() {
   posthog.stopSessionRecording()
 }
 
-/* The Support widget (PostHog Conversations, switched on in the project
-   settings for doop.design) floats in the bottom-right corner, where it sits
+/* The Support widget (PostHog Conversations, switched on in project
+   settings) floats in the bottom-right corner, where it sits
    on the editor's zoom bar and the prompt bar. It is for the pages around the
    editor, not the canvas itself. The SDK renders it only after the remote
    config arrives, and hide() before that is a no-op, so the wish is kept and

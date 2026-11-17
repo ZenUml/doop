@@ -80,7 +80,7 @@ function EventPicker({ value, onChange }: { value: WebhookEventType[]; onChange:
   )
 }
 
-/** The "Webhooks" pane of /settings: register URLs doop POSTs canvas events
+/** The "Webhooks" pane of /settings: register URLs Diagramly POSTs canvas events
  *  to, see whether they answer, rotate their secrets. The secret appears once,
  *  on creation or rotation — the list never carries it. */
 export function Webhooks() {
@@ -194,7 +194,7 @@ export function Webhooks() {
         <CardTitle>{t('webhooks.title')}</CardTitle>
         <CardDescription>
           {t('webhooks.descriptionBefore')}
-          <code className="font-mono text-label">X-Doop-Signature</code>
+          <code className="font-mono text-label">X-Diagramly-Signature</code>
           {t('webhooks.descriptionAfter')}
         </CardDescription>
       </CardHeader>
@@ -214,7 +214,7 @@ export function Webhooks() {
               setUrl(e.target.value)
               setError('')
             }}
-            placeholder="https://hooks.example.com/doop"
+            placeholder="https://hooks.example.com/diagramly"
             inputMode="url"
             aria-label={t('webhooks.urlAria')}
           />

@@ -36,6 +36,7 @@ beforeAll(async () => {
   await new Promise<void>((resolve) => slack.listen(0, resolve))
   const slackPort = (slack.address() as AddressInfo).port
   server = await startServer({
+    DIAGRAMLY_PRODUCT: 'design',
     SLACK_CLIENT_ID: 'slack-client',
     SLACK_CLIENT_SECRET: 'slack-secret',
     SLACK_SIGNING_SECRET: 'signing-secret',
@@ -110,7 +111,7 @@ describe('Slack installation', () => {
     const callback = await stranger.get(
       `/api/integrations/slack/callback?state=${start.searchParams.get('state')}&code=good-code`,
     )
-    expect(decodeURIComponent(callback.headers.get('location') ?? '')).toContain('already has a Doop installer')
+    expect(decodeURIComponent(callback.headers.get('location') ?? '')).toContain('already has a Diagramly installer')
     expect(await status(stranger)).toMatchObject({ connected: false })
   })
 

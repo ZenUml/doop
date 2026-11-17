@@ -9,5 +9,5 @@
 # the clipboard tests, which a Mac skips, run. Needs Docker.
 set -eu
 cd "$(dirname "$0")/.."
-docker build --quiet --file tests/linux.Dockerfile --tag doop-test-linux . >/dev/null
-exec docker run --rm --cpus 2 --memory 7g --shm-size 1g doop-test-linux "$@"
+docker build --quiet --file tests/linux.Dockerfile --tag diagramly-test-linux . >/dev/null
+exec docker run --rm --cpus 2 --memory 7g --shm-size 1g diagramly-test-linux "$@"

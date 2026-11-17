@@ -104,7 +104,7 @@ export function Home() {
   /* a prompt or import on its way to a fresh canvas */
   const [starting, setStarting] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  /* the rail's "Ask Doop" and ⌘/ hand the keyboard to the composer */
+  /* the rail's "Ask Diagramly" and ⌘/ hand the keyboard to the composer */
   const [composerFocusAt, setComposerFocusAt] = useState(0)
   const { data: session } = authClient.useSession()
   const t = useT()
@@ -165,7 +165,14 @@ export function Home() {
     try {
       const canvas = await api.createCanvas(canvasNameFromPrompt(text), workspaceId)
       try {
-        await api.addCard(canvas.id, draftsCardTitle(text, drafts), ['doop'], undefined, undefined, currentRunnerPick())
+        await api.addCard(
+          canvas.id,
+          draftsCardTitle(text, drafts),
+          ['diagramly'],
+          undefined,
+          undefined,
+          currentRunnerPick(),
+        )
         posthog.capture('home_prompt_submitted', { drafts, workspace: !!workspaceId })
       } catch (error) {
         /* the brief — with its draft count — rides along as the canvas

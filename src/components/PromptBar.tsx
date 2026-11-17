@@ -8,7 +8,7 @@ import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 import { Note } from './ui/note'
 import { Tooltip } from './ui/tooltip'
-import { DoopMark } from './Logo'
+import { DiagramlyMark } from './Logo'
 import { ArrowUpIcon, AttachmentIcon, FrameIcon, XIcon } from './ui/icons'
 import { ModelPicker } from './ModelPicker'
 import { currentRunnerPick, useRunnerPick } from '../lib/runnerPick'
@@ -144,7 +144,7 @@ async function sendPrompt(args: {
     await api.addCard(
       canvasId,
       text,
-      ['doop'],
+      ['diagramly'],
       refFrames.map((f) => f.id),
       scope,
       runner,
@@ -479,7 +479,7 @@ export function PromptBar({ canvasId }: { canvasId: string }) {
             </Note>
           ) : (
             <Note size="sm" className="text-[11px] text-ink-soft">
-              <DoopMark size={11} /> {t('panels.promptSent')}
+              <DiagramlyMark size={11} /> {t('panels.promptSent')}
             </Note>
           )}
         </div>

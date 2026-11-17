@@ -17,7 +17,7 @@ vi.mock('../server/env.ts', async (importOriginal) => {
     ...original,
     env: {
       ...original.env,
-      DOOP_AGENT_PROVIDER: 'anthropic',
+      DIAGRAMLY_AGENT_PROVIDER: 'anthropic',
       get ANTHROPIC_API_KEY() {
         return process.env.ANTHROPIC_API_KEY || undefined
       },
@@ -67,5 +67,5 @@ it('is null for the server tier without a key, and Haiku on the Anthropic key', 
   vi.stubEnv('ANTHROPIC_API_KEY', '')
   expect(serverDescriber()).toBeNull()
   vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
-  expect(serverDescriber()).toMatchObject({ provider: 'anthropic', label: 'Doop (claude-haiku-4-5-20251001)' })
+  expect(serverDescriber()).toMatchObject({ provider: 'anthropic', label: 'Diagramly (claude-haiku-4-5-20251001)' })
 })

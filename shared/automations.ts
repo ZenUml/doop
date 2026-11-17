@@ -406,7 +406,7 @@ export const AUTOMATION_EXAMPLES: AutomationExample[] = [
     blurb: preset.blurb,
     trigger: 'approval',
     schedule: { kind: 'weekly', weekday: 1, hour: 9, minute: 0 },
-    steps: [{ type: 'agent', title: preset.name, prompt: preset.prompt, roles: ['doop'] }],
+    steps: [{ type: 'agent', title: preset.name, prompt: preset.prompt, roles: ['diagramly'] }],
   })),
   {
     id: 'weekly-creatives',
@@ -418,7 +418,7 @@ export const AUTOMATION_EXAMPLES: AutomationExample[] = [
   {
     id: 'ad-variants',
     name: 'Ad variants',
-    blurb: 'Pull this week’s creatives, then have Doop spin up five variants of each.',
+    blurb: 'Pull this week’s creatives, then have Diagramly spin up five variants of each.',
     schedule: { kind: 'weekly', weekday: 1, hour: 9, minute: 0 },
     steps: [
       { type: 'pull', provider: 'meta', accountId: '', filter: 'active' },
@@ -427,7 +427,7 @@ export const AUTOMATION_EXAMPLES: AutomationExample[] = [
         title: 'Make variants',
         prompt:
           'For every ad creative pulled in today, make five variants as new frames next to it: a stronger headline, a different visual hierarchy, a bolder colour treatment, a shorter copy version, and one that leads with social proof. Keep the brand intact.',
-        roles: ['doop'],
+        roles: ['diagramly'],
       },
     ],
   },

@@ -58,10 +58,10 @@ describe('desktop connect links', () => {
 
   it('rejects other schemes, hosts, providers and malformed URLs', () => {
     expect(parseDesktopConnectLink('https://integration/slack?state=s')).toBeNull()
-    expect(parseDesktopConnectLink('doop://auth/slack?state=s')).toBeNull()
-    expect(parseDesktopConnectLink('doop://connect/codex?origin=x')).toBeNull()
-    expect(parseDesktopConnectLink('doop://integration/Sl%2Fack?state=s')).toBeNull()
-    expect(parseDesktopConnectLink('doop://integration/?state=s')).toBeNull()
+    expect(parseDesktopConnectLink('diagramly://auth/slack?state=s')).toBeNull()
+    expect(parseDesktopConnectLink('diagramly://connect/codex?origin=x')).toBeNull()
+    expect(parseDesktopConnectLink('diagramly://integration/Sl%2Fack?state=s')).toBeNull()
+    expect(parseDesktopConnectLink('diagramly://integration/?state=s')).toBeNull()
     expect(parseDesktopConnectLink('not a url')).toBeNull()
   })
 })
@@ -105,13 +105,13 @@ describe('pending desktop connection', () => {
   it('drops expired entries when a new connection starts', () => {
     rememberPendingConnect('slack', 1_000)
     rememberPendingConnect('meta', 2_000 + PENDING_CONNECT_TTL_MS)
-    expect(JSON.parse(shim.get('doop-desktop-connect') ?? '{}')).toEqual({ meta: 2_000 + PENDING_CONNECT_TTL_MS })
+    expect(JSON.parse(shim.get('diagramly-desktop-connect') ?? '{}')).toEqual({ meta: 2_000 + PENDING_CONNECT_TTL_MS })
   })
 
   it('ignores a corrupt record', () => {
-    shim.set('doop-desktop-connect', '{"slack":"yesterday"}')
+    shim.set('diagramly-desktop-connect', '{"slack":"yesterday"}')
     expect(isPendingConnect('slack')).toBe(false)
-    shim.set('doop-desktop-connect', 'not json')
+    shim.set('diagramly-desktop-connect', 'not json')
     expect(isPendingConnect('slack')).toBe(false)
     expect(rememberPendingConnect('slack')).toBe(true)
   })
@@ -163,6 +163,7 @@ describe('connecting from the desktop app', () => {
     })
     await new Promise<void>((resolve) => slack.listen(0, resolve))
     server = await startServer({
+      DIAGRAMLY_PRODUCT: 'design',
       SLACK_CLIENT_ID: 'slack-client',
       SLACK_CLIENT_SECRET: 'slack-secret',
       SLACK_SIGNING_SECRET: 'signing-secret',

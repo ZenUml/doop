@@ -9,16 +9,16 @@ import type { Frame } from '../shared/types.ts'
 
 /**
  * GitHub repo as an import source — a ONE-TIME, CODE-ONLY job: connect a
- * repo (GitHub App install or fine-grained PAT), let doop enumerate its
+ * repo (GitHub App install or fine-grained PAT), let Diagramly enumerate its
  * screens from framework routing conventions, and queue the selected ones as
- * cards on the board. The resident Doop agent works the cards one by one
+ * cards on the board. The resident Diagramly agent works the cards one by one
  * (server/githubRecon.ts): repo HTML lands as-is, and a screen that only
  * exists as code is designed from its source. Nothing in this flow touches
  * the live site — capturing deployed pages belongs to the website importer,
  * and logged-in screens to the design-sync snippet.
  *
  * Provenance follows the design-sync pattern: a marker meta stamped into the
- * frame HTML (`doop-github-screen`), no frame column. The marker carries the
+ * frame HTML (`diagramly-github-screen`), no frame column. The marker carries the
  * connection's id — never the token — so frame HTML stays safe to read for
  * everyone on the canvas.
  */
@@ -65,7 +65,7 @@ async function gh(token: string, path: string, accept = 'application/vnd.github+
       Authorization: `Bearer ${token}`,
       Accept: accept,
       'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': 'doop-import',
+      'User-Agent': 'diagramly-import',
     },
   })
 }
@@ -357,7 +357,7 @@ export async function fetchTreePaths(conn: GithubConnection): Promise<string[]> 
 const MAX_FILE_BYTES = 1_500_000
 
 /** Raw bytes of a repo file — image assets the reconstruction transplants
- *  into doop's asset store so private-repo logos/screenshots render for
+ *  into Diagramly's asset store so private-repo logos/screenshots render for
  *  every canvas viewer. */
 export async function fetchRepoBinary(conn: GithubConnection, path: string): Promise<Buffer> {
   const res = await gh(
@@ -386,7 +386,7 @@ export async function fetchRepoFile(conn: GithubConnection, path: string): Promi
 /* ------------------------------------------------------------------ */
 /* Marker + frame HTML                                                 */
 
-const GITHUB_META = 'doop-github-screen'
+const GITHUB_META = 'diagramly-github-screen'
 
 /** Same lockdown the importer and ingest stamp on their snapshots. */
 const SNAPSHOT_CSP = [

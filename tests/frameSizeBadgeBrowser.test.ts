@@ -1,7 +1,8 @@
+import { designFixtureUrl } from './designBrowser'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Page } from 'puppeteer-core'
 import { findBrowserPath } from '../server/screenshot'
-import { fixtureUrl, pagePerTest } from './browser'
+import { pagePerTest } from './browser'
 import type { Frame } from '../shared/types'
 
 /* the rulers fixture mounts the real Stage; its harness is declared in
@@ -24,6 +25,7 @@ const frame = (id: string, y: number, height: number): Frame => ({
 })
 
 describe.skipIf(!findBrowserPath())('frame size badge', { timeout: 30_000 }, () => {
+  const fixtureUrl = designFixtureUrl()
   const pages = pagePerTest()
   let page: Page
   const errors: string[] = []

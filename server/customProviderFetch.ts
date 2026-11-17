@@ -6,8 +6,8 @@ import type { RequestInit as UndiciRequestInit } from 'undici'
  * The only way a request reaches a custom provider. Every other model
  * transport talks to a fixed URL; this one's URL is whatever a person typed,
  * which makes it a server-side fetch target: an SSRF into whatever network
- * Doop runs on. So, unless the operator says the instance's own network is
- * fair game (DOOP_CUSTOM_PROVIDER_PRIVATE_HOSTS, for a self-hosted Doop whose
+ * Diagramly runs on. So, unless the operator says the instance's own network is
+ * fair game (DIAGRAMLY_CUSTOM_PROVIDER_PRIVATE_HOSTS, for a self-hosted Diagramly whose
  * models run beside it):
  *
  *  - the URL must be https on a public host name or address;
@@ -26,11 +26,11 @@ const MAX_RESPONSE_BYTES = 32 * 1024 * 1024
 export class CustomProviderUrlError extends Error {}
 
 export function customProvidersEnabled(): boolean {
-  return env.DOOP_CUSTOM_PROVIDERS
+  return env.DIAGRAMLY_CUSTOM_PROVIDERS
 }
 
 function privateHostsAllowed(): boolean {
-  return env.DOOP_CUSTOM_PROVIDER_PRIVATE_HOSTS
+  return env.DIAGRAMLY_CUSTOM_PROVIDER_PRIVATE_HOSTS
 }
 
 /** The URL if this server may send a request to it, before any network I/O;
@@ -55,7 +55,7 @@ export function reachableUrl(raw: string | URL): URL {
     return parsePublicHttpUrl(url.href)
   } catch {
     throw new CustomProviderUrlError(
-      'This server can only reach public APIs: that host is local or private. Self-hosted instances can allow private hosts (DOOP_CUSTOM_PROVIDER_PRIVATE_HOSTS).',
+      'This server can only reach public APIs: that host is local or private. Self-hosted instances can allow private hosts (DIAGRAMLY_CUSTOM_PROVIDER_PRIVATE_HOSTS).',
     )
   }
 }

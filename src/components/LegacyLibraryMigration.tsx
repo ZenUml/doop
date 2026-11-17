@@ -7,7 +7,7 @@ import { LegacyZenUmlImport } from './LegacyZenUmlImport'
 import { navigate } from '../lib/navigate'
 
 const shell = window as Window & {
-  __DOOP_LEGACY_LIBRARY__?: boolean
+  __DIAGRAMLY_LEGACY_LIBRARY__?: boolean
   __TAURI__?: { core?: { invoke: (command: string) => Promise<unknown> } }
 }
 
@@ -32,7 +32,7 @@ export function LegacyLibraryMigration({ onImported, compact = false }: { onImpo
         if (alive) setStatus(value)
       })
       .catch(() => {
-        if (alive && shell.__DOOP_LEGACY_LIBRARY__) setError('The old-library check could not finish. Try again.')
+        if (alive && shell.__DIAGRAMLY_LEGACY_LIBRARY__) setError('The old-library check could not finish. Try again.')
       })
     return () => {
       alive = false
@@ -99,7 +99,7 @@ export function LegacyLibraryMigration({ onImported, compact = false }: { onImpo
             Review saved library{ready.length > 1 ? ` ${index + 1}` : ''}
           </Button>
         ))}
-        {shell.__DOOP_LEGACY_LIBRARY__ && shell.__TAURI__?.core && (
+        {shell.__DIAGRAMLY_LEGACY_LIBRARY__ && shell.__TAURI__?.core && (
           <Button variant="ghost" disabled={busy} onClick={() => void chooseFolder()}>
             {busy ? 'Opening old library…' : 'Find old ZenUML library'}
           </Button>

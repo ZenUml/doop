@@ -5,7 +5,7 @@ import { buildDiagramHtml, readDiagramFrame } from '../shared/diagramFrame'
 let server: Server
 let owner: Client
 beforeAll(async () => {
-  server = await startServer({ DOOP_PRODUCT: 'diagramly' })
+  server = await startServer({ DIAGRAMLY_PRODUCT: 'diagramly' })
   owner = await new Client(server).signUp('desktop-owner@test.dev', 'Desktop owner')
 }, 60_000)
 afterAll(() => server?.stop())

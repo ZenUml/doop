@@ -24,7 +24,7 @@ describe.skipIf(!findBrowserPath())('frame runtime body attributes', () => {
     await page.waitForFunction(
       () =>
         (window as unknown as Fixture).testReady &&
-        (window as unknown as Fixture).messages.some((m) => m.type === 'doop:frame-ready'),
+        (window as unknown as Fixture).messages.some((m) => m.type === 'diagramly:frame-ready'),
       {
         timeout: 60_000,
       },
@@ -49,9 +49,9 @@ describe.skipIf(!findBrowserPath())('frame runtime body attributes', () => {
       reqId,
     )
   }
-  const render = (html: string) => ask({ type: 'doop:html', html }, 'doop:html-result')
+  const render = (html: string) => ask({ type: 'diagramly:html', html }, 'diagramly:html-result')
   const inspectBody = async () =>
-    (await ask<Message>({ type: 'doop:inspect', selector: 'body' }, 'doop:inspect-result')).info
+    (await ask<Message>({ type: 'diagramly:inspect', selector: 'body' }, 'diagramly:inspect-result')).info
 
   it('applies styles scoped under a body class', async () => {
     await render(

@@ -1,6 +1,6 @@
-/** Where an agent struggled with Doop itself (report_issue). */
+/** Where an agent struggled with Diagramly itself (report_issue). */
 export const AGENT_ISSUE_CATEGORIES = ['bug', 'tool_error', 'confusing', 'missing_capability', 'other'] as const
-/** What an agent would change or keep about Doop (share_feedback). */
+/** What an agent would change or keep about Diagramly (share_feedback). */
 export const AGENT_IDEA_CATEGORIES = ['idea', 'improvement', 'praise', 'other'] as const
 
 export type AgentFeedbackKind = 'issue' | 'feedback'
@@ -10,7 +10,7 @@ export type AgentFeedbackCategory = AgentIssueCategory | AgentIdeaCategory
 
 export const MAX_AGENT_FEEDBACK_CHARS = 4000
 
-/** Which kind of agent sent it: one connected over MCP, or a resident Doop Agent run. */
+/** Which kind of agent sent it: one connected over MCP, or a resident Diagramly Agent run. */
 export type AgentFeedbackSource = 'mcp' | 'resident'
 
 export interface AgentFeedbackReport {

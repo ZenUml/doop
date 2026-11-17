@@ -118,13 +118,13 @@ it('keeps setup details inside the modal until Connect is clicked', async () => 
     ),
   )
   expect(document.querySelector('[role="dialog"]')).toBeNull()
-  expect(container.textContent).not.toContain('Install Doop in a Linear workspace')
+  expect(container.textContent).not.toContain('Install Diagramly in a Linear workspace')
   expect(input()).toBeNull()
   await act(async () => button('Connect').click())
   const dialog = document.querySelector('[role="dialog"]')!
-  expect(dialog.textContent).toContain('Workspace members who can delegate to Doop can start these runs.')
+  expect(dialog.textContent).toContain('Workspace members who can delegate to Diagramly can start these runs.')
   expect(dialog.textContent).toContain('Settings → Security & access')
-  expect(button('Install Doop agent')).toBeDefined()
+  expect(button('Install Diagramly agent')).toBeDefined()
   expect(input()).not.toBeNull()
   expect(mocks.req).not.toHaveBeenCalled()
 })

@@ -8,7 +8,7 @@ fn main() {
     let html = CString::new(std::fs::read_to_string(&a[1]).unwrap()).unwrap();
     let (w, h): (u32, u32) = (a[2].parse().unwrap(), a[3].parse().unwrap());
     let scale: f32 = a[4].parse().unwrap();
-    let base = CString::new("https://doop.design/").unwrap();
+    let base = CString::new("https://example.invalid/").unwrap();
     unsafe {
         let doc = doopblitz_doc_new(html.as_ptr(), base.as_ptr(), w, h, scale);
         let (mut ow, mut oh, mut len) = (0u32, 0u32, 0usize);

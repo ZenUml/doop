@@ -34,7 +34,7 @@ type Entry =
       guides?: CanvasGuide[]
     }
   | { type: 'update'; frameId: string; before: Patch; after: Patch; at: number; discrete?: boolean }
-  /* a layer's caption: `elementId` is the `data-doop-id` the rename stamped,
+  /* a layer's caption: `elementId` is the `data-diagramly-id` the rename stamped,
      what undo and redo find the element by once a sibling moves it */
   | {
       type: 'layer-name'
@@ -169,7 +169,7 @@ export function recordLayerName(
 
 /** A name is metadata, not an HTML snapshot. Undo and rollback must update
  *  the live attribute even while the frame is being text-edited.
- *  `stamp` is the `data-doop-id` the first rename gives the element it
+ *  `stamp` is the `data-diagramly-id` the first rename gives the element it
  *  reaches by position; undo and redo pass the id's own selector and no
  *  stamp, so a layer whose id is gone is refused, never a neighbour renamed. */
 export async function saveLayerName(frameId: string, selector: string, name: string | null, stamp?: string) {
@@ -182,7 +182,11 @@ export async function saveLayerName(frameId: string, selector: string, name: str
   if (html === null) throw new Error('Layer removed')
   const started = epoch
   store.patchFrameLocal(frameId, { html })
-  const mirrored = requestFrame(frameId, 'doop:rename', { selector, name, ...(stamping ? { elementId: stamp } : {}) })
+  const mirrored = requestFrame(frameId, 'diagramly:rename', {
+    selector,
+    name,
+    ...(stamping ? { elementId: stamp } : {}),
+  })
   try {
     await api.updateFrame(frameId, { html })
     await mirrored
@@ -200,7 +204,11 @@ export async function saveLayerName(frameId: string, selector: string, name: str
       const rollback = named !== null && stamping ? clearElementId(named, selector) : named
       if (rollback !== null) {
         s.patchFrameLocal(frameId, { html: rollback })
-        await requestFrame(frameId, 'doop:rename', { selector, name: before, ...(stamping ? { elementId: null } : {}) })
+        await requestFrame(frameId, 'diagramly:rename', {
+          selector,
+          name: before,
+          ...(stamping ? { elementId: null } : {}),
+        })
       }
     }
     throw err

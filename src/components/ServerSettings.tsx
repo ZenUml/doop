@@ -14,7 +14,7 @@ import {
   type ServerStatus,
 } from '../lib/desktopServer'
 
-/* The sign-in screen's cog in the desktop app: which Doop server the app
+/* The sign-in screen's cog in the desktop app: which Diagramly server the app
    opens (src/lib/desktopServer.ts). The shell does the checking, the
    confirming and the restart; this only collects the address. Browsers and
    shells that cannot switch never draw it. */
@@ -85,7 +85,7 @@ function ServerModal({ onClose }: { onClose: () => void }) {
           autoCapitalize="off"
           autoCorrect="off"
           spellCheck={false}
-          placeholder="https://doop.example.com"
+          placeholder="https://diagramly.example.com"
           value={address}
           disabled={busy}
           onChange={(event) => setAddress(event.target.value)}

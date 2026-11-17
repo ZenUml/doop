@@ -69,7 +69,7 @@ export function inspirationSearchEnabled(): boolean {
 }
 
 export const INSPIRATION_UNAVAILABLE_NOTE =
-  'Inspiration search is not configured on this Doop instance. Write the brief from the canvas context and the design-quality principles, and say in the brief that no exemplar was available.'
+  'Inspiration search is not configured on this Diagramly instance. Write the brief from the canvas context and the design-quality principles, and say in the brief that no exemplar was available.'
 
 const cache = new Map<string, { at: number; results: InspirationResult[] }>()
 const inflight = new Map<string, Promise<InspirationResult[]>>()

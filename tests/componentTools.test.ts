@@ -1,6 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.hoisted(() => vi.stubEnv('DIAGRAMLY_PRODUCT', 'design'))
+afterAll(() => vi.unstubAllEnvs())
 
 vi.mock('../server/db/persist.ts', () => ({
   saveCanvas: () => {},
@@ -87,18 +90,21 @@ describe('an agent working with components', () => {
     const created = await button(canvas.id)
     expect(created.ok).toBe(true)
     expect(created.component.signature).toBe('Button(tone: solid|ghost = solid, label: text)')
-    expect(created.component.usage).toContain('<doop-use component="Button"')
+    expect(created.component.usage).toContain('<diagramly-use component="Button"')
     const main = store.getFrame(created.main_frame_id)!
     expect(store.getCanvas(canvas.id)!.pages?.find((page) => page.id === main.pageId)?.name).toBe('Components')
     const listed = await call('get_canvas', { canvas_id: canvas.id })
     expect(listed.data.components[0].name).toBe('Button')
-    expect(listed.data.note).toContain('doop-use')
+    expect(listed.data.note).toContain('diagramly-use')
   })
 
   it('reads a screen back in short form, at a fraction of the size, and can edit it', async () => {
     const canvas = newCanvas()
     await button(canvas.id)
-    const uses = Array.from({ length: 20 }, (_, i) => `<doop-use component="Button" label="Action ${i}"></doop-use>`)
+    const uses = Array.from(
+      { length: 20 },
+      (_, i) => `<diagramly-use component="Button" label="Action ${i}"></diagramly-use>`,
+    )
     const frameId = await framed(canvas.id, uses.join(''))
     const full = store.getFrame(frameId)!.html
     const read = await call('get_frame', { frame_id: frameId })
@@ -116,9 +122,9 @@ describe('an agent working with components', () => {
     const html = store.getFrame(frameId)!.html
     expect(html).toContain('Renamed')
     expect(html).toContain('data-tone="ghost"')
-    expect(html.match(/ data-doop-instance=/g)).toHaveLength(20)
+    expect(html.match(/ data-diagramly-instance=/g)).toHaveLength(20)
     /* the other nineteen did not change, down to their ids */
-    expect(html).toContain(/data-doop-id="[a-z0-9]{6}"/.exec(full)![0])
+    expect(html).toContain(/data-diagramly-id="[a-z0-9]{6}"/.exec(full)![0])
   })
 
   it('hears about mistakes in the result, with what would have worked', async () => {
@@ -127,7 +133,7 @@ describe('an agent working with components', () => {
     const result = await call('create_frame', {
       canvas_id: canvas.id,
       name: 'Bad',
-      html: '<doop-use component="Buton"></doop-use><doop-use component="Button" tone="neon" nope="1"></doop-use>',
+      html: '<diagramly-use component="Buton"></diagramly-use><diagramly-use component="Button" tone="neon" nope="1"></diagramly-use>',
     })
     expect(result.text).toContain('no component “Buton”')
     expect(result.text).toContain('solid | ghost')
@@ -140,16 +146,16 @@ describe('an agent working with components', () => {
     const result = await call('create_frame', { canvas_id: canvas.id, name: 'Redrawn', html: `<div>${BUTTON}</div>` })
     expect(result.text).toContain('match')
     expect(result.text).toContain('“Button”')
-    expect(result.text).toContain('<doop-use')
+    expect(result.text).toContain('<diagramly-use')
   })
 
   it('changes every instance with one call, and sees the impact first', async () => {
     const canvas = newCanvas()
     const created = await button(canvas.id)
-    const a = await framed(canvas.id, '<doop-use component="Button" label="Keep A"></doop-use>', 'A')
+    const a = await framed(canvas.id, '<diagramly-use component="Button" label="Keep A"></diagramly-use>', 'A')
     const b = await framed(
       canvas.id,
-      '<doop-use component="Button" label="Keep B"></doop-use><doop-use component="Button"></doop-use>',
+      '<diagramly-use component="Button" label="Keep B"></diagramly-use><diagramly-use component="Button"></diagramly-use>',
       'B',
     )
     store.updateFrame(
@@ -201,9 +207,9 @@ describe('an agent working with components', () => {
   it('keeps overrides attached when the main is rewritten wholesale, and reports any it could not', async () => {
     const canvas = newCanvas()
     await button(canvas.id)
-    const frameId = await framed(canvas.id, '<doop-use component="Button" id="abc123"></doop-use>')
+    const frameId = await framed(canvas.id, '<diagramly-use component="Button" id="abc123"></diagramly-use>')
     const part =
-      /class="label" data-doop-prop="label" data-doop-part="([a-z]+)"|data-doop-part="([a-z]+)"[^>]*class="label"/.exec(
+      /class="label" data-diagramly-prop="label" data-diagramly-part="([a-z]+)"|data-diagramly-part="([a-z]+)"[^>]*class="label"/.exec(
         store.getComponents(canvas.id)[0]!.template,
       )
     const key = part?.[1] ?? part?.[2]
@@ -218,7 +224,7 @@ describe('an agent working with components', () => {
     const rewrite = await call('update_component', {
       canvas_id: canvas.id,
       component: 'Button',
-      html: '<button class="btn wide"><span class="label" data-doop-prop="label">Go</span></button>',
+      html: '<button class="btn wide"><span class="label" data-diagramly-prop="label">Go</span></button>',
     })
     expect(rewrite.data.impact.overrides_orphaned).toEqual([])
     const html = store.getFrame(frameId)!.html
@@ -255,9 +261,9 @@ describe('an agent working with components', () => {
     const second = store.getFrame(b)!.html
     expect(first).toContain('Two')
     expect(second).toContain('Three')
-    expect(second).toContain('data-doop-instance')
-    expect(second).toMatch(/data-doop-props="[^"]*Three/)
-    expect(second).not.toContain('data-doop-overrides')
+    expect(second).toContain('data-diagramly-instance')
+    expect(second).toMatch(/data-diagramly-props="[^"]*Three/)
+    expect(second).not.toContain('data-diagramly-overrides')
 
     await call('update_component', {
       canvas_id: canvas.id,
@@ -274,7 +280,7 @@ describe('an agent working with components', () => {
   it('places instances and changes several in one write', async () => {
     const canvas = newCanvas()
     await button(canvas.id)
-    const frameId = await framed(canvas.id, '<main data-doop-id="mainid"><h1>Hi</h1></main>')
+    const frameId = await framed(canvas.id, '<main data-diagramly-id="mainid"><h1>Hi</h1></main>')
     const placed = await call('insert_instance', {
       canvas_id: canvas.id,
       frame_id: frameId,
@@ -308,7 +314,7 @@ describe('an agent working with components', () => {
     })
     expect(detached.isError).toBe(false)
     const html = store.getFrame(frameId)!.html
-    expect(html).not.toContain('data-doop-instance')
+    expect(html).not.toContain('data-diagramly-instance')
     expect(html).toContain('Placed')
   })
 
@@ -318,11 +324,11 @@ describe('an agent working with components', () => {
     await call('create_component', {
       canvas_id: canvas.id,
       name: 'Card',
-      html: '<div class="card"><h2>Title</h2><doop-use component="Button" label="Inside"></doop-use><div data-doop-slot="extra"></div></div>',
+      html: '<div class="card"><h2>Title</h2><diagramly-use component="Button" label="Inside"></diagramly-use><div data-diagramly-slot="extra"></div></div>',
     })
     const frameId = await framed(
       canvas.id,
-      '<doop-use component="Card"><doop-use slot="extra" component="Button" label="Slotted"></doop-use></doop-use>',
+      '<diagramly-use component="Card"><diagramly-use slot="extra" component="Button" label="Slotted"></diagramly-use></diagramly-use>',
     )
     await call('update_component', { canvas_id: canvas.id, component: 'Button', name: 'Action' })
     await call('update_component', {
@@ -342,12 +348,12 @@ describe('an agent working with components', () => {
   it('deletes a component without touching what anything looks like', async () => {
     const canvas = newCanvas()
     await button(canvas.id)
-    const frameId = await framed(canvas.id, '<doop-use component="Button" label="Stays"></doop-use>')
+    const frameId = await framed(canvas.id, '<diagramly-use component="Button" label="Stays"></diagramly-use>')
     const result = await call('delete_component', { canvas_id: canvas.id, component: 'Button' })
     expect(result.data.instances_detached).toBe(1)
     const html = store.getFrame(frameId)!.html
     expect(html).toContain('Stays')
-    expect(html).not.toContain('data-doop-instance')
+    expect(html).not.toContain('data-diagramly-instance')
     expect(store.getComponents(canvas.id)).toEqual([])
   })
 
@@ -363,7 +369,10 @@ describe('an agent working with components', () => {
       component: 'Button',
     })
     expect(imported.isError).toBe(false)
-    const frameId = await framed(canvas.id, '<doop-use component="Button" label="Mine" tone="ghost"></doop-use>')
+    const frameId = await framed(
+      canvas.id,
+      '<diagramly-use component="Button" label="Mine" tone="ghost"></diagramly-use>',
+    )
 
     await call('update_component', {
       canvas_id: library.id,

@@ -18,7 +18,6 @@ public struct ServerAddress: Equatable {
         origin = url
     }
 
-    public static let hosted = ServerAddress("https://doop.design")!
     public var home: URL { origin.appendingPathComponent("auth") }
 
     public func contains(_ url: URL) -> Bool {

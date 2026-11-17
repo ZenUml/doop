@@ -15,7 +15,7 @@ import * as actions from './actions.ts'
  * disabled otherwise, like the resident agents.
  */
 
-const MODEL = env.DOOP_DISTILL_MODEL
+const MODEL = env.DIAGRAMLY_DISTILL_MODEL
 /** most recent unconsumed decisions the judge sees per run */
 const MAX_WINDOW = 15
 

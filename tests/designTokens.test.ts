@@ -22,7 +22,7 @@ import {
 
 /**
  * The pure half of design tokens: how a frame's managed `<style
- * data-doop-tokens>` block follows the tokens it names, and how the list
+ * data-diagramly-tokens>` block follows the tokens it names, and how the list
  * exports as CSS, Tailwind and markdown.
  */
 
@@ -66,13 +66,13 @@ describe('withTokenBlock', () => {
     const html = withTokenBlock('<html><head></head><body style="gap:var(--spacing-4)"></body></html>', TOKENS)
     const changed = withTokenBlock(html, [token('--spacing-4', 'spacing', '20px')])
     expect(changed).toContain(':root{--spacing-4:20px}')
-    expect(changed.match(/data-doop-tokens/g)).toHaveLength(1)
+    expect(changed.match(/data-diagramly-tokens/g)).toHaveLength(1)
     const dropped = withTokenBlock(html, [])
     expect(dropped).not.toContain(TOKEN_BLOCK_ATTR)
   })
 
   it('ignores names that only appear inside its own block', () => {
-    const html = '<html><head><style data-doop-tokens>:root{--color-ink:#111}</style></head><body></body></html>'
+    const html = '<html><head><style data-diagramly-tokens>:root{--color-ink:#111}</style></head><body></body></html>'
     expect(withTokenBlock(html, TOKENS)).not.toContain(TOKEN_BLOCK_ATTR)
   })
 
@@ -134,9 +134,9 @@ describe('themes', () => {
     const css = tokensCss(themed, ['dark', 'light'])
     expect(css).toBe(
       ':root{--ink:#111;--brand:var(--ink);--spacing-4:16px}\n' +
-        ':root[data-doop-theme="dark"],[data-doop-theme="dark"]{--ink:#eee;--brand:var(--ink);--spacing-4:16px}\n' +
+        ':root[data-diagramly-theme="dark"],[data-diagramly-theme="dark"]{--ink:#eee;--brand:var(--ink);--spacing-4:16px}\n' +
         /* a theme without overrides still resets a subtree to the defaults */
-        ':root[data-doop-theme="light"],[data-doop-theme="light"]{--ink:#111;--brand:var(--ink);--spacing-4:16px}',
+        ':root[data-diagramly-theme="light"],[data-diagramly-theme="light"]{--ink:#111;--brand:var(--ink);--spacing-4:16px}',
     )
     expect(resolveToken(themed, '--brand', 'dark')).toBe('#eee')
   })
@@ -154,20 +154,24 @@ describe('themes', () => {
   it('moves a frame between themes and reads which one it is on', () => {
     const html = '<!doctype html><html lang="en"><head></head><body></body></html>'
     const dark = withFrameTheme(html, 'dark')
-    expect(dark).toContain('<html lang="en" data-doop-theme="dark">')
+    expect(dark).toContain('<html lang="en" data-diagramly-theme="dark">')
     expect(frameTheme(dark)).toBe('dark')
     expect(frameTheme(html)).toBeNull()
     expect(withFrameTheme(dark, null)).toBe(html)
-    expect(withFrameTheme(dark, 'dim')).toContain('<html lang="en" data-doop-theme="dim">')
-    expect(renameThemeAttrs(dark, 'dark', 'night')).toContain('data-doop-theme="night"')
-    expect(renameThemeAttrs("<div data-doop-theme='dark'>", 'dark', 'night')).toBe("<div data-doop-theme='night'>")
+    expect(withFrameTheme(dark, 'dim')).toContain('<html lang="en" data-diagramly-theme="dim">')
+    expect(renameThemeAttrs(dark, 'dark', 'night')).toContain('data-diagramly-theme="night"')
+    expect(renameThemeAttrs("<div data-diagramly-theme='dark'>", 'dark', 'night')).toBe(
+      "<div data-diagramly-theme='night'>",
+    )
     expect(withFrameTheme('<p>no root</p>', 'dark')).toBe('<p>no root</p>')
     /* an unquoted attribute is read, replaced and renamed too */
-    expect(frameTheme('<html data-doop-theme=dark>')).toBe('dark')
-    expect(withFrameTheme('<html data-doop-theme=dark lang="en">', 'dim')).toBe(
-      '<html lang="en" data-doop-theme="dim">',
+    expect(frameTheme('<html data-diagramly-theme=dark>')).toBe('dark')
+    expect(withFrameTheme('<html data-diagramly-theme=dark lang="en">', 'dim')).toBe(
+      '<html lang="en" data-diagramly-theme="dim">',
     )
-    expect(renameThemeAttrs('<html data-doop-theme=dark>', 'dark', 'night')).toBe('<html data-doop-theme="night">')
+    expect(renameThemeAttrs('<html data-diagramly-theme=dark>', 'dark', 'night')).toBe(
+      '<html data-diagramly-theme="night">',
+    )
   })
 })
 

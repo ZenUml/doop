@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * One-shot Stripe setup for doop's Team plan: creates the product and its
+ * One-shot Stripe setup for diagramly's Team plan: creates the product and its
  * two per-seat prices ($20/seat/month, $192/seat/year) and prints the env
  * lines the server needs. Idempotent by lookup key — run it again and it
  * finds the prices it made last time.
@@ -22,15 +22,15 @@ const stripe = new Stripe(key)
 
 /* mirrors shared/billing.ts — keep the two in step */
 const PRICES = [
-  { lookup: 'doop_team_month', interval: 'month', unitAmount: 2000, env: 'STRIPE_PRICE_TEAM_MONTHLY' },
-  { lookup: 'doop_team_year', interval: 'year', unitAmount: 19200, env: 'STRIPE_PRICE_TEAM_YEARLY' },
+  { lookup: 'diagramly_team_month', interval: 'month', unitAmount: 2000, env: 'STRIPE_PRICE_TEAM_MONTHLY' },
+  { lookup: 'diagramly_team_year', interval: 'year', unitAmount: 19200, env: 'STRIPE_PRICE_TEAM_YEARLY' },
 ]
 
 async function findOrCreateProduct() {
-  const existing = await stripe.products.search({ query: "name:'Doop Team' AND active:'true'", limit: 1 })
+  const existing = await stripe.products.search({ query: "name:'Diagramly Team' AND active:'true'", limit: 1 })
   if (existing.data[0]) return existing.data[0]
   return stripe.products.create({
-    name: 'Doop Team',
+    name: 'Diagramly Team',
     description: 'Shared workspaces for your whole org — billed per seat.',
   })
 }

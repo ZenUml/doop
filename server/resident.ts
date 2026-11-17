@@ -60,7 +60,7 @@ import { AGENT_IDEA_CATEGORIES, AGENT_ISSUE_CATEGORIES, type AgentFeedbackCatego
 
 /**
  * The resident design team: a server-side Claude tool loop, run once per
- * agent role that has work waiting. Doop builds; the specialists (UX, copy,
+ * agent role that has work waiting. Diagramly builds; the specialists (UX, copy,
  * brand, accessibility, polish) each own one pass. A board card names an
  * ordered pipeline of roles and moves down it one stage at a time, so a
  * single card can go design → copy → brand → a11y without a human in between.
@@ -71,7 +71,7 @@ import { AGENT_IDEA_CATEGORIES, AGENT_ISSUE_CATEGORIES, type AgentFeedbackCatego
  *
  * Which model each run uses is server/agentModel.ts's decision: the server
  * tier (Anthropic by default, or an Azure OpenAI deployment via
- * DOOP_AGENT_PROVIDER) covers the free tasks, and past that the run moves onto
+ * DIAGRAMLY_AGENT_PROVIDER) covers the free tasks, and past that the run moves onto
  * the model account the requesting human connected (their ChatGPT
  * subscription or OpenAI key). With neither, the queue behaves as it always
  * did — the work waits for the next agent to connect over MCP.
@@ -148,7 +148,7 @@ async function sweep(canvasId: string) {
   }
 }
 
-const SYSTEM = `You are a resident design agent of the Doop canvas — a multiplayer design tool where humans and AI agents design HTML frames together. You live in the server and your job is narrow: when work lands on the canvas for you, you do it, promptly and well.
+const SYSTEM = `You are a resident design agent of the Diagramly canvas — a multiplayer design tool where humans and AI agents design HTML frames together. You live in the server and your job is narrow: when work lands on the canvas for you, you do it, promptly and well.
 
 Rules:
 - Only make the changes the request asks for, and only the ones your specialty covers. No refactors, no redesigns beyond the request, no new frames unless asked.
@@ -158,7 +158,7 @@ Rules:
 - Each frame includes human approval metadata. Only ready_for_dev means the current design is approved for implementation; draft and needs_review are not approved. Content or size edits invalidate sign-off. Approval is context, not a new assignment: do only the requested work, and re-read the frame's approval before using it for implementation.
 - Choose a size-aware strategy. For documents over 60,000 characters, call inspect_frame before reading HTML. Use get_frame_html with a query or bounded range only when markup is needed.
 - For requests to copy, match, or borrow another frame's design: screenshot and inspect BOTH the target and reference before editing. Use the reference screenshot and computed design tokens as the source of visual truth. Read target HTML only when you need to preserve its content; do not load a large reference document just to learn its style. For a full redesign, use begin_frame_rewrite, append_frame_rewrite in chunks under 12,000 characters, and commit_frame_rewrite; then screenshot the changed frame.
-- Element comments are pinned to ONE element (you get its data-doop-id and an HTML excerpt at comment time). Change that element or its immediate context — never rework unrelated parts of the frame because of an element comment.
+- Element comments are pinned to ONE element (you get its data-diagramly-id and an HTML excerpt at comment time). Change that element or its immediate context — never rework unrelated parts of the frame because of an element comment.
 - Canvas comments are pinned to a point on the page, not to an element (you get the point and the frames nearest to it). The request is about what sits around that point: edit those frames in place, or add a new frame near the point when the comment asks for something new — never rework the whole page because of a canvas comment.
 - Frames are complete, self-contained HTML documents. Keep each frame's existing style and structure; change what the feedback requires.
 ${FRAME_STYLES}
@@ -371,7 +371,7 @@ export function describeCommentAnchor(c: ElementComment, canvas: Canvas | undefi
     if (c.elementId === undefined) {
       return `on frame ${c.frameId} "${fname}", an element that is no longer in the frame\n  element HTML at comment time: ${c.snippet}`
     }
-    return `on frame ${c.frameId} "${fname}", the element with data-doop-id="${c.elementId}"\n  element HTML at comment time: ${c.snippet}`
+    return `on frame ${c.frameId} "${fname}", the element with data-diagramly-id="${c.elementId}"\n  element HTML at comment time: ${c.snippet}`
   }
   const pageName = canvas ? canvasPages(canvas).find((page) => page.id === c.pageId)?.name : undefined
   const near = canvas ? framesAround(pageFrames(canvas, c.pageId), c.x, c.y) : []
@@ -418,7 +418,7 @@ async function runAgent(canvasId: string, agentName: string, stalled: Set<string
   const actor = actions.resolveActor({ name: role.name, kind: 'agent' })
   if (!model.userId && RESIDENT_TASK_LIMIT <= 0) {
     const reason =
-      'The Doop Agent needs a connected account — connect your ChatGPT subscription or an OpenAI, OpenRouter, Gemini, DeepSeek, Kimi or Claude API key in Settings, then retry.'
+      'The Diagramly Agent needs a connected account — connect your ChatGPT subscription or an OpenAI, OpenRouter, Gemini, DeepSeek, Kimi or Claude API key in Settings, then retry.'
     for (const f of actions.takeFeedbackFor(canvasId, role.name, payer, runnerFilter))
       actions.failTaskFeedback(f.id, reason)
     for (const c of actions.takeAgentCommentsFor(canvasId, role.name, payer, runnerFilter))
@@ -464,7 +464,7 @@ async function runAgent(canvasId: string, agentName: string, stalled: Set<string
          failure outside any card, so none stays claimed forever */
       console.error('[resident] repo cards errored', err)
       for (const c of repoCards)
-        actions.failCard(canvasId, c.id, 'Doop hit a snag before finishing. Retry when you are ready.')
+        actions.failCard(canvasId, c.id, 'Diagramly hit a snag before finishing. Retry when you are ready.')
     }
     if (claimed.length === 0 && comments.length === 0 && cards.length === 0) {
       clearInterval(heartbeat)
@@ -490,7 +490,7 @@ async function runAgent(canvasId: string, agentName: string, stalled: Set<string
     )
 
     const canvas = store.getCanvas(canvasId)
-    /* demo frames (the Doop welcome show, seeded examples) are product
+    /* demo frames (the Diagramly welcome show, seeded examples) are product
        content, not user work — hidden so agents never mistake them for
        the canvas's established style */
     const visibleFrames = (canvas?.frames ?? []).filter((f) => !f.demo)
@@ -613,7 +613,7 @@ async function runAgent(canvasId: string, agentName: string, stalled: Set<string
         : '') +
       `\n\nAddress everything above now.` +
       (comments.length > 0
-        ? ` For element comments, find the element by its data-doop-id attribute in the frame's HTML (get_frame); the HTML excerpt shows it as it was when the comment was left. Keep every data-doop-* attribute on the elements you rewrite — comments and links point at them. A canvas comment is about the frames around its point, not about one element.`
+        ? ` For element comments, find the element by its data-diagramly-id attribute in the frame's HTML (get_frame); the HTML excerpt shows it as it was when the comment was left. Keep every data-diagramly-* attribute on the elements you rewrite — comments and links point at them. A canvas comment is about the frames around its point, not about one element.`
         : '')
 
     console.log(
@@ -687,7 +687,7 @@ async function runAgent(canvasId: string, agentName: string, stalled: Set<string
           ? [
               {
                 text:
-                  `# Components on this canvas\nAnything these cover goes in through <doop-use>, never redrawn:\n\n` +
+                  `# Components on this canvas\nAnything these cover goes in through <diagramly-use>, never redrawn:\n\n` +
                   componentDocs
                     .map((def) => {
                       const entry = catalogEntry(canvas, def)
@@ -955,7 +955,7 @@ async function runAgent(canvasId: string, agentName: string, stalled: Set<string
       if (staleAccount) {
         reason =
           accountError ??
-          `${model.label} turned down the connected account. Reconnect it in Doop, then retry.${blockedWebsiteAccess ? ` ${blockedWebsiteAccess}` : ''}`
+          `${model.label} turned down the connected account. Reconnect it in Diagramly, then retry.${blockedWebsiteAccess ? ` ${blockedWebsiteAccess}` : ''}`
       } else if (unavailableModel) {
         reason = `${model.label} is not available on your connected account yet. Pick another model in Settings, then retry.`
       } else if (blockedWebsiteAccess) {
@@ -1375,7 +1375,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'report_issue',
     description:
-      'Tell the Doop team where Doop itself got in your way: a tool that errored or behaved other than described, an instruction that left you guessing, or a capability you needed and did not have. Call it after a retry fails or when you fall back to a workaround, then carry on with the task. Ideas that did not block you go to share_feedback. It never reaches the humans on the canvas. Be specific: what you tried, what happened, what you expected. Never include secrets.',
+      'Tell the Diagramly team where Diagramly itself got in your way: a tool that errored or behaved other than described, an instruction that left you guessing, or a capability you needed and did not have. Call it after a retry fails or when you fall back to a workaround, then carry on with the task. Ideas that did not block you go to share_feedback. It never reaches the humans on the canvas. Be specific: what you tried, what happened, what you expected. Never include secrets.',
     input_schema: {
       type: 'object',
       properties: {
@@ -1389,7 +1389,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'share_feedback',
     description:
-      'Tell the Doop team how Doop could work better for you: a tool you wish you had, a clumsy workflow, a result that should carry more, or something that worked especially well. Use it when you notice something worth saying, then carry on with the task. Something that broke or blocked you goes to report_issue. It never reaches the humans on the canvas. Never include secrets.',
+      'Tell the Diagramly team how Diagramly could work better for you: a tool you wish you had, a clumsy workflow, a result that should carry more, or something that worked especially well. Use it when you notice something worth saying, then carry on with the task. Something that broke or blocked you goes to report_issue. It never reaches the humans on the canvas. Never include secrets.',
     input_schema: {
       type: 'object',
       properties: {
@@ -1497,7 +1497,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'set_token_themes',
     description:
-      'Replace this canvas\'s token themes (light, dark, …) and their order. A frame switches theme with data-doop-theme="<theme>" on its <html> or on a subtree; a theme that leaves takes its values with it.',
+      'Replace this canvas\'s token themes (light, dark, …) and their order. A frame switches theme with data-diagramly-theme="<theme>" on its <html> or on a subtree; a theme that leaves takes its values with it.',
     input_schema: {
       type: 'object',
       properties: {
@@ -1564,7 +1564,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'get_prototype',
     description:
-      'List the clickable-prototype wiring of this canvas: each page with its flow start frame, and every interaction (data-doop-on / data-doop-action attributes in frame HTML) with its trigger, action and target. Interactions whose target frame does not exist carry a problem; fix them with edit_frame_html. Call it after wiring a flow.',
+      'List the clickable-prototype wiring of this canvas: each page with its flow start frame, and every interaction (data-diagramly-on / data-diagramly-action attributes in frame HTML) with its trigger, action and target. Interactions whose target frame does not exist carry a problem; fix them with edit_frame_html. Call it after wiring a flow.',
     input_schema: { type: 'object', properties: {} },
   },
   {
@@ -1751,7 +1751,7 @@ export async function execTool(
         if (typeof f.html !== 'string') return fail('frame HTML is unavailable; retry after the frame reloads')
         const raw = block.input as { query?: string; offset?: number; limit?: number }
         const approval = `Approval: ${JSON.stringify(f.approval ?? { status: 'draft' })}`
-        /* instances read as <doop-use>: a long way down from their full markup */
+        /* instances read as <diagramly-use>: a long way down from their full markup */
         const source = compactFrameHtml(f)
         const query = String(raw.query || '').trim()
         const limit = Math.max(1000, Math.min(Number(raw.limit) || 20_000, MAX_HTML_READ_CHARS))
@@ -2186,7 +2186,7 @@ export async function execTool(
           canvasId,
           userId: runState.payerId ?? store.getCanvas(canvasId)?.ownerId,
         })
-        return saved.ok ? ok('sent to the Doop team — carry on with the task') : fail(saved.error)
+        return saved.ok ? ok('sent to the Diagramly team — carry on with the task') : fail(saved.error)
       }
       case 'set_guidelines': {
         const raw = block.input as { name?: string; markdown?: string; title?: string }

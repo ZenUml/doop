@@ -43,7 +43,7 @@ import { ELEMENT_ID_ATTR, isElementId, newElementId } from '../shared/elementId.
  *   diffing it against what the instance's own revision would have rendered,
  *   so a save from a client holding an older main is merged, not mistaken for
  *   overrides
- * - compact / expand: full markup ↔ `<doop-use>`
+ * - compact / expand: full markup ↔ `<diagramly-use>`
  */
 
 type Element = Tree.Element
@@ -367,7 +367,7 @@ function clean(overrides: InstanceOverrides): InstanceOverrides {
   return out
 }
 
-/** The compact markup of a node list: instances collapse to `<doop-use>`, the rest serializes as it stands. */
+/** The compact markup of a node list: instances collapse to `<diagramly-use>`, the rest serializes as it stands. */
 function compactChildren(el: ParentNode, ctx: EngineContext): string {
   const clone = parseFragment(serialize(el))
   compactInTree(clone, ctx)
@@ -755,7 +755,7 @@ function attrText(name: string, value: string): string {
   return ` ${name}="${escapeAttr(value)}"`
 }
 
-/** The `<doop-use>` tag for an instance element, children and all. `reconcile` reads the state
+/** The `<diagramly-use>` tag for an instance element, children and all. `reconcile` reads the state
  *  an edit to the markup implies, not only what the marker says: what a main's template needs,
  *  so a change inside a nested instance of the main lands in the same write. */
 export function useTagFor(
@@ -800,7 +800,7 @@ export function useMarkup(
   return `${tag}>${slotChildren.join('')}</${USE_TAG}>`
 }
 
-/** Build an instance's overrides from a `<doop-use>`'s attributes, reporting what does not fit. */
+/** Build an instance's overrides from a `<diagramly-use>`'s attributes, reporting what does not fit. */
 export function stateFromUseAttrs(use: Element, def: Revision, ctx: EngineContext): InstanceState {
   const props: Record<string, string> = {}
   let parts: Record<string, PartOverride> = {}
@@ -900,7 +900,7 @@ function serializeOuterWithoutSlot(el: Element): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* Expanding `<doop-use>` at string level: a parser would foster-parent */
+/* Expanding `<diagramly-use>` at string level: a parser would foster-parent */
 /* one out of a <table>, and the rest of the document stays byte-exact. */
 /* ------------------------------------------------------------------ */
 
@@ -969,7 +969,7 @@ function nextUse(html: string, from: number, opaque: [number, number][]): UseSpa
   return undefined
 }
 
-/** Every complete `<doop-use>` in the HTML, written out in full. One still missing
+/** Every complete `<diagramly-use>` in the HTML, written out in full. One still missing
  *  its end (mid-stream) stays as it is until a later pass. */
 export function expandUses(html: string, ctx: EngineContext, stack: string[] = [], depth = 0): string {
   if (!html.toLowerCase().includes(`<${USE_TAG}`)) return html
@@ -1087,7 +1087,7 @@ export function splice(html: string, edits: { start: number; end: number; text: 
   return out
 }
 
-/** Short form of a whole document: instances as `<doop-use>`, their CSS copies gone.
+/** Short form of a whole document: instances as `<diagramly-use>`, their CSS copies gone.
  *  What agents read: a screen of 40 buttons costs 40 lines rather than 40 subtrees. */
 export function compactDocument(html: string, ctx: EngineContext): string {
   if (!html.includes(INSTANCE_ATTR) && !html.includes(CSS_ATTR)) return html

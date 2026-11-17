@@ -45,7 +45,7 @@ export const admin: Catalog['admin'] = {
   feedbackNav: 'Feedback dos agentes',
   feedbackTab: 'Feedback · {count}',
   feedbackEmpty:
-    'Nenhum agente enviou nada ainda. Os agentes chamam report_issue quando o Doop atrapalha e share_feedback com ideias.',
+    'Nenhum agente enviou nada ainda. Os agentes chamam report_issue quando o Diagramly atrapalha e share_feedback com ideias.',
   feedbackKind: 'Tipo',
   feedbackAll: 'Todos · {count}',
   feedbackIssues: 'Problemas · {count}',

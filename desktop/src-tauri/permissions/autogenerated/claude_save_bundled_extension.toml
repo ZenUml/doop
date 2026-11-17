@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-claude-save-bundled-extension"
+description = "Enables the claude_save_bundled_extension command without any pre-configured scope."
+commands.allow = ["claude_save_bundled_extension"]
+
+[[permission]]
+identifier = "deny-claude-save-bundled-extension"
+description = "Denies the claude_save_bundled_extension command without any pre-configured scope."
+commands.deny = ["claude_save_bundled_extension"]

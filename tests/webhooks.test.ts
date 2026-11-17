@@ -175,8 +175,8 @@ describe('registry', () => {
     /* the rotation that failed must not have changed the signing secret */
     const [, init] = mocks.fetch.mock.calls[0] as [string, RequestInit]
     const headers = init.headers as Record<string, string>
-    expect(headers['x-doop-signature']).toBe(
-      webhooks.sign(secret, Number(headers['x-doop-timestamp']), String(init.body)),
+    expect(headers['x-diagramly-signature']).toBe(
+      webhooks.sign(secret, Number(headers['x-diagramly-timestamp']), String(init.body)),
     )
   })
 
@@ -226,14 +226,14 @@ describe('delivery', () => {
     const { url, init, headers } = lastCall()
     expect(url).toBe('https://hooks.example.com/doop')
     expect(init.redirect).toBe('manual')
-    expect(headers['x-doop-event']).toBe('comment.created')
+    expect(headers['x-diagramly-event']).toBe('comment.created')
     const body = String(init.body)
     const expected =
-      'sha256=' + createHmac('sha256', secret).update(`${headers['x-doop-timestamp']}.${body}`).digest('hex')
-    expect(headers['x-doop-signature']).toBe(expected)
+      'sha256=' + createHmac('sha256', secret).update(`${headers['x-diagramly-timestamp']}.${body}`).digest('hex')
+    expect(headers['x-diagramly-signature']).toBe(expected)
     const payload = JSON.parse(body)
     expect(payload.type).toBe('comment.created')
-    expect(payload.id).toBe(headers['x-doop-delivery'])
+    expect(payload.id).toBe(headers['x-diagramly-delivery'])
     expect(payload.canvas).toEqual({ id: 'c1', name: 'Landing', url: 'http://localhost:4300/c/c1' })
     expect(payload.actor).toEqual({ name: 'Alice', kind: 'user' })
     expect(payload.comment.url).toBe('http://localhost:4300/c/c1?frame=f1&comment=cm1')
@@ -310,7 +310,7 @@ describe('delivery', () => {
     webhooks.onCanvasEvent('c1', {
       type: 'frame.created',
       frame: FRAME,
-      actor: { name: 'Doop', kind: 'agent', color: '#000' },
+      actor: { name: 'Diagramly', kind: 'agent', color: '#000' },
     })
     await vi.advanceTimersByTimeAsync(0)
     for (const delay of webhooks.RETRY_DELAYS_MS) await vi.advanceTimersByTimeAsync(delay)
@@ -354,14 +354,14 @@ describe('payloads', () => {
   it('shapes every event', () => {
     const task = {
       id: 't1',
-      agentName: 'Doop',
+      agentName: 'Diagramly',
       color: '#000',
       status: 'Make the hero pop',
       startedAt: 1,
       queuedBy: 'Alice',
     }
     expect(webhooks.payloadFor({ type: 'task.completed', task })).toMatchObject({
-      actor: { name: 'Doop', kind: 'agent' },
+      actor: { name: 'Diagramly', kind: 'agent' },
       task: { id: 't1', title: 'Make the hero pop', queuedBy: 'Alice', frameIds: [] },
     })
     expect(webhooks.payloadFor({ type: 'task.failed', task, reason: 'rate limited' })).toMatchObject({

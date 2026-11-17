@@ -4,7 +4,7 @@
 use tauri::WebviewWindow;
 
 pub fn desktop_marker(version: &str) -> String {
-    format!("if(window===window.top){{window.__DOOP_DESKTOP__='{version}';window.__DOOP_DESKTOP_PLATFORM__='macos';window.__DOOP_CODEX_SETUP__=false;window.__DOOP_VIEW_MENU__=true;window.__DOOP_APP_MENU__=true;window.__DOOP_LOCAL_FONTS__=true;window.__DIAGRAMLY_APP_STORE__=true;}}")
+    format!("if(window===window.top){{window.__DIAGRAMLY_DESKTOP__='{version}';window.__DIAGRAMLY_DESKTOP_PLATFORM__='macos';window.__DIAGRAMLY_CODEX_SETUP__=false;window.__DIAGRAMLY_VIEW_MENU__=true;window.__DIAGRAMLY_APP_MENU__=true;window.__DIAGRAMLY_LOCAL_FONTS__=true;window.__DIAGRAMLY_APP_STORE__=true;}}")
 }
 
 #[cfg(test)]
@@ -26,7 +26,7 @@ mod tests {
             .unwrap()
             .iter()
             .any(|permission| permission == "allow-codex-add-mcp"));
-        assert!(super::desktop_marker("1.0.0").contains("__DOOP_CODEX_SETUP__=false"));
+        assert!(super::desktop_marker("1.0.0").contains("__DIAGRAMLY_CODEX_SETUP__=false"));
     }
 }
 

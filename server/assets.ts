@@ -150,13 +150,13 @@ export async function storeAsset(
 }
 
 /** Only a standalone image layer is reference material; detached designs also
- * carry data-doop-canvas-element, so the marker alone is not enough. */
+ * carry data-diagramly-canvas-element, so the marker alone is not enough. */
 export function isStandaloneImage(html: string): boolean {
   const isElement = (node: Tree.ChildNode): node is Tree.Element => 'tagName' in node
   const doc = parse(html)
   const root = doc.childNodes.filter(isElement).find((node) => node.tagName === 'html')
   const body = root?.childNodes.filter(isElement).find((node) => node.tagName === 'body')
-  if (!body?.attrs.some((attr) => attr.name === 'data-doop-canvas-element')) return false
+  if (!body?.attrs.some((attr) => attr.name === 'data-diagramly-canvas-element')) return false
   const content = body.childNodes.filter(
     (node) => node.nodeName !== '#comment' && !(node.nodeName === '#text' && 'value' in node && !node.value.trim()),
   )
@@ -166,7 +166,7 @@ export function isStandaloneImage(html: string): boolean {
     !!image &&
     isElement(image) &&
     image.tagName === 'img' &&
-    image.attrs.some((attr) => attr.name === 'data-doop-drawing' && attr.value === 'image')
+    image.attrs.some((attr) => attr.name === 'data-diagramly-drawing' && attr.value === 'image')
   )
 }
 
@@ -219,7 +219,7 @@ export async function fetchRemote(rawUrl: string): Promise<Buffer> {
   for (let hop = 0; hop < 4; hop++) {
     const res = await fetchPinnedPublicUrl(url, {
       redirect: 'manual',
-      headers: { accept: 'image/*,*/*;q=0.8', 'user-agent': 'DoopAssets/1.0' },
+      headers: { accept: 'image/*,*/*;q=0.8', 'user-agent': 'DiagramlyAssets/1.0' },
       signal: AbortSignal.timeout(20_000),
     })
     if (res.status >= 300 && res.status < 400) {

@@ -27,7 +27,7 @@ import { t as translate, useT } from '../lib/i18n'
 import { isDiagramly } from '../lib/product'
 import { DiagramlyInspector } from './DiagramlyInspector'
 
-const HTML_OPEN_KEY = 'doop:inspector-html'
+const HTML_OPEN_KEY = 'diagramly:inspector-html'
 
 /* the rail's filled buttons: a grey well, 28px, tall enough to hit on a phone */
 const fillBtn = 'h-7 rounded-[7px] bg-sub px-2 text-[12px] font-normal text-ink hover:bg-paper-deep max-md:min-h-10'
@@ -43,10 +43,10 @@ function boxOf(frame: Frame): FrameBox {
 }
 
 export function Inspector(props: { frame: Frame; surface?: PanelSurface; className?: string; style?: CSSProperties }) {
-  return isDiagramly() ? <DiagramlyInspector {...props} /> : <DoopInspector {...props} />
+  return isDiagramly() ? <DiagramlyInspector {...props} /> : <HtmlInspector {...props} />
 }
 
-function DoopInspector({
+function HtmlInspector({
   frame,
   surface = 'floating',
   className,
