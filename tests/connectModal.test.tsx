@@ -248,3 +248,24 @@ it('reports recent canvas activity without claiming that a selected client conne
   await act(async () => root.render(<AgentArrival />))
   expect(text()).toContain('Waiting for agent activity on this canvas')
 })
+
+it.each(['Add Diagramly to Claude', 'Claude Code', 'Codex', 'Cursor', 'Other MCP client'])(
+  'desktop %s authorizes the local library in the browser',
+  async (agent) => {
+    mocks.desktop = true
+    await mount('local-copy-test')
+    await pickAgent(agent)
+    expect(text()).toContain('sign in to your local library profile')
+    expect(text()).toContain('approve access to this local library')
+    expect(text()).not.toContain('Connect your Diagramly account')
+    expect(text()).not.toContain('Sign in to Diagramly')
+  },
+)
+
+it('keeps the existing website account wording for Claude Desktop', async () => {
+  await mount()
+  await pickAgent('Add Diagramly to Claude')
+  expect(text()).toContain('Connect your Diagramly account')
+  expect(text()).toContain('Sign in to Diagramly')
+  expect(text()).not.toContain('approve access to this local library')
+})

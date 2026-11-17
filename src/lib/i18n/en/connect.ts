@@ -29,6 +29,15 @@ export const connect = {
   claudeCodeSignInThen: ', then ',
   claudeCodeSignInAfter: '. A browser tab opens so you can approve the connection.',
 
+  localChatgptAddAfter:
+    '. In the browser, sign in to your local library profile and approve access to this local library, then install the resulting plugin.',
+  localLibraryConnectTitle: 'Authorize access to your local library',
+  localLibraryBrowserApproval:
+    'In the browser that opens, sign in to your local library profile and approve access to this local library. The agent can then work on your local documents.',
+  localClaudeDesktopLede: 'Install the extension in Claude Desktop, then authorize your local library.',
+  localClaudeDesktopConnectBody:
+    'Enable the extension in Claude. In the browser that opens, sign in to your local library profile and approve access to this local library.',
+
   claudeDesktopLede: 'Install the extension in Claude Desktop, then connect your account.',
   claudeDesktopAddTitle: 'Add Diagramly to Claude Desktop',
   claudeDesktopAddBody:

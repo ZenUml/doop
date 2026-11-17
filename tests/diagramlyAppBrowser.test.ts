@@ -166,6 +166,7 @@ describe.skipIf(!findBrowserPath())('Diagramly product application', () => {
   }, 30_000)
   it('keeps desktop document creation and import while hiding cloud accounts, AI and purchases', async () => {
     const page = await pages.open()
+    await page.browserContext().deleteCookie(...(await page.browserContext().cookies()))
     const cloudRequests: string[] = []
     page.on('request', (request) => {
       if (new URL(request.url()).pathname.startsWith('/api/diagramly/')) cloudRequests.push(request.url())
@@ -177,6 +178,11 @@ describe.skipIf(!findBrowserPath())('Diagramly product application', () => {
       }
     })
     await page.goto(web.origin)
+    await page.locator('button::-p-text(No account yet? Sign up)').click()
+    await page.waitForFunction(() => document.body.innerText.includes('Create a local profile for this library.'))
+    expect(await page.$eval('body', (element) => element.innerText)).not.toContain(
+      'Connect your Diagramly cloud account',
+    )
     await page.evaluate(async () => {
       const response = await fetch('/api/auth/sign-up/email', {
         method: 'POST',

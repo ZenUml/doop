@@ -17,6 +17,7 @@ export const auth: Catalog['auth'] = {
   taglineEmphasis: 'e agentes',
   taglineAfter: '.',
   taglineSignin: 'Entre para acessar seus canvases.',
+  localTaglineSignup: 'Crie um perfil local para esta biblioteca.',
   taglineSignup: 'Crie sua conta para começar a desenhar.',
 
   signInWith: 'Entrar com {provider}',

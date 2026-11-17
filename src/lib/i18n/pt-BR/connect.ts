@@ -31,6 +31,15 @@ export const connect: Catalog['connect'] = {
   claudeCodeSignInThen: ' e depois ',
   claudeCodeSignInAfter: '. Uma aba do navegador se abre para você aprovar a conexão.',
 
+  localChatgptAddAfter:
+    '. No navegador, entre no seu perfil da biblioteca local, autorize o acesso a esta biblioteca e instale o plugin.',
+  localLibraryConnectTitle: 'Autorize o acesso à sua biblioteca local',
+  localLibraryBrowserApproval:
+    'No navegador que abrir, entre no seu perfil da biblioteca local e autorize o acesso a esta biblioteca local. O agente poderá trabalhar nos seus documentos locais.',
+  localClaudeDesktopLede: 'Instale a extensão no Claude Desktop e autorize sua biblioteca local.',
+  localClaudeDesktopConnectBody:
+    'Ative a extensão no Claude. No navegador que abrir, entre no seu perfil da biblioteca local e autorize o acesso a esta biblioteca local.',
+
   claudeDesktopLede: 'Instale a extensão no Claude Desktop e conecte sua conta.',
   claudeDesktopAddTitle: 'Adicione o Diagramly ao Claude Desktop',
   claudeDesktopAddBody:
