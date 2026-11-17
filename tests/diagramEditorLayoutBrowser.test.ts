@@ -5,7 +5,7 @@ import { fixtureUrl, pagePerTest } from './browser'
 describe.skipIf(!findBrowserPath())('focused diagram editor desktop layout', () => {
   const pages = pagePerTest()
 
-  it('keeps the header below the desktop tabs and page controls on one row', async () => {
+  it('keeps the header visible and puts scrollable page tabs under the preview', async () => {
     const page = await pages.open()
     await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 })
     await page.goto(fixtureUrl('focusedEditorLayout.html'))
@@ -26,11 +26,14 @@ describe.skipIf(!findBrowserPath())('focused diagram editor desktop layout', () 
       const modal = document.querySelector<HTMLElement>('[data-slot="modal"]')!
       const header = modal.querySelector('header')!
       const root = document.querySelector<HTMLElement>('[data-canvas-page-root]')!
-      const pages = modal.querySelector<HTMLElement>('[aria-label="Diagram pages"]')!
+      const pages = modal.querySelector<HTMLElement>('[data-page-tabs]')!
+      const sourceHeading = modal.querySelector<HTMLElement>('.diagram-source-editor > div')!
+      const previewCanvas = modal.querySelector<HTMLElement>('[data-preview-canvas]')!
+      const tabStrip = pages.firstElementChild as HTMLElement
+      const tabs = [...pages.querySelectorAll<HTMLElement>('[role="tab"]')]
       const back = [...header.querySelectorAll('button')].find((button) =>
         button.textContent?.includes('Back to board'),
       )!
-      const pageControls = [...pages.querySelectorAll('button')]
       return {
         viewport: { width: innerWidth, height: innerHeight },
         rootTop: root.getBoundingClientRect().top,
@@ -49,9 +52,15 @@ describe.skipIf(!findBrowserPath())('focused diagram editor desktop layout', () 
         pages: {
           y: pages.getBoundingClientRect().y,
           height: pages.getBoundingClientRect().height,
-          labels: (modal.innerText.match(/\bPages\b/g) ?? []).length,
-          buttonTops: pageControls.map((button) => button.getBoundingClientRect().top),
+          bottom: pages.getBoundingClientRect().bottom,
+          previewBottom: previewCanvas.getBoundingClientRect().bottom,
+          tabStripWidth: tabStrip.clientWidth,
+          tabStripScrollWidth: tabStrip.scrollWidth,
+          tabs: tabs.length,
+          active: tabs.find((tab) => tab.getAttribute('aria-selected') === 'true')?.textContent,
+          menuCount: pages.querySelectorAll('[aria-label^="Actions for "]').length,
         },
+        sourceHeading: sourceHeading.textContent,
       }
     })
 
@@ -61,8 +70,13 @@ describe.skipIf(!findBrowserPath())('focused diagram editor desktop layout', () 
     expect(Math.abs(layout.header.y - layout.rootTop)).toBeLessThan(1)
     expect(layout.back.text).toContain('Back to board')
     expect(layout.back.y).toBeGreaterThanOrEqual(layout.header.y)
-    expect(layout.pages.height).toBeLessThan(50)
-    expect(layout.pages.labels).toBe(1)
-    expect(Math.max(...layout.pages.buttonTops) - Math.min(...layout.pages.buttonTops)).toBeLessThan(2)
+    expect(layout.pages.height).toBeGreaterThan(43)
+    expect(layout.pages.height).toBeLessThan(46)
+    expect(layout.pages.bottom).toBeGreaterThan(layout.pages.previewBottom - 1)
+    expect(layout.pages.tabs).toBe(12)
+    expect(layout.pages.active).toContain('Scenario 1')
+    expect(layout.pages.menuCount).toBe(1)
+    expect(layout.pages.tabStripScrollWidth).toBeGreaterThan(layout.pages.tabStripWidth)
+    expect(layout.sourceHeading).toContain('Scenario 1')
   }, 15_000)
 })

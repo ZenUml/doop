@@ -31,10 +31,24 @@ const frame: Frame = {
 }
 let root: Root
 let container: HTMLDivElement
-function Harness({ disabled = false, compact = false }: { disabled?: boolean; compact?: boolean }) {
+function Harness({
+  disabled = false,
+  compact = false,
+  tabs = false,
+}: {
+  disabled?: boolean
+  compact?: boolean
+  tabs?: boolean
+}) {
   const current = useStore((state) => state.canvas!.frames[0]!)
   return (
-    <DiagramPages frame={current} diagram={readDiagramFrame(current.html)!} disabled={disabled} compact={compact} />
+    <DiagramPages
+      frame={current}
+      diagram={readDiagramFrame(current.html)!}
+      disabled={disabled}
+      compact={compact}
+      tabs={tabs}
+    />
   )
 }
 function button(label: string) {
@@ -87,6 +101,37 @@ it('keeps the compact page selector and page actions functional', async () => {
   expect(readDiagramFrame(useStore.getState().canvas!.frames[0]!.html)?.activePageId).toBe('order')
   expect(api.updateFrame).toHaveBeenLastCalledWith('frame', expect.any(Object), 5)
 })
+it('uses a bottom tab rail, targets the active page menu, and keeps the board page unchanged', async () => {
+  act(() => root.render(<Harness tabs />))
+  const nav = container.querySelector<HTMLElement>('[data-page-tabs]')!
+  expect(nav.querySelectorAll('[role="tab"]')).toHaveLength(2)
+  expect(nav.querySelector('[role="tab"][aria-selected="true"]')?.textContent).toContain('Payment')
+  expect(nav.querySelectorAll('[aria-label^="Actions for "]')).toHaveLength(1)
+
+  await act(async () => nav.querySelector<HTMLButtonElement>('[role="tab"][aria-selected="false"]')!.click())
+  expect(readDiagramFrame(useStore.getState().canvas!.frames[0]!.html)?.activePageId).toBe('order')
+  expect(useStore.getState().canvas!.frames[0]!.pageId).toBe('board')
+  expect(container.querySelector('[role="tab"][aria-selected="true"]')?.textContent).toContain('Order')
+
+  act(() => {
+    container
+      .querySelector<HTMLButtonElement>('[aria-label="Actions for Order"]')!
+      .dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerType: 'mouse' }))
+  })
+  const rename = [...document.body.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
+    (item) => item.textContent === 'Rename',
+  )!
+  await act(async () => rename.click())
+  const input = container.querySelector<HTMLInputElement>('[aria-label="Page name"]')!
+  act(() => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, 'Cart')
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+  await act(async () => button('Save').click())
+  const saved = readDiagramFrame(useStore.getState().canvas!.frames[0]!.html)!
+  expect(saved.pages?.find((page) => page.id === 'order')?.title).toBe('Cart')
+  expect(saved.activePageId).toBe('order')
+})
 it('blocks switching and page actions during a queued or in-flight save and a dirty style draft', () => {
   act(() => useFrameSaves.setState({ pending: { frame: 1 } }))
   expect(container.querySelector<HTMLButtonElement>('[aria-label="Diagram page"]')?.disabled).toBe(true)
@@ -97,4 +142,35 @@ it('blocks switching and page actions during a queued or in-flight save and a di
   })
   expect(button('Rename').disabled).toBe(true)
   expect(container.textContent).toContain('Apply or load saved styles before switching pages.')
+})
+it('blocks tab selection, adding, and active-page actions until saves settle', () => {
+  act(() => root.render(<Harness tabs disabled />))
+  expect([...container.querySelectorAll<HTMLButtonElement>('[role="tab"]')].every((tab) => tab.disabled)).toBe(true)
+  expect(container.querySelector<HTMLButtonElement>('[aria-label="Add page"]')?.disabled).toBe(true)
+  expect(container.querySelector<HTMLButtonElement>('[aria-label="Actions for Payment"]')?.disabled).toBe(true)
+  act(() => {
+    useFrameSaves.setState({ pending: { frame: 1 } })
+    root.render(<Harness tabs />)
+  })
+  expect([...container.querySelectorAll<HTMLButtonElement>('[role="tab"]')].every((tab) => tab.disabled)).toBe(true)
+  expect(container.querySelector<HTMLButtonElement>('[aria-label="Add page"]')?.disabled).toBe(true)
+})
+it('keeps the last diagram page from being deleted in the tab menu', () => {
+  const onlyPage = { ...pages[0]!, id: 'only', title: 'Only page' }
+  const singlePageFrame = { ...frame, html: buildDiagramHtml({ ...onlyPage, pages: [onlyPage], activePageId: 'only' }) }
+  act(() =>
+    useStore
+      .getState()
+      .setCanvas({ id: 'canvas', name: 'Document', frames: [singlePageFrame], createdAt: 1, updatedAt: 5 }),
+  )
+  act(() => root.render(<Harness tabs />))
+  act(() => {
+    container
+      .querySelector<HTMLButtonElement>('[aria-label="Actions for Only page"]')!
+      .dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerType: 'mouse' }))
+  })
+  const deleteItem = [...document.body.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
+    (item) => item.textContent === 'Delete',
+  )!
+  expect(deleteItem.getAttribute('aria-disabled')).toBe('true')
 })

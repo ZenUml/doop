@@ -122,6 +122,7 @@ export function DiagramEditorWorkspace({
   const split = useRef<HTMLDivElement | null>(null)
   const dragging = useRef(false)
   const sourceId = diagram.activePageId ?? 'default'
+  const activePageTitle = diagram.pages?.find((page) => page.id === diagram.activePageId)?.title ?? 'Page 1'
   useLayoutEffect(() => {
     const measure = () => {
       const pageRoot = document.querySelector<HTMLElement>('[data-canvas-page-root]')
@@ -193,7 +194,7 @@ export function DiagramEditorWorkspace({
             style={narrow ? undefined : { width: `${editorPercent}%` }}
           >
             <div className="flex h-10 flex-none items-center justify-between gap-3 border-b border-code-ink/10 bg-code px-4 text-label text-code-ink">
-              <span className="font-medium">{t('inspector.diagramSource')}</span>
+              <span className="min-w-0 truncate font-medium">{activePageTitle}</span>
               <span className="text-code-ink/65">{diagram.kind === 'zenuml' ? 'ZenUML' : 'Mermaid'}</span>
               <Button
                 variant="inverse"
@@ -204,12 +205,6 @@ export function DiagramEditorWorkspace({
               >
                 {t('inspector.wrapLines')}
               </Button>
-            </div>
-            <div className="flex flex-none items-center gap-2 border-b border-code-ink/10 bg-surface px-3 py-1.5">
-              <span className="text-micro font-medium text-ink-soft">{t('inspector.pages')}</span>
-              <div className="min-w-0 flex-1">
-                <DiagramPages frame={frame} diagram={diagram} compact />
-              </div>
             </div>
             <div className="min-h-0 flex-1">
               <DiagramCodeEditor
@@ -320,7 +315,7 @@ export function DiagramEditorWorkspace({
                 </Button>
               </div>
             </div>
-            <div className="min-h-0 flex-1">
+            <div className="min-h-0 flex-1" data-preview-canvas>
               <DiagramPreview
                 diagram={diagram}
                 source={source}
@@ -329,6 +324,7 @@ export function DiagramEditorWorkspace({
                 onRenderState={setRenderState}
               />
             </div>
+            <DiagramPages frame={frame} diagram={diagram} tabs disabled={saving || unsaved || saveFailed} />
           </section>
         </div>
         <div className="flex h-7 flex-none items-center border-t border-line-soft bg-surface px-5 text-micro text-ink-faint">

@@ -21,7 +21,13 @@
       import { DiagramEditorWorkspace } from '/src/components/DiagramEditorWorkspace.tsx'
       import '/src/styles.css'
 
-      const diagram = { kind: 'zenuml', source: 'title Preview\nA->B: save' }
+      const pages = Array.from({ length: 12 }, (_, index) => ({
+        id: `page-${index + 1}`,
+        title: `Scenario ${index + 1}`,
+        kind: 'zenuml',
+        source: `title Scenario ${index + 1}\nA->B: save`,
+      }))
+      const diagram = { ...pages[0], pages, activePageId: 'page-1' }
       const frame = {
         id: 'focused-layout',
         canvasId: 'canvas',

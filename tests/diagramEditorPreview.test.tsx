@@ -26,8 +26,13 @@ vi.mock('../src/components/ui/modal', async () => {
   }
 })
 vi.mock('../src/components/DiagramPages', () => ({
-  DiagramPages: (props: { compact?: boolean }) => (
-    <div data-testid="page-controls" data-compact={props.compact ? 'true' : 'false'} />
+  DiagramPages: (props: { compact?: boolean; tabs?: boolean; disabled?: boolean }) => (
+    <div
+      data-testid="page-controls"
+      data-compact={props.compact ? 'true' : 'false'}
+      data-tabs={props.tabs ? 'true' : 'false'}
+      data-disabled={props.disabled ? 'true' : 'false'}
+    />
   ),
 }))
 vi.mock('../src/components/DiagramCodeEditor', () => ({
@@ -36,7 +41,12 @@ vi.mock('../src/components/DiagramCodeEditor', () => ({
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
-const diagram = { kind: 'zenuml' as const, source: 'A->B: hello' }
+const diagram = {
+  kind: 'zenuml' as const,
+  source: 'A->B: hello',
+  pages: [{ id: 'sequence', title: 'Sequence', kind: 'zenuml' as const, source: 'A->B: hello' }],
+  activePageId: 'sequence',
+}
 const frame: Frame = {
   id: 'preview-frame',
   canvasId: 'canvas',
@@ -112,9 +122,38 @@ it('fills the desktop viewport, keeps the board header visible, and retains prev
   expect(modal.dataset.overlayTop).toBe('40')
   expect(container.textContent).toContain('Back to board')
   expect(container.querySelectorAll('[data-testid="page-controls"]')).toHaveLength(1)
-  expect(container.querySelector('[data-testid="page-controls"]')?.getAttribute('data-compact')).toBe('true')
+  expect(container.querySelector('[data-testid="page-controls"]')?.getAttribute('data-tabs')).toBe('true')
+  expect(container.querySelector('.diagram-source-editor > div')?.textContent).toContain('Sequence')
   act(() => container.querySelector<HTMLButtonElement>('[aria-label="Zoom in"]')!.click())
   expect(container.querySelector('iframe')?.parentElement?.style.zoom).toBe('1.1')
+})
+
+it('locks page controls while a source save is pending, failed, or dirty', () => {
+  container = document.createElement('div')
+  document.body.append(container)
+  root = createRoot(container)
+  for (const status of [
+    { saving: true, unsaved: false, saveFailed: false },
+    { saving: false, unsaved: true, saveFailed: false },
+    { saving: false, unsaved: false, saveFailed: true },
+  ]) {
+    act(() =>
+      root.render(
+        <DiagramEditorWorkspace
+          frame={frame}
+          diagram={diagram}
+          canvasName="Canvas"
+          source={diagram.source}
+          {...status}
+          onChange={() => undefined}
+          onSave={() => undefined}
+          onRetry={() => undefined}
+          onClose={() => undefined}
+        />,
+      ),
+    )
+    expect(container.querySelector('[data-testid="page-controls"]')?.getAttribute('data-disabled')).toBe('true')
+  }
 })
 
 afterEach(() => {

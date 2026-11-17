@@ -15,6 +15,8 @@ import { receiveSavedDiagramFrame } from '../lib/diagramFrameSaves'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
+import { MoreHorizontalIcon, PlusIcon } from './ui/icons'
 
 /** Inner pages belong to a diagram frame; frame.pageId remains its containing board. */
 export function DiagramPages({
@@ -22,11 +24,13 @@ export function DiagramPages({
   diagram,
   disabled = false,
   compact = false,
+  tabs = false,
 }: {
   frame: Frame
   diagram: DiagramFrame
   disabled?: boolean
   compact?: boolean
+  tabs?: boolean
 }) {
   const pending = useFrameSaves((state) => (state.pending[frame.id] ?? 0) > 0)
   const document = ensureDiagramPages(diagram)
@@ -78,6 +82,121 @@ export function DiagramPages({
       ...document,
       pages: pages.map((page) => (page.id === active.id ? { ...page, title: title.trim() } : page)),
     })
+  }
+
+  if (tabs) {
+    return (
+      <nav
+        aria-label="Diagram page navigation"
+        className="min-w-0 flex-none border-t border-line-soft bg-surface px-3"
+        data-page-tabs
+      >
+        <div className="flex h-11 min-w-0 items-stretch gap-1 overflow-x-auto overscroll-x-contain">
+          <div role="tablist" aria-label="Diagram pages" className="flex w-max flex-none items-stretch">
+            {pages.map((page) => {
+              const selected = page.id === active?.id
+              return (
+                <div key={page.id} className="relative flex h-full flex-none items-stretch" data-page-tab={page.id}>
+                  {renaming && selected ? (
+                    <div className="flex h-full items-center gap-1 border-t-2 border-accent px-2">
+                      <Input
+                        aria-label="Page name"
+                        className="h-7 w-32"
+                        value={title}
+                        disabled={blocked}
+                        onChange={(event) => setTitle(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') saveRename()
+                          if (event.key === 'Escape') setRenaming(false)
+                        }}
+                        autoFocus
+                      />
+                      <Button
+                        variant="bare"
+                        size="sm"
+                        className="h-7 px-1.5"
+                        disabled={blocked || !title.trim()}
+                        onClick={saveRename}
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        variant="bare"
+                        size="sm"
+                        className="h-7 px-1.5"
+                        disabled={pending}
+                        onClick={() => setRenaming(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <Button
+                        variant="bare"
+                        size="sm"
+                        role="tab"
+                        aria-selected={selected}
+                        aria-current={selected ? 'page' : undefined}
+                        disabled={blocked}
+                        onClick={() => {
+                          if (!selected) void persist(activateDiagramPage(document, page.id))
+                        }}
+                        className={`relative h-full max-w-[220px] min-w-[110px] items-center gap-2 border-t-2 px-3 py-0 text-caption transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                          selected
+                            ? 'border-accent bg-accent/10 pr-10 font-medium text-ink'
+                            : 'border-transparent text-ink-soft hover:bg-sub'
+                        }`}
+                        title={page.title}
+                      >
+                        <span className="truncate">{page.title}</span>
+                      </Button>
+                      {selected && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="bare"
+                              size="icon-sm"
+                              className="absolute right-1 top-1/2 z-10 size-6 -translate-y-1/2 bg-surface/90"
+                              aria-label={`Actions for ${page.title}`}
+                              disabled={blocked}
+                            >
+                              <MoreHorizontalIcon size="rail" aria-hidden />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent side="top" align="start" width="sm">
+                            <DropdownMenuItem disabled={blocked} onSelect={startRename}>
+                              Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              disabled={blocked || pages.length <= 1}
+                              tone="danger"
+                              onSelect={deleteActivePage}
+                            >
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <Button
+            variant="bare"
+            size="icon-sm"
+            className="my-auto size-8 flex-none"
+            aria-label="Add page"
+            disabled={blocked}
+            onClick={addPage}
+          >
+            <PlusIcon size="rail" aria-hidden />
+          </Button>
+        </div>
+      </nav>
+    )
   }
 
   if (compact) {
