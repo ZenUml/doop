@@ -1,3 +1,4 @@
+import { NewDiagramModal } from '../components/NewDiagramModal'
 import { LegacyZenUmlImport } from '../components/LegacyZenUmlImport'
 import { CAPTURE_PREFIX, pasteWebCapture } from '../lib/webCapture'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
@@ -51,7 +52,7 @@ import { ShareModal } from '../components/ShareModal'
 import { ExportModal } from '../components/ExportModal'
 import { AppIcon } from '../components/ui/brand-mark'
 import { pageFrames } from '../../shared/pages'
-import { readDiagramFrame } from '../../shared/diagramFrame'
+import { readDiagramFrame, type DiagramKind } from '../../shared/diagramFrame'
 import type { Frame } from '../../shared/types'
 import { ImportStepFooter, ImportStepHeader, SourcePicker } from '../components/ImportSources'
 import { importSources } from '../components/importSourceList'
@@ -289,6 +290,7 @@ export function CanvasPage({
     history.replaceState(history.state, '', `${url.pathname}${url.search}${url.hash}`)
   }, [])
   const [showShare, setShowShare] = useState(false)
+  const [showNewDiagram, setShowNewDiagram] = useState(false)
   /* the frame the player was launched on, while presenting */
   const [presenting, setPresenting] = useState<string | null>(null)
   /* ⌘. acts only over the canvas view, outside PresentMode */
@@ -698,13 +700,23 @@ export function CanvasPage({
     }
   }, [latestDecision])
 
-  async function addFrame() {
+  async function createDiagram(kind: DiagramKind) {
     if (readOnly) return
     const n = (canvas?.frames.length ?? 0) + 1
-    const html = isDiagramly()
-      ? buildDiagramHtml({ kind: 'zenuml', source: DEFAULT_DIAGRAM_SOURCE.zenuml })
-      : STARTER_HTML
-    const frame = await createCenteredFrame(canvasId, isDiagramly() ? `Diagram ${n}` : `Frame ${n}`, html)
+    const html = buildDiagramHtml({ kind, source: DEFAULT_DIAGRAM_SOURCE[kind] })
+    const frame = await createCenteredFrame(canvasId, `Diagram ${n}`, html)
+    select(frame.id)
+    useStore.getState().setInspectorOpen(true)
+  }
+
+  async function addFrame() {
+    if (readOnly) return
+    if (isDiagramly()) {
+      setShowNewDiagram(true)
+      return
+    }
+    const n = (canvas?.frames.length ?? 0) + 1
+    const frame = await createCenteredFrame(canvasId, `Frame ${n}`, STARTER_HTML)
     select(frame.id)
   }
 
@@ -1317,6 +1329,9 @@ export function CanvasPage({
 
       {renaming && <RenameSelfModal current={me.name} onClose={() => setRenaming(false)} />}
       {/* ?connect=1 and ?import=1 can ask for these on any link; only an editor gets them */}
+      {showNewDiagram && editorReady && !readOnly && (
+        <NewDiagramModal onCreate={createDiagram} onClose={() => setShowNewDiagram(false)} />
+      )}
       {showConnect && editorReady && <ConnectModal canvasId={canvasId} onClose={() => setShowConnect(false)} />}
       {presenting && <PresentMode frameId={presenting} onClose={() => setPresenting(null)} />}
       {paletteOpen && (
