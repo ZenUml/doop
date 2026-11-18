@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-/** Rebuild the PNG sizes and the macOS ICNS (rounded, with margin) from the SVG master. Requires sharp and macOS iconutil. */
+/** Rebuild the PNG sizes, macOS ICNS and Windows ICO from the website logo. Requires sharp and macOS iconutil. */
 import { execFileSync } from 'node:child_process'
 import { Buffer } from 'node:buffer'
 import console from 'node:console'
-import { copyFile, mkdir, mkdtemp, rm } from 'node:fs/promises'
+import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
-const source = path.join(here, 'diagramly-desktop.svg')
+const source = path.join(here, 'diagramly-logo-source.png')
 const appIcons = path.resolve(here, '../../../../desktop/src-tauri/icons')
 const sizes = [16, 32, 64, 128, 256, 512, 1024]
 
@@ -58,7 +58,7 @@ try {
 }
 
 const previewBase = Buffer.from(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="420"><rect width="100%" height="100%" fill="#f4f3f8"/><text x="48" y="56" font-family="Arial,sans-serif" font-size="28" fill="#252338">Diagramly Desktop · icon direction v1</text><text x="48" y="88" font-family="Arial,sans-serif" font-size="16" fill="#686579">Full-bleed square source · Diagramly palette · candidate, not installed</text><text x="350" y="320" font-family="Arial,sans-serif" font-size="13" fill="#686579">128 px</text><text x="535" y="320" font-family="Arial,sans-serif" font-size="13" fill="#686579">64 px</text><text x="690" y="320" font-family="Arial,sans-serif" font-size="13" fill="#686579">32 px</text></svg>`,
+  `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="420"><rect width="100%" height="100%" fill="#f4f3f8"/><text x="48" y="56" font-family="Arial,sans-serif" font-size="28" fill="#252338">Diagramly Desktop · website logo icon</text><text x="48" y="88" font-family="Arial,sans-serif" font-size="16" fill="#686579">Original purple Dia logo · macOS ICNS adds a 100 px transparent margin</text><text x="350" y="320" font-family="Arial,sans-serif" font-size="13" fill="#686579">128 px</text><text x="535" y="320" font-family="Arial,sans-serif" font-size="13" fill="#686579">64 px</text><text x="690" y="320" font-family="Arial,sans-serif" font-size="13" fill="#686579">32 px</text></svg>`,
 )
 const previewLayers = []
 for (const [size, left] of [
@@ -84,6 +84,31 @@ for (const [sourceName, targetName] of [
   await copyFile(path.join(here, sourceName), path.join(appIcons, targetName))
 }
 
+// ICO supports embedded PNG frames. Keep the Windows bundle icon aligned with the same source.
+const icoSizes = [16, 32, 64, 128, 256]
+const icoFrames = await Promise.all(
+  icoSizes.map(async (size) => ({
+    size,
+    png: await sharp(source).resize(size, size).png().toBuffer(),
+  })),
+)
+const icoDirectory = Buffer.alloc(6 + icoFrames.length * 16)
+icoDirectory.writeUInt16LE(1, 2)
+icoDirectory.writeUInt16LE(icoFrames.length, 4)
+let icoOffset = icoDirectory.length
+for (const [index, frame] of icoFrames.entries()) {
+  const entryOffset = 6 + index * 16
+  const encodedSize = frame.size === 256 ? 0 : frame.size
+  icoDirectory[entryOffset] = encodedSize
+  icoDirectory[entryOffset + 1] = encodedSize
+  icoDirectory.writeUInt16LE(1, entryOffset + 4)
+  icoDirectory.writeUInt16LE(32, entryOffset + 6)
+  icoDirectory.writeUInt32LE(frame.png.length, entryOffset + 8)
+  icoDirectory.writeUInt32LE(icoOffset, entryOffset + 12)
+  icoOffset += frame.png.length
+}
+await writeFile(path.join(appIcons, 'icon.ico'), Buffer.concat([icoDirectory, ...icoFrames.map(({ png }) => png)]))
+
 console.log(
-  `Generated ${sizes.length} PNG sizes, preview.png and icon.icns; updated ${path.relative(process.cwd(), appIcons)}.`,
+  `Generated ${sizes.length} PNG sizes, preview.png, icon.icns and icon.ico; updated ${path.relative(process.cwd(), appIcons)}.`,
 )
