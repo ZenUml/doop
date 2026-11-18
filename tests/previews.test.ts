@@ -81,7 +81,7 @@ describe('getImage', () => {
       expect.objectContaining({ type: 'jpeg', quality: 70, maxHeight: 1200 }),
     )
     await new Promise((r2) => setTimeout(r2, 10))
-    expect(mocks.putObject).toHaveBeenCalledWith(`thumb/diagramly-home-v1-${f.id}.jpg`, expect.anything(), 'image/jpeg')
+    expect(mocks.putObject).toHaveBeenCalledWith(`thumb/diagramly-home-v2-${f.id}.jpg`, expect.anything(), 'image/jpeg')
   })
 
   it('caches per frame version — one render serves repeat requests, an update re-renders', async () => {

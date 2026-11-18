@@ -29,8 +29,11 @@ const MIN_REVALIDATE_MS = 30_000
 /** frames purged mid-render — a pending create must not re-persist them */
 const dead = new Set<string>()
 
+/** White margin around the trimmed diagram, in native px. */
+export const THUMB_MARGIN = 16
+
 const keyFor = (frameId: string) =>
-  `thumb/${env.DIAGRAMLY_PRODUCT === 'diagramly' ? 'diagramly-home-v1-' : ''}${frameId}.jpg`
+  `thumb/${env.DIAGRAMLY_PRODUCT === 'diagramly' ? 'diagramly-home-v2-' : ''}${frameId}.jpg`
 
 /* Global bound on concurrent preview renders. Per-frame dedupe caps repeat
    requests but not breadth: a post-restart dashboard of 50 stale canvases
@@ -62,12 +65,28 @@ async function render(frame: Frame): Promise<Buffer> {
         maxHeight: PREVIEW_MAX_HEIGHT,
       })
       const { default: sharp } = await import('sharp')
-      return await sharp(png)
-        .trim({ background: '#ffffff', threshold: 5 })
-        .resize(600, 344, { fit: 'contain', background: '#f4f4f4' })
-        .extend({ top: 20, bottom: 20, left: 20, right: 20, background: '#f4f4f4' })
-        .jpeg({ quality: 80 })
-        .toBuffer()
+      /* native size, trimmed to the content with a small white margin: the home card
+         draws it at 70% with a 12px inset (src/lib/cardThumbnailLayout.ts), the same
+         rule as the Web Sequence thumbnails. No resize, no letterbox. */
+      try {
+        const trimmed = await sharp(png)
+          .trim({ background: '#ffffff', threshold: 5 })
+          .toBuffer({ resolveWithObject: true })
+        if (trimmed.info.width >= 8 && trimmed.info.height >= 8)
+          return await sharp(trimmed.data)
+            .extend({
+              top: THUMB_MARGIN,
+              bottom: THUMB_MARGIN,
+              left: THUMB_MARGIN,
+              right: THUMB_MARGIN,
+              background: '#ffffff',
+            })
+            .jpeg({ quality: 80 })
+            .toBuffer()
+      } catch {
+        /* a blank diagram has nothing to trim */
+      }
+      return await sharp(png).jpeg({ quality: 80 }).toBuffer()
     }
     return await renderFrame(source, Math.min(1, 640 / frame.width), {
       type: 'jpeg',
