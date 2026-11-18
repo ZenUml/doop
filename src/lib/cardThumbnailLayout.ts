@@ -19,11 +19,18 @@ export interface CardThumbnailPlacement {
   cropped: boolean
 }
 
+/** Diagramly's /i/?preview is already a finished card (server/thumbs.ts: 600x344
+ *  contained in grey, plus a 20px border): the diagram is centred inside it. Scaling
+ *  or insetting it again leaves a blank band on the left, so it fills the box. */
+export const COMPOSED_PREVIEW = { width: 640, height: 384 }
+
 export function placeCardThumbnail(
   boxWidth: number,
   native: { width: number; height: number },
   scale = CARD_THUMB_SCALE,
 ): CardThumbnailPlacement {
+  if (native.width === COMPOSED_PREVIEW.width && native.height === COMPOSED_PREVIEW.height)
+    return { x: 0, y: 0, width: boxWidth, height: (boxWidth * native.height) / native.width, cropped: false }
   const width = native.width * scale
   const height = native.height * scale
   const cropped = width > boxWidth - CARD_THUMB_INSET * 2

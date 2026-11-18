@@ -30,3 +30,11 @@ describe('placeCardThumbnail', () => {
     expect(p).toMatchObject({ x: 12, cropped: false })
   })
 })
+
+describe('placeCardThumbnail with a server-composed preview', () => {
+  // Diagramly's /i/?preview is a finished 640x384 card: grey letterbox, diagram centred.
+  it('fills the box edge to edge, with no scale and no inset', () => {
+    const p = placeCardThumbnail(300, { width: 640, height: 384 })
+    expect(p).toEqual({ x: 0, y: 0, width: 300, height: 180, cropped: false })
+  })
+})
