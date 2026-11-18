@@ -3139,6 +3139,12 @@ app.get('/sitemap.xml', (_req, res) => {
 /* production: serve the built client */
 if (env.isProduction) {
   const dist = path.join(appRoot(), 'dist')
+  /* the desktop app's own copies of the web fonts (public/webfonts). Frames are sandboxed
+     with opaque origins, so a font loads only with CORS. */
+  app.use('/webfonts', (_req, res, next) => {
+    res.set('Access-Control-Allow-Origin', '*')
+    next()
+  })
   app.use(express.static(dist))
   /* a missing bundle or source map is a 404, not the app shell: HTML served
      as a .js or .map breaks module loads and source map resolution */

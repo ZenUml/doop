@@ -228,7 +228,15 @@ data-diagramly-webfonts>` for the roster families the frame names and does not l
   PDF renderers already admit the two Google Fonts origins. Agents get the roster as `webFonts`
   plus a note in `get_canvas` and in the resident agent's `# Fonts` block (`webFontsBrief`).
   Self-hosted instances without outbound internet render roster fonts as their generic in
-  exports. Tests: `webFonts.test.ts`, the hosted case in `fontFrameWrites.test.ts`, the font pick in
+  exports.
+  The desktop app never asks Google: it serves its own copies from `public/webfonts/` (`ui.css`
+  for the app's Inter, Hanken Grotesk and Geist Mono, which `index.html` loads when the shell's
+  `__DIAGRAMLY_DESKTOP__` marker is set; `roster.css` for the roster, latin and latin-ext, built
+  by `scripts/sync-webfonts.mjs` from Fontsource). Saved frame HTML keeps the Google link; the
+  frame runtime points it at `/webfonts/roster.css` while the desktop shows it and puts it back on
+  save (`withLocalWebFontLink` does the same for the desktop screenshot renderer). Merriweather's
+  width axis is not bundled (default width). Tests: `webFontsLocal.test.ts`,
+  `webFontsDesktopBrowser.test.ts`. Tests: `webFonts.test.ts`, the hosted case in `fontFrameWrites.test.ts`, the font pick in
   `elementPanelBrowser.test.ts`.
 - Fonts from this computer (`src/lib/localFonts.ts`, `desktop/src-tauri/src/fonts.rs`): in the
   desktop shell the font library card has "Add from this computer" (shells advertise it with

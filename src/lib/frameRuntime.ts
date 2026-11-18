@@ -3,6 +3,8 @@ import { FRAME_DROP_RUNTIME } from './frameDropRuntime'
 import { FRAME_PROTO_RUNTIME } from './frameProtoRuntime'
 import { FRAME_TEXT_RUNTIME } from './frameTextRuntime'
 import { CANVAS_MOD_CHORDS } from './keys'
+import { isDesktopShell } from './shell'
+import { WEB_FONT_LINK_ATTR, WEB_FONT_SAVED_HREF_ATTR, WEB_FONTS_LOCAL_PATH } from '../../shared/webFonts'
 
 /**
  * Bootstrap document loaded once per frame iframe. The parent posts HTML in
@@ -107,6 +109,7 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
     var doc
     try {
       doc = new DOMParser().parseFromString(html, 'text/html')
+      localWebFonts(doc)
       syncAttrs(document.documentElement, doc.documentElement)
       /* the body's own attributes carry whole design systems (<body class="glaze">
          with every rule scoped under .glaze) — morphing only its children left
@@ -296,8 +299,33 @@ export const FRAME_BOOTSTRAP = `<!doctype html>
     return root
   }
 
+  /* The desktop app never asks Google for a font: a frame's managed web-font link is pointed at the
+     app's own copy while it is shown, and put back as it is saved, so the saved document is the
+     same one every other machine has. */
+  var LOCAL_WEBFONTS = ${isDesktopShell() ? 'true' : 'false'}
+  function localWebFonts(doc) {
+    if (!LOCAL_WEBFONTS) return
+    var links = doc.querySelectorAll('link[${WEB_FONT_LINK_ATTR}]')
+    for (var i = 0; i < links.length; i++) {
+      var href = links[i].getAttribute('href') || ''
+      if (/^https:\\/\\/fonts\\.googleapis\\.com\\//i.test(href)) {
+        links[i].setAttribute('${WEB_FONT_SAVED_HREF_ATTR}', href)
+        links[i].setAttribute('href', '${WEB_FONTS_LOCAL_PATH}')
+      }
+    }
+  }
+  function savedWebFonts(doc) {
+    var links = doc.querySelectorAll('link[${WEB_FONT_SAVED_HREF_ATTR}]')
+    for (var i = 0; i < links.length; i++) {
+      links[i].setAttribute('href', links[i].getAttribute('${WEB_FONT_SAVED_HREF_ATTR}'))
+      links[i].removeAttribute('${WEB_FONT_SAVED_HREF_ATTR}')
+    }
+  }
+
   function serialize() {
-    return '<!doctype html>\\n' + cleanClone(document.documentElement.cloneNode(true)).outerHTML
+    var clone = cleanClone(document.documentElement.cloneNode(true))
+    savedWebFonts(clone)
+    return '<!doctype html>\\n' + clone.outerHTML
   }
 
   function rulesText(sheet) {

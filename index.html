@@ -21,12 +21,23 @@
     <meta property="og:title" content="Diagramly Desktop" />
     <meta property="og:description" content="Create, edit and organize diagrams with Diagramly Desktop." />
     <meta property="og:type" content="website" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Hanken+Grotesk:wght@300&family=Geist+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Fonts. The desktop app serves its own copies (public/webfonts, built by
+         scripts/sync-webfonts.mjs) and never asks Google; the shell sets
+         __DIAGRAMLY_DESKTOP__ before any page script runs. The web build loads Google Fonts as before. -->
+    <script>
+      ;(function () {
+        var html
+        if (typeof window.__DIAGRAMLY_DESKTOP__ === 'string') {
+          html = '<link rel="stylesheet" href="/webfonts/ui.css" />'
+        } else {
+          html =
+            '<link rel="preconnect" href="https://fonts.googleapis.com" />' +
+            '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' +
+            '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Hanken+Grotesk:wght@300&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />'
+        }
+        document.head.insertAdjacentHTML('beforeend', html)
+      })()
+    </script>
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.png" type="image/png" sizes="96x96" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
