@@ -7,6 +7,7 @@ import { exportPixelSize, MAX_EXPORT_SIDE } from '../shared/exportScale.ts'
 import type { Frame } from '../shared/types.ts'
 import { env } from './env.ts'
 import { TRANSPARENT_DIAGRAM_STYLE } from '../shared/diagramExport.ts'
+import { withLocalWebFontLink } from '../shared/webFonts.ts'
 
 const MAX_PIXELS = 24_000_000
 const MAX_WORKERS = 2
@@ -66,10 +67,14 @@ export async function renderDesktopFrame(helper: string, frame: Frame, scale: nu
 
 /** Only our generated diagram code may execute. A frame's saved HTML can
  *  come from an agent or an import and is never a trusted WebKit document. */
-function snapshotDocument(source: string, origin: string, diagram: boolean, transparent = false): string {
+export function snapshotDocument(source: string, origin: string, diagram: boolean, transparent = false): string {
   const nonce = randomBytes(16).toString('base64')
   const document = parse(
-    diagram ? source.replace('<script type="module">', `<script nonce="${nonce}" type="module">`) : source,
+    /* the desktop app's own copy of the web fonts, never Google's */
+    withLocalWebFontLink(
+      diagram ? source.replace('<script type="module">', `<script nonce="${nonce}" type="module">`) : source,
+      origin,
+    ),
   )
   const head = document.childNodes
     .filter((node) => 'tagName' in node)
@@ -84,8 +89,8 @@ function snapshotDocument(source: string, origin: string, diagram: boolean, tran
     "base-uri 'none'",
     "form-action 'none'",
     `img-src data: blob: ${assets} ${origin}/bg/`,
-    `style-src 'unsafe-inline' ${assets} https://fonts.googleapis.com`,
-    `font-src data: ${assets} https://fonts.gstatic.com`,
+    `style-src 'unsafe-inline' ${assets} ${origin}/webfonts/`,
+    `font-src data: ${assets} ${origin}/webfonts/`,
     `script-src ${diagram ? `'nonce-${nonce}' ${origin}${DIAGRAM_VENDOR_PATH}/` : "'none'"}`,
   ].join('; ')
   const meta = defaultTreeAdapter.createElement('meta', html.NS.HTML, [

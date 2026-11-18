@@ -17,6 +17,27 @@ export const WEB_FONT_LINK_ATTR = 'data-diagramly-webfonts'
 
 export const WEB_FONTS_ORIGIN = 'https://fonts.googleapis.com'
 
+/** The desktop app's own copy of the roster (public/webfonts/roster.css), served by the local
+ *  server. Frames keep the Google link in their saved HTML, so a document means the same on
+ *  every machine; the desktop shell swaps in this stylesheet only where it renders. */
+export const WEB_FONTS_LOCAL_PATH = '/webfonts/roster.css'
+
+/** Marks a managed link the renderer has pointed at the local copy; holds the saved href. */
+export const WEB_FONT_SAVED_HREF_ATTR = 'data-diagramly-webfonts-href'
+
+/** The HTML with its managed web-font link pointed at `base + WEB_FONTS_LOCAL_PATH`. The saved
+ *  Google href rides along in `data-diagramly-webfonts-href`. Returns the input when there is no
+ *  Google link to swap. */
+export function withLocalWebFontLink(html: string, base = ''): string {
+  return html.replace(LINK_RE, (link) => {
+    const href = /\shref\s*=\s*"(https:\/\/fonts\.googleapis\.com\/[^"]*)"/i.exec(link)
+    if (!href || link.includes(WEB_FONT_SAVED_HREF_ATTR)) return link
+    return link
+      .replace(href[0], ` href="${base}${WEB_FONTS_LOCAL_PATH}"`)
+      .replace(/<link\b/i, `<link ${WEB_FONT_SAVED_HREF_ATTR}="${href[1]}"`)
+  })
+}
+
 export type WebFontCategory = 'sans' | 'serif' | 'mono'
 
 export interface WebFont {
@@ -140,7 +161,10 @@ export function withWebFontLinks(
   /* a style attribute carries a quoted family as &quot;…&quot; */
   const design = decodeQuotes(existing ? html.replace(LINK_RE, '') : html)
   const uploaded = new Set(library.map((font) => font.family.toLowerCase()))
-  const { fonts: linked, damaged } = existing ? linkedFamilies(existing[0]) : { fonts: [], damaged: false }
+  const read = existing ? linkedFamilies(existing[0]) : { fonts: [], damaged: false }
+  const linked = read.fonts
+  /* a link the renderer pointed at the local copy is put back to the Google one */
+  const damaged = read.damaged || (existing?.[0].includes(WEB_FONT_SAVED_HREF_ATTR) ?? false)
   const wanted = roster.filter(
     (font) =>
       !uploaded.has(font.family.toLowerCase()) &&
