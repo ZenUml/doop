@@ -23,6 +23,12 @@ function useNarrowLayout() {
   return narrow
 }
 
+/** Preview-only: lets the canvas show through the diagram document (saved and exported HTML stays white). */
+export function transparentPreviewHtml(html: string): string {
+  const style = '<style data-diagramly-preview>html,body{background:transparent!important}</style>'
+  return html.includes('</head>') ? html.replace('</head>', `${style}</head>`) : style + html
+}
+
 export function DiagramPreview({
   diagram,
   source,
@@ -70,18 +76,15 @@ export function DiagramPreview({
   useEffect(() => {
     if (!ready) return
     onRenderStateRef.current('loading')
-    iframe.current?.contentWindow?.postMessage({ type: 'diagramly:html', html }, '*')
+    iframe.current?.contentWindow?.postMessage({ type: 'diagramly:html', html: transparentPreviewHtml(html) }, '*')
   }, [html, ready])
 
   return (
-    <div className="flex h-full w-full items-start justify-center overflow-auto bg-sub p-6">
-      <div
-        className="h-full min-h-[480px] w-full min-w-[520px] origin-top-left bg-white shadow-[0_1px_4px_rgba(20,24,35,0.08)]"
-        style={{ zoom }}
-      >
+    <div className="flex h-full w-full items-start justify-center overflow-auto bg-paper-deep">
+      <div className="h-full min-h-[480px] w-full min-w-[520px] origin-top-left" style={{ zoom }}>
         <iframe
           ref={iframe}
-          className="h-full w-full border-0 bg-white"
+          className="h-full w-full border-0 bg-transparent"
           title={title}
           aria-label={`${title}, ${t('inspector.readOnlyPreview')}`}
           tabIndex={-1}

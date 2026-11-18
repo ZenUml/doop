@@ -4,7 +4,11 @@ import type { CSSProperties, ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, expect, it, vi } from 'vitest'
 import { buildDiagramHtml, type DiagramFrame } from '../shared/diagramFrame'
-import { DiagramEditorWorkspace, DiagramPreview } from '../src/components/DiagramEditorWorkspace'
+import {
+  DiagramEditorWorkspace,
+  DiagramPreview,
+  transparentPreviewHtml,
+} from '../src/components/DiagramEditorWorkspace'
 import type { Frame } from '../shared/types'
 
 vi.mock('../src/components/ui/modal', async () => {
@@ -207,4 +211,35 @@ afterEach(() => {
   container?.remove()
   pageRoot?.remove()
   pageRoot = null
+})
+
+it('draws the diagram straight on the preview canvas, with no paper card layer', () => {
+  container = document.createElement('div')
+  document.body.append(container)
+  root = createRoot(container)
+  act(() =>
+    root.render(
+      <DiagramPreview
+        diagram={diagram}
+        source={diagram.source}
+        title="Live preview"
+        zoom={1}
+        onRenderState={() => undefined}
+      />,
+    ),
+  )
+  const iframe = container.querySelector('iframe')!
+  const zoomWrapper = iframe.parentElement!
+  const canvas = zoomWrapper.parentElement!
+  expect(zoomWrapper.className).not.toMatch(/bg-white|shadow/)
+  expect(iframe.className).not.toMatch(/bg-white/)
+  expect(canvas.className).not.toMatch(/\bp-\d/)
+})
+
+it('makes only the preview document transparent, leaving the saved/exported HTML white', () => {
+  const html = buildDiagramHtml(diagram)
+  expect(html).toContain('background:#fff')
+  const preview = transparentPreviewHtml(html)
+  expect(preview).toMatch(/background:\s*transparent\s*!important/)
+  expect(preview.indexOf('transparent')).toBeGreaterThan(preview.indexOf('data-diagramly-diagram-base'))
 })
