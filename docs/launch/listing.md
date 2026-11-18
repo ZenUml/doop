@@ -6,7 +6,7 @@ Draft only; no listing change or submission is recorded. Machine-readable copy i
 
 Introduce Diagramly gradually through the existing paid ZenUML Mac App Store app record (`1602636196`, bundle ID `com.zenuml.app`). Keep its current price; current US and AU prices are still to be confirmed. This draft does not represent an uploaded listing or a submitted update.
 
-The candidate icon is a design asset, not a confirmed shipping icon: [SVG master](assets/icon-v1/diagramly-desktop.svg), [size preview](assets/icon-v1/preview.png), [macOS ICNS](assets/icon-v1/icon.icns). The ICNS is a rounded tile (824 px on a 1024 px transparent canvas, per Apple's grid), because macOS does not mask ICNS files; every other size keeps the full-bleed square. Confirm the listing name, icon and metadata against the existing record before use.
+The candidate icon uses the original purple-and-white Dia logo from the [website source](assets/icon-v1/diagramly-logo-source.png); see the [size preview](assets/icon-v1/preview.png) and [macOS ICNS](assets/icon-v1/icon.icns). Run `node docs/launch/assets/icon-v1/generate.mjs` to regenerate the Tauri PNG, ICNS and ICO assets. The ICNS places the source artwork on an 824 px rounded tile with a 100 px transparent margin on a 1024 px canvas, because macOS does not mask ICNS files. Confirm the listing name, icon and metadata against the existing record before use.
 
 ## Proposed v1 claims
 
