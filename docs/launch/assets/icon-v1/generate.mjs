@@ -84,31 +84,60 @@ for (const [sourceName, targetName] of [
   await copyFile(path.join(here, sourceName), path.join(appIcons, targetName))
 }
 
-// ICO supports embedded PNG frames. Keep the Windows bundle icon aligned with the same source.
-const icoSizes = [16, 32, 64, 128, 256]
-const icoFrames = await Promise.all(
-  icoSizes.map(async (size) => ({
-    size,
-    png: await sharp(source).resize(size, size).png().toBuffer(),
-  })),
-)
-const icoDirectory = Buffer.alloc(6 + icoFrames.length * 16)
-icoDirectory.writeUInt16LE(1, 2)
-icoDirectory.writeUInt16LE(icoFrames.length, 4)
-let icoOffset = icoDirectory.length
-for (const [index, frame] of icoFrames.entries()) {
-  const entryOffset = 6 + index * 16
-  const encodedSize = frame.size === 256 ? 0 : frame.size
-  icoDirectory[entryOffset] = encodedSize
-  icoDirectory[entryOffset + 1] = encodedSize
-  icoDirectory.writeUInt16LE(1, entryOffset + 4)
-  icoDirectory.writeUInt16LE(32, entryOffset + 6)
-  icoDirectory.writeUInt32LE(frame.png.length, entryOffset + 8)
-  icoDirectory.writeUInt32LE(icoOffset, entryOffset + 12)
-  icoOffset += frame.png.length
+// ICO supports embedded PNG frames. Keep the Windows bundle icon and the web favicon aligned with the same source.
+async function buildIco(icoSizes) {
+  const icoFrames = await Promise.all(
+    icoSizes.map(async (size) => ({
+      size,
+      png: await sharp(source).resize(size, size).png().toBuffer(),
+    })),
+  )
+  const icoDirectory = Buffer.alloc(6 + icoFrames.length * 16)
+  icoDirectory.writeUInt16LE(1, 2)
+  icoDirectory.writeUInt16LE(icoFrames.length, 4)
+  let icoOffset = icoDirectory.length
+  for (const [index, frame] of icoFrames.entries()) {
+    const entryOffset = 6 + index * 16
+    const encodedSize = frame.size === 256 ? 0 : frame.size
+    icoDirectory[entryOffset] = encodedSize
+    icoDirectory[entryOffset + 1] = encodedSize
+    icoDirectory.writeUInt16LE(1, entryOffset + 4)
+    icoDirectory.writeUInt16LE(32, entryOffset + 6)
+    icoDirectory.writeUInt32LE(frame.png.length, entryOffset + 8)
+    icoDirectory.writeUInt32LE(icoOffset, entryOffset + 12)
+    icoOffset += frame.png.length
+  }
+  return Buffer.concat([icoDirectory, ...icoFrames.map(({ png }) => png)])
 }
-await writeFile(path.join(appIcons, 'icon.ico'), Buffer.concat([icoDirectory, ...icoFrames.map(({ png }) => png)]))
+await writeFile(path.join(appIcons, 'icon.ico'), await buildIco([16, 32, 64, 128, 256]))
+
+// In-app and web brand surfaces (title bar, board header, favicons, extension and plugin logos).
+// tests/diaBrandAssets.test.ts checks every one of these against the source.
+const repoRoot = path.resolve(here, '../../../..')
+const inApp = [
+  ['public/diagramly-brand/icon-64.png', 64],
+  ['public/logo.png', 512],
+  ['public/favicon.png', 96],
+  ['public/apple-touch-icon.png', 180],
+  ['chrome-extension/logo.png', 512],
+  ['chatgpt-plugin/assets/logo.png', 512],
+]
+for (const [rel, size] of inApp) {
+  await sharp(source).resize(size, size).png().toFile(path.join(repoRoot, rel))
+}
+await writeFile(path.join(repoRoot, 'public/favicon.ico'), await buildIco([16, 32, 48, 64, 128, 256]))
+
+// The scalable brand icon: the Dia artwork embedded as a PNG, so it cannot drift from the source.
+const svgPng = await sharp(source).resize(512, 512).png().toBuffer()
+await writeFile(
+  path.join(repoRoot, 'public/diagramly-brand/icon.svg'),
+  `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title">
+  <title id="title">Diagramly Dia icon</title>
+  <image width="1024" height="1024" href="data:image/png;base64,${svgPng.toString('base64')}"/>
+</svg>
+`,
+)
 
 console.log(
-  `Generated ${sizes.length} PNG sizes, preview.png, icon.icns and icon.ico; updated ${path.relative(process.cwd(), appIcons)}.`,
+  `Generated ${sizes.length} PNG sizes, preview.png, icon.icns and icon.ico; updated ${path.relative(process.cwd(), appIcons)} and the in-app brand assets.`,
 )
