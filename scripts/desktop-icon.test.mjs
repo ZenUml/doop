@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
-import { readFile, readdir } from 'node:fs/promises'
+import { execFileSync } from 'node:child_process'
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
+import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
 import sharp from 'sharp'
@@ -45,5 +47,27 @@ test('every bundled PNG and the Windows icon use the Diagramly gradient, not the
     const [red, green, blue, alpha] = await corner(name.endsWith('.ico') ? await icoImage(path.join(icons, name)) : path.join(icons, name))
     assert.ok(alpha > 250, `${name} is opaque at the corner`)
     assert.ok(blue > 180 && blue > green + 60, `${name} corner is blue-violet, got rgb(${red}, ${green}, ${blue})`)
+  }
+})
+
+test('the macOS icon is a rounded tile with a transparent margin, not an opaque square', { skip: process.platform !== 'darwin' }, async () => {
+  const temporary = await mkdtemp(path.join(os.tmpdir(), 'diagramly-icns-'))
+  try {
+    const iconset = path.join(temporary, 'icon.iconset')
+    execFileSync('/usr/bin/iconutil', ['-c', 'iconset', path.join(icons, 'icon.icns'), '-o', iconset])
+    const { data, info } = await sharp(path.join(iconset, 'icon_512x512@2x.png'))
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true })
+    assert.equal(info.width, 1024)
+    const pixel = (x, y) => Array.from(data.subarray((y * info.width + x) * 4, (y * info.width + x) * 4 + 4))
+    for (const [x, y] of [[0, 0], [1023, 0], [0, 1023], [1023, 1023], [50, 512], [512, 50]])
+      assert.equal(pixel(x, y)[3], 0, `margin pixel ${x},${y} is transparent`)
+    // The tile's rounded corner is cut away: the grid corner (100,100) is transparent, the edge midpoints are opaque.
+    assert.equal(pixel(105, 105)[3], 0, 'tile corner is rounded')
+    for (const [x, y] of [[104, 512], [920, 512], [512, 104], [512, 920], [512, 512]])
+      assert.equal(pixel(x, y)[3], 255, `tile pixel ${x},${y} is opaque`)
+  } finally {
+    await rm(temporary, { recursive: true, force: true })
   }
 })
