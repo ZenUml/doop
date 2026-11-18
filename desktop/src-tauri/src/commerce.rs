@@ -15,7 +15,7 @@ mod tests {
             serde_json::from_str(include_str!("../tauri.app-store.conf.json")).unwrap();
         assert_eq!(config["identifier"], "com.zenuml.app");
         assert_eq!(config["version"], "1.1.0");
-        assert_eq!(config["bundle"]["macOS"]["bundleVersion"], "43");
+        assert_eq!(config["bundle"]["macOS"]["bundleVersion"], "48");
     }
     #[test]
     fn app_store_does_not_advertise_external_codex_configuration_access() {
