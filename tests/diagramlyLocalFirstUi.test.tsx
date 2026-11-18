@@ -73,7 +73,7 @@ it('desktop home keeps new diagram actions and external agent connection without
   expect(container.textContent).not.toContain('cloud AI')
   const buttons = [...container.querySelectorAll('button')]
   act(() => buttons.find((el) => el.textContent === 'Sequence diagram')!.click())
-  act(() => buttons.find((el) => el.textContent === 'Flowchart')!.click())
+  act(() => buttons.find((el) => el.textContent === 'Mermaid flowchart')!.click())
   act(() => buttons.find((el) => el.textContent === 'Connect your agent')!.click())
   expect(create.mock.calls).toEqual([['zenuml'], ['mermaid']])
   expect(connect).toHaveBeenCalledOnce()

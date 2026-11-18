@@ -1,5 +1,9 @@
 /** The open canvas: its top bar, side islands, tab strip, zoom pill, presence, onboarding and import flow. */
 export const canvas = {
+  chooseDiagramFormat: 'Choose the diagram format.',
+  newZenUmlDiagram: 'ZenUML sequence diagram',
+  newMermaidDiagram: 'Mermaid diagram',
+  createDiagramFailed: 'Could not create a diagram.',
   /* tools (src/lib/tools.ts) */
   toolSelect: 'Select',
   toolHand: 'Hand',

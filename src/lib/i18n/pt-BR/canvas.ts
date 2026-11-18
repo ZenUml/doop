@@ -1,6 +1,10 @@
 import type { Catalog } from '..'
 
 export const canvas: Catalog['canvas'] = {
+  chooseDiagramFormat: 'Escolha o formato do diagrama.',
+  newZenUmlDiagram: 'Diagrama de sequência ZenUML',
+  newMermaidDiagram: 'Diagrama Mermaid',
+  createDiagramFailed: 'Não foi possível criar um diagrama.',
   toolSelect: 'Selecionar',
   toolHand: 'Mão',
   toolFrame: 'Frame',

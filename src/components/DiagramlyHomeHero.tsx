@@ -53,7 +53,7 @@ export function DiagramlyHomeHero({
           Sequence diagram
         </Chip>
         <Chip disabled={busy} icon={<WorkflowIcon width={13} height={13} />} onClick={() => onCreate('mermaid')}>
-          Flowchart
+          Mermaid flowchart
         </Chip>
         <Chip disabled={busy} icon={<SparkIcon width={13} height={13} />} onClick={onConnect}>
           Connect your agent
