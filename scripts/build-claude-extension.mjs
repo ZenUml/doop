@@ -60,6 +60,7 @@ await addPackage('mcp-remote', root)
 const assets = await getClaudeExtensionAssets(productModeFromEnvironment())
 zip.file('manifest.json', JSON.stringify(assets.manifest, null, 2) + '\n', { date })
 zip.file('README.md', assets.readme, { date })
+await addFile(join(root, 'claude-extension/proxy.mjs'), 'proxy.mjs')
 await addFile(join(root, assets.iconSource), 'icon.png')
 await addFile(join(root, 'LICENSE'), 'LICENSE')
 

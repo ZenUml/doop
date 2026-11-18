@@ -51,7 +51,10 @@ export function DiagramCodeEditor({
     }
     const cm = CodeMirror.fromTextArea(textarea.current, config)
     editor.current = cm
-    cm.on('change', (instance) => callbacks.current.onChange(instance.getValue()))
+    cm.on('change', (instance, change) => {
+      // Prop updates already came from the document. Don't send them back through autosave.
+      if (change.origin !== 'setValue') callbacks.current.onChange(instance.getValue())
+    })
     const refresh = () => cm.refresh()
     window.addEventListener('resize', refresh)
     const frame = window.requestAnimationFrame(refresh)
