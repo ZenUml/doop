@@ -24,6 +24,31 @@ export function frameCenterPosition(
   }
 }
 
+/** Space left between a frame and the one placed beside it. */
+export const FRAME_GAP = 48
+
+/**
+ * Nudge a candidate top-left so the new frame does not sit on top of an
+ * existing visible frame of the same page: if it would overlap, it moves to
+ * the right of the rightmost frame (plus a gap), keeping its y. A free spot
+ * is returned unchanged, so the first frame keeps its centered position.
+ */
+export function avoidOverlap(
+  pos: { x: number; y: number },
+  size: { width: number; height: number },
+  frames: readonly Frame[],
+  pageId?: string,
+): { x: number; y: number } {
+  const peers = frames.filter(
+    (f) => !f.hidden && (f.pageId === undefined || pageId === undefined || f.pageId === pageId),
+  )
+  const overlaps = peers.some(
+    (f) => pos.x < f.x + f.width && pos.x + size.width > f.x && pos.y < f.y + f.height && pos.y + size.height > f.y,
+  )
+  if (!overlaps) return pos
+  return { x: Math.max(...peers.map((f) => f.x + f.width)) + FRAME_GAP, y: pos.y }
+}
+
 /**
  * A new frame's default size. Written down once here and sent explicitly
  * with every create request below, so it can never quietly drift apart from
@@ -57,13 +82,20 @@ export function stageViewportSize(): { width: number; height: number } {
  * same way frameClipboard.ts's paste helpers already do.
  */
 export async function createCenteredFrame(canvasId: string, name: string, html: string): Promise<Frame> {
-  const { x, y } = frameCenterPosition(useStore.getState().viewport, stageViewportSize(), DEFAULT_FRAME_SIZE)
+  const state = useStore.getState()
+  const pageId = state.activePageId ?? undefined
+  const { x, y } = avoidOverlap(
+    frameCenterPosition(state.viewport, stageViewportSize(), DEFAULT_FRAME_SIZE),
+    DEFAULT_FRAME_SIZE,
+    state.canvas?.frames ?? [],
+    pageId,
+  )
   const frame = await api.createFrame(canvasId, {
     name,
     html,
     x,
     y,
-    pageId: useStore.getState().activePageId ?? undefined,
+    pageId,
     ...DEFAULT_FRAME_SIZE,
   })
   posthog.capture('frame_created')
