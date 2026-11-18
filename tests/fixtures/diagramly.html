@@ -77,6 +77,14 @@
         selectedId: useStore.getState().selectedId,
         selectedElement: useStore.getState().selectedElement,
       })
+      window.receiveAgentSource = (source) => {
+        useStore.getState().upsertFrame({
+          ...frame,
+          html: buildDiagramHtml({ kind: 'zenuml', source }),
+          updatedAt: 1,
+          updatedBy: 'Agent',
+        })
+      }
       window.diagramlyMessages = []
       window.addEventListener('message', (event) => {
         if (event.data && typeof event.data.type === 'string') window.diagramlyMessages.push(event.data.type)

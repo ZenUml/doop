@@ -7,6 +7,7 @@ declare global {
   interface Window {
     seedDiagramly: () => void
     seedUnsupportedDiagram: () => void
+    receiveAgentSource: (source: string) => void
     diagramlyState: () => { selectedId: string | null; selectedElement: { frameId: string; selector: string } | null }
     diagramlyMessages: string[]
   }
@@ -70,6 +71,28 @@ describe.skipIf(!findBrowserPath())('Diagramly canvas profile', { timeout: 30_00
       'This item is not a supported diagram',
     )
     expect(await page.evaluate(() => window.diagramlyMessages)).not.toContain('diagramly:unsafe-html')
+  })
+
+  it('shows an agent source update as saved while still saving local edits', async () => {
+    const writes: string[] = []
+    page.on('request', (request) => {
+      if (request.method() === 'PATCH' && new URL(request.url()).pathname.endsWith('/frames/diagram-a')) {
+        writes.push(request.postData() ?? '')
+      }
+    })
+    await page.locator('button::-p-text(Edit diagram source)').click()
+    await page.waitForSelector('.CodeMirror', { visible: true })
+
+    await page.evaluate(() => window.receiveAgentSource('Browser -> Checkout: Agent update'))
+    await page.waitForFunction(() => document.querySelector('.CodeMirror-code')?.textContent?.includes('Agent update'))
+    expect(await page.$eval('[data-slot="modal"] header', (el) => el.textContent)).toContain('Saved to diagram')
+    expect(writes).toHaveLength(0)
+
+    await page.click('.CodeMirror-line')
+    await page.keyboard.press('End')
+    await page.keyboard.type(' with local input')
+    await expect.poll(() => writes.length).toBe(1)
+    expect(writes[0]).toContain('with local input')
   })
 
   it('does not activate hidden drawing tools by shortcut', async () => {

@@ -48,7 +48,7 @@ const fs = require('node:fs'), path = require('node:path');
 const root = fs.realpathSync(process.argv[2]), file = process.argv[3];
 const audit = JSON.parse(fs.readFileSync(file, 'utf8'));
 if (audit.format !== 1 || audit.bundleIdentifier !== 'com.zenuml.app' || audit.version !== '1.1.0' ||
-    audit.buildVersion !== '41' || !/^\d+\.\d+(?:\.\d+)?$/.test(audit.minimumSystemVersion) ||
+    audit.buildVersion !== '43' || !/^\d+\.\d+(?:\.\d+)?$/.test(audit.minimumSystemVersion) ||
     !Array.isArray(audit.files) || !Array.isArray(audit.packages) || !Array.isArray(audit.native))
   throw Error('Invalid bundle audit manifest');
 const native = audit.native.map(entry => {
@@ -74,7 +74,7 @@ desktop_write_build_info() {
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const [local, sourceSha, archive, mode, bundleIdentifier, version, buildVersion] = process.argv.slice(2);
 if (!/^[a-f0-9]{40}$/.test(sourceSha)) throw Error('Exact Git source revision required');
-if (bundleIdentifier !== 'com.zenuml.app' || version !== '1.1.0' || buildVersion !== '41')
+if (bundleIdentifier !== 'com.zenuml.app' || version !== '1.1.0' || buildVersion !== '43')
   throw Error('Unexpected ZenUML upgrade identity/version/build');
 if (!['--unsigned', '--sign'].includes(mode)) throw Error('Unknown signing mode');
 const sha256 = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -163,7 +163,7 @@ NODE
     security cms -D -i "$MAS_PROVISIONING_PROFILE" > "$STAGE/profile.plist"
     APP_ID="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.application-identifier' "$STAGE/profile.plist")"
     [[ "$APP_ID" == *.com.zenuml.app ]] || { echo 'Provisioning profile does not match com.zenuml.app' >&2; exit 1; }
-    cp "$MAS_PROVISIONING_PROFILE" "$APP/Contents/embedded.provisionprofile"
+    cp -X "$MAS_PROVISIONING_PROFILE" "$APP/Contents/embedded.provisionprofile"
   fi
   # Sign every nested Mach-O, including npm native modules, before the outer app.
   while IFS= read -r -d '' executable; do

@@ -57,6 +57,34 @@ async function addPackage(name, parent) {
 }
 
 await addPackage('mcp-remote', root)
+// Newer Claude clients probe this stdio server before initialize. The app
+// speaks the legacy handshake, so answer locally with the defined fallback.
+// Patch the pinned proxy only in this bundle, preserving Claude's Node process
+// and the proxy's existing OAuth and HTTP transport.
+const proxyHook = 'transportToClient.onmessage = (_message) => {'
+const proxyChunks = zip.file(/^node_modules\/mcp-remote\/dist\/chunk-[\w-]+\.js$/)
+const proxySources = await Promise.all(proxyChunks.map(async (file) => [file, await file.async('string')]))
+const proxyMatches = proxySources.filter(([, source]) => source.includes(proxyHook))
+if (proxyMatches.length !== 1 || proxyMatches[0][1].split(proxyHook).length !== 2) {
+  throw new Error('Cannot locate the pinned mcp-remote stdio request hook')
+}
+const [proxyFile, proxySource] = proxyMatches[0]
+zip.file(
+  proxyFile.name,
+  proxySource.replace(
+    proxyHook,
+    `${proxyHook}
+    if (_message.method === "server/discover" && _message.id !== undefined) {
+      transportToClient.send({
+        jsonrpc: "2.0",
+        id: _message.id,
+        error: { code: -32601, message: "Method not found" }
+      }).catch(onClientError);
+      return;
+    }`,
+  ),
+  { date, unixPermissions: proxyFile.unixPermissions },
+)
 const assets = await getClaudeExtensionAssets(productModeFromEnvironment())
 zip.file('manifest.json', JSON.stringify(assets.manifest, null, 2) + '\n', { date })
 zip.file('README.md', assets.readme, { date })

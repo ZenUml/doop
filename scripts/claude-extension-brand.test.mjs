@@ -7,7 +7,7 @@ test('Diagramly extension uses its own install identity and requires the local M
   assert.equal(iconSource, 'desktop/src-tauri/icons/icon.png')
   assert.equal(manifest.name, 'diagramly')
   assert.equal(manifest.display_name, 'Diagramly')
-  assert.equal(manifest.version, '0.1.0')
+  assert.equal(manifest.version, '0.1.2')
   assert.equal(manifest.server.entry_point, 'node_modules/mcp-remote/dist/proxy.js')
   assert.equal(manifest.user_config.server_url.title, 'Diagramly server URL')
   assert.deepEqual(manifest.server.mcp_config.args.slice(0, 6), [

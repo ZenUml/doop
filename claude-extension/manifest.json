@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "diagramly",
   "display_name": "Diagramly",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Create and revise editable diagrams with Claude and Diagramly Desktop.",
   "author": {
     "name": "Diagramly",

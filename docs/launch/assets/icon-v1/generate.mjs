@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Rebuild the PNG sizes and macOS ICNS from the SVG master. Requires sharp and macOS iconutil. */
+/** Rebuild the PNG sizes and the macOS ICNS (rounded, with margin) from the SVG master. Requires sharp and macOS iconutil. */
 import { execFileSync } from 'node:child_process'
 import { Buffer } from 'node:buffer'
 import console from 'node:console'
@@ -22,6 +22,25 @@ for (const size of sizes) {
     .toFile(path.join(here, `icon-${size}.png`))
 }
 
+// macOS does not mask ICNS files. Follow Apple's icon grid: an 824 px rounded square (corner radius 185)
+// centred on a transparent 1024 px canvas, so the Dock and Finder show soft corners and a margin.
+const grid = { size: 824, margin: 100, radius: 185 }
+const mask = Buffer.from(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="${grid.size}" height="${grid.size}"><rect width="${grid.size}" height="${grid.size}" rx="${grid.radius}" fill="#fff"/></svg>`,
+)
+const tile = await sharp(source)
+  .resize(grid.size, grid.size)
+  .composite([{ input: mask, blend: 'dest-in' }])
+  .png()
+  .toBuffer()
+const macMaster = await sharp({
+  create: { width: 1024, height: 1024, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+})
+  .composite([{ input: tile, left: grid.margin, top: grid.margin }])
+  .png()
+  .toBuffer()
+await sharp(macMaster).toFile(path.join(here, 'icon-macos-1024.png'))
+
 const temp = await mkdtemp(path.join(os.tmpdir(), 'diagramly-icon-'))
 try {
   const iconset = path.join(temp, 'Diagramly.iconset')
@@ -30,7 +49,7 @@ try {
     for (const scale of [1, 2]) {
       const pixels = size * scale
       const name = `icon_${size}x${size}${scale === 2 ? '@2x' : ''}.png`
-      await sharp(source).resize(pixels, pixels).png().toFile(path.join(iconset, name))
+      await sharp(macMaster).resize(pixels, pixels).png().toFile(path.join(iconset, name))
     }
   }
   execFileSync('/usr/bin/iconutil', ['-c', 'icns', iconset, '-o', path.join(here, 'icon.icns')])
