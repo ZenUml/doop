@@ -8,7 +8,8 @@ import { api } from '../lib/api'
 import { navigate } from '../lib/navigate'
 import { DiagramlyHomeHero } from '../components/DiagramlyHomeHero'
 import { DiagramlySidebar } from '../components/DiagramlySidebar'
-import { FramePreview, FrameThumb } from '../components/FramePreview'
+import { CardThumbnail } from '../components/CardThumbnail'
+import { FrameThumb } from '../components/FramePreview'
 import { DashContent, DashHeader, DashLayout, DashMain } from '../components/ui/dash'
 import { Tile, TileBody, TileCover } from '../components/ui/tile'
 import { Pressable } from '../components/ui/pressable'
@@ -281,7 +282,7 @@ export function DiagramlyHome() {
                       <Tile key={document.id} tone="solid">
                         <Pressable aria-label={`Open ${document.name}`} onClick={() => navigate(`/c/${document.id}`)}>
                           <TileCover aspect="5/3">
-                            <FramePreview frameId={document.previewFrameId} empty="No diagram preview" />
+                            <CardThumbnail frameId={document.previewFrameId} empty="No diagram preview" />
                           </TileCover>
                           <TileBody>
                             <div className="truncate text-body font-medium">{document.name}</div>
