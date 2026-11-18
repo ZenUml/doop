@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "diagramly",
   "display_name": "Diagramly",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Create and revise editable diagrams with Claude and Diagramly Desktop.",
   "author": {
     "name": "Diagramly",
@@ -19,11 +19,11 @@
   "icon": "icon.png",
   "server": {
     "type": "node",
-    "entry_point": "proxy.mjs",
+    "entry_point": "node_modules/mcp-remote/dist/proxy.js",
     "mcp_config": {
       "command": "node",
       "args": [
-        "${__dirname}/proxy.mjs",
+        "${__dirname}/node_modules/mcp-remote/dist/proxy.js",
         "${user_config.server_url}",
         "--transport",
         "http-only",

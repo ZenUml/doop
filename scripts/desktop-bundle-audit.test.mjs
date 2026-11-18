@@ -13,7 +13,7 @@ async function fixture(run) {
     await mkdir(path.join(app, 'Contents', 'Resources'), { recursive: true })
     await writeFile(
       path.join(app, 'Contents/Info.plist'),
-      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.zenuml.app</string><key>CFBundleShortVersionString</key><string>1.1.0</string><key>CFBundleVersion</key><string>42</string><key>LSMinimumSystemVersion</key><string>13.5</string></dict></plist>',
+      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.zenuml.app</string><key>CFBundleShortVersionString</key><string>1.1.0</string><key>CFBundleVersion</key><string>43</string><key>LSMinimumSystemVersion</key><string>13.5</string></dict></plist>',
     )
     await run(app, temporary)
   } finally {
@@ -136,7 +136,7 @@ test('requires the existing paid app identity and records upgrade version', () =
     const result = await auditBundle(app)
     assert.equal(result.bundleIdentifier, 'com.zenuml.app')
     assert.equal(result.version, '1.1.0')
-    assert.equal(result.buildVersion, '42')
+    assert.equal(result.buildVersion, '43')
     await writeFile(
       path.join(app, 'Contents/Info.plist'),
       '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>ai.diagramly.desktop</string></dict></plist>',
