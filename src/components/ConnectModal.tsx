@@ -179,29 +179,17 @@ function agentSteps(
   switch (agent) {
     case 'claude-code':
       if (desktop) {
-        const server = 'diagramly-desktop'
-        const add = `claude mcp add --scope user --transport http ${server} "${mcpUrl}"`
-        /* Windows shells differ (no `||`, other quoting): add, then paste the message */
-        if (desktopPlatform() === 'windows') {
-          return {
-            lede: t('connect.localClaudeCodeLede'),
-            steps: [
-              { title: t('connect.claudeCodeAddTitle'), body: t('connect.claudeCodeAddBefore'), code: add },
-              pointAt,
-            ],
-          }
-        }
-        /* a new claude session reads its MCP list at launch: add, then start, no restart between;
-           an existing entry of this name is kept, and a `diagramly` entry pointing elsewhere is never touched */
-        const quoted = `'${prompt.replaceAll("'", "'\\''")}'`
+        /* plain steps, no shell chain: a running claude session does not pick up a server added
+           inside it (reproduced), so the server is added first and the message pasted after */
         return {
           lede: t('connect.localClaudeCodeLede'),
           steps: [
             {
-              title: t('connect.localClaudeCodeRunTitle'),
-              body: t('connect.localClaudeCodeRunBody'),
-              code: `claude mcp get ${server} >/dev/null 2>&1 || ${add}; claude ${quoted}`,
+              title: t('connect.localClaudeCodeAddTitle'),
+              body: t('connect.localClaudeCodeAddBody'),
+              code: `claude mcp add --scope user --transport http diagramly-desktop "${mcpUrl}"`,
             },
+            pointAt,
           ],
         }
       }

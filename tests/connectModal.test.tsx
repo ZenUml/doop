@@ -116,18 +116,18 @@ it.each([
   expect(mocks.createAgentKey).not.toHaveBeenCalled()
 })
 
-it('in the desktop app, Claude Code is one command: add the server, then start designing', async () => {
+it('in the desktop app, Claude Code is two plain steps: add the server, then paste the message', async () => {
   mocks.desktop = true
   await mount('c1')
   await pickAgent('Claude Code')
-  /* a new claude session reads its MCP list at launch, so adding and starting need no restart in between;
-     an existing entry of this name is kept, and a `diagramly` entry pointing elsewhere is never touched */
-  expect(text()).toContain(
-    `claude mcp get diagramly-desktop >/dev/null 2>&1 || claude mcp add --scope user --transport http diagramly-desktop "${location.origin}/mcp"; claude 'Work on Diagramly canvas c1. Start with get_guide({ topic: "design-instructions" }) and follow it.'`,
-  )
-  expect(text()).not.toContain('claude mcp remove')
+  /* a claude session already running does not pick up a server added inside it, so the add comes first */
+  expect(text()).toContain(`claude mcp add --scope user --transport http diagramly-desktop "${location.origin}/mcp"`)
+  expect(text()).toContain('Run this once in any terminal')
+  expect(text()).toContain('Point it at this canvas')
+  expect(text()).toContain('Work on Diagramly canvas c1.')
+  expect(text()).not.toContain('claude mcp get')
+  expect(text()).not.toContain('>/dev/null')
   expect(text()).not.toContain('--header')
-  expect(text()).not.toContain('Point it at this canvas')
 })
 
 it('in the desktop app, Claude has no dead "Connect online" tab and no browser sign-in', async () => {
