@@ -80,8 +80,17 @@ export function DiagramPreview({
   }, [html, ready])
 
   return (
-    <div className="flex h-full w-full items-start justify-center overflow-auto bg-paper-deep">
-      <div className="h-full min-h-[480px] w-full min-w-[520px] origin-top-left" style={{ zoom }}>
+    <div className="flex h-full w-full items-start overflow-auto bg-paper-deep">
+      {/* A transform, not CSS `zoom`: WebKit (the desktop webview) does not scale an iframe under `zoom`.
+          The box is 1/zoom of the pane before scaling, so it fills the pane after. */}
+      <div
+        className="min-h-[480px] min-w-[520px] shrink-0 origin-top-left"
+        style={{
+          width: `${100 / zoom}%`,
+          height: `${100 / zoom}%`,
+          transform: `scale(${zoom})`,
+        }}
+      >
         <iframe
           ref={iframe}
           className="h-full w-full border-0 bg-transparent"

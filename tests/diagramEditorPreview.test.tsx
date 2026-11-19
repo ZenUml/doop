@@ -88,7 +88,10 @@ it('keeps the diagram preview read-only while retaining parent-controlled zoom',
   expect(iframe.style.pointerEvents).toBe('none')
   expect(iframe.tabIndex).toBe(-1)
   expect(iframe.getAttribute('aria-label')).toContain('Read-only preview')
-  expect(iframe.parentElement?.style.zoom).toBe('1.2')
+  /* WebKit (the desktop app's webview) ignores CSS `zoom` on a box that holds an iframe: the label
+     changes and the diagram does not. Scale with a transform instead. */
+  expect(iframe.parentElement?.style.zoom).toBe('')
+  expect(iframe.parentElement?.style.transform).toBe('scale(1.2)')
 })
 
 it('does not restart preview loading for a page-title change, but still reacts to render content changes', () => {
@@ -175,7 +178,8 @@ it('fills the desktop viewport, keeps the board header visible, and retains prev
   expect(container.querySelector('[data-testid="page-controls"]')?.getAttribute('data-tabs')).toBe('true')
   expect(container.querySelector('.diagram-source-editor > div')?.textContent).toContain('Sequence')
   act(() => container.querySelector<HTMLButtonElement>('[aria-label="Zoom in"]')!.click())
-  expect(container.querySelector('iframe')?.parentElement?.style.zoom).toBe('1.1')
+  expect(container.querySelector('iframe')?.parentElement?.style.zoom).toBe('')
+  expect(container.querySelector('iframe')?.parentElement?.style.transform).toBe('scale(1.1)')
 })
 
 it('locks page controls while a source save is pending, failed, or dirty', () => {
