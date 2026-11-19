@@ -1518,9 +1518,16 @@ export const FrameView = memo(function FrameView({
         if (size.width === live.width && size.height === live.height) return
         state.patchFrameLocal(frame.id, size)
         trackSave(
-          api.updateFrame(frame.id, size).catch((error: unknown) => {
-            useStore.getState().pushNotice(error instanceof Error ? error.message : 'Could not save diagram size.')
-          }),
+          api
+            .updateFrame(frame.id, size)
+            .then((saved) => {
+              /* Keep the local version in step with the server's, or the next edit of this frame
+                 is sent with a stale version and rejected. */
+              useStore.getState().patchFrameLocal(frame.id, { updatedAt: saved.updatedAt, updatedBy: saved.updatedBy })
+            })
+            .catch((error: unknown) => {
+              useStore.getState().pushNotice(error instanceof Error ? error.message : 'Could not save diagram size.')
+            }),
         )
       }
       if (ev.data?.type === 'diagramly:edited' && typeof ev.data.html === 'string') {

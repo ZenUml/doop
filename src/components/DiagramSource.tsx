@@ -114,7 +114,19 @@ export function DiagramSource({
            version from that response. A slow first save cannot make the next
            keystroke race with the same stale updatedAt. */
         const before = committedHtml.current
-        const saved = await api.updateFrame(frame.id, { html }, latestUpdatedAt.current)
+        let saved: Awaited<ReturnType<typeof api.updateFrame>>
+        try {
+          saved = await api.updateFrame(frame.id, { html }, latestUpdatedAt.current)
+        } catch (error) {
+          /* The board writes geometry on its own (a diagram that grows resizes its frame), which moves the
+             server version past ours without touching the diagram. When the conflicting frame still holds
+             the diagram we last saved, nobody else edited it: take the new version and send once more. */
+          const conflict = error instanceof ApiError && error.status === 409 ? error.body.frame : null
+          const theirs = conflict as { html?: unknown; updatedAt?: unknown } | null
+          if (!theirs || typeof theirs.updatedAt !== 'number' || theirs.html !== committedHtml.current) throw error
+          latestUpdatedAt.current = Math.max(latestUpdatedAt.current, theirs.updatedAt)
+          saved = await api.updateFrame(frame.id, { html }, latestUpdatedAt.current)
+        }
         const savedDiagram = readDiagramFrame(saved.html)
         const hasNewerLocalDraft = latestLocalHtml.current !== null && latestLocalHtml.current !== html
         if (hasNewerLocalDraft) {

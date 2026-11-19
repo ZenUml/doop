@@ -286,9 +286,29 @@ it('keeps the local draft after a compare-and-swap conflict', async () => {
   expect(readDiagramDraft('local-user', frame.id)?.source).toBe(unsent)
 })
 
-it('retries with the server version after a 409 so Retry save can succeed', async () => {
+it('retries once on its own when a 409 came only from a geometry change, such as the board growing the frame', async () => {
+  const unsent = 'flowchart LR\n  A --> auto409'
+  const grown = { ...frame, height: 900, updatedAt: 9 }
+  const conflict = new ApiError(409, JSON.stringify({ error: 'The frame changed while you were editing.', frame: grown }))
+  const update = vi
+    .spyOn(api, 'updateFrame')
+    .mockRejectedValueOnce(conflict)
+    .mockImplementationOnce(async (_id, patch) => ({ ...frame, ...patch, updatedAt: 10 }))
+
+  unmount()
+  mount(diagram, frame, true)
+  typeSource(unsent)
+  await act(async () => vi.advanceTimersByTimeAsync(500))
+
+  expect(update).toHaveBeenCalledTimes(2)
+  expect(update.mock.calls[1]?.[2]).toBe(9)
+  expect(container.textContent).toContain('Saved')
+  expect(container.textContent).not.toContain('Save failed')
+})
+
+it('does not overwrite when another writer changed the diagram itself, and lets Retry use the server version', async () => {
   const unsent = 'flowchart LR\n  A --> retry409'
-  const newer = { ...frame, updatedAt: 9 }
+  const newer = { ...frame, html: '<html><body>someone else edited</body></html>', updatedAt: 9 }
   const conflict = new ApiError(
     409,
     JSON.stringify({ error: 'The frame changed while you were editing. Please try again.', frame: newer }),
