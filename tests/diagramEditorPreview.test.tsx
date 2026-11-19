@@ -92,6 +92,10 @@ it('keeps the diagram preview read-only while retaining parent-controlled zoom',
      changes and the diagram does not. Scale with a transform instead. */
   expect(iframe.parentElement?.style.zoom).toBe('')
   expect(iframe.parentElement?.style.transform).toBe('scale(1.2)')
+  /* The box keeps the pane's size. A diagram fits the width it is given, so shrinking the box to
+     1/zoom before scaling it made the diagram re-fit and cancelled the zoom (seen at 150% in the app). */
+  expect(iframe.parentElement?.style.width).toBe('100%')
+  expect(iframe.parentElement?.style.height).toBe('100%')
 })
 
 it('does not restart preview loading for a page-title change, but still reacts to render content changes', () => {
