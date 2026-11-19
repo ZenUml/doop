@@ -98,6 +98,55 @@ it('keeps the diagram preview read-only while retaining parent-controlled zoom',
   expect(iframe.parentElement?.style.height).toBe('100%')
 })
 
+it('grows the preview box to a wide diagram so the pane scrolls instead of clipping it, and Fit shrinks to show all of it', () => {
+  container = document.createElement('div')
+  document.body.append(container)
+  root = createRoot(container)
+  const onFit = vi.fn()
+  const renderPreview = (fitSignal: number) =>
+    root.render(
+      <DiagramPreview
+        diagram={diagram}
+        source={diagram.source}
+        title="Live preview"
+        zoom={1}
+        fitSignal={fitSignal}
+        onFit={onFit}
+        onRenderState={() => undefined}
+      />,
+    )
+  act(() => renderPreview(0))
+  const iframe = container.querySelector('iframe')!
+  const pane = container.firstElementChild as HTMLElement
+  Object.defineProperty(pane, 'clientWidth', { value: 800, configurable: true })
+  Object.defineProperty(pane, 'clientHeight', { value: 400, configurable: true })
+
+  act(() => {
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        source: iframe.contentWindow,
+        data: { type: 'diagramly:diagram-size', source: diagram.source, width: 1600, height: 300 },
+      }),
+    )
+  })
+  expect(iframe.parentElement?.style.minWidth).toBe('1600px')
+  expect(iframe.parentElement?.style.minHeight).toBe('300px')
+
+  act(() => renderPreview(1))
+  expect(onFit).toHaveBeenLastCalledWith(0.5)
+
+  /* a size report for an older source must not resize the box */
+  act(() => {
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        source: iframe.contentWindow,
+        data: { type: 'diagramly:diagram-size', source: 'stale', width: 9000, height: 9000 },
+      }),
+    )
+  })
+  expect(iframe.parentElement?.style.minWidth).toBe('1600px')
+})
+
 it('does not restart preview loading for a page-title change, but still reacts to render content changes', () => {
   container = document.createElement('div')
   document.body.append(container)

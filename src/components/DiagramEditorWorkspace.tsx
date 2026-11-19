@@ -3,6 +3,7 @@ import type { DiagramFrame } from '../../shared/diagramFrame'
 import { buildDiagramHtml } from '../../shared/diagramFrame'
 import type { Frame } from '../../shared/types'
 import { FRAME_BOOTSTRAP } from '../lib/frameRuntime'
+import { fitZoom, MAX_ZOOM, MIN_ZOOM, type Size } from '../lib/fitZoom'
 import { downloadFrameExport } from '../lib/frameExport'
 import { useT } from '../lib/i18n'
 import { Button } from './ui/button'
@@ -35,16 +36,36 @@ export function DiagramPreview({
   title,
   onRenderState,
   zoom,
+  fitSignal = 0,
+  onFit,
 }: {
   diagram: DiagramFrame
   source: string
   title: string
   zoom: number
+  /** Bumps each time the user presses Fit. */
+  fitSignal?: number
+  onFit?: (zoom: number) => void
   onRenderState: (state: 'loading' | 'rendered' | 'error') => void
 }) {
   const t = useT()
   const iframe = useRef<HTMLIFrameElement | null>(null)
+  const pane = useRef<HTMLDivElement | null>(null)
   const [ready, setReady] = useState(false)
+  /* How big the rendered diagram really is. The frame reports it; without it a
+     diagram wider or taller than the pane is clipped inside a non-scrolling iframe. */
+  const [content, setContent] = useState<Size | null>(null)
+  const contentRef = useRef<Size | null>(null)
+  const onFitRef = useRef(onFit)
+  useLayoutEffect(() => {
+    contentRef.current = content
+    onFitRef.current = onFit
+  }, [content, onFit])
+  useEffect(() => {
+    if (!fitSignal) return
+    const el = pane.current
+    onFitRef.current?.(fitZoom(contentRef.current, { width: el?.clientWidth ?? 0, height: el?.clientHeight ?? 0 }))
+  }, [fitSignal])
   const currentSource = useRef(source)
   const onRenderStateRef = useRef(onRenderState)
   useLayoutEffect(() => {
@@ -65,6 +86,14 @@ export function DiagramPreview({
     function onMessage(event: MessageEvent) {
       if (event.source !== iframe.current?.contentWindow) return
       if (event.data?.type === 'diagramly:frame-ready') setReady(true)
+      if (
+        event.data?.type === 'diagramly:diagram-size' &&
+        event.data.source === currentSource.current &&
+        Number.isFinite(event.data.width) &&
+        Number.isFinite(event.data.height)
+      ) {
+        setContent({ width: event.data.width, height: event.data.height })
+      }
       if (event.data?.type === 'diagramly:diagram-render-state' && event.data.source === currentSource.current) {
         onRenderStateRef.current(event.data.state === 'error' ? 'error' : 'rendered')
       }
@@ -80,7 +109,7 @@ export function DiagramPreview({
   }, [html, ready])
 
   return (
-    <div className="flex h-full w-full items-start overflow-auto bg-paper-deep">
+    <div ref={pane} className="flex h-full w-full items-start overflow-auto bg-paper-deep">
       {/* A transform, not CSS `zoom`: WebKit (the desktop webview) does not scale an iframe under `zoom`.
           The box keeps the pane's size, so the diagram lays out as at 100% and the transform enlarges it;
           the pane scrolls to the rest. (Shrinking the box to 1/zoom first makes the diagram re-fit and
@@ -88,8 +117,10 @@ export function DiagramPreview({
       <div
         className="min-h-[480px] min-w-[520px] shrink-0 origin-top-left"
         style={{
+          /* At least the pane, and at least as big as the diagram: the pane scrolls to the rest. */
           width: '100%',
           height: '100%',
+          ...(content ? { minWidth: `${content.width}px`, minHeight: `${content.height}px` } : {}),
           transform: `scale(${zoom})`,
         }}
       >
@@ -138,6 +169,7 @@ export function DiagramEditorWorkspace({
   const [mobileTab, setMobileTab] = useState<'source' | 'preview'>('source')
   const [editorPercent, setEditorPercent] = useState(40)
   const [zoom, setZoom] = useState(1)
+  const [fitSignal, setFitSignal] = useState(0)
   const [wrap, setWrap] = useState(false)
   const [renderState, setRenderState] = useState<'loading' | 'rendered' | 'error'>('loading')
   const [topInset, setTopInset] = useState(0)
@@ -311,7 +343,7 @@ export function DiagramEditorWorkspace({
                   variant="bare"
                   size="icon-sm"
                   aria-label={t('inspector.zoomOut')}
-                  onClick={() => setZoom((value) => Math.max(0.5, value - 0.1))}
+                  onClick={() => setZoom((value) => Math.max(MIN_ZOOM, Math.round((value - 0.1) * 100) / 100))}
                 >
                   −
                 </Button>
@@ -320,11 +352,11 @@ export function DiagramEditorWorkspace({
                   variant="bare"
                   size="icon-sm"
                   aria-label={t('inspector.zoomIn')}
-                  onClick={() => setZoom((value) => Math.min(2, value + 0.1))}
+                  onClick={() => setZoom((value) => Math.min(MAX_ZOOM, Math.round((value + 0.1) * 100) / 100))}
                 >
                   +
                 </Button>
-                <Button variant="bare" size="sm" onClick={() => setZoom(1)}>
+                <Button variant="bare" size="sm" onClick={() => setFitSignal((value) => value + 1)}>
                   {t('inspector.fitPreview')}
                 </Button>
                 <Button
@@ -343,6 +375,8 @@ export function DiagramEditorWorkspace({
                 source={source}
                 title={t('inspector.diagramPreview')}
                 zoom={zoom}
+                fitSignal={fitSignal}
+                onFit={setZoom}
                 onRenderState={setRenderState}
               />
             </div>
