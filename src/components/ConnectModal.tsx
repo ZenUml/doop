@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { navigate } from '../App'
 import { useStore } from '../lib/store'
@@ -98,24 +98,30 @@ function AgentPicker({ onPick }: { onPick: (agent: AgentId) => void }) {
       <ModalTitle>{t('connect.chooseTitle')}</ModalTitle>
       <ModalLede>{t('connect.chooseLede')}</ModalLede>
       <ChoiceList className="mt-5">
-        {AGENTS.map((option) => (
-          <ChoiceRow
-            key={option.id}
-            icon={<AppIcon brand={option.icon} />}
-            title={agentName(option, t)}
-            description={t(option.blurb)}
-            onClick={() => {
-              posthog.capture('connect_ai_agent_chosen', { agent: option.id })
-              onPick(option.id)
-            }}
-          />
-        ))}
+        {AGENTS.filter((option) => !(['chatgpt', 'claude'].includes(option.id) && isLocalDesktopServer())).map(
+          (option) => (
+            <ChoiceRow
+              key={option.id}
+              icon={<AppIcon brand={option.icon} />}
+              title={agentName(option, t)}
+              description={t(
+                option.id === 'headless' && isLocalDesktopServer() ? 'connect.blurbHeadlessLocal' : option.blurb,
+              )}
+              onClick={() => {
+                posthog.capture('connect_ai_agent_chosen', { agent: option.id })
+                onPick(option.id)
+              }}
+            />
+          ),
+        )}
       </ChoiceList>
     </div>
   )
 }
 
 interface Step {
+  /** a lone step with nothing to say besides its message: drawn without a number, title or body */
+  bare?: boolean
   title: string
   body: ReactNode
   code?: string
@@ -155,21 +161,83 @@ function agentKeySteps(t: Translate, mcpUrl: string, pointAt: Step, openAgentKey
   }
 }
 
+/** The desktop app talking to its own local server, which answers agents on this
+ *  machine without a sign-in (server/localDesktopAuth.ts). A desktop app pointed
+ *  at a hosted server still signs in. */
+const isLocalDesktopServer = () => isDesktopShell() && ['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname)
+
+/** The text the agent will read, fetched from the same /connect.md the agent gets. */
+function ConnectInstructions({ name }: { name: string }) {
+  const t = useT()
+  const [text, setText] = useState('')
+  useEffect(() => {
+    let live = true
+    if (typeof fetch !== 'function') return
+    fetch('/connect.md')
+      .then((r) => (r.ok ? r.text() : ''))
+      .then((body) => live && setText(body))
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [])
+  if (!text) return null
+  return (
+    <Disclosure
+      label={t('connect.seeInstructions', { name })}
+      className="mt-3 text-label leading-relaxed text-ink-soft"
+    >
+      <pre className="mt-1 whitespace-pre-wrap break-words rounded-[6px] bg-paper-deep p-3 font-mono text-caption text-ink">
+        {text}
+      </pre>
+    </Disclosure>
+  )
+}
+
+/** One plain message for an agent on this machine: it reads /connect.md (served by this
+ *  desktop server, shown below the message so nothing is hidden), adds the server and, if its
+ *  tools are not loaded yet, calls it directly. */
+function localAgentMessage(name: string, mcpUrl: string, canvasId: string | undefined): { steps: Step[] } {
+  return {
+    steps: [
+      {
+        bare: true,
+        title: 'local-agent-message',
+        body: null,
+        code: `Connect Diagramly: read ${new URL('/connect.md', mcpUrl).href} and follow it. ${
+          canvasId ? `Then list the diagrams on canvas ${canvasId}.` : 'Then list all my canvases.'
+        }`,
+        action: <ConnectInstructions name={name} />,
+      },
+    ],
+  }
+}
+
 function agentSteps(
   t: Translate,
   agent: AgentId,
   mcpUrl: string,
   prompt: string,
   { claudeConnection, mcpConnection, canvasId, openAgentKeys }: StepOptions,
-): { lede: string; steps: Step[] } {
+): { lede?: string; steps: Step[] } {
   const jsonConfig = JSON.stringify({ mcpServers: { diagramly: { type: 'http', url: mcpUrl } } }, null, 2)
   const pointAt: Step = {
-    title: t('connect.pointAtTitle'),
-    body: prompt ? t('connect.pointAtWithPrompt') : t('connect.pointAtNoPrompt'),
-    code: prompt || undefined,
+    title: t(canvasId ? 'connect.pointAtTitle' : 'connect.pointAtTitleNoCanvas'),
+    body: t(canvasId ? 'connect.pointAtWithPrompt' : 'connect.pointAtNoCanvas'),
+    code: prompt,
   }
+  /* The desktop app's server answers agents on this machine without a sign-in
+     (server/localDesktopAuth.ts), so these clients skip the browser step. */
+  const desktop = isLocalDesktopServer()
   switch (agent) {
     case 'claude-code':
+      if (desktop) {
+        /* one plain message. The agent reads /connect.md (served by this desktop server,
+           shown below so nothing is hidden) to add the server and, if its tools are not
+           loaded yet, to call it directly: a server added inside a running session only
+           loads natively after the session is reopened */
+        return localAgentMessage('Claude Code', mcpUrl, canvasId)
+      }
       return {
         lede: t('connect.claudeCodeLede'),
         steps: [
@@ -184,41 +252,49 @@ function agentSteps(
             ),
             code: `claude mcp add --transport http diagramly "${mcpUrl}"`,
           },
-          {
-            title: t('connect.claudeCodeSignInTitle'),
-            body: (
-              <>
-                {t('connect.claudeCodeSignInBefore')}
-                <code>/mcp</code>
-                {t('connect.claudeCodeSignInPick')}
-                <strong>diagramly</strong>
-                {t('connect.claudeCodeSignInThen')}
-                {/* Claude Code's own menu label, which it shows in English */}
-                <strong>Authenticate</strong>
-                {t('connect.claudeCodeSignInAfter')}
-              </>
-            ),
-          },
+          ...(desktop
+            ? []
+            : [
+                {
+                  title: t('connect.claudeCodeSignInTitle'),
+                  body: (
+                    <>
+                      {t('connect.claudeCodeSignInBefore')}
+                      <code>/mcp</code>
+                      {t('connect.claudeCodeSignInPick')}
+                      <strong>diagramly</strong>
+                      {t('connect.claudeCodeSignInThen')}
+                      {/* Claude Code's own menu label, which it shows in English */}
+                      <strong>Authenticate</strong>
+                      {t('connect.claudeCodeSignInAfter')}
+                    </>
+                  ),
+                },
+              ]),
           pointAt,
         ],
       }
     case 'claude':
       if (claudeConnection === 'desktop') {
         return {
-          lede: t(isDesktopShell() ? 'connect.localClaudeDesktopLede' : 'connect.claudeDesktopLede'),
+          lede: t(desktop ? 'connect.localClaudeDesktopLede' : 'connect.claudeDesktopLede'),
           steps: [
             {
               title: t('connect.claudeDesktopAddTitle'),
               body: t('connect.claudeDesktopAddBody'),
               action: <ClaudeDesktopInstall mcpUrl={mcpUrl} />,
             },
-            {
-              title: t(isDesktopShell() ? 'connect.localLibraryConnectTitle' : 'connect.claudeDesktopConnectTitle'),
-              body: t(isDesktopShell() ? 'connect.localClaudeDesktopConnectBody' : 'connect.claudeDesktopConnectBody'),
-            },
+            ...(desktop
+              ? []
+              : [
+                  {
+                    title: t('connect.claudeDesktopConnectTitle'),
+                    body: t('connect.claudeDesktopConnectBody'),
+                  },
+                ]),
             {
               ...pointAt,
-              body: prompt ? t('connect.claudeDesktopPointWithPrompt') : t('connect.claudeDesktopPointNoPrompt'),
+              body: t('connect.claudeDesktopPointWithPrompt'),
             },
           ],
         }
@@ -259,7 +335,7 @@ function agentSteps(
           },
           {
             ...pointAt,
-            body: prompt ? t('connect.claudeWebPointWithPrompt') : t('connect.claudeWebPointNoPrompt'),
+            body: t('connect.claudeWebPointWithPrompt'),
           },
         ],
       }
@@ -329,52 +405,57 @@ function agentSteps(
           },
           {
             ...pointAt,
-            body: prompt ? t('connect.chatgptPointWithPrompt') : t('connect.chatgptPointNoPrompt'),
+            body: t('connect.chatgptPointWithPrompt'),
           },
         ],
       }
     case 'codex':
+      if (desktop) return localAgentMessage('Codex', mcpUrl, canvasId)
       return {
-        lede: t('connect.codexLede'),
+        lede: t(desktop ? 'connect.localCodexLede' : 'connect.codexLede'),
         steps: [
           {
             title: t('connect.codexAddTitle'),
             body: t('connect.codexAddBody'),
             action: <CodexInstall mcpUrl={mcpUrl} canvasId={canvasId} />,
           },
-          {
-            title: t('connect.codexSignInTitle'),
-            body: t('connect.codexSignInBody'),
-            code: 'codex mcp login diagramly',
-          },
+          ...(desktop
+            ? []
+            : [
+                {
+                  title: t('connect.codexSignInTitle'),
+                  body: t('connect.codexSignInBody'),
+                  code: 'codex mcp login diagramly',
+                },
+              ]),
           pointAt,
         ],
       }
     case 'cursor':
+      if (desktop) return localAgentMessage('Cursor', mcpUrl, canvasId)
       return {
-        lede: t('connect.cursorLede'),
+        lede: t(desktop ? 'connect.localCursorLede' : 'connect.cursorLede'),
         steps: [
           {
             title: t('connect.cursorAddTitle'),
             body: t('connect.cursorAddBody'),
             action: <CursorInstall mcpUrl={mcpUrl} />,
           },
-          {
-            title: t('connect.approveSignInTitle'),
-            body: t('connect.cursorApproveBody'),
-          },
+          ...(desktop ? [] : [{ title: t('connect.approveSignInTitle'), body: t('connect.cursorApproveBody') }]),
           {
             ...pointAt,
-            body: prompt ? t('connect.cursorPointWithPrompt') : t('connect.cursorPointNoPrompt'),
+            body: t('connect.cursorPointWithPrompt'),
           },
         ],
       }
     case 'headless':
-      return agentKeySteps(t, mcpUrl, pointAt, openAgentKeys)
     case 'mcp':
-      if (mcpConnection === 'key') return agentKeySteps(t, mcpUrl, pointAt, openAgentKeys)
+      /* an agent key is for an agent with no browser; on this machine neither kind needs one,
+         because the local server answers any local client without a sign-in */
+      if (agent === 'headless' ? !desktop : mcpConnection === 'key')
+        return agentKeySteps(t, mcpUrl, pointAt, openAgentKeys)
       return {
-        lede: t('connect.mcpLede'),
+        lede: t(desktop ? 'connect.localMcpLede' : 'connect.mcpLede'),
         steps: [
           {
             title: t('connect.mcpConfigTitle'),
@@ -387,10 +468,7 @@ function agentSteps(
             ),
             code: jsonConfig,
           },
-          {
-            title: t('connect.approveSignInTitle'),
-            body: t('connect.mcpApproveBody'),
-          },
+          ...(desktop ? [] : [{ title: t('connect.approveSignInTitle'), body: t('connect.mcpApproveBody') }]),
           pointAt,
         ],
       }
@@ -422,7 +500,7 @@ function AgentSteps({
      which canvas the human is looking at. */
   const prompt = canvasId
     ? `Work on Diagramly canvas ${canvasId}. Start with get_guide({ topic: "design-instructions" }) and follow it.`
-    : ''
+    : 'Use the Diagramly MCP server. Start with get_guide({ topic: "design-instructions" }) and follow it. Then list my canvases and ask me which one to work on, or create a new canvas if I want a fresh start.'
   const [mcpConnection, setMcpConnection] = useState<McpConnection>('browser')
   /* a browser keeps these steps open beside the new tab; the desktop shell's
      tabs hold canvases only, and the system browser may not be signed in, so
@@ -445,11 +523,11 @@ function AgentSteps({
           <AppIcon brand={option.icon} size={40} />
           <div>
             <ModalTitle>{t('connect.connectAgentTitle', { name })}</ModalTitle>
-            <ModalLede className="mt-1">{lede}</ModalLede>
+            {lede && <ModalLede className="mt-1">{lede}</ModalLede>}
           </div>
         </div>
 
-        {agent === 'claude' && (
+        {agent === 'claude' && !isLocalDesktopServer() && (
           <MethodSwitch
             label={t('connect.claudeMethodAria')}
             value={claudeConnection}
@@ -460,7 +538,7 @@ function AgentSteps({
             ]}
           />
         )}
-        {agent === 'mcp' && (
+        {agent === 'mcp' && !isLocalDesktopServer() && (
           <MethodSwitch
             label={t('connect.mcpMethodAria')}
             value={mcpConnection}
@@ -472,31 +550,32 @@ function AgentSteps({
           />
         )}
 
-        {isDesktopShell() &&
-          agent !== 'headless' &&
-          !(agent === 'claude' && claudeConnection === 'desktop') &&
-          !(agent === 'mcp' && mcpConnection === 'key') && (
-            <p className="mt-4 text-body text-ink-soft">{t('connect.localLibraryBrowserApproval')}</p>
-          )}
         <ol className="mt-6">
-          {steps.map((step, i) => (
-            <li
-              key={step.title}
-              className={cn('grid grid-cols-[28px_1fr] gap-3.5', i > 0 && 'mt-3.5 border-t border-line-soft pt-3.5')}
-            >
-              <span className="mt-px grid size-[26px] place-items-center rounded-full bg-ink text-xs font-bold text-paper">
-                {i + 1}
-              </span>
-              <div>
-                <h4 className="text-copy font-semibold text-ink">{step.title}</h4>
-                <p className="mt-0.5 text-body leading-[1.5] text-ink-soft [&_code]:rounded-[4px] [&_code]:bg-paper-deep [&_code]:px-1 [&_code]:font-mono [&_code]:text-caption [&_code]:text-ink">
-                  {step.body}
-                </p>
-                {step.code && <CodeBlock text={step.code} className="mt-2.5" />}
+          {steps.map((step, i) =>
+            step.bare ? (
+              <li key={step.title}>
+                {step.code && <CodeBlock text={step.code} />}
                 {step.action}
-              </div>
-            </li>
-          ))}
+              </li>
+            ) : (
+              <li
+                key={step.title}
+                className={cn('grid grid-cols-[28px_1fr] gap-3.5', i > 0 && 'mt-3.5 border-t border-line-soft pt-3.5')}
+              >
+                <span className="mt-px grid size-[26px] place-items-center rounded-full bg-ink text-xs font-bold text-paper">
+                  {i + 1}
+                </span>
+                <div>
+                  <h4 className="text-copy font-semibold text-ink">{step.title}</h4>
+                  <p className="mt-0.5 text-body leading-[1.5] text-ink-soft [&_code]:rounded-[4px] [&_code]:bg-paper-deep [&_code]:px-1 [&_code]:font-mono [&_code]:text-caption [&_code]:text-ink">
+                    {step.body}
+                  </p>
+                  {step.code && <CodeBlock text={step.code} className="mt-2.5" />}
+                  {step.action}
+                </div>
+              </li>
+            ),
+          )}
         </ol>
 
         {agent === 'claude' && claudeConnection === 'web' && claudeConnectorInstallUrl(mcpUrl) && (

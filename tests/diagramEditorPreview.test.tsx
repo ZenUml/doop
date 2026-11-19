@@ -4,7 +4,11 @@ import type { CSSProperties, ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, expect, it, vi } from 'vitest'
 import { buildDiagramHtml, type DiagramFrame } from '../shared/diagramFrame'
-import { DiagramEditorWorkspace, DiagramPreview } from '../src/components/DiagramEditorWorkspace'
+import {
+  DiagramEditorWorkspace,
+  DiagramPreview,
+  transparentPreviewHtml,
+} from '../src/components/DiagramEditorWorkspace'
 import type { Frame } from '../shared/types'
 
 vi.mock('../src/components/ui/modal', async () => {
@@ -84,7 +88,63 @@ it('keeps the diagram preview read-only while retaining parent-controlled zoom',
   expect(iframe.style.pointerEvents).toBe('none')
   expect(iframe.tabIndex).toBe(-1)
   expect(iframe.getAttribute('aria-label')).toContain('Read-only preview')
-  expect(iframe.parentElement?.style.zoom).toBe('1.2')
+  /* WebKit (the desktop app's webview) ignores CSS `zoom` on a box that holds an iframe: the label
+     changes and the diagram does not. Scale with a transform instead. */
+  expect(iframe.parentElement?.style.zoom).toBe('')
+  expect(iframe.parentElement?.style.transform).toBe('scale(1.2)')
+  /* The box keeps the pane's size. A diagram fits the width it is given, so shrinking the box to
+     1/zoom before scaling it made the diagram re-fit and cancelled the zoom (seen at 150% in the app). */
+  expect(iframe.parentElement?.style.width).toBe('100%')
+  expect(iframe.parentElement?.style.height).toBe('100%')
+})
+
+it('grows the preview box to a wide diagram so the pane scrolls instead of clipping it, and Fit shrinks to show all of it', () => {
+  container = document.createElement('div')
+  document.body.append(container)
+  root = createRoot(container)
+  const onFit = vi.fn()
+  const renderPreview = (fitSignal: number) =>
+    root.render(
+      <DiagramPreview
+        diagram={diagram}
+        source={diagram.source}
+        title="Live preview"
+        zoom={1}
+        fitSignal={fitSignal}
+        onFit={onFit}
+        onRenderState={() => undefined}
+      />,
+    )
+  act(() => renderPreview(0))
+  const iframe = container.querySelector('iframe')!
+  const pane = container.firstElementChild as HTMLElement
+  Object.defineProperty(pane, 'clientWidth', { value: 800, configurable: true })
+  Object.defineProperty(pane, 'clientHeight', { value: 400, configurable: true })
+
+  act(() => {
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        source: iframe.contentWindow,
+        data: { type: 'diagramly:diagram-size', source: diagram.source, width: 1600, height: 300 },
+      }),
+    )
+  })
+  expect(iframe.parentElement?.style.minWidth).toBe('1600px')
+  expect(iframe.parentElement?.style.minHeight).toBe('300px')
+
+  act(() => renderPreview(1))
+  expect(onFit).toHaveBeenLastCalledWith(0.5)
+
+  /* a size report for an older source must not resize the box */
+  act(() => {
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        source: iframe.contentWindow,
+        data: { type: 'diagramly:diagram-size', source: 'stale', width: 9000, height: 9000 },
+      }),
+    )
+  })
+  expect(iframe.parentElement?.style.minWidth).toBe('1600px')
 })
 
 it('does not restart preview loading for a page-title change, but still reacts to render content changes', () => {
@@ -171,7 +231,8 @@ it('fills the desktop viewport, keeps the board header visible, and retains prev
   expect(container.querySelector('[data-testid="page-controls"]')?.getAttribute('data-tabs')).toBe('true')
   expect(container.querySelector('.diagram-source-editor > div')?.textContent).toContain('Sequence')
   act(() => container.querySelector<HTMLButtonElement>('[aria-label="Zoom in"]')!.click())
-  expect(container.querySelector('iframe')?.parentElement?.style.zoom).toBe('1.1')
+  expect(container.querySelector('iframe')?.parentElement?.style.zoom).toBe('')
+  expect(container.querySelector('iframe')?.parentElement?.style.transform).toBe('scale(1.1)')
 })
 
 it('locks page controls while a source save is pending, failed, or dirty', () => {
@@ -207,4 +268,35 @@ afterEach(() => {
   container?.remove()
   pageRoot?.remove()
   pageRoot = null
+})
+
+it('draws the diagram straight on the preview canvas, with no paper card layer', () => {
+  container = document.createElement('div')
+  document.body.append(container)
+  root = createRoot(container)
+  act(() =>
+    root.render(
+      <DiagramPreview
+        diagram={diagram}
+        source={diagram.source}
+        title="Live preview"
+        zoom={1}
+        onRenderState={() => undefined}
+      />,
+    ),
+  )
+  const iframe = container.querySelector('iframe')!
+  const zoomWrapper = iframe.parentElement!
+  const canvas = zoomWrapper.parentElement!
+  expect(zoomWrapper.className).not.toMatch(/bg-white|shadow/)
+  expect(iframe.className).not.toMatch(/bg-white/)
+  expect(canvas.className).not.toMatch(/\bp-\d/)
+})
+
+it('makes only the preview document transparent, leaving the saved/exported HTML white', () => {
+  const html = buildDiagramHtml(diagram)
+  expect(html).toContain('background:#fff')
+  const preview = transparentPreviewHtml(html)
+  expect(preview).toMatch(/background:\s*transparent\s*!important/)
+  expect(preview.indexOf('transparent')).toBeGreaterThan(preview.indexOf('data-diagramly-diagram-base'))
 })

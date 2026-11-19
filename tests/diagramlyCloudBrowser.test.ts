@@ -167,7 +167,7 @@ describe.skipIf(!findBrowserPath())('Diagramly cloud UI with a fixture cloud (no
       if (!response.ok) throw new Error('Could not create isolated local profile')
     })
     await page.reload()
-    await page.locator('button::-p-text(Flowchart)').click()
+    await page.locator('button::-p-text(Mermaid flowchart)').click()
     await page.waitForSelector('iframe[data-diagramly-frame]')
     const savedDocument = await page.evaluate(async () => {
       const list = (await (await fetch('/api/canvases')).json()) as { id: string }[]

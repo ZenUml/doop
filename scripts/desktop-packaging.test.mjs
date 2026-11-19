@@ -98,7 +98,7 @@ test('records actual app identity, exact source/archive and Node metadata for bo
     await mkdir(local, { recursive: true })
     await writeFile(
       path.join(app, 'Contents/Info.plist'),
-      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.zenuml.app</string><key>CFBundleShortVersionString</key><string>1.1.0</string><key>CFBundleVersion</key><string>43</string></dict></plist>',
+      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.zenuml.app</string><key>CFBundleShortVersionString</key><string>1.1.0</string><key>CFBundleVersion</key><string>51</string></dict></plist>',
     )
     await writeFile(path.join(local, 'node'), 'fixture distribution executable before signing')
     const licenseSource = path.join(temporary, 'LICENSE')
@@ -111,7 +111,7 @@ test('records actual app identity, exact source/archive and Node metadata for bo
       assert.equal(info.sourceArchiveSha256, sha256(await readFile(archive)))
       assert.equal(info.bundleIdentifier, 'com.zenuml.app')
       assert.equal(info.version, '1.1.0')
-      assert.equal(info.buildVersion, '43')
+      assert.equal(info.buildVersion, '51')
       assert.equal(info.nodeVersion, process.version)
       assert.equal(info.nodeLicenseSha256, sha256(await readFile(licenseSource)))
       assert.equal(info.adhoc, mode === '--unsigned')
@@ -124,7 +124,7 @@ test('records actual app identity, exact source/archive and Node metadata for bo
     }
     await writeFile(
       path.join(app, 'Contents/Info.plist'),
-      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>ai.diagramly.desktop</string><key>CFBundleShortVersionString</key><string>1.1.0</string><key>CFBundleVersion</key><string>43</string></dict></plist>',
+      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>ai.diagramly.desktop</string><key>CFBundleShortVersionString</key><string>1.1.0</string><key>CFBundleVersion</key><string>51</string></dict></plist>',
     )
     assert.throws(
       () => run('desktop_write_build_info', process.execPath, local, app, revision, archive, '--unsigned'),
@@ -205,7 +205,7 @@ test('the packaging command stops before signing when an audit exits zero withou
     await mkdir(path.join(target, 'release/bundle/macos/ZenUML.app/Contents'), { recursive: true })
     await writeFile(
       path.join(target, 'release/bundle/macos/ZenUML.app/Contents/Info.plist'),
-      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.zenuml.app</string><key>CFBundleShortVersionString</key><string>1.1.0</string><key>CFBundleVersion</key><string>43</string></dict></plist>',
+      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.zenuml.app</string><key>CFBundleShortVersionString</key><string>1.1.0</string><key>CFBundleVersion</key><string>51</string></dict></plist>',
     )
     await writeFile(path.join(mocks, 'bunx'), '#!/bin/sh\nexit 0\n', { mode: 0o700 })
     await writeFile(
@@ -251,7 +251,7 @@ test('foreground audit parsing rejects execution errors, malformed or incomplete
       format: 1,
       bundleIdentifier: 'com.zenuml.app',
       version: '1.1.0',
-      buildVersion: '43',
+      buildVersion: '51',
       minimumSystemVersion: '13.5',
       files: [],
       packages: [],

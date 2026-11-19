@@ -4,6 +4,7 @@ import type { Allowance } from '../lib/api'
 import { posthog } from '../lib/posthog'
 import { useStore } from '../lib/store'
 import { navigate } from '../App'
+import { isDesktopShell } from '../lib/shell'
 import { Button } from './ui/button'
 import { Modal, ModalActions, ModalLede, ModalTitle } from './ui/modal'
 import { cn } from '@/lib/utils'
@@ -104,9 +105,15 @@ export function LimitWall({
      everywhere else (the default, limit 0) this wall IS the getting-started
      step — while the allowance loads, assume the no-free-tier common case */
   const hadFreeTier = allowance != null && allowance.limit > 0
+  /* the desktop app has no hosted plan to connect: skip the wall and open the
+     agent-connection dialog, the one path that works there */
+  const desktop = isDesktopShell()
   useEffect(() => {
     posthog.capture('resident_limit_hit')
+    if (desktop) onOpenConnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  if (desktop) return null
   return (
     <Modal size="lg" onClose={onClose}>
       <>

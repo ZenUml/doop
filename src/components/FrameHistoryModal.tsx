@@ -10,6 +10,7 @@ import { Button } from './ui/button'
 import { ListMeta, ListRow, ListSummary, ListTitle } from './ui/list'
 import { Modal, ModalActions, ModalLede, ModalSpacer, ModalTitle } from './ui/modal'
 import { getLocale, t as translate, useT } from '@/lib/i18n'
+import { previewSandbox } from '../lib/previewSandbox'
 
 /* a version is shown at its own size, scaled to fit the modal */
 const PREVIEW_W = 696
@@ -173,7 +174,8 @@ function Author({ name, kind }: { name: string; kind?: FrameVersion['savedByKind
   )
 }
 
-/** The version's HTML at its own size, scaled to fit; no scripts run. */
+/** The version's HTML at its own size, scaled to fit; scripts run only for a
+ *  diagram frame, whose renderer is a script. */
 function VersionPreview({ title, version }: { title: string; version: Shown }) {
   const w = Math.min(PREVIEW_W, window.innerWidth - 110)
   const scale = Math.min(1, w / version.width)
@@ -186,7 +188,7 @@ function VersionPreview({ title, version }: { title: string; version: Shown }) {
         className="pointer-events-none origin-top-left border-0"
         title={title}
         srcDoc={version.html}
-        sandbox=""
+        sandbox={previewSandbox(version.html)}
         tabIndex={-1}
         style={{ width: version.width, height: version.height, transform: `scale(${scale})` }}
       />

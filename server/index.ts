@@ -91,7 +91,9 @@ import { resealSecrets } from './secretBackfill.ts'
 import { encryptionConfigured } from './secretBox.ts'
 import * as authSchema from './db/auth-schema.ts'
 import * as persist from './db/persist.ts'
-import { handleMcpRequest } from './mcp.ts'
+import { handleMcpRequest, FORWARDING_HEADERS } from './mcp.ts'
+import { isLocalDesktopRequest } from './localDesktopAuth.ts'
+import { connectInstructions } from '../shared/connectInstructions.ts'
 import {
   getAsset,
   reconcileAssetRefs,
@@ -409,6 +411,40 @@ app.get('/healthz/desktop', (_req, res) => {
   const token = env.DIAGRAMLY_DESKTOP_STARTUP_TOKEN
   if (!token) return res.sendStatus(404)
   res.set('Cache-Control', 'no-store').type('text/plain').send(token)
+})
+
+/* What a local agent reads to add and use this desktop server. Same guard as
+   /mcp: only this machine, only the desktop app, never behind a proxy. */
+/** the request comes from an agent on this machine, to the desktop app's own server */
+const fromThisMachine = (req: express.Request) =>
+  isLocalDesktopRequest({
+    desktop: Boolean(env.DIAGRAMLY_DESKTOP_STARTUP_TOKEN),
+    port: env.PORT,
+    remoteAddress: req.socket.remoteAddress,
+    host: req.headers.host,
+    origin: req.headers.origin,
+    secFetchSite: req.headers['sec-fetch-site'] as string | undefined,
+    proxied: FORWARDING_HEADERS.some((h) => req.headers[h] !== undefined),
+  })
+
+/* OAuth discovery tells a client to sign in, and /mcp needs none from this machine:
+   Codex saw the metadata and started a login nobody needs. A tunnel or another
+   machine is not local, so it still finds the metadata and signs in. */
+for (const path of [
+  '/.well-known/oauth-protected-resource',
+  '/.well-known/oauth-protected-resource/mcp',
+  '/.well-known/oauth-authorization-server',
+  '/.well-known/openid-configuration',
+])
+  app.get(path, (req, res, next) => (fromThisMachine(req) ? res.sendStatus(404) : next()))
+
+app.get('/connect.md', (req, res) => {
+  const local = fromThisMachine(req)
+  if (!local) return res.sendStatus(404)
+  res
+    .set('Cache-Control', 'no-store')
+    .type('text/markdown; charset=utf-8')
+    .send(connectInstructions(`http://${req.headers.host}/mcp`))
 })
 
 /* how many canvases have their frame HTML in memory (store.load / evictIdle) */

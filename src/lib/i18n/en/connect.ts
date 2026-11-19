@@ -1,6 +1,6 @@
 /** Connect AI: the agent picker, each agent's setup steps, and the desktop Codex hand-off. */
 export const connect = {
-  blurbClaudeCode: 'Connect from your terminal',
+  blurbClaudeCode: 'Connect your coding agent',
   blurbClaude: 'Add Diagramly to Claude',
   blurbChatgpt: 'Connect in your browser',
   blurbCodex: 'ChatGPT desktop and Codex CLI',
@@ -8,15 +8,18 @@ export const connect = {
   otherClientName: 'Other MCP client',
   headlessName: 'Headless agent or server',
   blurbHeadless: 'n8n, Mastra, CI and scripts, with an agent key',
+  blurbHeadlessLocal: 'n8n, Mastra, CI and scripts on this computer',
   blurbOtherClient: 'Use a manual connection',
 
   chooseTitle: 'Choose your agent',
   chooseLede:
     'Let an agent you already use work on this canvas via MCP. Choose yours to see its connection instructions.',
 
+  pointAtTitleNoCanvas: 'Ask it to start designing',
+  pointAtNoCanvas:
+    'No canvas is open, so this message has the agent list your canvases or create a new one. Paste it as your first message; everything else comes from the server.',
   pointAtTitle: 'Point it at this canvas',
   pointAtWithPrompt: 'Paste this as your first message. Everything else the agent needs comes from the server.',
-  pointAtNoPrompt: 'Open a canvas and tell the agent to work on it. Everything else it needs comes from the server.',
   approveSignInTitle: 'Approve the sign-in',
 
   claudeCodeLede: 'Three steps, about a minute. Claude Code then designs on this canvas as you.',
@@ -28,15 +31,15 @@ export const connect = {
   claudeCodeSignInPick: ', pick ',
   claudeCodeSignInThen: ', then ',
   claudeCodeSignInAfter: '. A browser tab opens so you can approve the connection.',
+  localCodexLede: 'Add Diagramly to Codex and start designing. No sign-in is needed on this machine.',
+  localCursorLede: 'Add Diagramly to Cursor and start designing together. No sign-in is needed on this machine.',
+  localMcpLede:
+    'Diagramly is a streamable-HTTP MCP server. Any client on this machine that supports that can design here, with no sign-in.',
+  seeInstructions: 'See what {name} will read',
 
   localChatgptAddAfter:
     '. In the browser, sign in to your local library profile and approve access to this local library, then install the resulting plugin.',
-  localLibraryConnectTitle: 'Authorize access to your local library',
-  localLibraryBrowserApproval:
-    'In the browser that opens, sign in to your local library profile and approve access to this local library. The agent can then work on your local documents.',
-  localClaudeDesktopLede: 'Install the extension in Claude Desktop, then authorize your local library.',
-  localClaudeDesktopConnectBody:
-    'Enable the extension in Claude. In the browser that opens, sign in to your local library profile and approve access to this local library.',
+  localClaudeDesktopLede: 'Install the extension in Claude Desktop. No sign-in needed.',
 
   claudeDesktopLede: 'Install the extension in Claude Desktop, then connect your account.',
   claudeDesktopAddTitle: 'Add Diagramly to Claude Desktop',
@@ -47,8 +50,6 @@ export const connect = {
     'Enable the extension in Claude. Sign in to Diagramly in the browser that opens and approve the connection.',
   claudeDesktopPointWithPrompt:
     'Start a new Claude chat, enable Diagramly in the tools menu, and send this as your first message.',
-  claudeDesktopPointNoPrompt:
-    'Start a new Claude chat, enable Diagramly in the tools menu, and tell it which canvas to work on.',
 
   claudePublicLede: 'Claude’s online connector needs a publicly reachable HTTPS server.',
   claudeLocalTitle: 'Use the desktop connection for this server',
@@ -63,7 +64,6 @@ export const connect = {
   addToClaude: 'Add to Claude',
   claudeWebApproveBody: 'Click Connect on the new connector. A browser tab opens so you can approve the connection.',
   claudeWebPointWithPrompt: 'In a new chat enable Diagramly under the tools menu and send this as your first message.',
-  claudeWebPointNoPrompt: 'In a new chat enable Diagramly under the tools menu and tell it which canvas to work on.',
 
   chatgptPublicLede: 'ChatGPT needs a public HTTPS address or a secure tunnel to reach this Diagramly server.',
   chatgptReachTitle: 'Make your Diagramly server reachable',
@@ -83,7 +83,6 @@ export const connect = {
   chatgptAddReview: ', review the permissions, then select ',
   chatgptAddAfter: '. Sign in to Diagramly when prompted and install the resulting plugin.',
   chatgptPointWithPrompt: 'Start a new chat, type @ and select Diagramly, then send this as your first message.',
-  chatgptPointNoPrompt: 'Start a new chat, type @ and select Diagramly, then tell it which canvas to work on.',
 
   codexLede: 'Add Diagramly from the desktop app, sign in, and start designing with Codex.',
   codexAddTitle: 'Add Diagramly to Codex',
@@ -99,7 +98,6 @@ export const connect = {
   cursorApproveBody:
     'Enable the diagramly server in Cursor and complete its browser sign-in. Your agent can then work on the canvases you can access.',
   cursorPointWithPrompt: 'Open the Agent chat and send this as your first message.',
-  cursorPointNoPrompt: 'Open the Agent chat and tell it which canvas to work on.',
 
   mcpLede: 'Diagramly is a streamable-HTTP MCP server with OAuth. Any client that supports that can design here.',
   mcpConfigTitle: "Add this server to your client's MCP config",

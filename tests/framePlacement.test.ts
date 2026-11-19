@@ -24,7 +24,8 @@ function frame(id: string, x = 0, y = 0, width = 100, height = 100): Frame {
 
 const { useStore } = await import('../src/lib/store')
 const history = await import('../src/lib/history')
-const { frameCenterPosition, createCenteredFrame, DEFAULT_FRAME_SIZE } = await import('../src/lib/framePlacement')
+const { frameCenterPosition, createCenteredFrame, DEFAULT_FRAME_SIZE, avoidOverlap } =
+  await import('../src/lib/framePlacement')
 
 describe('frameCenterPosition', () => {
   it('centers a frame in an untransformed view (no pan, no zoom)', () => {
@@ -144,5 +145,42 @@ describe('createCenteredFrame', () => {
     // deleteFrame is never called.
     await history.undo()
     expect(api.deleteFrame).toHaveBeenCalledWith('new1')
+  })
+})
+
+describe('avoidOverlap', () => {
+  const size = { width: 640, height: 480 }
+
+  it('keeps the position when nothing is in the way', () => {
+    expect(avoidOverlap({ x: 10, y: 20 }, size, [])).toEqual({ x: 10, y: 20 })
+    expect(avoidOverlap({ x: 1000, y: 0 }, size, [frame('a', 0, 0, 640, 480)])).toEqual({ x: 1000, y: 0 })
+  })
+
+  it('moves right of the rightmost frame with a gap when it would overlap', () => {
+    const frames = [frame('a', 0, 0, 640, 480), frame('b', 700, 0, 300, 300)]
+    expect(avoidOverlap({ x: 100, y: 50 }, size, frames)).toEqual({ x: 1000 + 48, y: 50 })
+  })
+
+  it('ignores frames on other pages and hidden frames', () => {
+    const other = { ...frame('a', 0, 0, 640, 480), pageId: 'p2' } as Frame
+    const hidden = { ...frame('h', 0, 0, 640, 480), hidden: true } as Frame
+    expect(avoidOverlap({ x: 0, y: 0 }, size, [other, hidden], 'p1')).toEqual({ x: 0, y: 0 })
+  })
+})
+
+describe('createCenteredFrame second diagram', () => {
+  it('does not land on top of an existing frame', async () => {
+    nextId = 0
+    vi.clearAllMocks()
+    vi.stubGlobal('window', { innerWidth: 1000, innerHeight: 800 })
+    vi.stubGlobal('document', { querySelector: () => null })
+    useStore
+      .getState()
+      .setCanvas({ id: 'c1', name: 'c', frames: [frame('a', 180, 160, 640, 480)] } as unknown as Canvas)
+    useStore.getState().setViewport({ x: 0, y: 0, zoom: 1 })
+    await createCenteredFrame('c1', 'Diagram 2', '<p>hi</p>')
+    const [, request] = api.createFrame.mock.calls[0]!
+    expect(request.x).toBeGreaterThanOrEqual(180 + 640)
+    vi.unstubAllGlobals()
   })
 })

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { ElementComment } from '../../shared/types'
 import { colorFor } from '../../shared/types'
 import { AGENT_ROLES, DEFAULT_ROLE_ID, mentionedRole, roleName } from '../../shared/agents'
+import { isDesktopShell } from '../lib/shell'
+import { isWalled, replyPlaceholderKey } from '../lib/comments'
 import { cn } from '@/lib/utils'
 import { canCommentOpenCanvas, canEditOpenCanvas, useStore } from '../lib/store'
 import { clientToWorld, dropComment, DRAG_THRESHOLD_PX } from '../lib/commentMove'
@@ -168,7 +170,7 @@ export function CommentComposer({
   const send = () => text.trim() && onSubmit(text)
   /* @mention a resident agent to route the comment to it; without one the
      comment is a note for the humans in the room */
-  const mentioned = mentionedRole(text)
+  const mentioned = isDesktopShell() ? undefined : mentionedRole(text)
   return (
     <div className="w-[240px] rounded-[10px] border border-line bg-surface p-2 shadow-pop animate-[chip-in_0.18s_ease]">
       <Textarea
@@ -183,7 +185,9 @@ export function CommentComposer({
           if (e.key === 'Escape') onCancel()
         }}
       />
-      {!mentioned && (
+      {/* the resident agents run on a hosted plan the desktop app has no way to
+          connect, so offering them there only leads to a dead end */}
+      {!mentioned && !isDesktopShell() && (
         <div className="mb-2 flex flex-wrap gap-1">
           {AGENT_ROLES.map((role) => (
             <Button
@@ -274,10 +278,10 @@ export function CommentThread({
     onReply(submitted)
       /* only clear what was sent — text typed meanwhile is a new draft */
       .then(() => setReply((current) => (current === submitted ? '' : current)))
-      .catch(() => setFailed(true))
+      .catch((err) => setFailed(!isWalled(err)))
       .finally(() => setSending(false))
   }
-  const mentioned = mentionedRole(reply)
+  const mentioned = isDesktopShell() ? undefined : mentionedRole(reply)
   return (
     <div
       data-comment-popover
@@ -321,7 +325,7 @@ export function CommentThread({
       {canComment && (
         <ThreadReply
           reply={reply}
-          placeholder={canEdit ? t('stage.replyAskAgent') : t('stage.replyEllipsis')}
+          placeholder={t(replyPlaceholderKey('thread', canEdit))}
           failed={failed}
           sending={sending}
           mentioned={mentioned}

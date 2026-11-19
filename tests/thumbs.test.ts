@@ -20,6 +20,7 @@ vi.mock('../server/storage.ts', () => ({
 }))
 
 import * as thumbs from '../server/thumbs.ts'
+import { THUMB_MARGIN } from '../server/thumbs.ts'
 
 const frame = (id: string): Frame =>
   ({
@@ -52,7 +53,7 @@ beforeEach(() => {
 afterEach(unstubAllEnvs)
 
 describe('thumbs', () => {
-  it('makes a small diagram readable and centred in a home tile instead of shrinking the whole empty artboard', async () => {
+  it('keeps a small diagram at native size, trimmed to its content with a small white margin', async () => {
     stubEnv('DIAGRAMLY_PRODUCT', 'diagramly')
     const png = await sharp(
       Buffer.from(
@@ -64,20 +65,10 @@ describe('thumbs', () => {
     mocks.renderFrame.mockResolvedValue(png)
     const f = { ...frame('small-diagram'), html: buildDiagramHtml({ kind: 'zenuml', source: 'A->B: request' }) }
     const thumbnail = await thumbs.create(f)
-    const { data, info } = await sharp(thumbnail).removeAlpha().raw().toBuffer({ resolveWithObject: true })
-    let left = info.width,
-      right = 0
-    for (let y = 0; y < info.height; y++)
-      for (let x = 0; x < info.width; x++) {
-        if (data[(y * info.width + x) * 3]! < 80) {
-          left = Math.min(left, x)
-          right = Math.max(right, x)
-        }
-      }
-    expect((right - left) / info.width).toBeGreaterThan(0.8)
-    expect(Math.abs((left + right) / 2 - info.width / 2)).toBeLessThan(2)
-    expect(info).toMatchObject({ width: 640, height: 384 })
-    expect(mocks.putObject.mock.calls[0]?.[0]).toBe('thumb/diagramly-home-v1-small-diagram.jpg')
+    const info = await sharp(thumbnail).metadata()
+    /* the client draws this at 70% (Web Sequence rule), so the server must not resize, contain or letterbox */
+    expect(info).toMatchObject({ width: 180 + 2 * THUMB_MARGIN, height: 80 + 2 * THUMB_MARGIN })
+    expect(mocks.putObject.mock.calls[0]?.[0]).toBe('thumb/diagramly-home-v2-small-diagram.jpg')
   })
   it('keeps coloured diagram paper and produces a valid preview for blank diagrams', async () => {
     stubEnv('DIAGRAMLY_PRODUCT', 'diagramly')
@@ -90,8 +81,8 @@ describe('thumbs', () => {
       const f = { ...frame(`paper-${background}`), html: buildDiagramHtml({ kind: 'zenuml', source: '' }) }
       const thumbnail = await thumbs.create(f)
       const { data, info } = await sharp(thumbnail).removeAlpha().raw().toBuffer({ resolveWithObject: true })
-      expect(info).toMatchObject({ width: 640, height: 384 })
-      const centre = (192 * info.width + 320) * 3
+      expect(info.width).toBeGreaterThan(0)
+      const centre = (Math.floor(info.height / 2) * info.width + Math.floor(info.width / 2)) * 3
       const expected = background === '#ffffff' ? [255, 255, 255] : [32, 64, 96]
       // JPEG may shift a channel by one level while retaining the paper colour.
       expected.forEach((channel, index) => expect(Math.abs(data[centre + index]! - channel)).toBeLessThanOrEqual(2))
@@ -139,7 +130,7 @@ describe('thumbs', () => {
     finishPut()
     await p
     await tick()
-    expect(mocks.deleteObject).toHaveBeenCalledWith('thumb/diagramly-home-v1-purged-during-put.jpg')
+    expect(mocks.deleteObject).toHaveBeenCalledWith('thumb/diagramly-home-v2-purged-during-put.jpg')
   })
 
   it('getStored serves stored bytes and refreshes stale ones in the background, deduped', async () => {

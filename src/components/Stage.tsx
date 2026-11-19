@@ -466,8 +466,11 @@ export function Stage({
      snapping, so the new design streams in on-screen with a bit of drama.
      The request object stays in the store; only a NEW request re-runs this. */
   const flyTo = useStore((s) => s.flyTo)
+  /* a frame a person has just added reaches this client through the room a moment after the
+     request: wait for it, so the glide also sees the panels its arrival opens */
+  const flyFrameReady = !!flyTo && ('point' in flyTo || !!canvas?.frames.some((f) => f.id === flyTo.frameId))
   useEffect(() => {
-    if (!flyTo) return
+    if (!flyTo || !flyFrameReady) return
     const el = ref.current
     if (!el) return
     const from = useStore.getState().viewport
@@ -486,7 +489,7 @@ export function Stage({
       if (now - start < DURATION) raf = requestAnimationFrame(step)
     })
     return () => cancelAnimationFrame(raf)
-  }, [flyTo]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [flyTo, flyFrameReady]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /* center one frame in the viewport and select it (shared frame links) */
   const focusFrame = useCallback(

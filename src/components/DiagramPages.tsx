@@ -91,7 +91,7 @@ export function DiagramPages({
         className="min-w-0 flex-none border-t border-line-soft bg-surface px-3"
         data-page-tabs
       >
-        <div className="flex h-11 min-w-0 items-stretch gap-1 overflow-x-auto overscroll-x-contain">
+        <div className="flex h-[31px] min-w-0 items-stretch gap-1 overflow-x-auto overscroll-x-contain">
           <div role="tablist" aria-label="Diagram pages" className="flex w-max flex-none items-stretch">
             {pages.map((page) => {
               const selected = page.id === active?.id
@@ -101,7 +101,7 @@ export function DiagramPages({
                     <div className="flex h-full items-center gap-1 border-t-2 border-accent px-2">
                       <Input
                         aria-label="Page name"
-                        className="h-7 w-32"
+                        className="h-6 w-32"
                         value={title}
                         disabled={blocked}
                         onChange={(event) => setTitle(event.target.value)}
@@ -114,7 +114,7 @@ export function DiagramPages({
                       <Button
                         variant="bare"
                         size="sm"
-                        className="h-7 px-1.5"
+                        className="h-6 px-1.5"
                         disabled={blocked || !title.trim()}
                         onClick={saveRename}
                       >
@@ -123,7 +123,7 @@ export function DiagramPages({
                       <Button
                         variant="bare"
                         size="sm"
-                        className="h-7 px-1.5"
+                        className="h-6 px-1.5"
                         disabled={pending}
                         onClick={() => setRenaming(false)}
                       >
@@ -157,7 +157,7 @@ export function DiagramPages({
                             <Button
                               variant="bare"
                               size="icon-sm"
-                              className="absolute right-1 top-1/2 z-10 size-6 -translate-y-1/2 rounded-none bg-transparent shadow-none hover:bg-paper-deep"
+                              className="absolute right-1 top-1/2 z-10 size-5 -translate-y-1/2 rounded-none bg-transparent shadow-none hover:bg-paper-deep"
                               aria-label={`Actions for ${page.title}`}
                               disabled={blocked}
                             >
@@ -187,7 +187,7 @@ export function DiagramPages({
           <Button
             variant="bare"
             size="icon-sm"
-            className="my-auto size-8 flex-none"
+            className="my-auto size-6 flex-none"
             aria-label="Add page"
             disabled={blocked}
             onClick={addPage}

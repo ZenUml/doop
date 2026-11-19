@@ -707,6 +707,9 @@ export function CanvasPage({
     const frame = await createCenteredFrame(canvasId, `Diagram ${n}`, html)
     select(frame.id)
     useStore.getState().setInspectorOpen(true)
+    /* the Properties panel has just opened over the right of the stage: glide the camera so the
+       new diagram sits in what is left visible, not behind the panel */
+    useStore.getState().requestFlyTo(frame.id)
   }
 
   async function addFrame() {
@@ -962,39 +965,41 @@ export function CanvasPage({
               </Button>
             </BarPill>
           )}
-          <BarPill>
-            {!guest && !isDiagramly() && (
-              <Button variant="bare" className={barPillBtn} onClick={() => setShowShare(true)}>
-                <ShareUpIcon className="size-3.5" />
-                {t('canvas.share')}
-              </Button>
-            )}
-            {!isDiagramly() && (
-              <Tooltip
-                label={
-                  selectedId
-                    ? `${t('canvas.presentFromFrame')} · ${PRESENT_SHORTCUT_HINT}`
-                    : playFrom
-                      ? `${t('canvas.presentPrototype')} · ${PRESENT_SHORTCUT_HINT}`
-                      : t('canvas.addFrameToPresent')
-                }
-                side="bottom"
-              >
-                <span className="inline-flex">
-                  <Button
-                    variant="bare"
-                    size="icon-sm"
-                    className={barPillIconBtn}
-                    aria-label={t('canvas.presentPrototypeLabel')}
-                    disabled={!playFrom}
-                    onClick={() => setPresenting(playFrom)}
-                  >
-                    <PlayIcon className="size-3.5" />
-                  </Button>
-                </span>
-              </Tooltip>
-            )}
-          </BarPill>
+          {!isDiagramly() && (
+            <BarPill>
+              {!guest && !isDiagramly() && (
+                <Button variant="bare" className={barPillBtn} onClick={() => setShowShare(true)}>
+                  <ShareUpIcon className="size-3.5" />
+                  {t('canvas.share')}
+                </Button>
+              )}
+              {!isDiagramly() && (
+                <Tooltip
+                  label={
+                    selectedId
+                      ? `${t('canvas.presentFromFrame')} · ${PRESENT_SHORTCUT_HINT}`
+                      : playFrom
+                        ? `${t('canvas.presentPrototype')} · ${PRESENT_SHORTCUT_HINT}`
+                        : t('canvas.addFrameToPresent')
+                  }
+                  side="bottom"
+                >
+                  <span className="inline-flex">
+                    <Button
+                      variant="bare"
+                      size="icon-sm"
+                      className={barPillIconBtn}
+                      aria-label={t('canvas.presentPrototypeLabel')}
+                      disabled={!playFrom}
+                      onClick={() => setPresenting(playFrom)}
+                    >
+                      <PlayIcon className="size-3.5" />
+                    </Button>
+                  </span>
+                </Tooltip>
+              )}
+            </BarPill>
+          )}
           {/* the bar's one black action — it opens the MCP connection modal;
               an agent connected through a view or comment link could not
               change anything, so readers are not offered it */}

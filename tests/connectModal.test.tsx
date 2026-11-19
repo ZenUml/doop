@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   native: false,
   desktop: false,
   addToDesktop: vi.fn(),
+  createAgentKey: vi.fn(),
   presences: {} as Record<string, { clientId: string; kind: string; name: string; color: string }>,
 }))
 vi.mock('../src/lib/shell', async (importOriginal) => ({
@@ -19,6 +20,10 @@ vi.mock('../src/lib/claudeConnection', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../src/lib/claudeConnection')>()),
   canAddToClaudeDesktop: () => mocks.native,
   addToClaudeDesktop: mocks.addToDesktop,
+}))
+vi.mock('../src/lib/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/lib/api')>()),
+  api: { createAgentKey: mocks.createAgentKey },
 }))
 vi.mock('../src/App', () => ({ navigate: mocks.navigate }))
 vi.mock('../src/lib/posthog', () => ({ posthog: { capture: mocks.capture } }))
@@ -95,6 +100,118 @@ it('shows Claude Code’s command plus the sign-in step', async () => {
   expect(onClose).toHaveBeenCalledOnce()
 })
 
+it.each([
+  ['Claude Code', 'Authenticate'],
+  ['Codex', 'codex mcp login diagramly'],
+  ['Cursor', 'Approve the sign-in'],
+])('in the desktop app, %s needs no sign-in step: the local server answers its own machine', async (agent, signIn) => {
+  mocks.desktop = true
+  await mount('c1')
+  await pickAgent(agent)
+  /* the system browser has no session for the local library, and a second account made on its
+     sign-in page sees none of these canvases */
+  expect(text()).not.toContain(signIn)
+  expect(text()).not.toContain('browser sign-in.')
+  expect(text()).not.toContain('Bearer')
+  expect(mocks.createAgentKey).not.toHaveBeenCalled()
+})
+
+it('in the desktop app, Claude Code is one plain message pointing at /connect.md', async () => {
+  mocks.desktop = true
+  await mount('c1')
+  await pickAgent('Claude Code')
+  expect(text()).toContain(
+    `Connect Diagramly: read ${location.origin}/connect.md and follow it. Then list the diagrams on canvas c1.`,
+  )
+  /* no shell chain, flags or protocol in what the person pastes */
+  for (const noise of ['claude mcp', '--scope', '--transport', '>/dev/null', 'curl', 'http://127.0.0.1:' + '0']) {
+    expect(text()).not.toContain(noise)
+  }
+})
+
+it('in the desktop app, Codex is the same bare message: one step, no install button', async () => {
+  mocks.desktop = true
+  await mount('c1')
+  await pickAgent('Codex')
+  expect(text()).toContain('Connect Codex')
+  expect(text()).toContain(
+    `Connect Diagramly: read ${location.origin}/connect.md and follow it. Then list the diagrams on canvas c1.`,
+  )
+  expect(document.querySelector('ol li > span.rounded-full')).toBeNull()
+  expect(text()).not.toContain('Add Diagramly to Codex')
+  expect(text()).not.toContain('See what Claude Code will read')
+  expect(text()).not.toContain('codex mcp')
+})
+
+it('in the desktop app, Cursor is the same bare message: one step, no install button', async () => {
+  mocks.desktop = true
+  await mount('c1')
+  await pickAgent('Cursor')
+  expect(text()).toContain('Connect Cursor')
+  expect(text()).toContain(
+    `Connect Diagramly: read ${location.origin}/connect.md and follow it. Then list the diagrams on canvas c1.`,
+  )
+  expect(document.querySelector('ol li > span.rounded-full')).toBeNull()
+  expect(text()).not.toContain('Add to Cursor')
+  expect(text()).not.toContain('See what Claude Code will read')
+})
+
+it('in the desktop app with no canvas open, the message asks to list all canvases', async () => {
+  mocks.desktop = true
+  await mount()
+  await pickAgent('Claude Code')
+  expect(text()).toContain(
+    `Connect Diagramly: read ${location.origin}/connect.md and follow it. Then list all my canvases.`,
+  )
+  expect(text()).not.toContain('Then list the diagrams on canvas')
+})
+
+it('in the desktop app, the picker offers no Claude Desktop extension: Claude Code covers this machine', async () => {
+  mocks.desktop = true
+  await mount('c1')
+  expect(text()).toContain('Claude Code')
+  expect(text()).not.toContain('Add Diagramly to Claude')
+})
+
+it('in the desktop app, Claude Code is a bare message: no number, step title or lede', async () => {
+  mocks.desktop = true
+  await mount('c1')
+  await pickAgent('Claude Code')
+  expect(text()).toContain('Connect Claude Code')
+  expect(text()).not.toContain('Paste this into Claude Code')
+  expect(text()).not.toContain('One message')
+  expect(text()).not.toContain('no sign-in is needed')
+  expect(document.querySelector('ol li > span.rounded-full')).toBeNull()
+})
+
+it.each(['Claude Code', 'Codex', 'Cursor', 'Other MCP client', 'Headless agent or server'])(
+  '%s with no canvas open still gives a ready first message',
+  async (agent) => {
+    await mount()
+    await pickAgent(agent)
+    /* "open a canvas and tell the agent to work on it" left the reader with nothing to do */
+    expect(text()).toContain('Ask it to start designing')
+    expect(text()).toContain('Use the Diagramly MCP server.')
+    expect(text()).toContain('list my canvases')
+    expect(text()).not.toContain('Point it at this canvas')
+    expect(text()).not.toContain('which canvas to work on')
+  },
+)
+
+it('with a canvas open, the first message names that canvas', async () => {
+  await mount('c1')
+  await pickAgent('Claude Code')
+  expect(text()).toContain('Point it at this canvas')
+  expect(text()).toContain('Work on Diagramly canvas c1.')
+})
+
+it('on hosted Diagramly, Claude Code keeps the browser sign-in', async () => {
+  mocks.desktop = false
+  await mount('c1')
+  await pickAgent('Claude Code')
+  expect(text()).toContain('Authenticate')
+})
+
 it('switches the generic MCP screen between browser sign-in and an agent key', async () => {
   await mount('c1')
   await pickAgent('Other MCP client')
@@ -110,12 +227,24 @@ it('switches the generic MCP screen between browser sign-in and an agent key', a
   expect(mocks.navigate).not.toHaveBeenCalled()
 })
 
-it('opens Agent keys in place in the desktop app, coming back to the canvas', async () => {
+it('opens Agent keys in place in the desktop app on a hosted server, coming back to the canvas', async () => {
   mocks.desktop = true
+  vi.stubGlobal('location', new URL('https://design.acme.com'))
   await mount('c1')
   await pickAgent('Headless agent or server')
   await click('Open Settings → Agent keys')
   expect(mocks.navigate).toHaveBeenCalledWith('/settings?pane=keys&from=%2Fc%2Fc1')
+})
+
+it('in the desktop app on the local server, Headless needs no agent key', async () => {
+  mocks.desktop = true
+  await mount('c1')
+  expect(text()).not.toContain('with an agent key')
+  await pickAgent('Headless agent or server')
+  expect(button('Open Settings → Agent keys')).toBeUndefined()
+  expect(text()).not.toContain('Bearer')
+  expect(text()).toContain(`${location.origin}/mcp`)
+  expect(mocks.createAgentKey).not.toHaveBeenCalled()
 })
 
 it('lists automations as their own agent, straight to the agent-key steps', async () => {
@@ -132,7 +261,7 @@ it('skips the canvas prompt and the arrival status when opened without a canvas'
   await pickAgent('Claude Code')
   expect(text()).not.toContain('Work on Diagramly canvas')
   expect(text()).not.toContain('Waiting for agent activity')
-  expect(text()).toContain('Open a canvas and tell the agent to work on it')
+  expect(text()).toContain('Ask it to start designing')
 })
 
 it('saves the bundled extension through the App Store shell', async () => {
@@ -248,19 +377,6 @@ it('reports recent canvas activity without claiming that a selected client conne
   await act(async () => root.render(<AgentArrival />))
   expect(text()).toContain('Waiting for agent activity on this canvas')
 })
-
-it.each(['Add Diagramly to Claude', 'Claude Code', 'Codex', 'Cursor', 'Other MCP client'])(
-  'desktop %s authorizes the local library in the browser',
-  async (agent) => {
-    mocks.desktop = true
-    await mount('local-copy-test')
-    await pickAgent(agent)
-    expect(text()).toContain('sign in to your local library profile')
-    expect(text()).toContain('approve access to this local library')
-    expect(text()).not.toContain('Connect your Diagramly account')
-    expect(text()).not.toContain('Sign in to Diagramly')
-  },
-)
 
 it('keeps the existing website account wording for Claude Desktop', async () => {
   await mount()

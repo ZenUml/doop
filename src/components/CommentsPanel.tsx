@@ -6,7 +6,13 @@ import { posthog } from '../lib/posthog'
 import { timeAgo } from '../lib/time'
 import { isComposingEnter } from '../lib/keys'
 import { isCanvasComment } from '../../shared/comments'
-import { pageThreads, threadState, type CommentThreadGroup, type ThreadState } from '../lib/comments'
+import {
+  pageThreads,
+  replyPlaceholderKey,
+  threadState,
+  type CommentThreadGroup,
+  type ThreadState,
+} from '../lib/comments'
 import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -134,7 +140,8 @@ function ThreadRow({ thread }: { thread: CommentThreadGroup }) {
       posthog.capture('element_comment_replied')
       setDraft((current) => (current === draft ? '' : current))
     } catch (err) {
-      setFailed(true)
+      /* the plan wall explains a hit limit; only other failures say so here */
+      setFailed(!isResidentLimit(err))
       reportLimit(err)
     } finally {
       setSending(false)
@@ -225,7 +232,7 @@ function ThreadRow({ thread }: { thread: CommentThreadGroup }) {
             variant="bare"
             inputSize="auto"
             className="h-7 min-w-0 flex-1 rounded-[7px] bg-surface px-2.5 shadow-ring focus:shadow-elevation-1-focus md:text-[12px]"
-            placeholder={t('stage.replyPanelPlaceholder')}
+            placeholder={t(replyPlaceholderKey('panel', true))}
             aria-label={t('stage.replyTo', { name: root.from })}
             value={draft}
             disabled={sending}

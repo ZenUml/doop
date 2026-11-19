@@ -73,7 +73,7 @@ it.each([
   expect(text()).not.toContain('https://doop.design/mcp')
   expect(text()).not.toContain('Work on Diagramly canvas')
   expect(text()).not.toContain('Waiting for agent activity on this canvas')
-  expect(text()).toContain('tell it which canvas to work on')
+  expect(text()).toContain('Ask it to start designing')
 })
 
 it.each([
