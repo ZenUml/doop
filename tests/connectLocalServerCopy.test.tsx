@@ -2,7 +2,7 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { appendFileSync, writeFileSync } from 'node:fs'
+import { appendFileSync } from 'node:fs'
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -36,7 +36,7 @@ vi.mock('../src/lib/posthog', () => ({ posthog: { capture: mocks.capture } }))
 vi.mock('../src/lib/store', () => ({
   useStore: (select: (s: { presences: typeof mocks.presences }) => unknown) => select({ presences: mocks.presences }),
 }))
-import { AgentArrival, ConnectModal } from '../src/components/ConnectModal'
+import { ConnectModal } from '../src/components/ConnectModal'
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 let root: Root

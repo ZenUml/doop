@@ -46,7 +46,7 @@ describe.skipIf(!findBrowserPath())('Diagramly product application', () => {
     const home = await page.$eval('body', (element) => element.innerText)
     expect(home).not.toContain('Ask Doop')
     expect(home).not.toContain('Automations')
-    await page.locator('button::-p-text(Flowchart)').click()
+    await page.locator('button::-p-text(Mermaid flowchart)').click()
     await page.waitForSelector('iframe[data-diagramly-frame]')
     const created = await page.evaluate(async () => {
       const docs = (await (await fetch('/api/canvases')).json()) as { id: string; name: string }[]

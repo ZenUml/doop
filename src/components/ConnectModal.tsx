@@ -19,7 +19,7 @@ import { Dot } from './ui/dot'
 import { CheckIcon, ChevronLeftIcon } from './ui/icons'
 import { Modal, ModalActions, ModalLede, ModalSpacer, ModalTitle } from './ui/modal'
 import { cn } from '@/lib/utils'
-import { desktopPlatform, isDesktopShell } from '../lib/shell'
+import { isDesktopShell } from '../lib/shell'
 
 /**
  * "Connect AI" is about agents that join the canvas from outside: Claude Code,
