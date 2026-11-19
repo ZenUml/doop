@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { navigate } from '../App'
 import { useStore } from '../lib/store'
@@ -160,6 +160,31 @@ function agentKeySteps(t: Translate, mcpUrl: string, pointAt: Step, openAgentKey
  *  at a hosted server still signs in. */
 const isLocalDesktopServer = () => isDesktopShell() && ['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname)
 
+/** The text the agent will read, fetched from the same /connect.md the agent gets. */
+function ConnectInstructions() {
+  const t = useT()
+  const [text, setText] = useState('')
+  useEffect(() => {
+    let live = true
+    if (typeof fetch !== 'function') return
+    fetch('/connect.md')
+      .then((r) => (r.ok ? r.text() : ''))
+      .then((body) => live && setText(body))
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [])
+  if (!text) return null
+  return (
+    <Disclosure label={t('connect.seeInstructions')} className="mt-3 text-label leading-relaxed text-ink-soft">
+      <pre className="mt-1 whitespace-pre-wrap break-words rounded-[6px] bg-paper-deep p-3 font-mono text-caption text-ink">
+        {text}
+      </pre>
+    </Disclosure>
+  )
+}
+
 function agentSteps(
   t: Translate,
   agent: AgentId,
@@ -179,17 +204,21 @@ function agentSteps(
   switch (agent) {
     case 'claude-code':
       if (desktop) {
-        /* plain steps, no shell chain: a running claude session does not pick up a server added
-           inside it (reproduced), so the server is added first and the message pasted after */
+        /* one plain message. The agent reads /connect.md (served by this desktop server,
+           shown below so nothing is hidden) to add the server and, if its tools are not
+           loaded yet, to call it directly: a server added inside a running session only
+           loads natively after the session is reopened */
         return {
           lede: t('connect.localClaudeCodeLede'),
           steps: [
             {
-              title: t('connect.localClaudeCodeAddTitle'),
-              body: t('connect.localClaudeCodeAddBody'),
-              code: `claude mcp add --scope user --transport http diagramly-desktop "${mcpUrl}"`,
+              title: t('connect.localClaudeCodeConnectTitle'),
+              body: t('connect.localClaudeCodeConnectBody'),
+              code: `Connect Diagramly: read ${new URL('/connect.md', mcpUrl).href} and follow it.${
+                canvasId ? ` Then work on canvas ${canvasId}.` : ''
+              }`,
+              action: <ConnectInstructions />,
             },
-            pointAt,
           ],
         }
       }

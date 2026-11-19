@@ -91,7 +91,9 @@ import { resealSecrets } from './secretBackfill.ts'
 import { encryptionConfigured } from './secretBox.ts'
 import * as authSchema from './db/auth-schema.ts'
 import * as persist from './db/persist.ts'
-import { handleMcpRequest } from './mcp.ts'
+import { handleMcpRequest, FORWARDING_HEADERS } from './mcp.ts'
+import { isLocalDesktopRequest } from './localDesktopAuth.ts'
+import { connectInstructions } from '../shared/connectInstructions.ts'
 import {
   getAsset,
   reconcileAssetRefs,
@@ -409,6 +411,25 @@ app.get('/healthz/desktop', (_req, res) => {
   const token = env.DIAGRAMLY_DESKTOP_STARTUP_TOKEN
   if (!token) return res.sendStatus(404)
   res.set('Cache-Control', 'no-store').type('text/plain').send(token)
+})
+
+/* What a local agent reads to add and use this desktop server. Same guard as
+   /mcp: only this machine, only the desktop app, never behind a proxy. */
+app.get('/connect.md', (req, res) => {
+  const local = isLocalDesktopRequest({
+    desktop: Boolean(env.DIAGRAMLY_DESKTOP_STARTUP_TOKEN),
+    port: env.PORT,
+    remoteAddress: req.socket.remoteAddress,
+    host: req.headers.host,
+    origin: req.headers.origin,
+    secFetchSite: req.headers['sec-fetch-site'] as string | undefined,
+    proxied: FORWARDING_HEADERS.some((h) => req.headers[h] !== undefined),
+  })
+  if (!local) return res.sendStatus(404)
+  res
+    .set('Cache-Control', 'no-store')
+    .type('text/markdown; charset=utf-8')
+    .send(connectInstructions(`http://${req.headers.host}/mcp`))
 })
 
 /* how many canvases have their frame HTML in memory (store.load / evictIdle) */

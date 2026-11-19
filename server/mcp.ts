@@ -2545,7 +2545,7 @@ async function oauthClientName(clientId: string): Promise<string | undefined> {
   return app?.name
 }
 
-const FORWARDING_HEADERS = [
+export const FORWARDING_HEADERS = [
   'x-forwarded-for',
   'x-forwarded-host',
   'x-forwarded-proto',

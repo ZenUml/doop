@@ -116,18 +116,15 @@ it.each([
   expect(mocks.createAgentKey).not.toHaveBeenCalled()
 })
 
-it('in the desktop app, Claude Code is two plain steps: add the server, then paste the message', async () => {
+it('in the desktop app, Claude Code is one plain message pointing at /connect.md', async () => {
   mocks.desktop = true
   await mount('c1')
   await pickAgent('Claude Code')
-  /* a claude session already running does not pick up a server added inside it, so the add comes first */
-  expect(text()).toContain(`claude mcp add --scope user --transport http diagramly-desktop "${location.origin}/mcp"`)
-  expect(text()).toContain('Run this once in any terminal')
-  expect(text()).toContain('Point it at this canvas')
-  expect(text()).toContain('Work on Diagramly canvas c1.')
-  expect(text()).not.toContain('claude mcp get')
-  expect(text()).not.toContain('>/dev/null')
-  expect(text()).not.toContain('--header')
+  expect(text()).toContain(`Connect Diagramly: read ${location.origin}/connect.md and follow it. Then work on canvas c1.`)
+  /* no shell chain, flags or protocol in what the person pastes */
+  for (const noise of ['claude mcp', '--scope', '--transport', '>/dev/null', 'curl', 'http://127.0.0.1:' + '0']) {
+    expect(text()).not.toContain(noise)
+  }
 })
 
 it('in the desktop app, Claude has no dead "Connect online" tab and no browser sign-in', async () => {

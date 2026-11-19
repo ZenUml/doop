@@ -30,14 +30,15 @@ export const connect = {
   claudeCodeSignInPick: ', pick ',
   claudeCodeSignInThen: ', then ',
   claudeCodeSignInAfter: '. A browser tab opens so you can approve the connection.',
-  localClaudeCodeLede: 'Two steps, about a minute. Claude Code then works on this library, with no sign-in.',
+  localClaudeCodeLede: 'One message, about a minute. Claude Code adds Diagramly and starts designing, with no sign-in.',
   localCodexLede: 'Add Diagramly to Codex and start designing. No sign-in is needed on this machine.',
   localCursorLede: 'Add Diagramly to Cursor and start designing together. No sign-in is needed on this machine.',
   localMcpLede:
     'Diagramly is a streamable-HTTP MCP server. Any client on this machine that supports that can design here, with no sign-in.',
-  localClaudeCodeAddTitle: 'Add Diagramly to Claude Code',
-  localClaudeCodeAddBody:
-    'Run this once in any terminal. It adds the diagramly-desktop server, which lives on this computer, to Claude Code for every project.',
+  localClaudeCodeConnectTitle: 'Connect Claude Code',
+  localClaudeCodeConnectBody:
+    'Paste this into Claude Code. Diagramly runs on this computer, so no sign-in is needed.',
+  seeInstructions: 'See what Claude Code will read',
 
   localChatgptAddAfter:
     '. In the browser, sign in to your local library profile and approve access to this local library, then install the resulting plugin.',
