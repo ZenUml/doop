@@ -8,6 +8,7 @@ export const connect = {
   otherClientName: 'Other MCP client',
   headlessName: 'Headless agent or server',
   blurbHeadless: 'n8n, Mastra, CI and scripts, with an agent key',
+  blurbHeadlessLocal: 'n8n, Mastra, CI and scripts on this computer',
   blurbOtherClient: 'Use a manual connection',
 
   chooseTitle: 'Choose your agent',

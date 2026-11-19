@@ -104,7 +104,9 @@ function AgentPicker({ onPick }: { onPick: (agent: AgentId) => void }) {
               key={option.id}
               icon={<AppIcon brand={option.icon} />}
               title={agentName(option, t)}
-              description={t(option.blurb)}
+              description={t(
+                option.id === 'headless' && isLocalDesktopServer() ? 'connect.blurbHeadlessLocal' : option.blurb,
+              )}
               onClick={() => {
                 posthog.capture('connect_ai_agent_chosen', { agent: option.id })
                 onPick(option.id)
@@ -435,9 +437,11 @@ function agentSteps(
         ],
       }
     case 'headless':
-      return agentKeySteps(t, mcpUrl, pointAt, openAgentKeys)
     case 'mcp':
-      if (mcpConnection === 'key') return agentKeySteps(t, mcpUrl, pointAt, openAgentKeys)
+      /* an agent key is for an agent with no browser; on this machine neither kind needs one,
+         because the local server answers any local client without a sign-in */
+      if (agent === 'headless' ? !desktop : mcpConnection === 'key')
+        return agentKeySteps(t, mcpUrl, pointAt, openAgentKeys)
       return {
         lede: t(desktop ? 'connect.localMcpLede' : 'connect.mcpLede'),
         steps: [

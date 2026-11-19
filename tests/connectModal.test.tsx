@@ -200,12 +200,24 @@ it('switches the generic MCP screen between browser sign-in and an agent key', a
   expect(mocks.navigate).not.toHaveBeenCalled()
 })
 
-it('opens Agent keys in place in the desktop app, coming back to the canvas', async () => {
+it('opens Agent keys in place in the desktop app on a hosted server, coming back to the canvas', async () => {
   mocks.desktop = true
+  vi.stubGlobal('location', new URL('https://design.acme.com'))
   await mount('c1')
   await pickAgent('Headless agent or server')
   await click('Open Settings → Agent keys')
   expect(mocks.navigate).toHaveBeenCalledWith('/settings?pane=keys&from=%2Fc%2Fc1')
+})
+
+it('in the desktop app on the local server, Headless needs no agent key', async () => {
+  mocks.desktop = true
+  await mount('c1')
+  expect(text()).not.toContain('with an agent key')
+  await pickAgent('Headless agent or server')
+  expect(button('Open Settings → Agent keys')).toBeUndefined()
+  expect(text()).not.toContain('Bearer')
+  expect(text()).toContain(`${location.origin}/mcp`)
+  expect(mocks.createAgentKey).not.toHaveBeenCalled()
 })
 
 it('lists automations as their own agent, straight to the agent-key steps', async () => {

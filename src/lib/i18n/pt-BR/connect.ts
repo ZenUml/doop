@@ -9,6 +9,7 @@ export const connect: Catalog['connect'] = {
   otherClientName: 'Outro cliente MCP',
   headlessName: 'Agente headless ou servidor',
   blurbHeadless: 'n8n, Mastra, CI e scripts, com uma chave de agente',
+  blurbHeadlessLocal: 'n8n, Mastra, CI e scripts neste computador',
   blurbOtherClient: 'Use uma conexão manual',
 
   chooseTitle: 'Escolha seu agente',
