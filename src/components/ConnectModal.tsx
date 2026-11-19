@@ -191,6 +191,25 @@ function ConnectInstructions() {
   )
 }
 
+/** One plain message for an agent on this machine: it reads /connect.md (served by this
+ *  desktop server, shown below the message so nothing is hidden), adds the server and, if its
+ *  tools are not loaded yet, calls it directly. */
+function localAgentMessage(mcpUrl: string, canvasId: string | undefined): { steps: Step[] } {
+  return {
+    steps: [
+      {
+        bare: true,
+        title: 'local-agent-message',
+        body: null,
+        code: `Connect Diagramly: read ${new URL('/connect.md', mcpUrl).href} and follow it. ${
+          canvasId ? `Then list the diagrams on canvas ${canvasId}.` : 'Then list all my canvases.'
+        }`,
+        action: <ConnectInstructions />,
+      },
+    ],
+  }
+}
+
 function agentSteps(
   t: Translate,
   agent: AgentId,
@@ -214,19 +233,7 @@ function agentSteps(
            shown below so nothing is hidden) to add the server and, if its tools are not
            loaded yet, to call it directly: a server added inside a running session only
            loads natively after the session is reopened */
-        return {
-          steps: [
-            {
-              bare: true,
-              title: 'claude-code',
-              body: null,
-              code: `Connect Diagramly: read ${new URL('/connect.md', mcpUrl).href} and follow it. ${
-                canvasId ? `Then list the diagrams on canvas ${canvasId}.` : 'Then list all my canvases.'
-              }`,
-              action: <ConnectInstructions />,
-            },
-          ],
-        }
+        return localAgentMessage(mcpUrl, canvasId)
       }
       return {
         lede: t('connect.claudeCodeLede'),
@@ -400,6 +407,7 @@ function agentSteps(
         ],
       }
     case 'codex':
+      if (desktop) return localAgentMessage(mcpUrl, canvasId)
       return {
         lede: t(desktop ? 'connect.localCodexLede' : 'connect.codexLede'),
         steps: [
@@ -421,6 +429,7 @@ function agentSteps(
         ],
       }
     case 'cursor':
+      if (desktop) return localAgentMessage(mcpUrl, canvasId)
       return {
         lede: t(desktop ? 'connect.localCursorLede' : 'connect.cursorLede'),
         steps: [

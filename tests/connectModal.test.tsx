@@ -129,6 +129,31 @@ it('in the desktop app, Claude Code is one plain message pointing at /connect.md
   }
 })
 
+it('in the desktop app, Codex is the same bare message: one step, no install button', async () => {
+  mocks.desktop = true
+  await mount('c1')
+  await pickAgent('Codex')
+  expect(text()).toContain('Connect Codex')
+  expect(text()).toContain(
+    `Connect Diagramly: read ${location.origin}/connect.md and follow it. Then list the diagrams on canvas c1.`,
+  )
+  expect(document.querySelector('ol li > span.rounded-full')).toBeNull()
+  expect(text()).not.toContain('Add Diagramly to Codex')
+  expect(text()).not.toContain('codex mcp')
+})
+
+it('in the desktop app, Cursor is the same bare message: one step, no install button', async () => {
+  mocks.desktop = true
+  await mount('c1')
+  await pickAgent('Cursor')
+  expect(text()).toContain('Connect Cursor')
+  expect(text()).toContain(
+    `Connect Diagramly: read ${location.origin}/connect.md and follow it. Then list the diagrams on canvas c1.`,
+  )
+  expect(document.querySelector('ol li > span.rounded-full')).toBeNull()
+  expect(text()).not.toContain('Add to Cursor')
+})
+
 it('in the desktop app with no canvas open, the message asks to list all canvases', async () => {
   mocks.desktop = true
   await mount()
