@@ -23,7 +23,7 @@
     "createUpdaterArtifacts": false,
     "macOS": {
       "minimumSystemVersion": "13.5",
-      "bundleVersion": "49",
+      "bundleVersion": "50",
       "entitlements": "app-store/shell.entitlements",
       "infoPlist": "app-store/Info.plist"
     }
