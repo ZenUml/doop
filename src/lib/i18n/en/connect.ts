@@ -1,6 +1,6 @@
 /** Connect AI: the agent picker, each agent's setup steps, and the desktop Codex hand-off. */
 export const connect = {
-  blurbClaudeCode: 'Connect from your terminal',
+  blurbClaudeCode: 'Connect your coding agent',
   blurbClaude: 'Add Diagramly to Claude',
   blurbChatgpt: 'Connect in your browser',
   blurbCodex: 'ChatGPT desktop and Codex CLI',
@@ -35,9 +35,9 @@ export const connect = {
   localCursorLede: 'Add Diagramly to Cursor and start designing together. No sign-in is needed on this machine.',
   localMcpLede:
     'Diagramly is a streamable-HTTP MCP server. Any client on this machine that supports that can design here, with no sign-in.',
-  localClaudeCodeConnectTitle: 'Connect Claude Code',
+  localClaudeCodeConnectTitle: 'Paste this into Claude Code',
   localClaudeCodeConnectBody:
-    'Paste this into Claude Code. Diagramly runs on this computer, so no sign-in is needed.',
+    'Diagramly runs on this computer, so no sign-in is needed.',
   seeInstructions: 'See what Claude Code will read',
 
   localChatgptAddAfter:

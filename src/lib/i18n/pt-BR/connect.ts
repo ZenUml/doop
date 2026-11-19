@@ -1,7 +1,7 @@
 import type { Catalog } from '..'
 
 export const connect: Catalog['connect'] = {
-  blurbClaudeCode: 'Conecte pelo seu terminal',
+  blurbClaudeCode: 'Conecte seu agente de código',
   blurbClaude: 'Adicione o Diagramly ao Claude',
   blurbChatgpt: 'Conecte pelo navegador',
   blurbCodex: 'ChatGPT desktop e Codex CLI',
@@ -37,9 +37,9 @@ export const connect: Catalog['connect'] = {
     'Adicione o Diagramly ao Cursor e comecem a desenhar juntos. Não é preciso fazer login neste computador.',
   localMcpLede:
     'O Diagramly é um servidor MCP streamable-HTTP. Qualquer cliente neste computador que suporte isso pode desenhar aqui, sem login.',
-  localClaudeCodeConnectTitle: 'Conecte o Claude Code',
+  localClaudeCodeConnectTitle: 'Cole isto no Claude Code',
   localClaudeCodeConnectBody:
-    'Cole isto no Claude Code. O Diagramly roda neste computador, então não é preciso fazer login.',
+    'O Diagramly roda neste computador, então não é preciso fazer login.',
   seeInstructions: 'Veja o que o Claude Code vai ler',
 
   localChatgptAddAfter:
