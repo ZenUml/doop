@@ -125,6 +125,27 @@ it('in the desktop app, Claude Code is one plain command with no header', async 
   expect(text()).toContain('Work on Diagramly canvas c1.')
 })
 
+it.each(['Claude Code', 'Codex', 'Cursor', 'Other MCP client', 'Headless agent or server'])(
+  '%s with no canvas open still gives a ready first message',
+  async (agent) => {
+    await mount()
+    await pickAgent(agent)
+    /* "open a canvas and tell the agent to work on it" left the reader with nothing to do */
+    expect(text()).toContain('Ask it to start designing')
+    expect(text()).toContain('Use the Diagramly MCP server.')
+    expect(text()).toContain('list my canvases')
+    expect(text()).not.toContain('Point it at this canvas')
+    expect(text()).not.toContain('which canvas to work on')
+  },
+)
+
+it('with a canvas open, the first message names that canvas', async () => {
+  await mount('c1')
+  await pickAgent('Claude Code')
+  expect(text()).toContain('Point it at this canvas')
+  expect(text()).toContain('Work on Diagramly canvas c1.')
+})
+
 it('on hosted Diagramly, Claude Code keeps the browser sign-in', async () => {
   mocks.desktop = false
   await mount('c1')
@@ -169,7 +190,7 @@ it('skips the canvas prompt and the arrival status when opened without a canvas'
   await pickAgent('Claude Code')
   expect(text()).not.toContain('Work on Diagramly canvas')
   expect(text()).not.toContain('Waiting for agent activity')
-  expect(text()).toContain('Open a canvas and tell the agent to work on it')
+  expect(text()).toContain('Ask it to start designing')
 })
 
 it('saves the bundled extension through the App Store shell', async () => {
@@ -286,18 +307,15 @@ it('reports recent canvas activity without claiming that a selected client conne
   expect(text()).toContain('Waiting for agent activity on this canvas')
 })
 
-it.each(['Add Diagramly to Claude'])(
-  'desktop %s authorizes the local library in the browser',
-  async (agent) => {
-    mocks.desktop = true
-    await mount('local-copy-test')
-    await pickAgent(agent)
-    expect(text()).toContain('sign in to your local library profile')
-    expect(text()).toContain('approve access to this local library')
-    expect(text()).not.toContain('Connect your Diagramly account')
-    expect(text()).not.toContain('Sign in to Diagramly')
-  },
-)
+it.each(['Add Diagramly to Claude'])('desktop %s authorizes the local library in the browser', async (agent) => {
+  mocks.desktop = true
+  await mount('local-copy-test')
+  await pickAgent(agent)
+  expect(text()).toContain('sign in to your local library profile')
+  expect(text()).toContain('approve access to this local library')
+  expect(text()).not.toContain('Connect your Diagramly account')
+  expect(text()).not.toContain('Sign in to Diagramly')
+})
 
 it('keeps the existing website account wording for Claude Desktop', async () => {
   await mount()

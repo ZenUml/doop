@@ -164,9 +164,9 @@ function agentSteps(
 ): { lede: string; steps: Step[] } {
   const jsonConfig = JSON.stringify({ mcpServers: { diagramly: { type: 'http', url: mcpUrl } } }, null, 2)
   const pointAt: Step = {
-    title: t('connect.pointAtTitle'),
-    body: prompt ? t('connect.pointAtWithPrompt') : t('connect.pointAtNoPrompt'),
-    code: prompt || undefined,
+    title: t(canvasId ? 'connect.pointAtTitle' : 'connect.pointAtTitleNoCanvas'),
+    body: t(canvasId ? 'connect.pointAtWithPrompt' : 'connect.pointAtNoCanvas'),
+    code: prompt,
   }
   /* The desktop app's server answers agents on this machine without a sign-in
      (server/localDesktopAuth.ts), so these clients skip the browser step. */
@@ -225,7 +225,7 @@ function agentSteps(
             },
             {
               ...pointAt,
-              body: prompt ? t('connect.claudeDesktopPointWithPrompt') : t('connect.claudeDesktopPointNoPrompt'),
+              body: t('connect.claudeDesktopPointWithPrompt'),
             },
           ],
         }
@@ -266,7 +266,7 @@ function agentSteps(
           },
           {
             ...pointAt,
-            body: prompt ? t('connect.claudeWebPointWithPrompt') : t('connect.claudeWebPointNoPrompt'),
+            body: t('connect.claudeWebPointWithPrompt'),
           },
         ],
       }
@@ -336,7 +336,7 @@ function agentSteps(
           },
           {
             ...pointAt,
-            body: prompt ? t('connect.chatgptPointWithPrompt') : t('connect.chatgptPointNoPrompt'),
+            body: t('connect.chatgptPointWithPrompt'),
           },
         ],
       }
@@ -373,7 +373,7 @@ function agentSteps(
           ...(desktop ? [] : [{ title: t('connect.approveSignInTitle'), body: t('connect.cursorApproveBody') }]),
           {
             ...pointAt,
-            body: prompt ? t('connect.cursorPointWithPrompt') : t('connect.cursorPointNoPrompt'),
+            body: t('connect.cursorPointWithPrompt'),
           },
         ],
       }
@@ -427,7 +427,7 @@ function AgentSteps({
      which canvas the human is looking at. */
   const prompt = canvasId
     ? `Work on Diagramly canvas ${canvasId}. Start with get_guide({ topic: "design-instructions" }) and follow it.`
-    : ''
+    : 'Use the Diagramly MCP server. Start with get_guide({ topic: "design-instructions" }) and follow it. Then list my canvases and ask me which one to work on, or create a new canvas if I want a fresh start.'
   const [mcpConnection, setMcpConnection] = useState<McpConnection>('browser')
   /* a browser keeps these steps open beside the new tab; the desktop shell's
      tabs hold canvases only, and the system browser may not be signed in, so

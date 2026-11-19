@@ -15,10 +15,11 @@ export const connect: Catalog['connect'] = {
   chooseLede:
     'Deixe um agente que você já usa trabalhar neste canvas via MCP. Escolha o seu para ver as instruções de conexão.',
 
+  pointAtTitleNoCanvas: 'Peça para ele começar a desenhar',
+  pointAtNoCanvas:
+    'Nenhum canvas está aberto, então esta mensagem faz o agente listar seus canvases ou criar um novo. Cole-a como primeira mensagem; todo o resto vem do servidor.',
   pointAtTitle: 'Aponte-o para este canvas',
   pointAtWithPrompt: 'Cole isto como sua primeira mensagem. Todo o resto de que o agente precisa vem do servidor.',
-  pointAtNoPrompt:
-    'Abra um canvas e peça ao agente para trabalhar nele. Todo o resto de que ele precisa vem do servidor.',
   approveSignInTitle: 'Aprove o login',
 
   claudeCodeLede: 'Três passos, cerca de um minuto. Depois o Claude Code desenha neste canvas em seu nome.',
@@ -50,8 +51,6 @@ export const connect: Catalog['connect'] = {
     'Ative a extensão no Claude. Entre no Diagramly no navegador que se abrir e aprove a conexão.',
   claudeDesktopPointWithPrompt:
     'Inicie um novo chat no Claude, ative o Diagramly no menu de ferramentas e envie isto como sua primeira mensagem.',
-  claudeDesktopPointNoPrompt:
-    'Inicie um novo chat no Claude, ative o Diagramly no menu de ferramentas e diga em qual canvas ele deve trabalhar.',
 
   claudePublicLede: 'O conector online do Claude precisa de um servidor HTTPS acessível publicamente.',
   claudeLocalTitle: 'Use a conexão desktop para este servidor',
@@ -66,8 +65,6 @@ export const connect: Catalog['connect'] = {
   claudeWebApproveBody: 'Clique em Connect no novo conector. Uma aba do navegador se abre para você aprovar a conexão.',
   claudeWebPointWithPrompt:
     'Em um novo chat, ative o Diagramly no menu de ferramentas e envie isto como sua primeira mensagem.',
-  claudeWebPointNoPrompt:
-    'Em um novo chat, ative o Diagramly no menu de ferramentas e diga em qual canvas ele deve trabalhar.',
 
   chatgptPublicLede:
     'O ChatGPT precisa de um endereço HTTPS público ou de um túnel seguro para acessar este servidor Diagramly.',
@@ -89,8 +86,6 @@ export const connect: Catalog['connect'] = {
   chatgptAddAfter: '. Entre no Diagramly quando solicitado e instale o plugin criado.',
   chatgptPointWithPrompt:
     'Inicie um novo chat, digite @ e selecione Diagramly, depois envie isto como sua primeira mensagem.',
-  chatgptPointNoPrompt:
-    'Inicie um novo chat, digite @ e selecione Diagramly, depois diga em qual canvas ele deve trabalhar.',
 
   codexLede: 'Adicione o Diagramly pelo app desktop, entre e comece a desenhar com o Codex.',
   codexAddTitle: 'Adicione o Diagramly ao Codex',
@@ -106,7 +101,6 @@ export const connect: Catalog['connect'] = {
   cursorApproveBody:
     'Ative o servidor diagramly no Cursor e conclua o login pelo navegador. Depois disso, seu agente pode trabalhar nos canvases a que você tem acesso.',
   cursorPointWithPrompt: 'Abra o chat do Agent e envie isto como sua primeira mensagem.',
-  cursorPointNoPrompt: 'Abra o chat do Agent e diga em qual canvas ele deve trabalhar.',
 
   mcpLede:
     'O Diagramly é um servidor MCP streamable-HTTP com OAuth. Qualquer cliente com esse suporte pode desenhar aqui.',
