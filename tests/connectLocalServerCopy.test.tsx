@@ -104,6 +104,12 @@ describe.each(cells)(
     })
     it.each(AGENTS)('%s', async (agent) => {
       await mount(canvas)
+      if (agent === 'Add Diagramly to Claude' && server === 'local') {
+        /* Claude Code already covers this machine; the Claude Desktop extension is not offered here */
+        expect(button('Claude Add Diagramly to Claude'), 'no Claude card on the local server').toBeUndefined()
+        expect(text()).not.toContain('Add Diagramly to Claude')
+        return
+      }
       await pickAgent(agent)
       const variants =
         agent === 'Add Diagramly to Claude' && server === 'hosted-desktop'

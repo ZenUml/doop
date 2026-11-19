@@ -98,24 +98,28 @@ function AgentPicker({ onPick }: { onPick: (agent: AgentId) => void }) {
       <ModalTitle>{t('connect.chooseTitle')}</ModalTitle>
       <ModalLede>{t('connect.chooseLede')}</ModalLede>
       <ChoiceList className="mt-5">
-        {AGENTS.filter((option) => !(option.id === 'chatgpt' && isLocalDesktopServer())).map((option) => (
-          <ChoiceRow
-            key={option.id}
-            icon={<AppIcon brand={option.icon} />}
-            title={agentName(option, t)}
-            description={t(option.blurb)}
-            onClick={() => {
-              posthog.capture('connect_ai_agent_chosen', { agent: option.id })
-              onPick(option.id)
-            }}
-          />
-        ))}
+        {AGENTS.filter((option) => !(['chatgpt', 'claude'].includes(option.id) && isLocalDesktopServer())).map(
+          (option) => (
+            <ChoiceRow
+              key={option.id}
+              icon={<AppIcon brand={option.icon} />}
+              title={agentName(option, t)}
+              description={t(option.blurb)}
+              onClick={() => {
+                posthog.capture('connect_ai_agent_chosen', { agent: option.id })
+                onPick(option.id)
+              }}
+            />
+          ),
+        )}
       </ChoiceList>
     </div>
   )
 }
 
 interface Step {
+  /** a lone step with nothing to say besides its message: drawn without a number, title or body */
+  bare?: boolean
   title: string
   body: ReactNode
   code?: string
@@ -191,7 +195,7 @@ function agentSteps(
   mcpUrl: string,
   prompt: string,
   { claudeConnection, mcpConnection, canvasId, openAgentKeys }: StepOptions,
-): { lede: string; steps: Step[] } {
+): { lede?: string; steps: Step[] } {
   const jsonConfig = JSON.stringify({ mcpServers: { diagramly: { type: 'http', url: mcpUrl } } }, null, 2)
   const pointAt: Step = {
     title: t(canvasId ? 'connect.pointAtTitle' : 'connect.pointAtTitleNoCanvas'),
@@ -209,11 +213,11 @@ function agentSteps(
            loaded yet, to call it directly: a server added inside a running session only
            loads natively after the session is reopened */
         return {
-          lede: t('connect.localClaudeCodeLede'),
           steps: [
             {
-              title: t('connect.localClaudeCodeConnectTitle'),
-              body: t('connect.localClaudeCodeConnectBody'),
+              bare: true,
+              title: 'claude-code',
+              body: null,
               code: `Connect Diagramly: read ${new URL('/connect.md', mcpUrl).href} and follow it. ${
                 canvasId ? `Then list the diagrams on canvas ${canvasId}.` : 'Then list all my canvases.'
               }`,
@@ -223,7 +227,7 @@ function agentSteps(
         }
       }
       return {
-        lede: t(desktop ? 'connect.localClaudeCodeLede' : 'connect.claudeCodeLede'),
+        lede: t('connect.claudeCodeLede'),
         steps: [
           {
             title: t('connect.claudeCodeAddTitle'),
@@ -503,7 +507,7 @@ function AgentSteps({
           <AppIcon brand={option.icon} size={40} />
           <div>
             <ModalTitle>{t('connect.connectAgentTitle', { name })}</ModalTitle>
-            <ModalLede className="mt-1">{lede}</ModalLede>
+            {lede && <ModalLede className="mt-1">{lede}</ModalLede>}
           </div>
         </div>
 
@@ -531,24 +535,31 @@ function AgentSteps({
         )}
 
         <ol className="mt-6">
-          {steps.map((step, i) => (
-            <li
-              key={step.title}
-              className={cn('grid grid-cols-[28px_1fr] gap-3.5', i > 0 && 'mt-3.5 border-t border-line-soft pt-3.5')}
-            >
-              <span className="mt-px grid size-[26px] place-items-center rounded-full bg-ink text-xs font-bold text-paper">
-                {i + 1}
-              </span>
-              <div>
-                <h4 className="text-copy font-semibold text-ink">{step.title}</h4>
-                <p className="mt-0.5 text-body leading-[1.5] text-ink-soft [&_code]:rounded-[4px] [&_code]:bg-paper-deep [&_code]:px-1 [&_code]:font-mono [&_code]:text-caption [&_code]:text-ink">
-                  {step.body}
-                </p>
-                {step.code && <CodeBlock text={step.code} className="mt-2.5" />}
+          {steps.map((step, i) =>
+            step.bare ? (
+              <li key={step.title}>
+                {step.code && <CodeBlock text={step.code} />}
                 {step.action}
-              </div>
-            </li>
-          ))}
+              </li>
+            ) : (
+              <li
+                key={step.title}
+                className={cn('grid grid-cols-[28px_1fr] gap-3.5', i > 0 && 'mt-3.5 border-t border-line-soft pt-3.5')}
+              >
+                <span className="mt-px grid size-[26px] place-items-center rounded-full bg-ink text-xs font-bold text-paper">
+                  {i + 1}
+                </span>
+                <div>
+                  <h4 className="text-copy font-semibold text-ink">{step.title}</h4>
+                  <p className="mt-0.5 text-body leading-[1.5] text-ink-soft [&_code]:rounded-[4px] [&_code]:bg-paper-deep [&_code]:px-1 [&_code]:font-mono [&_code]:text-caption [&_code]:text-ink">
+                    {step.body}
+                  </p>
+                  {step.code && <CodeBlock text={step.code} className="mt-2.5" />}
+                  {step.action}
+                </div>
+              </li>
+            ),
+          )}
         </ol>
 
         {agent === 'claude' && claudeConnection === 'web' && claudeConnectorInstallUrl(mcpUrl) && (

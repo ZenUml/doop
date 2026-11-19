@@ -139,15 +139,22 @@ it('in the desktop app with no canvas open, the message asks to list all canvase
   expect(text()).not.toContain('Then list the diagrams on canvas')
 })
 
-it('in the desktop app, Claude has no dead "Connect online" tab and no browser sign-in', async () => {
+it('in the desktop app, the picker offers no Claude Desktop extension: Claude Code covers this machine', async () => {
   mocks.desktop = true
   await mount('c1')
-  await pickAgent('Add Diagramly to Claude')
-  /* claude.ai cannot reach this machine, so that tab could only say "choose Desktop app" */
-  expect(button('Connect online')).toBeUndefined()
-  expect(text()).not.toContain('sign in')
-  expect(text()).not.toContain('Claude’s online connector needs')
-  expect(text()).toContain('Install the extension in Claude Desktop')
+  expect(text()).toContain('Claude Code')
+  expect(text()).not.toContain('Add Diagramly to Claude')
+})
+
+it('in the desktop app, Claude Code is a bare message: no number, step title or lede', async () => {
+  mocks.desktop = true
+  await mount('c1')
+  await pickAgent('Claude Code')
+  expect(text()).toContain('Connect Claude Code')
+  expect(text()).not.toContain('Paste this into Claude Code')
+  expect(text()).not.toContain('One message')
+  expect(text()).not.toContain('no sign-in is needed')
+  expect(document.querySelector('ol li > span.rounded-full')).toBeNull()
 })
 
 it.each(['Claude Code', 'Codex', 'Cursor', 'Other MCP client', 'Headless agent or server'])(

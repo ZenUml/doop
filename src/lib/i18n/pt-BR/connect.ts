@@ -31,15 +31,11 @@ export const connect: Catalog['connect'] = {
   claudeCodeSignInPick: ', escolha ',
   claudeCodeSignInThen: ' e depois ',
   claudeCodeSignInAfter: '. Uma aba do navegador se abre para você aprovar a conexão.',
-  localClaudeCodeLede: 'Uma mensagem, cerca de um minuto. O Claude Code adiciona o Diagramly e começa a desenhar, sem login.',
   localCodexLede: 'Adicione o Diagramly ao Codex e comece a desenhar. Não é preciso fazer login neste computador.',
   localCursorLede:
     'Adicione o Diagramly ao Cursor e comecem a desenhar juntos. Não é preciso fazer login neste computador.',
   localMcpLede:
     'O Diagramly é um servidor MCP streamable-HTTP. Qualquer cliente neste computador que suporte isso pode desenhar aqui, sem login.',
-  localClaudeCodeConnectTitle: 'Cole isto no Claude Code',
-  localClaudeCodeConnectBody:
-    'O Diagramly roda neste computador, então não é preciso fazer login.',
   seeInstructions: 'Veja o que o Claude Code vai ler',
 
   localChatgptAddAfter:

@@ -30,14 +30,10 @@ export const connect = {
   claudeCodeSignInPick: ', pick ',
   claudeCodeSignInThen: ', then ',
   claudeCodeSignInAfter: '. A browser tab opens so you can approve the connection.',
-  localClaudeCodeLede: 'One message, about a minute. Claude Code adds Diagramly and starts designing, with no sign-in.',
   localCodexLede: 'Add Diagramly to Codex and start designing. No sign-in is needed on this machine.',
   localCursorLede: 'Add Diagramly to Cursor and start designing together. No sign-in is needed on this machine.',
   localMcpLede:
     'Diagramly is a streamable-HTTP MCP server. Any client on this machine that supports that can design here, with no sign-in.',
-  localClaudeCodeConnectTitle: 'Paste this into Claude Code',
-  localClaudeCodeConnectBody:
-    'Diagramly runs on this computer, so no sign-in is needed.',
   seeInstructions: 'See what Claude Code will read',
 
   localChatgptAddAfter:
