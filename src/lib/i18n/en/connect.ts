@@ -35,7 +35,7 @@ export const connect = {
   localCursorLede: 'Add Diagramly to Cursor and start designing together. No sign-in is needed on this machine.',
   localMcpLede:
     'Diagramly is a streamable-HTTP MCP server. Any client on this machine that supports that can design here, with no sign-in.',
-  seeInstructions: 'See what Claude Code will read',
+  seeInstructions: 'See what {name} will read',
 
   localChatgptAddAfter:
     '. In the browser, sign in to your local library profile and approve access to this local library, then install the resulting plugin.',

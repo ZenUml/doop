@@ -37,7 +37,7 @@ export const connect: Catalog['connect'] = {
     'Adicione o Diagramly ao Cursor e comecem a desenhar juntos. Não é preciso fazer login neste computador.',
   localMcpLede:
     'O Diagramly é um servidor MCP streamable-HTTP. Qualquer cliente neste computador que suporte isso pode desenhar aqui, sem login.',
-  seeInstructions: 'Veja o que o Claude Code vai ler',
+  seeInstructions: 'Veja o que {name} vai ler',
 
   localChatgptAddAfter:
     '. No navegador, entre no seu perfil da biblioteca local, autorize o acesso a esta biblioteca e instale o plugin.',

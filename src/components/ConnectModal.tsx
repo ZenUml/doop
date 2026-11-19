@@ -167,7 +167,7 @@ function agentKeySteps(t: Translate, mcpUrl: string, pointAt: Step, openAgentKey
 const isLocalDesktopServer = () => isDesktopShell() && ['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname)
 
 /** The text the agent will read, fetched from the same /connect.md the agent gets. */
-function ConnectInstructions() {
+function ConnectInstructions({ name }: { name: string }) {
   const t = useT()
   const [text, setText] = useState('')
   useEffect(() => {
@@ -183,7 +183,10 @@ function ConnectInstructions() {
   }, [])
   if (!text) return null
   return (
-    <Disclosure label={t('connect.seeInstructions')} className="mt-3 text-label leading-relaxed text-ink-soft">
+    <Disclosure
+      label={t('connect.seeInstructions', { name })}
+      className="mt-3 text-label leading-relaxed text-ink-soft"
+    >
       <pre className="mt-1 whitespace-pre-wrap break-words rounded-[6px] bg-paper-deep p-3 font-mono text-caption text-ink">
         {text}
       </pre>
@@ -194,7 +197,7 @@ function ConnectInstructions() {
 /** One plain message for an agent on this machine: it reads /connect.md (served by this
  *  desktop server, shown below the message so nothing is hidden), adds the server and, if its
  *  tools are not loaded yet, calls it directly. */
-function localAgentMessage(mcpUrl: string, canvasId: string | undefined): { steps: Step[] } {
+function localAgentMessage(name: string, mcpUrl: string, canvasId: string | undefined): { steps: Step[] } {
   return {
     steps: [
       {
@@ -204,7 +207,7 @@ function localAgentMessage(mcpUrl: string, canvasId: string | undefined): { step
         code: `Connect Diagramly: read ${new URL('/connect.md', mcpUrl).href} and follow it. ${
           canvasId ? `Then list the diagrams on canvas ${canvasId}.` : 'Then list all my canvases.'
         }`,
-        action: <ConnectInstructions />,
+        action: <ConnectInstructions name={name} />,
       },
     ],
   }
@@ -233,7 +236,7 @@ function agentSteps(
            shown below so nothing is hidden) to add the server and, if its tools are not
            loaded yet, to call it directly: a server added inside a running session only
            loads natively after the session is reopened */
-        return localAgentMessage(mcpUrl, canvasId)
+        return localAgentMessage('Claude Code', mcpUrl, canvasId)
       }
       return {
         lede: t('connect.claudeCodeLede'),
@@ -407,7 +410,7 @@ function agentSteps(
         ],
       }
     case 'codex':
-      if (desktop) return localAgentMessage(mcpUrl, canvasId)
+      if (desktop) return localAgentMessage('Codex', mcpUrl, canvasId)
       return {
         lede: t(desktop ? 'connect.localCodexLede' : 'connect.codexLede'),
         steps: [
@@ -429,7 +432,7 @@ function agentSteps(
         ],
       }
     case 'cursor':
-      if (desktop) return localAgentMessage(mcpUrl, canvasId)
+      if (desktop) return localAgentMessage('Cursor', mcpUrl, canvasId)
       return {
         lede: t(desktop ? 'connect.localCursorLede' : 'connect.cursorLede'),
         steps: [

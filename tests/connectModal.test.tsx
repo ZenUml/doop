@@ -139,6 +139,7 @@ it('in the desktop app, Codex is the same bare message: one step, no install but
   )
   expect(document.querySelector('ol li > span.rounded-full')).toBeNull()
   expect(text()).not.toContain('Add Diagramly to Codex')
+  expect(text()).not.toContain('See what Claude Code will read')
   expect(text()).not.toContain('codex mcp')
 })
 
@@ -152,6 +153,7 @@ it('in the desktop app, Cursor is the same bare message: one step, no install bu
   )
   expect(document.querySelector('ol li > span.rounded-full')).toBeNull()
   expect(text()).not.toContain('Add to Cursor')
+  expect(text()).not.toContain('See what Claude Code will read')
 })
 
 it('in the desktop app with no canvas open, the message asks to list all canvases', async () => {
