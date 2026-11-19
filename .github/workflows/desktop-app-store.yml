@@ -5,6 +5,15 @@ on:
     paths:
       ['desktop/**', 'scripts/desktop-*', 'server/**', 'shared/**', 'src/**', '.github/workflows/desktop-app-store.yml']
   workflow_dispatch:
+    inputs:
+      signed:
+        description: Build the signed Mac App Store pkg (needs the MAS_* secrets)
+        type: boolean
+        default: false
+      upload:
+        description: Upload the signed pkg to App Store Connect (TestFlight)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -30,7 +39,7 @@ jobs:
           node --test scripts/desktop-packaging.test.mjs
 
   unsigned-review-bundle:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && !inputs.signed
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -48,4 +57,71 @@ jobs:
         with:
           name: diagramly-mac-app-store-review
           path: ${{ runner.temp }}/zenuml-review-build/
+          retention-days: 7
+
+  signed-pkg:
+    if: github.event_name == 'workflow_dispatch' && inputs.signed
+    runs-on: macos-latest
+    environment: mac-app-store
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5 # v2.0.1
+        with:
+          bun-version: 1.3.10
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@f0deed1e0edfc6a9be95417288c0e1099b1eeec3 # v2.7.7
+        with:
+          workspaces: desktop/src-tauri
+          shared-key: desktop
+      - name: Install signing identities and provisioning profile
+        env:
+          MAS_APP_CERTIFICATE: ${{ secrets.MAS_APP_CERTIFICATE }}
+          MAS_INSTALLER_CERTIFICATE: ${{ secrets.MAS_INSTALLER_CERTIFICATE }}
+          MAS_CERTIFICATE_PASSWORD: ${{ secrets.MAS_CERTIFICATE_PASSWORD }}
+          MAS_PROVISIONING_PROFILE_B64: ${{ secrets.MAS_PROVISIONING_PROFILE_B64 }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          security create-keychain -p "" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "" "$KEYCHAIN"
+          for name in APP INSTALLER; do
+            var="MAS_${name}_CERTIFICATE"
+            printf '%s' "${!var}" | base64 --decode > "$RUNNER_TEMP/$name.p12"
+            security import "$RUNNER_TEMP/$name.p12" -P "$MAS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          done
+          security set-key-partition-list -S apple-tool:,apple: -k "" "$KEYCHAIN"
+          security list-keychain -d user -s "$KEYCHAIN"
+          printf '%s' "$MAS_PROVISIONING_PROFILE_B64" | base64 --decode > "$RUNNER_TEMP/zenuml.provisionprofile"
+          {
+            echo "MAS_APPLICATION_IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN" | sed -n 's/.*"\(\(Apple Distribution\|3rd Party Mac Developer Application\):[^"]*\)".*/\1/p' | head -1)"
+            echo "MAS_INSTALLER_IDENTITY=$(security find-identity -v "$KEYCHAIN" | sed -n 's/.*"\(3rd Party Mac Developer Installer:[^"]*\)".*/\1/p' | head -1)"
+            echo "MAS_PROVISIONING_PROFILE=$RUNNER_TEMP/zenuml.provisionprofile"
+          } >> "$GITHUB_ENV"
+      - name: Build signed pkg
+        env:
+          DIAGRAMLY_BUILD_OUTPUT: ${{ runner.temp }}/zenuml-signed-build
+        run: bash scripts/desktop-app-store.sh --sign
+      - name: Upload to App Store Connect
+        if: inputs.upload
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" > "$HOME/.appstoreconnect/private_keys/AuthKey_${KEY_ID}.p8"
+          xcrun altool --upload-package "$RUNNER_TEMP"/zenuml-signed-build/ZenUML-*.pkg \
+            --type macos --apiKey "$KEY_ID" --apiIssuer "$ISSUER_ID" \
+            --bundle-id com.zenuml.app --bundle-version 51 --bundle-short-version-string 1.1.0
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: diagramly-mac-app-store-signed
+          path: ${{ runner.temp }}/zenuml-signed-build/*.pkg
           retention-days: 7
