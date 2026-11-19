@@ -1,10 +1,11 @@
 import { env } from './env.ts'
+import { isLocalDesktopRequest } from './localDesktopAuth.ts'
 import { diagramlyMcpAvailable } from '../shared/product.ts'
 import { buildDiagramHtml, DIAGRAM_KINDS, readDiagramFrame, updateDiagramPage } from '../shared/diagramFrame.ts'
 import { MAX_DECISION_CHARS } from '../shared/designDecisions.ts'
 import packageJson from '../package.json' with { type: 'json' }
 import { createHash } from 'node:crypto'
-import { eq } from 'drizzle-orm'
+import { asc, eq } from 'drizzle-orm'
 import { db } from './db/index.ts'
 import * as authSchema from './db/auth-schema.ts'
 import { canvasPages, framePageId, MAX_PAGE_NAME } from '../shared/pages.ts'
@@ -2572,6 +2573,25 @@ export async function handleMcpRequest(req: Request, res: Response) {
       })
       return
     }
+  } else if (
+    isLocalDesktopRequest({
+      desktop: Boolean(env.DIAGRAMLY_DESKTOP_STARTUP_TOKEN),
+      port: env.PORT,
+      remoteAddress: req.socket.remoteAddress,
+      host: req.headers.host,
+      origin: req.headers.origin,
+      secFetchSite: req.headers['sec-fetch-site'] as string | undefined,
+    })
+  ) {
+    /* The desktop app's own server, called from this machine: there is no
+       browser sign-in to wait for and no OAuth session to find, so the agent
+       acts as the library's owner (its earliest account). */
+    const [owner] = await db
+      .select({ id: authSchema.user.id })
+      .from(authSchema.user)
+      .orderBy(asc(authSchema.user.createdAt))
+      .limit(1)
+    session = owner ? { userId: owner.id } : null
   } else {
     /* OAuth gate: the 401 + WWW-Authenticate header is what triggers the
        browser approval flow in MCP clients (RFC 9728 discovery). */

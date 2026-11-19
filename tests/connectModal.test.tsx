@@ -100,39 +100,29 @@ it('shows Claude Code’s command plus the sign-in step', async () => {
   expect(onClose).toHaveBeenCalledOnce()
 })
 
-it('in the desktop app, Claude Code connects with a key made for this profile, not a browser sign-in', async () => {
+it.each([
+  ['Claude Code', 'Authenticate'],
+  ['Codex', 'codex mcp login diagramly'],
+  ['Cursor', 'Approve the sign-in'],
+])('in the desktop app, %s needs no sign-in step: the local server answers its own machine', async (agent, signIn) => {
   mocks.desktop = true
-  mocks.createAgentKey.mockResolvedValue({ id: 'k1', name: 'Claude Code', start: 'dpk_abcd', createdAt: 1, lastUsedAt: null, secret: 'dpk_secret123' })
   await mount('c1')
-  await pickAgent('Claude Code')
-  /* the system browser has no session for the local library, so its sign-in page would ask for a
-     password the profile never had; a second account made there sees none of these canvases */
-  expect(text()).not.toContain('Authenticate')
-  expect(text()).not.toContain('claude mcp add')
+  await pickAgent(agent)
+  /* the system browser has no session for the local library, and a second account made on its
+     sign-in page sees none of these canvases */
+  expect(text()).not.toContain(signIn)
+  expect(text()).not.toContain('browser sign-in.')
+  expect(text()).not.toContain('Bearer')
   expect(mocks.createAgentKey).not.toHaveBeenCalled()
-
-  await click('Create key and show command')
-  expect(mocks.createAgentKey).toHaveBeenCalledWith('Claude Code')
-  expect(text()).toContain(
-    `claude mcp add --transport http diagramly "${location.origin}/mcp" --header "Authorization: Bearer dpk_secret123"`,
-  )
-  expect(text()).toContain('Work on Diagramly canvas c1.')
 })
 
-it('in the desktop app, a failed key creation shows the reason and can be retried', async () => {
+it('in the desktop app, Claude Code is one plain command with no header', async () => {
   mocks.desktop = true
-  mocks.createAgentKey
-    .mockRejectedValueOnce(new Error('agent key limit reached — revoke one you no longer use'))
-    .mockResolvedValueOnce({ id: 'k2', name: 'Claude Code', start: 'dpk_wxyz', createdAt: 1, lastUsedAt: null, secret: 'dpk_second' })
   await mount('c1')
   await pickAgent('Claude Code')
-  await click('Create key and show command')
-  expect(text()).toContain('agent key limit reached')
-  expect(text()).not.toContain('claude mcp add')
-
-  await click('Create key and show command')
-  expect(text()).toContain('Bearer dpk_second')
-  expect(text()).not.toContain('agent key limit reached')
+  expect(text()).toContain(`claude mcp add --transport http diagramly "${location.origin}/mcp"`)
+  expect(text()).not.toContain('--header')
+  expect(text()).toContain('Work on Diagramly canvas c1.')
 })
 
 it('on hosted Diagramly, Claude Code keeps the browser sign-in', async () => {
@@ -140,7 +130,6 @@ it('on hosted Diagramly, Claude Code keeps the browser sign-in', async () => {
   await mount('c1')
   await pickAgent('Claude Code')
   expect(text()).toContain('Authenticate')
-  expect(button('Create key and show command')).toBeUndefined()
 })
 
 it('switches the generic MCP screen between browser sign-in and an agent key', async () => {
@@ -297,7 +286,7 @@ it('reports recent canvas activity without claiming that a selected client conne
   expect(text()).toContain('Waiting for agent activity on this canvas')
 })
 
-it.each(['Add Diagramly to Claude', 'Codex', 'Cursor', 'Other MCP client'])(
+it.each(['Add Diagramly to Claude'])(
   'desktop %s authorizes the local library in the browser',
   async (agent) => {
     mocks.desktop = true

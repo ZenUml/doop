@@ -30,14 +30,7 @@ export const connect: Catalog['connect'] = {
   claudeCodeSignInPick: ', escolha ',
   claudeCodeSignInThen: ' e depois ',
   claudeCodeSignInAfter: '. Uma aba do navegador se abre para você aprovar a conexão.',
-  localClaudeCodeLede:
-    'Dois passos, cerca de um minuto. Depois o Claude Code trabalha nesta biblioteca em seu nome, sem login no navegador.',
-  localClaudeCodeKeyTitle: 'Crie uma chave e adicione o Diagramly ao Claude Code',
-  localClaudeCodeKeyBody:
-    'A chave deixa o Claude Code agir como este perfil nos seus documentos locais. Execute o comando uma vez em qualquer terminal. A chave aparece só uma vez e você pode revogá-la em Configurações → Chaves de agente.',
-  localClaudeCodeKeyCreate: 'Criar chave e mostrar comando',
-  localClaudeCodeKeyCreating: 'Criando chave…',
-  localClaudeCodeKeyFailed: 'Não foi possível criar a chave. Tente de novo.',
+  localClaudeCodeLede: 'Dois passos, cerca de um minuto. Depois o Claude Code trabalha nesta biblioteca, sem login.',
 
   localChatgptAddAfter:
     '. No navegador, entre no seu perfil da biblioteca local, autorize o acesso a esta biblioteca e instale o plugin.',
