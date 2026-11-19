@@ -707,6 +707,9 @@ export function CanvasPage({
     const frame = await createCenteredFrame(canvasId, `Diagram ${n}`, html)
     select(frame.id)
     useStore.getState().setInspectorOpen(true)
+    /* the Properties panel has just opened over the right of the stage: glide the camera so the
+       new diagram sits in what is left visible, not behind the panel */
+    useStore.getState().requestFlyTo(frame.id)
   }
 
   async function addFrame() {
