@@ -214,8 +214,8 @@ function agentSteps(
             {
               title: t('connect.localClaudeCodeConnectTitle'),
               body: t('connect.localClaudeCodeConnectBody'),
-              code: `Connect Diagramly: read ${new URL('/connect.md', mcpUrl).href} and follow it.${
-                canvasId ? ` Then work on canvas ${canvasId}.` : ''
+              code: `Connect Diagramly: read ${new URL('/connect.md', mcpUrl).href} and follow it. ${
+                canvasId ? `Then list the diagrams on canvas ${canvasId}.` : 'Then list all my canvases.'
               }`,
               action: <ConnectInstructions />,
             },

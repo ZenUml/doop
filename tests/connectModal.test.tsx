@@ -120,11 +120,23 @@ it('in the desktop app, Claude Code is one plain message pointing at /connect.md
   mocks.desktop = true
   await mount('c1')
   await pickAgent('Claude Code')
-  expect(text()).toContain(`Connect Diagramly: read ${location.origin}/connect.md and follow it. Then work on canvas c1.`)
+  expect(text()).toContain(
+    `Connect Diagramly: read ${location.origin}/connect.md and follow it. Then list the diagrams on canvas c1.`,
+  )
   /* no shell chain, flags or protocol in what the person pastes */
   for (const noise of ['claude mcp', '--scope', '--transport', '>/dev/null', 'curl', 'http://127.0.0.1:' + '0']) {
     expect(text()).not.toContain(noise)
   }
+})
+
+it('in the desktop app with no canvas open, the message asks to list all canvases', async () => {
+  mocks.desktop = true
+  await mount()
+  await pickAgent('Claude Code')
+  expect(text()).toContain(
+    `Connect Diagramly: read ${location.origin}/connect.md and follow it. Then list all my canvases.`,
+  )
+  expect(text()).not.toContain('Then list the diagrams on canvas')
 })
 
 it('in the desktop app, Claude has no dead "Connect online" tab and no browser sign-in', async () => {
