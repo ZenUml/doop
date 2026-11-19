@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { ElementComment } from '../../shared/types'
 import { colorFor } from '../../shared/types'
 import { AGENT_ROLES, DEFAULT_ROLE_ID, mentionedRole, roleName } from '../../shared/agents'
+import { isDesktopShell } from '../lib/shell'
 import { cn } from '@/lib/utils'
 import { canCommentOpenCanvas, canEditOpenCanvas, useStore } from '../lib/store'
 import { clientToWorld, dropComment, DRAG_THRESHOLD_PX } from '../lib/commentMove'
@@ -183,7 +184,9 @@ export function CommentComposer({
           if (e.key === 'Escape') onCancel()
         }}
       />
-      {!mentioned && (
+      {/* the resident agents run on a hosted plan the desktop app has no way to
+          connect, so offering them there only leads to a dead end */}
+      {!mentioned && !isDesktopShell() && (
         <div className="mb-2 flex flex-wrap gap-1">
           {AGENT_ROLES.map((role) => (
             <Button
