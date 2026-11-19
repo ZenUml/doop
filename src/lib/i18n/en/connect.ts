@@ -28,6 +28,13 @@ export const connect = {
   claudeCodeSignInPick: ', pick ',
   claudeCodeSignInThen: ', then ',
   claudeCodeSignInAfter: '. A browser tab opens so you can approve the connection.',
+  localClaudeCodeLede: 'Two steps, about a minute. Claude Code then works on this library as you, with no browser sign-in.',
+  localClaudeCodeKeyTitle: 'Create a key and add Diagramly to Claude Code',
+  localClaudeCodeKeyBody:
+    'The key lets Claude Code act as this profile on your local documents. Run the command once in any terminal. The key is shown only once, and you can revoke it in Settings → Agent keys.',
+  localClaudeCodeKeyCreate: 'Create key and show command',
+  localClaudeCodeKeyCreating: 'Creating key…',
+  localClaudeCodeKeyFailed: 'Could not create the key. Try again.',
 
   localChatgptAddAfter:
     '. In the browser, sign in to your local library profile and approve access to this local library, then install the resulting plugin.',

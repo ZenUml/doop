@@ -20,6 +20,7 @@ import { CheckIcon, ChevronLeftIcon } from './ui/icons'
 import { Modal, ModalActions, ModalLede, ModalSpacer, ModalTitle } from './ui/modal'
 import { cn } from '@/lib/utils'
 import { isDesktopShell } from '../lib/shell'
+import { api, ApiError, errorMessage } from '../lib/api'
 
 /**
  * "Connect AI" is about agents that join the canvas from outside: Claude Code,
@@ -155,6 +156,48 @@ function agentKeySteps(t: Translate, mcpUrl: string, pointAt: Step, openAgentKey
   }
 }
 
+/** Desktop: the system browser has no session for the local profile, so Claude Code gets
+ *  an agent key for this profile instead of the browser OAuth sign-in. */
+function ClaudeCodeKeyCommand({ mcpUrl }: { mcpUrl: string }) {
+  const t = useT()
+  const [secret, setSecret] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const create = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      const created = await api.createAgentKey('Claude Code')
+      setSecret(created.secret)
+    } catch (e) {
+      const fallback = t('connect.localClaudeCodeKeyFailed')
+      setError(e instanceof ApiError ? errorMessage(e, fallback) : e instanceof Error && e.message ? e.message : fallback)
+    } finally {
+      setBusy(false)
+    }
+  }
+  if (secret) {
+    return (
+      <CodeBlock
+        text={`claude mcp add --transport http diagramly "${mcpUrl}" --header "Authorization: Bearer ${secret}"`}
+        className="mt-2.5"
+      />
+    )
+  }
+  return (
+    <>
+      <Button variant="solid" className="mt-2.5" disabled={busy} onClick={create}>
+        {busy ? t('connect.localClaudeCodeKeyCreating') : t('connect.localClaudeCodeKeyCreate')}
+      </Button>
+      {error && (
+        <p role="alert" className="mt-2 text-label text-danger">
+          {error}
+        </p>
+      )}
+    </>
+  )
+}
+
 function agentSteps(
   t: Translate,
   agent: AgentId,
@@ -170,6 +213,19 @@ function agentSteps(
   }
   switch (agent) {
     case 'claude-code':
+      if (isDesktopShell()) {
+        return {
+          lede: t('connect.localClaudeCodeLede'),
+          steps: [
+            {
+              title: t('connect.localClaudeCodeKeyTitle'),
+              body: t('connect.localClaudeCodeKeyBody'),
+              action: <ClaudeCodeKeyCommand mcpUrl={mcpUrl} />,
+            },
+            pointAt,
+          ],
+        }
+      }
       return {
         lede: t('connect.claudeCodeLede'),
         steps: [
@@ -474,6 +530,7 @@ function AgentSteps({
 
         {isDesktopShell() &&
           agent !== 'headless' &&
+          agent !== 'claude-code' &&
           !(agent === 'claude' && claudeConnection === 'desktop') &&
           !(agent === 'mcp' && mcpConnection === 'key') && (
             <p className="mt-4 text-body text-ink-soft">{t('connect.localLibraryBrowserApproval')}</p>
