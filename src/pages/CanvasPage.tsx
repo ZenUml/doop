@@ -962,39 +962,41 @@ export function CanvasPage({
               </Button>
             </BarPill>
           )}
-          <BarPill>
-            {!guest && !isDiagramly() && (
-              <Button variant="bare" className={barPillBtn} onClick={() => setShowShare(true)}>
-                <ShareUpIcon className="size-3.5" />
-                {t('canvas.share')}
-              </Button>
-            )}
-            {!isDiagramly() && (
-              <Tooltip
-                label={
-                  selectedId
-                    ? `${t('canvas.presentFromFrame')} · ${PRESENT_SHORTCUT_HINT}`
-                    : playFrom
-                      ? `${t('canvas.presentPrototype')} · ${PRESENT_SHORTCUT_HINT}`
-                      : t('canvas.addFrameToPresent')
-                }
-                side="bottom"
-              >
-                <span className="inline-flex">
-                  <Button
-                    variant="bare"
-                    size="icon-sm"
-                    className={barPillIconBtn}
-                    aria-label={t('canvas.presentPrototypeLabel')}
-                    disabled={!playFrom}
-                    onClick={() => setPresenting(playFrom)}
-                  >
-                    <PlayIcon className="size-3.5" />
-                  </Button>
-                </span>
-              </Tooltip>
-            )}
-          </BarPill>
+          {!isDiagramly() && (
+            <BarPill>
+              {!guest && !isDiagramly() && (
+                <Button variant="bare" className={barPillBtn} onClick={() => setShowShare(true)}>
+                  <ShareUpIcon className="size-3.5" />
+                  {t('canvas.share')}
+                </Button>
+              )}
+              {!isDiagramly() && (
+                <Tooltip
+                  label={
+                    selectedId
+                      ? `${t('canvas.presentFromFrame')} · ${PRESENT_SHORTCUT_HINT}`
+                      : playFrom
+                        ? `${t('canvas.presentPrototype')} · ${PRESENT_SHORTCUT_HINT}`
+                        : t('canvas.addFrameToPresent')
+                  }
+                  side="bottom"
+                >
+                  <span className="inline-flex">
+                    <Button
+                      variant="bare"
+                      size="icon-sm"
+                      className={barPillIconBtn}
+                      aria-label={t('canvas.presentPrototypeLabel')}
+                      disabled={!playFrom}
+                      onClick={() => setPresenting(playFrom)}
+                    >
+                      <PlayIcon className="size-3.5" />
+                    </Button>
+                  </span>
+                </Tooltip>
+              )}
+            </BarPill>
+          )}
           {/* the bar's one black action — it opens the MCP connection modal;
               an agent connected through a view or comment link could not
               change anything, so readers are not offered it */}
