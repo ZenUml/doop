@@ -48,7 +48,7 @@ const fs = require('node:fs'), path = require('node:path');
 const root = fs.realpathSync(process.argv[2]), file = process.argv[3];
 const audit = JSON.parse(fs.readFileSync(file, 'utf8'));
 if (audit.format !== 1 || audit.bundleIdentifier !== 'com.zenuml.app' || audit.version !== '1.1.0' ||
-    audit.buildVersion !== '50' || !/^\d+\.\d+(?:\.\d+)?$/.test(audit.minimumSystemVersion) ||
+    audit.buildVersion !== '51' || !/^\d+\.\d+(?:\.\d+)?$/.test(audit.minimumSystemVersion) ||
     !Array.isArray(audit.files) || !Array.isArray(audit.packages) || !Array.isArray(audit.native))
   throw Error('Invalid bundle audit manifest');
 const native = audit.native.map(entry => {
@@ -74,7 +74,7 @@ desktop_write_build_info() {
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const [local, sourceSha, archive, mode, bundleIdentifier, version, buildVersion] = process.argv.slice(2);
 if (!/^[a-f0-9]{40}$/.test(sourceSha)) throw Error('Exact Git source revision required');
-if (bundleIdentifier !== 'com.zenuml.app' || version !== '1.1.0' || buildVersion !== '50')
+if (bundleIdentifier !== 'com.zenuml.app' || version !== '1.1.0' || buildVersion !== '51')
   throw Error('Unexpected ZenUML upgrade identity/version/build');
 if (!['--unsigned', '--sign'].includes(mode)) throw Error('Unknown signing mode');
 const sha256 = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
