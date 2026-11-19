@@ -31,16 +31,19 @@ export const connect: Catalog['connect'] = {
   claudeCodeSignInPick: ', escolha ',
   claudeCodeSignInThen: ' e depois ',
   claudeCodeSignInAfter: '. Uma aba do navegador se abre para você aprovar a conexão.',
-  localClaudeCodeLede: 'Dois passos, cerca de um minuto. Depois o Claude Code trabalha nesta biblioteca, sem login.',
+  localClaudeCodeLede: 'Um comando, cerca de um minuto. Depois o Claude Code trabalha nesta biblioteca, sem login.',
+  localCodexLede: 'Adicione o Diagramly ao Codex e comece a desenhar. Não é preciso fazer login neste computador.',
+  localCursorLede:
+    'Adicione o Diagramly ao Cursor e comecem a desenhar juntos. Não é preciso fazer login neste computador.',
+  localMcpLede:
+    'O Diagramly é um servidor MCP streamable-HTTP. Qualquer cliente neste computador que suporte isso pode desenhar aqui, sem login.',
+  localClaudeCodeRunTitle: 'Adicione o Diagramly e comece a desenhar',
+  localClaudeCodeRunBody:
+    'Isto adiciona o Diagramly ao Claude Code e abre uma sessão do Claude Code que começa a desenhar. Execute uma vez em qualquer terminal.',
 
   localChatgptAddAfter:
     '. No navegador, entre no seu perfil da biblioteca local, autorize o acesso a esta biblioteca e instale o plugin.',
-  localLibraryConnectTitle: 'Autorize o acesso à sua biblioteca local',
-  localLibraryBrowserApproval:
-    'No navegador que abrir, entre no seu perfil da biblioteca local e autorize o acesso a esta biblioteca local. O agente poderá trabalhar nos seus documentos locais.',
-  localClaudeDesktopLede: 'Instale a extensão no Claude Desktop e autorize sua biblioteca local.',
-  localClaudeDesktopConnectBody:
-    'Ative a extensão no Claude. No navegador que abrir, entre no seu perfil da biblioteca local e autorize o acesso a esta biblioteca local.',
+  localClaudeDesktopLede: 'Instale a extensão no Claude Desktop. Não precisa fazer login.',
 
   claudeDesktopLede: 'Instale a extensão no Claude Desktop e conecte sua conta.',
   claudeDesktopAddTitle: 'Adicione o Diagramly ao Claude Desktop',

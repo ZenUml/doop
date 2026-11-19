@@ -30,16 +30,18 @@ export const connect = {
   claudeCodeSignInPick: ', pick ',
   claudeCodeSignInThen: ', then ',
   claudeCodeSignInAfter: '. A browser tab opens so you can approve the connection.',
-  localClaudeCodeLede: 'Two steps, about a minute. Claude Code then works on this library, with no sign-in.',
+  localClaudeCodeLede: 'One command, about a minute. Claude Code then works on this library, with no sign-in.',
+  localCodexLede: 'Add Diagramly to Codex and start designing. No sign-in is needed on this machine.',
+  localCursorLede: 'Add Diagramly to Cursor and start designing together. No sign-in is needed on this machine.',
+  localMcpLede:
+    'Diagramly is a streamable-HTTP MCP server. Any client on this machine that supports that can design here, with no sign-in.',
+  localClaudeCodeRunTitle: 'Add Diagramly and start designing',
+  localClaudeCodeRunBody:
+    'This adds Diagramly to Claude Code, then opens a Claude Code session that starts designing. Run it once in any terminal.',
 
   localChatgptAddAfter:
     '. In the browser, sign in to your local library profile and approve access to this local library, then install the resulting plugin.',
-  localLibraryConnectTitle: 'Authorize access to your local library',
-  localLibraryBrowserApproval:
-    'In the browser that opens, sign in to your local library profile and approve access to this local library. The agent can then work on your local documents.',
-  localClaudeDesktopLede: 'Install the extension in Claude Desktop, then authorize your local library.',
-  localClaudeDesktopConnectBody:
-    'Enable the extension in Claude. In the browser that opens, sign in to your local library profile and approve access to this local library.',
+  localClaudeDesktopLede: 'Install the extension in Claude Desktop. No sign-in needed.',
 
   claudeDesktopLede: 'Install the extension in Claude Desktop, then connect your account.',
   claudeDesktopAddTitle: 'Add Diagramly to Claude Desktop',

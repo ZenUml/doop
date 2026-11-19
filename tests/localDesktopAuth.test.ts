@@ -8,6 +8,7 @@ const ok: LocalDesktopRequest = {
   host: '127.0.0.1:58188',
   origin: undefined,
   secFetchSite: undefined,
+  proxied: false,
 }
 
 describe('isLocalDesktopRequest', () => {
@@ -23,21 +24,28 @@ describe('isLocalDesktopRequest', () => {
   it('never trusts a hosted server', () => {
     expect(isLocalDesktopRequest({ ...ok, desktop: false })).toBe(false)
   })
-  it.each(['evil.example', 'evil.example:58188', '127.0.0.1', '127.0.0.1:1', 'localhost.evil.example:58188', undefined])(
-    'rejects Host %s (DNS rebinding)',
-    (host) => {
-      expect(isLocalDesktopRequest({ ...ok, host })).toBe(false)
-    },
-  )
+  it.each([
+    'evil.example',
+    'evil.example:58188',
+    '127.0.0.1',
+    '127.0.0.1:1',
+    'localhost.evil.example:58188',
+    undefined,
+  ])('rejects Host %s (DNS rebinding)', (host) => {
+    expect(isLocalDesktopRequest({ ...ok, host })).toBe(false)
+  })
   it.each(['10.0.0.5', '192.168.1.9', '::ffff:10.0.0.5', undefined])('rejects socket address %s', (remoteAddress) => {
     expect(isLocalDesktopRequest({ ...ok, remoteAddress })).toBe(false)
   })
-  it('rejects a foreign Origin but allows the app\'s own', () => {
+  it("rejects a foreign Origin but allows the app's own", () => {
     expect(isLocalDesktopRequest({ ...ok, origin: 'https://evil.example' })).toBe(false)
     expect(isLocalDesktopRequest({ ...ok, origin: 'http://127.0.0.1:58188' })).toBe(true)
   })
   it('rejects cross-site fetches', () => {
     expect(isLocalDesktopRequest({ ...ok, secFetchSite: 'cross-site' })).toBe(false)
     expect(isLocalDesktopRequest({ ...ok, secFetchSite: 'same-origin' })).toBe(true)
+  })
+  it('rejects anything that came through a proxy or tunnel, even over loopback with a loopback Host', () => {
+    expect(isLocalDesktopRequest({ ...ok, proxied: true })).toBe(false)
   })
 })

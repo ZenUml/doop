@@ -12,12 +12,16 @@ export interface LocalDesktopRequest {
   host: string | undefined
   origin: string | undefined
   secFetchSite: string | undefined
+  /** any forwarding header (X-Forwarded-*, Forwarded, X-Real-IP, CF-Connecting-IP): a proxy or tunnel is in the path */
+  proxied: boolean
 }
 
 const LOOPBACK_PEERS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1'])
 
 export function isLocalDesktopRequest(r: LocalDesktopRequest): boolean {
   if (!r.desktop) return false
+  /* a local tunnel or reverse proxy reaches us over loopback too, and can rewrite Host */
+  if (r.proxied) return false
   if (!r.remoteAddress || !LOOPBACK_PEERS.has(r.remoteAddress)) return false
   const hosts = [`127.0.0.1:${r.port}`, `localhost:${r.port}`, `[::1]:${r.port}`]
   if (!r.host || !hosts.includes(r.host.toLowerCase())) return false

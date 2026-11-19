@@ -2545,6 +2545,15 @@ async function oauthClientName(clientId: string): Promise<string | undefined> {
   return app?.name
 }
 
+const FORWARDING_HEADERS = [
+  'x-forwarded-for',
+  'x-forwarded-host',
+  'x-forwarded-proto',
+  'forwarded',
+  'x-real-ip',
+  'cf-connecting-ip',
+]
+
 export async function handleMcpRequest(req: Request, res: Response) {
   if (req.method !== 'POST') {
     res.status(405).json({
@@ -2581,6 +2590,7 @@ export async function handleMcpRequest(req: Request, res: Response) {
       host: req.headers.host,
       origin: req.headers.origin,
       secFetchSite: req.headers['sec-fetch-site'] as string | undefined,
+      proxied: FORWARDING_HEADERS.some((h) => req.headers[h] !== undefined),
     })
   ) {
     /* The desktop app's own server, called from this machine: there is no
