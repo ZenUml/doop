@@ -5,7 +5,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import type { Frame } from '../shared/types'
 import { buildDiagramHtml, readDiagramFrame, type DiagramFrame } from '../shared/diagramFrame'
 import { DiagramSource } from '../src/components/DiagramSource'
-import { api } from '../src/lib/api'
+import { api, ApiError } from '../src/lib/api'
 import { readDiagramDraft, writeDiagramDraft } from '../src/lib/diagramDrafts'
 import { clearHistory } from '../src/lib/history'
 import { useFrameSaves } from '../src/lib/frameSaves'
@@ -284,6 +284,32 @@ it('keeps the local draft after a compare-and-swap conflict', async () => {
     frame.updatedAt,
   )
   expect(readDiagramDraft('local-user', frame.id)?.source).toBe(unsent)
+})
+
+it('retries with the server version after a 409 so Retry save can succeed', async () => {
+  const unsent = 'flowchart LR\n  A --> retry409'
+  const newer = { ...frame, updatedAt: 9 }
+  const conflict = new ApiError(
+    409,
+    JSON.stringify({ error: 'The frame changed while you were editing. Please try again.', frame: newer }),
+  )
+  const update = vi
+    .spyOn(api, 'updateFrame')
+    .mockRejectedValueOnce(conflict)
+    .mockImplementationOnce(async (_id, patch) => ({ ...frame, ...patch, updatedAt: 10 }))
+
+  unmount()
+  mount(diagram, frame, true)
+  typeSource(unsent)
+  await act(async () => vi.advanceTimersByTimeAsync(500))
+  expect(container.textContent).toContain('Save failed')
+
+  act(() => container.querySelector<HTMLButtonElement>('[data-testid="retry-workspace"]')!.click())
+  await act(async () => vi.advanceTimersByTimeAsync(500))
+
+  expect(update).toHaveBeenCalledTimes(2)
+  expect(update.mock.calls[1]?.[2]).toBe(9)
+  expect(container.textContent).toContain('Saved')
 })
 
 it('notifies once when the browser cannot write the local draft', () => {

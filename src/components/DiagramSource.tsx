@@ -3,7 +3,7 @@ import type { Frame } from '../../shared/types'
 import { buildDiagramHtml, readDiagramFrame, type DiagramFrame } from '../../shared/diagramFrame'
 import { useStore } from '../lib/store'
 import { receiveSavedDiagramFrame } from '../lib/diagramFrameSaves'
-import { api, errorMessage } from '../lib/api'
+import { api, ApiError, errorMessage } from '../lib/api'
 import { beginFrameSave, useFrameSaves } from '../lib/frameSaves'
 import { recordUpdate } from '../lib/history'
 import { authClient } from '../lib/auth'
@@ -145,6 +145,14 @@ export function DiagramSource({
           }
         }
       } catch (error) {
+        /* A stale-version rejection names the server's current frame. Adopt its
+           version so an explicit Retry can succeed instead of repeating the same
+           stale write forever. The local draft stays unsent until the user retries. */
+        const current = error instanceof ApiError && error.status === 409 ? error.body.frame : null
+        const currentUpdatedAt = (current as { updatedAt?: unknown } | null)?.updatedAt
+        if (typeof currentUpdatedAt === 'number') {
+          latestUpdatedAt.current = Math.max(latestUpdatedAt.current, currentUpdatedAt)
+        }
         setDirty(true)
         setSaveFailed(true)
         useStore.getState().pushNotice(errorMessage(error, translate('inspector.saveFailed')))
