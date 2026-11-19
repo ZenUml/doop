@@ -169,7 +169,7 @@ export function CommentComposer({
   const send = () => text.trim() && onSubmit(text)
   /* @mention a resident agent to route the comment to it; without one the
      comment is a note for the humans in the room */
-  const mentioned = mentionedRole(text)
+  const mentioned = isDesktopShell() ? undefined : mentionedRole(text)
   return (
     <div className="w-[240px] rounded-[10px] border border-line bg-surface p-2 shadow-pop animate-[chip-in_0.18s_ease]">
       <Textarea
@@ -280,7 +280,7 @@ export function CommentThread({
       .catch(() => setFailed(true))
       .finally(() => setSending(false))
   }
-  const mentioned = mentionedRole(reply)
+  const mentioned = isDesktopShell() ? undefined : mentionedRole(reply)
   return (
     <div
       data-comment-popover

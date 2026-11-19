@@ -58,3 +58,14 @@ it('sends desktop straight to the Connect AI agent dialog instead of the dead-en
   expect(text()).not.toContain('Connect your plan')
   expect(onOpenConnect).toHaveBeenCalledTimes(1)
 })
+
+it('does not promise that an agent will pick up a typed @mention on desktop', () => {
+  shell.__DIAGRAMLY_DESKTOP__ = '1.1.0'
+  act(() => root.render(<CommentComposer onSubmit={() => {}} onCancel={() => {}} initialText="@diagramly tidy this" />))
+  expect(text()).not.toContain('will pick this up')
+})
+
+it('keeps the pick-up promise on the web', () => {
+  act(() => root.render(<CommentComposer onSubmit={() => {}} onCancel={() => {}} initialText="@diagramly tidy this" />))
+  expect(text()).toContain('will pick this up')
+})
