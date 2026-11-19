@@ -3,6 +3,7 @@ import type { ElementComment } from '../../shared/types'
 import { colorFor } from '../../shared/types'
 import { AGENT_ROLES, DEFAULT_ROLE_ID, mentionedRole, roleName } from '../../shared/agents'
 import { isDesktopShell } from '../lib/shell'
+import { replyPlaceholderKey } from '../lib/comments'
 import { cn } from '@/lib/utils'
 import { canCommentOpenCanvas, canEditOpenCanvas, useStore } from '../lib/store'
 import { clientToWorld, dropComment, DRAG_THRESHOLD_PX } from '../lib/commentMove'
@@ -324,7 +325,7 @@ export function CommentThread({
       {canComment && (
         <ThreadReply
           reply={reply}
-          placeholder={canEdit ? t('stage.replyAskAgent') : t('stage.replyEllipsis')}
+          placeholder={t(replyPlaceholderKey('thread', canEdit))}
           failed={failed}
           sending={sending}
           mentioned={mentioned}

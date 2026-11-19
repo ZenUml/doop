@@ -2,6 +2,7 @@ import type { Canvas, ElementComment, Frame } from '../../shared/types'
 import { canvasPages, framePageId } from '../../shared/pages'
 import { isCanvasComment } from '../../shared/comments'
 import { useStore } from './store'
+import { isDesktopShell } from './shell'
 
 /** One comment thread: its root pin plus the replies under it. */
 export interface CommentThreadGroup {
@@ -67,4 +68,13 @@ export function openThreadCount(
 /** Open threads on the page in view — the rail and tab badges. */
 export function useOpenThreadCount(): number {
   return useStore((s) => openThreadCount(s.comments, s.canvas, s.activePageId))
+}
+
+/** Placeholder key for a reply box. The desktop app has no hosted agent, so it never advertises @diagramly. */
+export function replyPlaceholderKey(
+  where: 'thread' | 'panel',
+  canEdit: boolean,
+): 'stage.replyAskAgent' | 'stage.replyPanelPlaceholder' | 'stage.replyEllipsis' {
+  if (isDesktopShell() || !canEdit) return 'stage.replyEllipsis'
+  return where === 'thread' ? 'stage.replyAskAgent' : 'stage.replyPanelPlaceholder'
 }
