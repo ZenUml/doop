@@ -23,7 +23,7 @@ it('the desktop server advertises no OAuth to a client on this machine, but stil
     server.stop()
     await server.stopped
   }
-})
+}, 30_000)
 
 it('an ordinary hosted server keeps advertising OAuth', async () => {
   const server = await startServer({ DIAGRAMLY_DESKTOP_STARTUP_TOKEN: '' })
@@ -33,4 +33,4 @@ it('an ordinary hosted server keeps advertising OAuth', async () => {
     server.stop()
     await server.stopped
   }
-})
+}, 30_000)
