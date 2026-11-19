@@ -78,3 +78,14 @@ export function replyPlaceholderKey(
   if (isDesktopShell() || !canEdit) return 'stage.replyEllipsis'
   return where === 'thread' ? 'stage.replyAskAgent' : 'stage.replyPanelPlaceholder'
 }
+
+/** Tag a rejection that a wall (limit wall, connect dialog) already explained,
+ *  so the thread keeps the draft but does not also print a generic failure. */
+export function markWalled<E extends Error>(err: E): E {
+  ;(err as E & { walled?: boolean }).walled = true
+  return err
+}
+
+export function isWalled(err: unknown): boolean {
+  return Boolean((err as { walled?: boolean } | null)?.walled)
+}

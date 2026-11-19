@@ -134,7 +134,8 @@ function ThreadRow({ thread }: { thread: CommentThreadGroup }) {
       posthog.capture('element_comment_replied')
       setDraft((current) => (current === draft ? '' : current))
     } catch (err) {
-      setFailed(true)
+      /* the plan wall explains a hit limit; only other failures say so here */
+      setFailed(!isResidentLimit(err))
       reportLimit(err)
     } finally {
       setSending(false)

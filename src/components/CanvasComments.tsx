@@ -5,6 +5,7 @@ import { canvasPages } from '../../shared/pages'
 import { isCanvasComment, type CanvasComment } from '../../shared/comments'
 import { useStore } from '../lib/store'
 import { api } from '../lib/api'
+import { markWalled } from '../lib/comments'
 import { getIdentity } from '../lib/identity'
 import type { ComposerPlacement } from '../lib/composerPlacement'
 import { posthog } from '../lib/posthog'
@@ -151,7 +152,10 @@ export function CanvasComments({
                   .catch((err) => {
                     /* the wall explains a hit limit; anything else surfaces
                        in the thread so the draft survives */
-                    if (isResidentLimit(err)) useStore.getState().setLimitWall(true)
+                    if (isResidentLimit(err)) {
+                      useStore.getState().setLimitWall(true)
+                      throw markWalled(err)
+                    }
                     throw err
                   })
               }

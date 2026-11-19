@@ -3,7 +3,7 @@ import type { ElementComment } from '../../shared/types'
 import { colorFor } from '../../shared/types'
 import { AGENT_ROLES, DEFAULT_ROLE_ID, mentionedRole, roleName } from '../../shared/agents'
 import { isDesktopShell } from '../lib/shell'
-import { replyPlaceholderKey } from '../lib/comments'
+import { isWalled, replyPlaceholderKey } from '../lib/comments'
 import { cn } from '@/lib/utils'
 import { canCommentOpenCanvas, canEditOpenCanvas, useStore } from '../lib/store'
 import { clientToWorld, dropComment, DRAG_THRESHOLD_PX } from '../lib/commentMove'
@@ -278,7 +278,7 @@ export function CommentThread({
     onReply(submitted)
       /* only clear what was sent — text typed meanwhile is a new draft */
       .then(() => setReply((current) => (current === submitted ? '' : current)))
-      .catch(() => setFailed(true))
+      .catch((err) => setFailed(!isWalled(err)))
       .finally(() => setSending(false))
   }
   const mentioned = isDesktopShell() ? undefined : mentionedRole(reply)

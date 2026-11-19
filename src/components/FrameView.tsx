@@ -13,6 +13,7 @@ import { loadPathEdit, type PathEditSource } from '../lib/pathEditing'
 import { currentPageCanvas } from '../lib/pages'
 import { noteFrameDocument, registerFrameWindow, requestFrame, unregisterFrameWindow } from '../lib/frameBridge'
 import { api } from '../lib/api'
+import { markWalled } from '../lib/comments'
 import { copyElementLink } from '../lib/elementLink'
 import { sendWs } from '../lib/ws'
 import { throttle } from '../lib/throttle'
@@ -2133,7 +2134,10 @@ export const FrameView = memo(function FrameView({
                               .catch((err) => {
                                 /* the wall explains a hit limit; anything else
                                  surfaces in the thread so the draft survives */
-                                if (isResidentLimit(err)) useStore.getState().setLimitWall(true)
+                                if (isResidentLimit(err)) {
+                                  useStore.getState().setLimitWall(true)
+                                  throw markWalled(err)
+                                }
                                 throw err
                               })
                           }
