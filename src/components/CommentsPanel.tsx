@@ -6,7 +6,13 @@ import { posthog } from '../lib/posthog'
 import { timeAgo } from '../lib/time'
 import { isComposingEnter } from '../lib/keys'
 import { isCanvasComment } from '../../shared/comments'
-import { pageThreads, replyPlaceholderKey, threadState, type CommentThreadGroup, type ThreadState } from '../lib/comments'
+import {
+  pageThreads,
+  replyPlaceholderKey,
+  threadState,
+  type CommentThreadGroup,
+  type ThreadState,
+} from '../lib/comments'
 import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
 import { Input } from './ui/input'

@@ -28,9 +28,7 @@ afterEach(() => {
   container.remove()
 })
 
-const thread = [
-  { id: 'c1', from: 'Alex', text: 'hello', createdAt: 1, status: 'open' },
-] as never
+const thread = [{ id: 'c1', from: 'Alex', text: 'hello', createdAt: 1, status: 'open' }] as never
 
 async function sendReply(onReply: (text: string) => Promise<unknown>) {
   act(() => root.render(<CommentThread thread={thread} onReply={onReply} onResolve={() => {}} onRetry={() => {}} />))

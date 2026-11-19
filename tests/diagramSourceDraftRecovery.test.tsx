@@ -289,7 +289,10 @@ it('keeps the local draft after a compare-and-swap conflict', async () => {
 it('retries once on its own when a 409 came only from a geometry change, such as the board growing the frame', async () => {
   const unsent = 'flowchart LR\n  A --> auto409'
   const grown = { ...frame, height: 900, updatedAt: 9 }
-  const conflict = new ApiError(409, JSON.stringify({ error: 'The frame changed while you were editing.', frame: grown }))
+  const conflict = new ApiError(
+    409,
+    JSON.stringify({ error: 'The frame changed while you were editing.', frame: grown }),
+  )
   const update = vi
     .spyOn(api, 'updateFrame')
     .mockRejectedValueOnce(conflict)
