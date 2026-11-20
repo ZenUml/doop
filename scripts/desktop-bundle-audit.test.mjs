@@ -13,7 +13,7 @@ async function fixture(run) {
     await mkdir(path.join(app, 'Contents', 'Resources'), { recursive: true })
     await writeFile(
       path.join(app, 'Contents/Info.plist'),
-      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.zenuml.app</string><key>CFBundleShortVersionString</key><string>1.1.0</string><key>CFBundleVersion</key><string>51</string><key>LSMinimumSystemVersion</key><string>13.5</string></dict></plist>',
+      '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.zenuml.app</string><key>CFBundleShortVersionString</key><string>1.1.0</string><key>CFBundleVersion</key><string>52</string><key>LSMinimumSystemVersion</key><string>13.5</string></dict></plist>',
     )
     await run(app, temporary)
   } finally {
@@ -131,12 +131,34 @@ test('rejects native code requiring an OS newer than the app declares', () =>
     await assert.rejects(auditBundle(app), /requires macOS 15.*declares 13.5/)
   }))
 
+test('rejects a native library that imports a non-public Apple API', () =>
+  fixture(async (app) => {
+    const file = path.join(app, 'Contents/Resources/local-server/app/node_modules/vendor/libprivate.dylib')
+    await mkdir(path.dirname(file), { recursive: true })
+    execFileSync(
+      '/usr/bin/xcrun',
+      [
+        'clang',
+        '-mmacosx-version-min=13.5',
+        '-dynamiclib',
+        '-x',
+        'c',
+        '-',
+        '-Wl,-undefined,dynamic_lookup',
+        '-o',
+        file,
+      ],
+      { input: 'extern void *CTFontCopyDefaultCascadeList(void *, void *); int fixture(void) { return CTFontCopyDefaultCascadeList(0, 0) != 0; }' },
+    )
+    await assert.rejects(auditBundle(app), /Non-public Apple API _CTFontCopyDefaultCascadeList.*libprivate\.dylib/)
+  }))
+
 test('requires the existing paid app identity and records upgrade version', () =>
   fixture(async (app) => {
     const result = await auditBundle(app)
     assert.equal(result.bundleIdentifier, 'com.zenuml.app')
     assert.equal(result.version, '1.1.0')
-    assert.equal(result.buildVersion, '51')
+    assert.equal(result.buildVersion, '52')
     await writeFile(
       path.join(app, 'Contents/Info.plist'),
       '<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>ai.diagramly.desktop</string></dict></plist>',
