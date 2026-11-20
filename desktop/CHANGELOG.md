@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.14.0](https://github.com/ZenUml/doop/compare/desktop-v0.13.0...desktop-v0.14.0) (2026-11-20)
+
+
+### Features
+
+* **canvas:** action registry with ⌘K palette, main menu and editor shortcuts ([#448](https://github.com/ZenUml/doop/issues/448)) ([1970798](https://github.com/ZenUml/doop/commit/1970798b4f13c65c90654116d1dcf0ae634856c0))
+* **desktop:** choose the Doop server from the sign-in screen ([#452](https://github.com/ZenUml/doop/issues/452)) ([f98867a](https://github.com/ZenUml/doop/commit/f98867a0917c36fcb2e1139b2f984a3ef9b4f0da))
+* **desktop:** local agents connect without sign-in, editor fixes (builds 48-51) ([#41](https://github.com/ZenUml/doop/issues/41)) ([c67db04](https://github.com/ZenUml/doop/commit/c67db0480352ba93f7e2ff8e9de66ee0d7a6cbfe))
+* **desktop:** prepare Diagramly for release ([#32](https://github.com/ZenUml/doop/issues/32)) ([079a82a](https://github.com/ZenUml/doop/commit/079a82acc4268aa50f4b0ee0dfdeec675f03a38f))
+* integrate Diagramly desktop and legacy migration ([#27](https://github.com/ZenUml/doop/issues/27)) ([6213409](https://github.com/ZenUml/doop/commit/6213409248434eee7d461867716276ef4c793daf))
+
+
+### Bug Fixes
+
+* **desktop:** connect Claude tools and preserve saved state ([#37](https://github.com/ZenUml/doop/issues/37)) ([105834a](https://github.com/ZenUml/doop/commit/105834a6b850020f9d84db1c6f912401c15f278c))
+* **desktop:** ship sharp's WebAssembly build so the Mac App Store scan passes ([#44](https://github.com/ZenUml/doop/issues/44)) ([d9450f7](https://github.com/ZenUml/doop/commit/d9450f7c5b3eb57349d94f7d4fa3b35bc245f563))
+* **desktop:** use the website Dia logo for app icons ([#40](https://github.com/ZenUml/doop/issues/40)) ([4e8597d](https://github.com/ZenUml/doop/commit/4e8597df9a9fa1b03798f075cf8a721b68619f45))
+
 ## [0.13.0](https://github.com/kgoedecke/doop/compare/desktop-v0.12.0...desktop-v0.13.0) (2026-11-08)
 
 
