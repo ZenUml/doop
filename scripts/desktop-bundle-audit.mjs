@@ -5,6 +5,10 @@ import path from 'node:path'
 import assert from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
 
+// Symbols that App Review's automatic scan reported as non-public. Build 51 was
+// rejected for the first one, which sharp's bundled libvips imports from CoreText.
+const NON_PUBLIC_APIS = ['_CTFontCopyDefaultCascadeList']
+
 // Run after assembling and before signing. No network access or package code
 // execution is needed. The manifest is an inventory, not a legal licence audit.
 export async function auditBundle(app) {
@@ -72,6 +76,9 @@ export async function auditBundle(app) {
       }
       const magic = data.length >= 4 ? data.readUInt32BE(0) : 0
       if ([0xfeedface, 0xcefaedfe, 0xfeedfacf, 0xcffaedfe, 0xcafebabe, 0xbebafeca].includes(magic)) {
+        for (const symbol of NON_PUBLIC_APIS) {
+          if (data.includes(symbol)) throw new Error(`Non-public Apple API ${symbol} referenced by ${relative}`)
+        }
         const loadCommands = execFileSync('/usr/bin/otool', ['-l', file], { encoding: 'utf8' })
         const targets = [...loadCommands.matchAll(/\bminos ([0-9.]+)/g)].map((match) => match[1])
         for (const match of loadCommands.matchAll(/cmd LC_VERSION_MIN_MACOSX[\s\S]*?\n\s*version ([0-9.]+)/g))

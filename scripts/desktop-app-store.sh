@@ -48,7 +48,7 @@ const fs = require('node:fs'), path = require('node:path');
 const root = fs.realpathSync(process.argv[2]), file = process.argv[3];
 const audit = JSON.parse(fs.readFileSync(file, 'utf8'));
 if (audit.format !== 1 || audit.bundleIdentifier !== 'com.zenuml.app' || audit.version !== '1.1.0' ||
-    audit.buildVersion !== '51' || !/^\d+\.\d+(?:\.\d+)?$/.test(audit.minimumSystemVersion) ||
+    audit.buildVersion !== '52' || !/^\d+\.\d+(?:\.\d+)?$/.test(audit.minimumSystemVersion) ||
     !Array.isArray(audit.files) || !Array.isArray(audit.packages) || !Array.isArray(audit.native))
   throw Error('Invalid bundle audit manifest');
 const native = audit.native.map(entry => {
@@ -74,7 +74,7 @@ desktop_write_build_info() {
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const [local, sourceSha, archive, mode, bundleIdentifier, version, buildVersion] = process.argv.slice(2);
 if (!/^[a-f0-9]{40}$/.test(sourceSha)) throw Error('Exact Git source revision required');
-if (bundleIdentifier !== 'com.zenuml.app' || version !== '1.1.0' || buildVersion !== '51')
+if (bundleIdentifier !== 'com.zenuml.app' || version !== '1.1.0' || buildVersion !== '52')
   throw Error('Unexpected ZenUML upgrade identity/version/build');
 if (!['--unsigned', '--sign'].includes(mode)) throw Error('Unknown signing mode');
 const sha256 = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -154,6 +154,9 @@ NODE
   # Optional peer suggestions include better-auth's Vitest integration. Shipping
   # runtime peers (React, pg, zod) are already explicit production dependencies.
   (cd "$STAGE" && bun install --production --omit peer --frozen-lockfile --ignore-scripts)
+  # sharp's native libvips imports a non-public CoreText function that App Review
+  # rejected in build 51. Ship the locked WebAssembly build of sharp instead.
+  "$NODE_BINARY" "$ROOT/scripts/desktop-sharp-wasm.mjs" "$STAGE/node_modules" "$STAGE/bun.lock"
   ditto "$STAGE/node_modules" "$LOCAL/app/node_modules"
   xcrun swiftc -O -parse-as-library -target "$(uname -m)-apple-macosx13.5" "$ROOT/desktop/scripts/FrameSnapshot.swift" -o "$APP/Contents/Helpers/DiagramlyFrameSnapshot"
   desktop_run_audit "$NODE_BINARY" "$ROOT/scripts/desktop-bundle-audit.mjs" "$APP" "$OUTPUT/provenance-before-signing.json"
