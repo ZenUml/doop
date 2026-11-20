@@ -23,7 +23,11 @@ async function fixture(run) {
   const temporary = await mkdtemp(path.join(os.tmpdir(), 'diagramly-sharp-wasm-'))
   try {
     const modules = path.join(temporary, 'node_modules')
-    for (const native of ['@img/sharp-darwin-arm64', '@img/sharp-libvips-darwin-arm64', '@img/sharp-libvips-darwin-x64'])
+    for (const native of [
+      '@img/sharp-darwin-arm64',
+      '@img/sharp-libvips-darwin-arm64',
+      '@img/sharp-libvips-darwin-x64',
+    ])
       await mkdir(path.join(modules, native), { recursive: true })
     await mkdir(path.join(modules, 'sharp'), { recursive: true })
     await mkdir(path.join(modules, 'tslib'), { recursive: true })
@@ -64,11 +68,17 @@ test('rejects a tarball that does not match the lockfile', () =>
   fixture(async ({ modules, lock, bodies }) => {
     const tampered = async () => Buffer.concat([bodies['@img/sharp-wasm32@0.34.3'], Buffer.from('x')])
     await assert.rejects(useSharpWasm({ nodeModules: modules, lock, fetchTarball: tampered }), /Integrity mismatch/)
-    assert.ok(existsSync(path.join(modules, '@img/sharp-libvips-darwin-arm64')), 'native files stay when the swap fails')
+    assert.ok(
+      existsSync(path.join(modules, '@img/sharp-libvips-darwin-arm64')),
+      'native files stay when the swap fails',
+    )
   }))
 
 test('fails when the lockfile has no WebAssembly entry', () =>
   fixture(async ({ modules, lock, fetchTarball }) => {
     await writeFile(lock, '{ "packages": {} }')
-    await assert.rejects(useSharpWasm({ nodeModules: modules, lock, fetchTarball }), /no locked entry for @img\/sharp-wasm32/)
+    await assert.rejects(
+      useSharpWasm({ nodeModules: modules, lock, fetchTarball }),
+      /no locked entry for @img\/sharp-wasm32/,
+    )
   }))

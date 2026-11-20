@@ -148,7 +148,10 @@ test('rejects a native library that imports a non-public Apple API', () =>
         '-o',
         file,
       ],
-      { input: 'extern void *CTFontCopyDefaultCascadeList(void *, void *); int fixture(void) { return CTFontCopyDefaultCascadeList(0, 0) != 0; }' },
+      {
+        input:
+          'extern void *CTFontCopyDefaultCascadeList(void *, void *); int fixture(void) { return CTFontCopyDefaultCascadeList(0, 0) != 0; }',
+      },
     )
     await assert.rejects(auditBundle(app), /Non-public Apple API _CTFontCopyDefaultCascadeList.*libprivate\.dylib/)
   }))
