@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { createInterface } from 'node:readline'
@@ -195,5 +196,46 @@ it('completes OAuth with Diagramly and reuses the sign-in after restarting the e
     }
   } finally {
     await writeFile(opener, original)
+  }
+}, 30_000)
+
+it('stays connected and tells the user to open Diagramly Desktop when its local server is not running', async () => {
+  // Reserve a loopback port, then release it: nothing listens there, as when
+  // Diagramly Desktop is closed.
+  const port = await new Promise<number>((resolve) => {
+    const probe = createServer().listen(0, '127.0.0.1', () => {
+      const { port } = probe.address() as { port: number }
+      probe.close(() => resolve(port))
+    })
+  })
+  const url = `http://127.0.0.1:${port}/mcp`
+  const manifest = JSON.parse(await archive.file('manifest.json')!.async('string'))
+  const args = (manifest.server.mcp_config.args as string[]).map((arg) =>
+    arg.replace('${__dirname}', directory).replace('${user_config.server_url}', url),
+  )
+  const transport = new StdioClientTransport({
+    command: process.execPath,
+    args,
+    cwd: directory,
+    env: { MCP_REMOTE_CONFIG_DIR: join(directory, 'offline') },
+    stderr: 'pipe',
+  })
+  let errors = ''
+  transport.stderr?.on('data', (chunk: Buffer) => {
+    errors += chunk.toString()
+  })
+  const client = new McpClient({ name: 'Claude offline test', version: '1.0.0' })
+  try {
+    await client.connect(transport)
+    expect(client.getInstructions()).toContain('Diagramly Desktop is not running')
+    const { tools } = await client.listTools()
+    expect(tools.map((tool) => tool.name)).toEqual(['diagramly_status'])
+    const result = await client.callTool({ name: 'diagramly_status', arguments: {} })
+    const text = (result.content as { type: string; text: string }[]).map((part) => part.text).join('\n')
+    expect(text).toContain('Diagramly Desktop is not running')
+    expect(text).toContain(url)
+    expect(errors).toContain('Diagramly Desktop is not running')
+  } finally {
+    await client.close()
   }
 }, 30_000)

@@ -90,6 +90,8 @@ zip.file('manifest.json', JSON.stringify(assets.manifest, null, 2) + '\n', { dat
 zip.file('README.md', assets.readme, { date })
 await addFile(join(root, assets.iconSource), 'icon.png')
 await addFile(join(root, 'LICENSE'), 'LICENSE')
+// Entry point: reports a stopped Diagramly Desktop instead of exiting.
+await addFile(join(root, 'claude-extension/launch.mjs'), 'launch.mjs')
 
 const output = join(root, 'public/claude-extension')
 await mkdir(output, { recursive: true })
