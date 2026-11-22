@@ -152,13 +152,18 @@ export default tseslint.config(
     },
   },
   {
-    /* repo maintenance scripts, the iOS dev helpers and the desktop release
-       scripts: plain ESM run directly by node or bun, so they get node globals
-       rather than the browser set */
-    files: ['scripts/**/*.{js,mjs}', 'ios/scripts/**/*.{js,mjs}', 'desktop/scripts/**/*.{js,mjs}'],
+    /* repo maintenance scripts, the iOS dev helpers, the desktop release
+       scripts and the Claude extension launcher: plain ESM run directly by
+       node or bun, so they get node globals rather than the browser set */
+    files: [
+      'scripts/**/*.{js,mjs}',
+      'ios/scripts/**/*.{js,mjs}',
+      'desktop/scripts/**/*.{js,mjs}',
+      'claude-extension/**/*.mjs',
+    ],
     languageOptions: {
       globals: Object.fromEntries(
-        'process console Buffer URL fetch setTimeout clearTimeout setInterval clearInterval'
+        'process console Buffer URL fetch AbortSignal setTimeout clearTimeout setInterval clearInterval'
           .split(' ')
           .map((g) => [g, 'readonly']),
       ),
